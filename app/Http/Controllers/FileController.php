@@ -86,11 +86,12 @@ class FileController extends Controller
             $file->tags()->sync($request->input('tags'));
         }
 
-        return redirect()->back()->with([
-            'success' => 'File uploaded successfully!',
-            'content' => $content,
-            'file_id' => $file->id,
-        ]);
+        return redirect()->route('files.show', $file->id)->with('success', 'File uploaded successfully!');
+//        return redirect()->back()->with([
+//            'success' => 'File uploaded successfully!',
+//            'content' => $content,
+//            'file_id' => $file->id,
+//        ]);
     }
     public function show($id)
     {
