@@ -36,7 +36,18 @@ const submit = () => {
 
                 <div class="grid gap-2">
                     <Label for="email">Email address</Label>
-                    <Input id="email" type="email" required :tabindex="2" autocomplete="email" v-model="form.email" placeholder="email@example.com" />
+                    <Input
+                        id="email"
+                        type="email"
+                        required
+                        :tabindex="2"
+                        autocomplete="email"
+                        v-model="form.email"
+                        placeholder="youremail@bpsu.edu.ph"
+                    />
+                    <div class="text-xs text-muted-foreground">
+                        Only @bpsu.edu.ph email addresses are allowed
+                    </div>
                     <InputError :message="form.errors.email" />
                 </div>
 

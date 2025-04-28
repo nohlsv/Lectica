@@ -32,8 +32,18 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                'unique:'.User::class,
+                'regex:/^[a-zA-Z0-9._%+-]+@bpsu\.edu\.ph$/',
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ], [
+            'email.regex' => 'Only @bpsu.edu.ph email addresses are allowed.',
         ]);
 
         $user = User::create([
