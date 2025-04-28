@@ -18,6 +18,20 @@ export interface NavItem {
     isActive?: boolean;
 }
 
+export interface PaginatedData<T> {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+    from: number;
+    to: number;
+    total: number;
+}
+
 export interface SharedData extends PageProps {
     name: string;
     quote: { message: string; author: string };

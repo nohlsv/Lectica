@@ -57,15 +57,43 @@ class FileController extends Controller
             'file_id' => $file->id,
         ]);
     }
-
     public function show($id)
     {
         $file = File::findOrFail($id);
+
+        // Get file extension
+        $extension = pathinfo($file->name, PATHINFO_EXTENSION);
+
+        // Check if file exists
+        $filePath = storage_path('app/public/' . $file->path);
+        $fileExists = file_exists($filePath);
+
         return Inertia::render('Files/Show', [
             'file' => $file,
+            'fileInfo' => [
+                'extension' => $extension,
+                'exists' => $fileExists,
+                'size' => $fileExists ? $this->formatFileSize(filesize($filePath)) : null,
+                'lastModified' => $fileExists ? date('Y-m-d H:i:s', filemtime($filePath)) : null,
+            ],
         ]);
     }
 
+    /**
+     * Format file size to human-readable format
+     */
+    private function formatFileSize($bytes)
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+
+        $bytes /= pow(1024, $pow);
+
+        return round($bytes, 2) . ' ' . $units[$pow];
+    }
     public function edit($id)
     {
         $file = File::findOrFail($id);
