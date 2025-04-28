@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { FileIcon, FileTextIcon, ImageIcon, FileArchiveIcon, FileVideoIcon, FileAudioIcon, FilePresentationIcon, FileSpreadsheetIcon } from 'lucide-vue-next';
+import { FileIcon, FileTextIcon,FileArchiveIcon, FilePresentationIcon, FileSpreadsheetIcon } from 'lucide-vue-next';
 
 interface Props {
     filePath: string;

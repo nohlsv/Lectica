@@ -111,8 +111,7 @@ defineSlots<{
                                     : 'text-foreground hover:bg-accent focus:outline-offset-0',
                                 'relative inline-flex items-center px-4 py-2 text-sm font-semibold border border-border'
                             ]"
-                            v-html="link.label"
-                        />
+                        >{{ link.label }}</Link>
                     </nav>
                 </div>
             </div>

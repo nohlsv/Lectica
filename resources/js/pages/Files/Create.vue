@@ -2,8 +2,8 @@
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { ArrowLeftIcon, FileIcon, UploadIcon } from 'lucide-vue-next';
-import { ref, computed } from 'vue';
+import { FileIcon, UploadIcon } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 // Define breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
