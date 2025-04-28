@@ -119,9 +119,16 @@ const submit = () => {
                                 </div>
                             </div>
                         </div>
-                        <p v-if="form.errors.file" class="mt-1 text-xs text-red-500">
+                        <div v-if="form.errors.file" class="mt-1 text-xs text-red-500">
                             {{ form.errors.file }}
-                        </p>
+                            <Link
+                                v-if="form.errors.duplicate_file_id"
+                                :href="`/files/${form.errors.duplicate_file_id}`"
+                                class="ml-1 text-primary hover:underline font-medium"
+                            >
+                                View duplicate file
+                            </Link>
+                        </div>
                     </div>
 
                     <!-- File Name -->

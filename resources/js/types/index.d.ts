@@ -50,12 +50,14 @@ export interface User {
     updated_at: string;
 }
 export interface File {
-  id: number;
-  name: string;
-  path: string;
-  content: string;
-  created_at: string;
-  updated_at: string;
+    id: number;
+    name: string;
+    path: string;
+    content: string;
+    file_hash: string;
+    user: User;
+    created_at: string;
+    updated_at: string;
 }
 
 export type BreadcrumbItemType = BreadcrumbItem;

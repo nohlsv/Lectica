@@ -71,22 +71,6 @@ defineSlots<{
             v-if="hasData"
             class="mt-4 flex items-center justify-between border-t border-border px-4 py-3 sm:px-6"
         >
-            <div class="flex flex-1 justify-between sm:hidden">
-                <Link
-                    v-if="data.links[0].url"
-                    :href="data.links[0].url ?? ''"
-                    class="relative inline-flex items-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
-                >
-                    Previous
-                </Link>
-                <Link
-                    v-if="data.links[data.links.length - 1].url"
-                    :href="data.links[data.links.length - 1].url ?? ''"
-                    class="relative ml-3 inline-flex items-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
-                >
-                    Next
-                </Link>
-            </div>
             <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
                     <p class="text-sm text-muted-foreground">
@@ -107,11 +91,12 @@ defineSlots<{
                             :href="link.url ?? ''"
                             :class="[
                                 link.active
-                                    ? 'z-10 bg-primary text-primary-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
+                                    ? 'z-10 bg-primary text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
                                     : 'text-foreground hover:bg-accent focus:outline-offset-0',
                                 'relative inline-flex items-center px-4 py-2 text-sm font-semibold border border-border'
                             ]"
-                        >{{ link.label }}</Link>
+                        ><span v-html="link.label"></span>
+                        </Link>
                     </nav>
                 </div>
             </div>

@@ -7,6 +7,7 @@ use App\Models\File;
 use Inertia\Inertia;
 use ZipArchive;
 use DOMDocument;
+use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
@@ -20,31 +21,64 @@ class FileController extends Controller
 
     public function create()
     {
-        return Inertia::render('Files/Create');
+        return Inertia::render('Files/Create' );
+    }
+
+    /**
+     * Calculate file hash for duplicate detection
+     */
+    private function calculateFileHash($file)
+    {
+        return hash_file('sha256', $file->getRealPath());
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'file' => 'required|file|mimes:txt,xlsx,pdf,pptx,doc,docx|max:2048',
+            'name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:50',
         ]);
 
         $uploadedFile = $request->file('file');
+        $fileHash = $this->calculateFileHash($uploadedFile);
+
+        // Use the provided name or fallback to original filename if empty
+        $fileName = $request->input('name');
+        if (empty($fileName)) {
+            $fileName = $uploadedFile->getClientOriginalName();
+        }
+
+        $userID = auth()->id();
+
+        // Check for duplicate by name and hash
+        $existingFile = File::where(function($query) use ($userID, $fileHash) {
+            $query->where('user_id', $userID)
+                  ->where('file_hash', $fileHash);
+        })->first();
+
+        if ($existingFile) {
+            return redirect()->back()->withErrors([
+                'file' => 'This file already exists in the system.',
+                'duplicate_file_id' => $existingFile->id // Optional: to link to the existing file
+            ]
+            );
+        }
+
         $path = $uploadedFile->store('uploads', 'public');
 
         try {
-            // Extract text content based on file type
             $content = $this->extractText($uploadedFile);
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['file' => 'Invalid file type or unable to process the file.']);
         }
 
         $file = File::create([
-            'name' => $uploadedFile->getClientOriginalName(),
+            'name' => $fileName,
             'path' => $path,
             'content' => $content,
+            'file_hash' => $fileHash,
             'user_id' => auth()->id(),
         ]);
 
@@ -126,26 +160,6 @@ class FileController extends Controller
     public function search(Request $request)
     {
         // Logic to search for files
-    }
-
-    public function share($id)
-    {
-        // Logic to share a file
-    }
-
-    public function unshare($id)
-    {
-        // Logic to unshare a file
-    }
-
-    public function favorite($id)
-    {
-        // Logic to mark a file as favorite
-    }
-
-    public function unfavorite($id)
-    {
-        // Logic to unmark a file as favorite
     }
 
     public function tag($id, Request $request)
