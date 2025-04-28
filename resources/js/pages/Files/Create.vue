@@ -1,39 +1,164 @@
-<template>
-  <div>
-    <h1>Create File</h1>
-    <form @submit.prevent="submit">
-      <div>
-        <label for="name">Name</label>
-        <input type="text" v-model="form.name" id="name" />
-      </div>
-      <div>
-        <label for="file">File</label>
-        <input type="file" @change="handleFileUpload" id="file" />
-      </div>
-      <button type="submit">Submit</button>
-    </form>
-  </div>
-</template>
+<script setup lang="ts">
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem } from '@/types';
+import { ArrowLeftIcon, FileIcon, UploadIcon } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
 
-<script>
-import { useForm } from '@inertiajs/vue3';
+// Define breadcrumbs
+const breadcrumbs: BreadcrumbItem[] = [
+    {
+        title: 'Files',
+        href: '/files',
+    },
+    {
+        title: 'Upload',
+        href: '/files/create',
+    },
+];
 
-export default {
-  setup() {
-    const form = useForm({
-      name: '',
-      file: null,
-    });
+// Initialize form with proper typing
+const form = useForm({
+    name: '',
+    file: null as File | null,
+});
 
-    const handleFileUpload = (event) => {
-      form.file = event.target.files[0];
-    };
+// File upload reference and state
+const fileInputRef = ref<HTMLInputElement | null>(null);
+const fileSelected = ref(false);
+const fileName = ref('');
+const fileSize = ref('');
 
-    const submit = () => {
-      form.post('/files');
-    };
+// Handle file upload
+const handleFileUpload = (event: Event) => {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+        const file = input.files[0];
+        form.file = file;
+        fileSelected.value = true;
+        fileName.value = file.name;
 
-    return { form, handleFileUpload, submit };
-  },
+        // Set suggested name (remove extension)
+        if (!form.name) {
+            const nameParts = file.name.split('.');
+            if (nameParts.length > 1) {
+                nameParts.pop(); // Remove extension
+            }
+            form.name = nameParts.join('.');
+        }
+
+        // Format file size
+        if (file.size < 1024) {
+            fileSize.value = `${file.size} bytes`;
+        } else if (file.size < 1024 * 1024) {
+            fileSize.value = `${(file.size / 1024).toFixed(2)} KB`;
+        } else {
+            fileSize.value = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        }
+    }
+};
+
+// Form submission
+const submit = () => {
+    form.post('/files');
 };
 </script>
+
+<template>
+    <Head title="Upload File" />
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="flex flex-col gap-6 p-6">
+            <!-- Header -->
+            <div class="flex items-center gap-4">
+<!--                <Link-->
+<!--                    href="/files"-->
+<!--                    class="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"-->
+<!--                >-->
+<!--                    <ArrowLeftIcon class="h-4 w-4" />-->
+<!--                    Back to Files-->
+<!--                </Link>-->
+                <h1 class="text-2xl font-bold">Upload New File</h1>
+            </div>
+
+            <!-- Form -->
+            <div class="flex justify-center rounded-lg border border-border p-6 self-center w-full">
+                <form @submit.prevent="submit" class="space-y-6 w-full max-w-xl">
+                <!-- File Upload -->
+                    <div class="space-y-2">
+                        <label for="file" class="block text-sm font-medium text-foreground">File</label>
+                        <div
+                            class="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-border p-6 cursor-pointer hover:border-primary transition-colors"
+                            :class="{ 'border-primary bg-primary/5': fileSelected }"
+                            @click="fileInputRef?.click()"
+                        >
+                            <input
+                                type="file"
+                                id="file"
+                                ref="fileInputRef"
+                                class="hidden"
+                                @change="handleFileUpload"
+                            />
+
+                            <div v-if="!fileSelected" class="flex flex-col items-center gap-3">
+                                <div class="rounded-full bg-primary/10 p-4">
+                                    <UploadIcon class="h-6 w-6 text-primary" />
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-medium">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, XLS, XLSX (Max 10MB)</p>
+                                </div>
+                            </div>
+
+                            <div v-else class="flex flex-col items-center gap-3">
+                                <div class="rounded-full bg-green-500/10 p-4">
+                                    <FileIcon class="h-6 w-6 text-green-500" />
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm font-medium">{{ fileName }}</p>
+                                    <p class="text-xs text-muted-foreground mt-1">{{ fileSize }} - Click to change</p>
+                                </div>
+                            </div>
+                        </div>
+                        <p v-if="form.errors.file" class="mt-1 text-xs text-red-500">
+                            {{ form.errors.file }}
+                        </p>
+                    </div>
+
+                    <!-- File Name -->
+                    <div class="space-y-2">
+                        <label for="name" class="block text-sm font-medium text-foreground">File Name</label>
+                        <input
+                            type="text"
+                            id="name"
+                            v-model="form.name"
+                            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                            placeholder="Enter a name for your file"
+                        />
+                        <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
+                            {{ form.errors.name }}
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex justify-end gap-2 pt-2">
+                        <Link
+                            href="/files"
+                            class="inline-flex items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                        >
+                            Cancel
+                        </Link>
+                        <button
+                            type="submit"
+                            class="inline-flex items-center justify-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
+                            :disabled="form.processing || !form.file"
+                        >
+                            <UploadIcon v-if="!form.processing" class="h-4 w-4" />
+                            {{ form.processing ? 'Uploading...' : 'Upload File' }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </AppLayout>
+</template>
+
