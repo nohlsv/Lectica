@@ -45,6 +45,7 @@ class FileController extends Controller
             'name' => $uploadedFile->getClientOriginalName(),
             'path' => $path,
             'content' => $content,
+            'user_id' => auth()->id(),
         ]);
 
         if ($request->has('tags')) {
