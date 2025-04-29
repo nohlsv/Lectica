@@ -156,7 +156,7 @@ class FileRecommendationService
                             ->from('file_stars')
                             ->where('user_id', $user->id);
                     })
-                    ->whereNotIn('files.id', $user->starredFiles()->pluck('id'))
+                    ->whereNotIn('files.id', $user->starredFiles()->pluck('files.id'))
                     ->groupBy('files.id')
                     ->orderByRaw('COUNT(*) DESC') // More matching tags = higher ranking
                     ->with(['tags', 'user'])
