@@ -4,6 +4,7 @@ import DataTable from '@/components/DataTable.vue';
 import { type BreadcrumbItem, type File, type PaginatedData } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import { EyeIcon, PencilIcon } from 'lucide-vue-next';
+import { useDateFormat } from '@vueuse/core';
 
 interface Props {
     files: PaginatedData<File>;
@@ -19,8 +20,9 @@ const breadcrumbs: BreadcrumbItem[] = [
 defineProps<Props>();
 
 const columns = [
-    { key: 'name', label: 'File Name' },
-    { key: 'content', label: 'File Content' },
+    { key: 'name', label: 'Name' },
+    { key: 'content', label: 'Content' },
+    { key: 'created_at', label: 'Uploaded At' },
 ];
 </script>
 
@@ -39,9 +41,13 @@ const columns = [
             <DataTable :data="files" :columns="columns">
                 <!-- Custom cell template to clamp content text -->
                 <template #cell-content="{ item }">
-                    <p class="max-w-full sm:line-clamp-2  line-clamp-4 text-sm text-muted-foreground">
+                    <p class="sm:line-clamp-2  line-clamp-4 text-sm text-muted-foreground">
                         {{ item.content }}
                     </p>
+                </template>
+                <template #cell-created_at="{ item }">
+                        <p class="text-sm">{{ useDateFormat(item.created_at, 'YYYY-MM-DD')}}
+                        </p>
                 </template>
 
                 <template #actions="{ item }">
