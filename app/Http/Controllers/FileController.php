@@ -2,21 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\File;
 use App\Models\Tag;
+use App\Services\FileRecommendationService;
 use Inertia\Inertia;
 use ZipArchive;
 use DOMDocument;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class FileController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $files = File::paginate(10);
+        $user = $request->user();
+
+        $files = File::with('user')
+            ->withCount('starredBy as star_count')
+            ->latest()
+            ->paginate(10);
+
+        // Add is_starred flag for each file in the collection
+        $starredFileIds = $user->starredFiles()->pluck('file_id')->toArray();
+
+        $files->through(function ($file) use ($starredFileIds) {
+            $file->is_starred = in_array($file->id, $starredFileIds);
+            return $file;
+        });
+
+        // Get recommendations for the user
+        $recommendationService = app(FileRecommendationService::class);
+        $recommendations = $recommendationService->getRecommendations($user, 3); // Limit to 3 items per category
+
         return Inertia::render('Files/Index', [
             'files' => $files,
+            'recommendations' => $recommendations,
         ]);
     }
 
@@ -99,9 +119,15 @@ class FileController extends Controller
 //            'file_id' => $file->id,
 //        ]);
     }
-    public function show($id)
+    public function show(Request $request, $id)
     {
-        $file = File::with('tags')->findOrFail($id);
+        $user = $request->user();
+        $file = File::with('tags')
+            ->withCount('starredBy as star_count')
+            ->findOrFail($id);
+
+        // Add is_starred attribute
+        $file->is_starred = $user->hasStarred($file);
 
         // Get file extension
         $extension = pathinfo($file->name, PATHINFO_EXTENSION);

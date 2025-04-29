@@ -1,14 +1,17 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File } from '@/types';
-import { ArrowLeftIcon, PencilIcon, DownloadIcon } from 'lucide-vue-next';
+import { ArrowLeftIcon, PencilIcon, DownloadIcon, StarIcon } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 interface Props {
     file: File;
 }
 
 const props = defineProps<Props>();
+const isStarred = ref(props.file.is_starred || false);
+const isStarring = ref(false);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -20,6 +23,28 @@ const breadcrumbs: BreadcrumbItem[] = [
         href: `/files/${props.file.id}`,
     },
 ];
+
+const toggleStar = async () => {
+    if (isStarring.value) return;
+
+    isStarring.value = true;
+
+    try {
+        router.post(route('files.star', { file: props.file.id }), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                isStarred.value = !isStarred.value;
+            },
+            onFinish: () => {
+                isStarring.value = false;
+            }
+        });
+    } catch (error) {
+        isStarring.value = false;
+        console.error('Error toggling star', error);
+    }
+};
 </script>
 
 <template>
@@ -36,6 +61,21 @@ const breadcrumbs: BreadcrumbItem[] = [
                         Back to Files
                     </Link>
                     <h1 class="text-2xl font-bold">File Details</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1">
+                        <StarIcon class="h-4 w-4 text-amber-500" />
+                        <span class="text-sm text-muted-foreground">{{ file.star_count || 0 }} stars</span>
+                    </div>
+                    <button
+                        @click="toggleStar"
+                        class="inline-flex items-center justify-center rounded-md bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors border border-border"
+                        :class="{'text-amber-500': isStarred, 'text-muted-foreground': !isStarred}"
+                        :disabled="isStarring"
+                    >
+                        <StarIcon class="h-5 w-5 mr-2" :fill="isStarred ? 'currentColor' : 'none'" />
+                        {{ isStarred ? 'Starred' : 'Star' }}
+                    </button>
                 </div>
                 <div class="flex items-center gap-2">
                     <Link
@@ -76,8 +116,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 <div class="flex justify-between items-start">
                                     <dt class="font-medium text-muted-foreground">Tags:</dt>
                                     <dd class="flex flex-wrap gap-1 justify-end">
-                                        <span 
-                                            v-for="tag in file.tags" 
+                                        <span
+                                            v-for="tag in file.tags"
                                             :key="tag.id"
                                             class="inline-flex px-2 py-1 text-xs rounded-md bg-primary/10 text-primary"
                                         >

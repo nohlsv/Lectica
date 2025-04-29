@@ -40,12 +40,25 @@ export interface SharedData extends PageProps {
     sidebarOpen: boolean;
 }
 
+export interface Program {
+    id: number;
+    name: string;
+    code: string;
+    college?: string;
+    created_at: string;
+    updated_at: string;
+}
+
 export interface User {
     id: number;
     name: string;
     email: string;
     avatar?: string;
     email_verified_at: string | null;
+    program_id: number | null;
+    program?: Program;
+    year_of_study?: string;
+    college?: string;
     created_at: string;
     updated_at: string;
 }
@@ -58,19 +71,9 @@ export interface File {
     user: User;
     created_at: string;
     updated_at: string;
-}
-
-
-export interface File {
-    id: number;
-    name: string;
-    path: string;
-    content: string;
-    file_hash: string;
-    user_id: number;
-    created_at: string;
-    updated_at: string;
     tags?: Tag[];
+    is_starred?: boolean;
+    star_count?: number;
 }
 
 export interface Tag {

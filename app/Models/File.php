@@ -24,6 +24,15 @@ class File extends Model
         return $this->belongsToMany(Tag::class, 'file_tag', 'file_id', 'tag_id');
     }
 
+    /**
+     * Get the users who have starred this file.
+     */
+    public function starredBy(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'file_stars')
+            ->withTimestamps();
+    }
+
     // public function flashcards(): HasMany
     // {
     //     return $this->hasMany(Flashcard::class);

@@ -3,6 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\FileStarController;
+use App\Http\Controllers\FileRecommendationController;
+// File stars
+Route::post('/files/{file}/star', [FileStarController::class, 'toggle'])
+    ->name('files.star');
+
+// Recommendations
+Route::get('/recommendations', [FileRecommendationController::class, 'index'])
+    ->name('recommendations.index');
 
 Route::get('/files', [FileController::class, 'index'])->name('files.index');
 Route::get('/files/create', [FileController::class, 'create'])->name('files.create');
