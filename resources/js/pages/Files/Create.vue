@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem } from '@/types';
-import { FileIcon, UploadIcon } from 'lucide-vue-next';
+import { type BreadcrumbItem, type Tag } from '@/types';
+import { FileIcon, UploadIcon, CheckCircleIcon, XIcon } from 'lucide-vue-next';
+import TagInput from '@/components/TagInput.vue';
 import { ref } from 'vue';
+
+interface Props {
+    allTags?: Tag[];
+}
+
+const props = defineProps<Props>();
 
 // Define breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
@@ -21,6 +28,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     name: '',
     file: null as File | null,
+    tags: [],
 });
 
 // File upload reference and state
@@ -58,9 +66,15 @@ const handleFileUpload = (event: Event) => {
     }
 };
 
+// Dismiss success message
+// const dismissSuccess = () => {
+//     // Clear flash messages (we're just hiding them in the UI)
+//     document.getElementById('success-alert')?.classList.add('hidden');
+// };
+
 // Form submission
 const submit = () => {
-    form.post('/files');
+    form.post(route('files.store'));
 };
 </script>
 
@@ -68,6 +82,24 @@ const submit = () => {
     <Head title="Upload File" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-6 p-6">
+            <!-- Success Alert -->
+<!--            <div v-if="success" id="success-alert" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 flex items-start justify-between">-->
+<!--                <div class="flex gap-3">-->
+<!--                    <CheckCircleIcon class="h-5 w-5 text-green-500 mt-0.5" />-->
+<!--                    <div>-->
+<!--                        <p class="text-sm font-medium text-green-800">{{ success }}</p>-->
+<!--                        <p v-if="fileId" class="text-sm text-green-700 mt-1">-->
+<!--                            <Link :href="`/files/${fileId}`" class="text-green-800 font-medium hover:underline">-->
+<!--                                View file-->
+<!--                            </Link>-->
+<!--                        </p>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--                <button @click="dismissSuccess" class="text-green-500 hover:text-green-700">-->
+<!--                    <XIcon class="h-5 w-5" />-->
+<!--                </button>-->
+<!--            </div>-->
+
             <!-- Header -->
             <div class="flex items-center gap-4">
 <!--                <Link-->
@@ -143,6 +175,18 @@ const submit = () => {
                         />
                         <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
                             {{ form.errors.name }}
+                        </p>
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="space-y-2">
+                        <label for="tags" class="block text-sm font-medium text-foreground">Tags</label>
+                        <TagInput
+                            v-model="form.tags"
+                            :existing-tags="allTags || []"
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            Add tags to categorize your file. You can create new tags or select existing ones.
                         </p>
                     </div>
 

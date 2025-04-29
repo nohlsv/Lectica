@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Tag;
 use App\Models\User;
 use App\Models\File;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -20,6 +21,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@bpsu.edu.ph',
         ]);
+        Tag::factory(20)->create();
         File::factory(20)->create([
             'user_id' => 1,
         ]);

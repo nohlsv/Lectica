@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\File;
+use App\Models\Tag;
 use Inertia\Inertia;
 use ZipArchive;
 use DOMDocument;
@@ -21,7 +22,10 @@ class FileController extends Controller
 
     public function create()
     {
-        return Inertia::render('Files/Create' );
+        $allTags = Tag::orderBy('name')->get();
+        return Inertia::render('Files/Create', [
+            'allTags' => $allTags,
+        ]);
     }
 
     /**
@@ -38,7 +42,8 @@ class FileController extends Controller
             'file' => 'required|file|mimes:txt,xlsx,pdf,pptx,doc,docx|max:2048',
             'name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
-            'tags.*' => 'string|max:50',
+            'tags.*.id' => 'integer|exists:tags,id',
+            'tags.*.name' => 'string|max:50',
         ]);
 
         $uploadedFile = $request->file('file');
@@ -83,7 +88,8 @@ class FileController extends Controller
         ]);
 
         if ($request->has('tags')) {
-            $file->tags()->sync($request->input('tags'));
+            $tagIds = collect($request->input('tags'))->pluck('id')->all();
+            $file->tags()->sync($tagIds);
         }
 
         return redirect()->route('files.show', $file->id)->with('success', 'File uploaded successfully!');
@@ -95,7 +101,7 @@ class FileController extends Controller
     }
     public function show($id)
     {
-        $file = File::findOrFail($id);
+        $file = File::with('tags')->findOrFail($id);
 
         // Get file extension
         $extension = pathinfo($file->name, PATHINFO_EXTENSION);
@@ -132,15 +138,49 @@ class FileController extends Controller
     }
     public function edit($id)
     {
-        $file = File::findOrFail($id);
+        $file = File::with('tags')->findOrFail($id);
+        $allTags = \App\Models\Tag::orderBy('name')->get();
+
         return Inertia::render('Files/Edit', [
             'file' => $file,
+            'allTags' => $allTags,
         ]);
     }
 
     public function update(Request $request, $id)
     {
-        // Logic to update a specific file
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'tags' => 'nullable|array',
+            'tags.*.id' => 'nullable|exists:tags,id',
+            'tags.*.name' => 'nullable|string|max:50',
+        ]);
+
+        $file = File::findOrFail($id);
+        $file->update(['name' => $validated['name']]);
+
+        // Handle tags
+        if ($request->has('tags')) {
+            $tagIds = [];
+
+            // Process existing tags
+            foreach ($request->input('tags') as $tag) {
+                if (isset($tag['id'])) {
+                    $tagIds[] = $tag['id'];
+                } else if (isset($tag['name']) && !empty($tag['name'])) {
+                    // Create new tag if it doesn't exist
+                    $newTag = \App\Models\Tag::firstOrCreate(['name' => $tag['name']]);
+                    $tagIds[] = $newTag->id;
+                }
+            }
+
+            $file->tags()->sync($tagIds);
+        } else {
+            $file->tags()->detach();
+        }
+
+        return redirect()->route('files.show', $file->id)
+            ->with('success', 'File updated successfully');
     }
 
     public function destroy($id)

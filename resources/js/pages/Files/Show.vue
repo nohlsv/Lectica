@@ -73,6 +73,21 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <dt class="font-medium text-muted-foreground">ID:</dt>
                                     <dd>{{ file.id }}</dd>
                                 </div>
+                                <div class="flex justify-between items-start">
+                                    <dt class="font-medium text-muted-foreground">Tags:</dt>
+                                    <dd class="flex flex-wrap gap-1 justify-end">
+                                        <span 
+                                            v-for="tag in file.tags" 
+                                            :key="tag.id"
+                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-primary/10 text-primary"
+                                        >
+                                            {{ tag.name }}
+                                        </span>
+                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm">
+                                            No tags
+                                        </span>
+                                    </dd>
+                                </div>
                             </dl>
                         </div>
                     </div>

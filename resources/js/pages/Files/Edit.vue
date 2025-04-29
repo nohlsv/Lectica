@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type File } from '@/types';
+import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { ArrowLeftIcon } from 'lucide-vue-next';
+import TagInput from '@/components/TagInput.vue';
 
 interface Props {
     file: File;
+    allTags: Tag[];
 }
 
 const props = defineProps<Props>();
@@ -27,6 +29,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: props.file.name,
+    tags: props.file.tags as (any[] | undefined) || [],
 });
 
 const submit = () => {
@@ -59,6 +62,18 @@ const submit = () => {
                             id="name"
                             class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                         />
+                    </div>
+
+                    <!-- Tags -->
+                    <div class="space-y-2">
+                        <label for="tags" class="block text-sm font-medium text-foreground">Tags</label>
+                        <TagInput
+                            v-model="form.tags"
+                            :existing-tags="allTags"
+                        />
+                        <p class="text-xs text-muted-foreground">
+                            Add tags to categorize your file. You can create new tags or select existing ones.
+                        </p>
                     </div>
 
                     <div class="flex justify-end gap-2">

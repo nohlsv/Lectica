@@ -60,4 +60,22 @@ export interface File {
     updated_at: string;
 }
 
+
+export interface File {
+    id: number;
+    name: string;
+    path: string;
+    content: string;
+    file_hash: string;
+    user_id: number;
+    created_at: string;
+    updated_at: string;
+    tags?: Tag[];
+}
+
+export interface Tag {
+    id: number;
+    name: string;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;
