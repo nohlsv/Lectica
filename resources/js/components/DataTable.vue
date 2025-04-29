@@ -18,8 +18,10 @@ const props = defineProps<Props<any>>();
 
 const hasData = computed(() => props.data.data.length > 0);
 
+// Define the slots that can be used with this component
 defineSlots<{
     actions(props: { item: any }): any;
+    [key: string]: (props: { item: any }) => any; // Support for dynamic slot names including cell-*
 }>();
 </script>
 
@@ -47,7 +49,14 @@ defineSlots<{
                         :key="column.key.toString()"
                         class="p-4 border-r border-border last:border-r-0"
                     >
-                        {{ item[column.key] }}
+                        <!-- Check for a custom cell template, use it if available -->
+                        <slot
+                            v-if="$slots['cell-' + column.key.toString()]"
+                            :name="'cell-' + column.key.toString()"
+                            :item="item"
+                        ></slot>
+                        <!-- Default rendering if no custom template -->
+                        <template v-else>{{ item[column.key] }}</template>
                     </td>
                     <td v-if="$slots.actions" class="p-4">
                         <slot name="actions" :item="item"></slot>

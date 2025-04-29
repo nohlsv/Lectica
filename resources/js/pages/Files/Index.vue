@@ -21,7 +21,6 @@ defineProps<Props>();
 const columns = [
     { key: 'name', label: 'File Name' },
     { key: 'content', label: 'File Content' },
-    { key: 'path', label: 'Path' }
 ];
 </script>
 
@@ -38,6 +37,13 @@ const columns = [
         </div>
         <div class="rounded-xl border border-border p-6">
             <DataTable :data="files" :columns="columns">
+                <!-- Custom cell template to clamp content text -->
+                <template #cell-content="{ item }">
+                    <p class="max-w-full sm:line-clamp-2  line-clamp-4 text-sm text-muted-foreground">
+                        {{ item.content }}
+                    </p>
+                </template>
+
                 <template #actions="{ item }">
                     <div class="flex items-center gap-2">
                         <Link
