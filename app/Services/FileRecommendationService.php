@@ -66,7 +66,7 @@ class FileRecommendationService
                             ->from('file_stars')
                             ->where('user_id', $user->id);
                     })
-                    ->groupBy('files.id')
+                    ->groupBy(['files.id', 'file_stars.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('file_stars.created_at', 'desc')
                     ->with(['tags', 'user', 'user.program'])
@@ -109,7 +109,7 @@ class FileRecommendationService
                             ->from('file_stars')
                             ->where('user_id', $user->id);
                     })
-                    ->groupBy('files.id')
+                    ->groupBy(['files.id', 'fs1.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('fs1.created_at', 'desc')
                     ->with(['tags', 'user'])
@@ -180,7 +180,7 @@ class FileRecommendationService
                     ->select('files.*')
                     ->join('file_stars', 'files.id', '=', 'file_stars.file_id')
                     ->where('file_stars.created_at', '>', now()->subDays(7))
-                    ->groupBy('files.id')
+                    ->groupBy(['files.id', 'file_stars.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->with(['tags', 'user'])
                     ->withCount('starredBy')
