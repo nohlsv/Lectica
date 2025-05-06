@@ -51,7 +51,8 @@ export interface Program {
 
 export interface User {
     id: number;
-    name: string;
+    first_name: string;
+    last_name: string;
     email: string;
     avatar?: string;
     email_verified_at: string | null;
@@ -74,6 +75,7 @@ export interface File {
     tags?: Tag[];
     is_starred?: boolean;
     star_count?: number;
+    can_edit?: boolean;
 }
 
 export interface Tag {

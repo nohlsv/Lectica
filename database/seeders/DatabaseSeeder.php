@@ -19,11 +19,12 @@ class DatabaseSeeder extends Seeder
             ProgramSeeder::class,
             // Other seeders...
         ]);
-        
+
         // User::factory(10)->create();
 
         User::factory()->create([
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'email' => 'test@bpsu.edu.ph',
         ]);
         Tag::factory(20)->create();

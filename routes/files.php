@@ -9,6 +9,9 @@ use App\Http\Controllers\FileRecommendationController;
 Route::post('/files/{file}/star', [FileStarController::class, 'toggle'])
     ->name('files.star');
 
+    Route::get('/files/{file}/download', [FileController::class, 'download'])
+    ->name('files.download');
+
 // Recommendations
 Route::get('/recommendations', [FileRecommendationController::class, 'index'])
     ->name('recommendations.index');
@@ -17,8 +20,13 @@ Route::get('/files', [FileController::class, 'index'])->name('files.index');
 Route::get('/files/create', [FileController::class, 'create'])->name('files.create');
 Route::post('/files', [FileController::class, 'store'])->name('files.store');
 Route::get('/files/{id}', [FileController::class, 'show'])->name('files.show');
-Route::get('/files/{id}/edit', [FileController::class, 'edit'])->name('files.edit');
-Route::put('/files/{id}', [FileController::class, 'update'])->name('files.update');
+Route::get('/files/{file}/edit', [FileController::class, 'edit'])
+    ->name('files.edit')
+    ->middleware('can:update,file');
+
+Route::put('/files/{file}', [FileController::class, 'update'])
+    ->name('files.update')
+    ->middleware('can:update,file');
 Route::delete('/files/{id}', [FileController::class, 'destroy'])->name('files.destroy');
 
 // Tag routes

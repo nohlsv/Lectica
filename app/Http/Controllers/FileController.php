@@ -22,21 +22,18 @@ class FileController extends Controller
             ->latest()
             ->paginate(10);
 
-        // Add is_starred flag for each file in the collection
+        // Add is_starred flag and can_edit flag for each file in the collection
         $starredFileIds = $user->starredFiles()->pluck('file_id')->toArray();
+        $currentUserId = $user->id;
 
-        $files->through(function ($file) use ($starredFileIds) {
+        $files->through(function ($file) use ($starredFileIds, $currentUserId) {
             $file->is_starred = in_array($file->id, $starredFileIds);
+            $file->can_edit = $currentUserId === $file->user_id;
             return $file;
         });
 
-        // Get recommendations for the user
-        $recommendationService = app(FileRecommendationService::class);
-        $recommendations = $recommendationService->getRecommendations($user, 3); // Limit to 3 items per category
-
         return Inertia::render('Files/Index', [
             'files' => $files,
-            'recommendations' => $recommendations,
         ]);
     }
 
@@ -59,7 +56,7 @@ class FileController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'file' => 'required|file|mimes:txt,xlsx,pdf,pptx,doc,docx|max:2048',
+            'file' => 'required|file|mimes:txt,xlsx,pdf,pptx,doc,docx|max:25600',
             'name' => 'nullable|string|max:255',
             'tags' => 'nullable|array',
             'tags.*.id' => 'integer|exists:tags,id',
@@ -122,15 +119,18 @@ class FileController extends Controller
     public function show(Request $request, $id)
     {
         $user = $request->user();
-        $file = File::with('tags')
+        $file = File::with(['tags', 'user'])
             ->withCount('starredBy as star_count')
             ->findOrFail($id);
 
-        // Add is_starred attribute
-        $file->is_starred = $user->hasStarred($file);
+        // Add is_starred attribute and can_edit attribute
+        $file->is_starred = $user ? $user->hasStarred($file) : false;
+
+        // Properly set can_edit attribute
+        $file->can_edit = $user && ($user->id === $file->user_id || ($user->isAdmin() ?? false));
 
         // Get file extension
-        $extension = pathinfo($file->name, PATHINFO_EXTENSION);
+        $extension = pathinfo($file->path, PATHINFO_EXTENSION);
 
         // Check if file exists
         $filePath = storage_path('app/public/' . $file->path);
@@ -162,9 +162,12 @@ class FileController extends Controller
 
         return round($bytes, 2) . ' ' . $units[$pow];
     }
-    public function edit($id)
+    public function edit(File $file)
     {
-        $file = File::with('tags')->findOrFail($id);
+        // Authorization is handled by middleware
+        // $this->authorize('update', $file);
+
+        $file->load('tags');
         $allTags = \App\Models\Tag::orderBy('name')->get();
 
         return Inertia::render('Files/Edit', [
@@ -173,7 +176,7 @@ class FileController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, File $file)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -182,7 +185,9 @@ class FileController extends Controller
             'tags.*.name' => 'nullable|string|max:50',
         ]);
 
-        $file = File::findOrFail($id);
+        // Authorization is handled by middleware
+        // $this->authorize('update', $file);
+
         $file->update(['name' => $validated['name']]);
 
         // Handle tags
@@ -214,9 +219,15 @@ class FileController extends Controller
         // Logic to delete a specific file
     }
 
-    public function download($id)
+    public function download(File $file)
     {
-        // Logic to download a specific file
+        $filePath = storage_path('app/public/' . $file->path);
+
+        if (!file_exists($filePath)) {
+            return back()->withErrors(['file' => 'File not found on server.']);
+        }
+
+        return response()->download($filePath, $file->name);
     }
 
     public function upload(Request $request)

@@ -9,11 +9,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { type BreadcrumbItem, type SharedData, type User } from '@/types';
+import { type BreadcrumbItem, type SharedData, type User, type Program } from '@/types';
 
 interface Props {
     mustVerifyEmail: boolean;
     status?: string;
+    programs: Program[];
 }
 
 defineProps<Props>();
@@ -31,6 +32,8 @@ const user = page.props.auth.user as User;
 const form = useForm({
     name: user.name,
     email: user.email,
+    program_id: user.program_id || '',
+    year_of_study: user.year_of_study || '',
 });
 
 const submit = () => {
@@ -46,7 +49,7 @@ const submit = () => {
 
         <SettingsLayout>
             <div class="flex flex-col space-y-6">
-                <HeadingSmall title="Profile information" description="Update your name and email address" />
+                <HeadingSmall title="Profile information" description="Update your name, email address, and academic details" />
 
                 <form @submit.prevent="submit" class="space-y-6">
                     <div class="grid gap-2">
@@ -67,6 +70,39 @@ const submit = () => {
                             placeholder="Email address"
                         />
                         <InputError class="mt-2" :message="form.errors.email" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="program">Program</Label>
+                        <select
+                            id="program"
+                            v-model="form.program_id"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <option value="" disabled>Select your program</option>
+                            <option v-for="program in $props.programs" :key="program.id" :value="program.id">
+                                {{ program.name }} ({{ program.code }})
+                            </option>
+                        </select>
+                        <InputError class="mt-2" :message="form.errors.program_id" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="year_of_study">Year Level</Label>
+                        <select
+                            id="year_of_study"
+                            v-model="form.year_of_study"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            <option value="" disabled>Select your year level</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                            <option value="5th Year">5th Year</option>
+                            <option value="Graduate">Graduate</option>
+                        </select>
+                        <InputError class="mt-2" :message="form.errors.year_of_study" />
                     </div>
 
                     <div v-if="mustVerifyEmail && !user.email_verified_at">

@@ -2,24 +2,32 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProgramController;
+use App\Http\Controllers\FileRecommendationController;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
-})->name('home');
+})->name('welcome');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('home', function (Request $request) {
+    $user = $request->user();
+    $recommendationService = app(App\Services\FileRecommendationService::class);
+    $recommendations = $recommendationService->getRecommendations($user);
+
+    return Inertia::render('Dashboard', [
+        'recommendations' => $recommendations
+    ]);
+})->middleware(['auth', 'verified'])->name('home');
+
+// Programs routes available to all users
+Route::get('/programs', [ProgramController::class, 'index'])
+    ->name('programs.index');
+Route::get('/programs/search', [ProgramController::class, 'search'])
+    ->name('programs.search');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
-
-// Programs
-    Route::get('/programs', [ProgramController::class, 'index'])
-        ->name('programs.index');
-    Route::get('/programs/search', [ProgramController::class, 'search'])
-        ->name('programs.search');
 });
 
 require __DIR__ . '/settings.php';

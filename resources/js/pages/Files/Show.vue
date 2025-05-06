@@ -2,11 +2,18 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File } from '@/types';
-import { ArrowLeftIcon, PencilIcon, DownloadIcon, StarIcon } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ArrowLeftIcon, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileTextIcon, FileType2Icon } from 'lucide-vue-next';
+import { ref, computed } from 'vue';
 
 interface Props {
     file: File;
+    fileInfo: {
+        extension: string;
+        exists: boolean;
+        size: string | null;
+        path: string | null;
+        lastModified: string | null;
+    };
 }
 
 const props = defineProps<Props>();
@@ -45,6 +52,24 @@ const toggleStar = async () => {
         console.error('Error toggling star', error);
     }
 };
+
+const isPdf = computed(() => props.fileInfo.extension.toLowerCase() === 'pdf');
+const isTxt = computed(() => props.fileInfo.extension.toLowerCase() === 'txt');
+const isImage = computed(() => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(props.fileInfo.extension.toLowerCase()));
+const path = computed(() => props.file.path ? '/' + props.file.path : '');
+const isPreviewable = computed(() => isPdf.value || isTxt.value || isImage.value);
+
+const downloadFile = () => {
+    if (path.value) {
+        const link = document.createElement('a');
+        link.href = route('files.download', { file: props.file.id });
+        link.setAttribute('download', props.file.name);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+};
+
 </script>
 
 <template>
@@ -63,79 +88,140 @@ const toggleStar = async () => {
                     <h1 class="text-2xl font-bold">File Details</h1>
                 </div>
                 <div class="flex items-center gap-3">
-                    <div class="flex items-center gap-1">
-                        <StarIcon class="h-4 w-4 text-amber-500" />
-                        <span class="text-sm text-muted-foreground">{{ file.star_count || 0 }} stars</span>
-                    </div>
                     <button
                         @click="toggleStar"
-                        class="inline-flex items-center justify-center rounded-md bg-background px-3 py-2 text-sm font-medium text-foreground hover:bg-accent transition-colors border border-border"
+                        class="inline-flex items-center justify-center rounded-md bg-background px-3 py-2 text-sm font-medium hover:bg-accent transition-colors border border-border"
                         :class="{'text-amber-500': isStarred, 'text-muted-foreground': !isStarred}"
                         :disabled="isStarring"
                     >
                         <StarIcon class="h-5 w-5 mr-2" :fill="isStarred ? 'currentColor' : 'none'" />
+                        {{ file.star_count || 0 }}
                         {{ isStarred ? 'Starred' : 'Star' }}
                     </button>
                 </div>
                 <div class="flex items-center gap-2">
                     <Link
-                        :href="`/files/${file.id}/edit`"
+                        v-if="file.can_edit === true"
+                        :href="route('files.edit', { file: file.id })"
                         class="inline-flex items-center justify-center gap-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
                     >
                         <PencilIcon class="h-4 w-4" />
                         Edit
                     </Link>
-                    <Link
-                        :href="`/files/${file.id}/download`"
+                    <a
+                        :href="route('files.download', { file: file.id })"
+                        download
                         class="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
                     >
                         <DownloadIcon class="h-4 w-4" />
                         Download
-                    </Link>
+                    </a>
                 </div>
             </div>
 
-            <div class="rounded-lg border border-border p-6">
-                <div class="grid gap-4 md:grid-cols-2">
-                    <div class="space-y-2">
-                        <h2 class="text-lg font-semibold">File Information</h2>
-                        <div class="rounded-md bg-accent/50 p-4">
-                            <dl class="space-y-2">
-                                <div class="flex justify-between">
-                                    <dt class="font-medium text-muted-foreground">Name:</dt>
-                                    <dd>{{ file.name }}</dd>
-                                </div>
-                                <div class="flex justify-between">
-                                    <dt class="font-medium text-muted-foreground">Path:</dt>
-                                    <dd class="text-right">{{ file.path }}</dd>
-                                </div>
-                                <div class="flex justify-between">
-                                    <dt class="font-medium text-muted-foreground">ID:</dt>
-                                    <dd>{{ file.id }}</dd>
-                                </div>
-                                <div class="flex justify-between items-start">
-                                    <dt class="font-medium text-muted-foreground">Tags:</dt>
-                                    <dd class="flex flex-wrap gap-1 justify-end">
-                                        <span
-                                            v-for="tag in file.tags"
-                                            :key="tag.id"
-                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-primary/10 text-primary"
-                                        >
-                                            {{ tag.name }}
-                                        </span>
-                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm">
-                                            No tags
-                                        </span>
-                                    </dd>
-                                </div>
-                            </dl>
-                        </div>
+            <div class="grid gap-6 md:grid-cols-3">
+                <!-- File Information -->
+                <div class="space-y-4 md:col-span-1">
+                    <div class="rounded-lg border border-border p-4">
+                        <h2 class="text-lg font-semibold mb-3">{{file.name}}</h2>
+                        <dl class="space-y-2 text-sm">
+<!--                            <div class="flex justify-between">-->
+<!--                                <dt class="font-medium text-muted-foreground">Name:</dt>-->
+<!--                                <dd class="text-right">{{ file.name }}</dd>-->
+<!--                            </div>-->
+                            <div class="flex justify-between">
+                                <dt class="font-medium text-muted-foreground">Type:</dt>
+                                <dd class="text-right uppercase">{{ fileInfo.extension }}</dd>
+                            </div>
+                            <div class="flex justify-between" v-if="fileInfo.size">
+                                <dt class="font-medium text-muted-foreground">Size:</dt>
+                                <dd class="text-right">{{ fileInfo.size }}</dd>
+                            </div>
+                            <div class="flex justify-between" v-if="fileInfo.lastModified">
+                                <dt class="font-medium text-muted-foreground">Last Modified:</dt>
+                                <dd class="text-right">{{ fileInfo.lastModified }}</dd>
+                            </div>
+                            <div class="flex justify-between pt-2 mt-2 border-t border-border">
+                                <dt class="font-medium text-muted-foreground">Uploaded by:</dt>
+                                <dd class="text-right">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
+                            </div>
+                            <div class="flex justify-between">
+                                <dt class="font-medium text-muted-foreground">Upload Date:</dt>
+                                <dd class="text-right">{{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
+                            </div>
+                            <div class="pt-2 mt-2 border-t border-border">
+                                <dt class="font-medium text-muted-foreground mb-2">Tags:</dt>
+                                <dd class="flex flex-wrap gap-1">
+                                    <span
+                                        v-for="tag in file.tags"
+                                        :key="tag.id"
+                                        class="inline-flex px-2 py-1 text-xs rounded-md bg-primary/10 text-primary"
+                                    >
+                                        {{ tag.name }}
+                                    </span>
+                                    <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm">
+                                        No tags
+                                    </span>
+                                </dd>
+                            </div>
+                        </dl>
                     </div>
+                </div>
 
-                    <div class="space-y-2">
-                        <h2 class="text-lg font-semibold">File Content</h2>
-                        <div class="max-h-60 overflow-auto rounded-md bg-accent/50 p-4">
-                            <pre class="text-sm">{{ file.content }}</pre>
+                <!-- File Preview -->
+                <div class="space-y-4 md:col-span-2">
+                    <div class="rounded-lg border border-border p-4">
+                        <h2 class="text-lg font-semibold mb-3">File Preview</h2>
+
+                        <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
+                            <!-- PDF Preview -->
+                            <div v-if="isPdf && path" class="w-full h-[500px] border border-border rounded-md">
+                                <object
+                                    :data="path"
+                                    type="application/pdf"
+                                    class="w-full h-full"
+                                >
+                                    <div class="flex items-center justify-center h-full bg-accent/20 p-4 text-center">
+                                        <div>
+                                            <FileType2Icon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                                            <p>PDF preview not available in your browser.</p>
+                                            <a :href="path" target="_blank" class="text-primary underline mt-2 inline-block">
+                                                Open PDF in new tab
+                                            </a>
+                                        </div>
+                                    </div>
+                                </object>
+                            </div>
+
+                            <!-- Image Preview -->
+                            <div v-else-if="isImage && path" class="flex justify-center">
+                                <img
+                                    :src="path"
+                                    :alt="file.name"
+                                    class="max-w-full max-h-[500px] object-contain rounded-md"
+                                />
+                            </div>
+
+                            <!-- Text Preview -->
+                            <div v-else-if="isTxt" class="max-h-[500px] overflow-auto rounded-md bg-accent/50 p-4">
+                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+                        </div>
+
+                        <!-- Extracted Text Content -->
+                        <div v-if="!isPreviewable && file.content" class="mt-4">
+                            <h3 class="text-md font-medium mb-2">Extracted Text</h3>
+                            <div class="max-h-[400px] overflow-auto rounded-md bg-accent/50 p-4">
+                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+                        </div>
+
+                        <!-- File Not Found -->
+                        <div v-if="!fileInfo.exists" class="flex items-center justify-center h-[200px] bg-accent/20 rounded-md">
+                            <div class="text-center">
+                                <FileIcon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                                <p>File content not available.</p>
+                            </div>
                         </div>
                     </div>
                 </div>

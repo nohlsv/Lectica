@@ -99,12 +99,16 @@ const toggleStar = async () => {
                     <EyeIcon class="h-3.5 w-3.5" />
                 </Link>
                 <Link
+                    v-if="file.can_edit"
                     :href="`/files/${file.id}/edit`"
                     class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"
                     title="Edit file"
                 >
                     <PencilIcon class="h-3.5 w-3.5" />
                 </Link>
+                <div v-else class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-40" title="Only the uploader can edit this file">
+                    <PencilIcon class="h-3.5 w-3.5" />
+                </div>
             </div>
         </div>
     </div>

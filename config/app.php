@@ -14,6 +14,17 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    
+    /*
+    |--------------------------------------------------------------------------
+    | File Upload Settings
+    |--------------------------------------------------------------------------
+    |
+    | These values define the file upload limitations for the application.
+    |
+    */
+    
+    'max_upload_size' => env('MAX_UPLOAD_SIZE', 25600),
 
     /*
     |--------------------------------------------------------------------------

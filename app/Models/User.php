@@ -26,7 +26,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'program_id',
         'year_of_study',
-        'college',
     ];
 
     /**
@@ -83,5 +82,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function hasStarred(File $file): bool
     {
         return $this->starredFiles()->where('file_id', $file->id)->exists();
+    }
+
+    /**
+     * Check if the user is an admin
+     */
+    public function isAdmin(): bool
+    {
+        return $this->is_admin === true;
     }
 }

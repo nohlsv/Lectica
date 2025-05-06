@@ -20,7 +20,9 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('auth/Register');
+        return Inertia::render('auth/Register', [
+            'programs' => \App\Models\Program::select('id', 'name', 'code')->orderBy('name')->get()
+        ]);
     }
 
     /**
@@ -31,7 +33,9 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'first_name' => 'required|string|max:255',
+            'last_name' => 'required|string|max:255',
+            'program_id' => 'required|exists:programs,id',
             'email' => [
                 'required',
                 'string',
@@ -44,11 +48,15 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ], [
             'email.regex' => 'Only @bpsu.edu.ph email addresses are allowed.',
+            'program_id.required' => 'Please select a program.',
+            'program_id.exists' => 'The selected program is invalid.',
         ]);
 
         $user = User::create([
-            'name' => $request->name,
+            'first_name' => $request->first_name,
+            'last_name' => $request->last_name,
             'email' => $request->email,
+            'program_id' => $request->program_id,
             'password' => Hash::make($request->password),
         ]);
 
@@ -56,6 +64,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return to_route('dashboard');
+        return to_route('home');
     }
 }

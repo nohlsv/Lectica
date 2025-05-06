@@ -16,11 +16,46 @@ class ProgramSeeder extends Seeder
             [
                 'name' => 'Computer Science',
                 'code' => 'CS',
-                'college' => 'College of Science',
+                'college' => 'College of Computer Studies',
+            ],
+            [
+                'name' => 'Information Technology',
+                'code' => 'IT',
+                'college' => 'College of Computer Studies',
+            ],
+            [
+                'name' => 'Entertainment and Multimedia Computing',
+                'code' => 'EMC',
+                'college' => 'College of Computer Studies',
             ],
             [
                 'name' => 'Software Engineering',
                 'code' => 'SE',
+                'college' => 'College of Engineering',
+            ],
+            [
+                'name' => 'Civil Engineering',
+                'code' => 'CE',
+                'college' => 'College of Engineering',
+            ],
+            [
+                'name' => 'Electrical Engineering',
+                'code' => 'EE',
+                'college' => 'College of Engineering',
+            ],
+            [
+                'name' => 'Mechanical Engineering',
+                'code' => 'ME',
+                'college' => 'College of Engineering',
+            ],
+            [
+                'name' => 'Industrial Engineering',
+                'code' => 'IE',
+                'college' => 'College of Engineering',
+            ],
+            [
+                'name' => 'Architecture',
+                'code' => 'ARC',
                 'college' => 'College of Engineering',
             ],
             [
@@ -29,14 +64,19 @@ class ProgramSeeder extends Seeder
                 'college' => 'College of Business',
             ],
             [
-                'name' => 'Mathematics',
-                'code' => 'MATH',
-                'college' => 'College of Science',
+                'name' => 'Industrial Technology',
+                'code' => 'ITECH',
+                'college' => 'College of Technology',
             ],
             [
-                'name' => 'Biology',
-                'code' => 'BIO',
-                'college' => 'College of Science',
+                'name' => 'Nursing',
+                'code' => 'NUR',
+                'college' => 'College of Applied Health and Sciences',
+            ],
+            [
+                'name' => 'Midwifery',
+                'code' => 'MID',
+                'college' => 'College of Applied Health and Sciences',
             ],
         ];
 
