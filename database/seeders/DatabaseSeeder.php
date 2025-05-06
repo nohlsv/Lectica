@@ -30,8 +30,6 @@ class DatabaseSeeder extends Seeder
             ]);
         }
 
-        Tag::factory(20)->create();
-
         // Define some predefined unique tag names
         $predefinedTags = [
             'programming', 'math', 'science', 'history', 'english',
