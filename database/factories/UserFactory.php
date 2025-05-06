@@ -32,7 +32,6 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'program_id' => null,
             'year_of_study' => fake()->randomElement(['1st Year', '2nd Year', '3rd Year', '4th Year', 'Graduate']),
-            'college' => fake()->randomElement(['College of Arts and Sciences', 'College of Engineering', 'College of Business', 'College of Education', 'College of Medicine']),
         ];
     }
 
