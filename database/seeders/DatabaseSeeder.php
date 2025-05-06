@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Program;
 use App\Models\Tag;
 use App\Models\User;
 use App\Models\File;
@@ -21,13 +22,31 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // User::factory(10)->create();
+        if (User::count() === 0) {
+            User::factory()->create([
+                'first_name' => 'Test',
+                'last_name' => 'User',
+                'email' => 'test@bpsu.edu.ph',
+            ]);
+        }
 
-        User::factory()->create([
-            'first_name' => 'Test',
-            'last_name' => 'User',
-            'email' => 'test@bpsu.edu.ph',
-        ]);
         Tag::factory(20)->create();
+
+        // Define some predefined unique tag names
+        $predefinedTags = [
+            'programming', 'math', 'science', 'history', 'english',
+            'physics', 'chemistry', 'biology', 'literature', 'psychology',
+            'sociology', 'economics', 'statistics', 'calculus', 'algebra',
+            'geometry', 'research', 'engineering', 'computer_science', 'education'
+        ];
+
+        foreach ($predefinedTags as $tagName) {
+            Tag::firstOrCreate(['name' => $tagName]);
+        }
+        foreach (ProgramSeeder::programs as $program) {
+            Tag::firstOrCreate(['name' => str_replace(' ', '_', strtolower($program['name']))]);
+        }
+
         File::factory(20)->create([
             'user_id' => 1,
         ]);
