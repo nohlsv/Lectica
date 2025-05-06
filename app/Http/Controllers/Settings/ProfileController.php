@@ -21,6 +21,15 @@ class ProfileController extends Controller
         return Inertia::render('settings/Profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'programs' => \App\Models\Program::select('id', 'name', 'code')->orderBy('name')->get(),
+            'yearLevels' => [
+                '1st Year',
+                '2nd Year',
+                '3rd Year',
+                '4th Year',
+                '5th Year',
+                'Graduate',
+            ],
         ]);
     }
 
