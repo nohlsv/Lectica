@@ -11,7 +11,7 @@ interface Props {
         extension: string;
         exists: boolean;
         size: string | null;
-        path: string | null;
+        url: string | null;
         lastModified: string | null;
     };
 }
@@ -56,11 +56,10 @@ const toggleStar = async () => {
 const isPdf = computed(() => props.fileInfo.extension.toLowerCase() === 'pdf');
 const isTxt = computed(() => props.fileInfo.extension.toLowerCase() === 'txt');
 const isImage = computed(() => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(props.fileInfo.extension.toLowerCase()));
-const path = computed(() => props.file.path ? '/' + props.file.path : '');
 const isPreviewable = computed(() => isPdf.value || isTxt.value || isImage.value);
 
 const downloadFile = () => {
-    if (path.value) {
+    if (fileInfo.url.value) {
         const link = document.createElement('a');
         link.href = route('files.download', { file: props.file.id });
         link.setAttribute('download', props.file.name);
@@ -175,9 +174,9 @@ const downloadFile = () => {
 
                         <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
                             <!-- PDF Preview -->
-                            <div v-if="isPdf && path" class="w-full h-[500px] border border-border rounded-md">
+                            <div v-if="isPdf && fileInfo.url" class="w-full h-[500px] border border-border rounded-md">
                                 <object
-                                    :data="path"
+                                    :data="fileInfo.url"
                                     type="application/pdf"
                                     class="w-full h-full"
                                 >
@@ -185,7 +184,7 @@ const downloadFile = () => {
                                         <div>
                                             <FileType2Icon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
                                             <p>PDF preview not available in your browser.</p>
-                                            <a :href="path" target="_blank" class="text-primary underline mt-2 inline-block">
+                                            <a :href="fileInfo.url" target="_blank" class="text-primary underline mt-2 inline-block">
                                                 Open PDF in new tab
                                             </a>
                                         </div>
@@ -194,9 +193,9 @@ const downloadFile = () => {
                             </div>
 
                             <!-- Image Preview -->
-                            <div v-else-if="isImage && path" class="flex justify-center">
+                            <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
                                 <img
-                                    :src="path"
+                                    :src="fileInfo.url"
                                     :alt="file.name"
                                     class="max-w-full max-h-[500px] object-contain rounded-md"
                                 />

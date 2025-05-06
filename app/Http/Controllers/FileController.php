@@ -136,11 +136,13 @@ class FileController extends Controller
         $filePath = storage_path('app/public/' . $file->path);
         $fileExists = file_exists($filePath);
 
+
         return Inertia::render('Files/Show', [
             'file' => $file,
             'fileInfo' => [
                 'extension' => $extension,
                 'exists' => $fileExists,
+                'url' => Storage::url($file->path),
                 'size' => $fileExists ? $this->formatFileSize(filesize($filePath)) : null,
                 'lastModified' => $fileExists ? date('Y-m-d H:i:s', filemtime($filePath)) : null,
             ],
