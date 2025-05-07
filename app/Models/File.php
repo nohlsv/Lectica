@@ -7,12 +7,54 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class File extends Model
 {
 	/** @use HasFactory<\Database\Factories\FileFactory> */
 	use HasFactory;
     protected $fillable = ['name', 'path', 'content', 'file_hash', 'user_id'];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['is_starred', 'can_edit'];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::addGlobalScope('withStarCount', function ($builder) {
+            $builder->withCount('starredBy as star_count');
+        });
+    }
+
+    /**
+     * Get the is_starred attribute.
+     *
+     * @return bool
+     */
+    public function getIsStarredAttribute(): bool
+    {
+        $user = Auth::user();
+        return $user ? $user->hasStarred($this) : false;
+    }
+
+    /**
+     * Get the can_edit attribute.
+     *
+     * @return bool
+     */
+    public function getCanEditAttribute(): bool
+    {
+        $user = Auth::user();
+        return $user ? ($user->id === $this->user_id || $user->isAdmin()) : false;
+    }
 
     public function user(): BelongsTo
     {

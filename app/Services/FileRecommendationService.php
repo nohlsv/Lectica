@@ -70,7 +70,6 @@ class FileRecommendationService
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('file_stars.created_at', 'desc')
                     ->with(['tags', 'user', 'user.program'])
-                    ->withCount('starredBy')
                     ->limit($limit)
                     ->get();
             }
@@ -113,7 +112,6 @@ class FileRecommendationService
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('fs1.created_at', 'desc')
                     ->with(['tags', 'user'])
-                    ->withCount('starredBy')
                     ->limit($limit)
                     ->get();
             }
@@ -160,7 +158,6 @@ class FileRecommendationService
                     ->groupBy('files.id')
                     ->orderByRaw('COUNT(*) DESC') // More matching tags = higher ranking
                     ->with(['tags', 'user'])
-                    ->withCount('starredBy')
                     ->limit($limit)
                     ->get();
             }
@@ -183,7 +180,6 @@ class FileRecommendationService
                     ->groupBy(['files.id', 'file_stars.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->with(['tags', 'user'])
-                    ->withCount('starredBy')
                     ->limit($limit)
                     ->get();
             }

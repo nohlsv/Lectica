@@ -15,22 +15,9 @@ class FileController extends Controller
 {
     public function index(Request $request)
     {
-        $user = $request->user();
-
         $files = File::with('user')
-            ->withCount('starredBy as star_count')
             ->latest()
             ->paginate(10);
-
-        // Add is_starred flag and can_edit flag for each file in the collection
-        $starredFileIds = $user->starredFiles()->pluck('file_id')->toArray();
-        $currentUserId = $user->id;
-
-        $files->through(function ($file) use ($starredFileIds, $currentUserId) {
-            $file->is_starred = in_array($file->id, $starredFileIds);
-            $file->can_edit = $currentUserId === $file->user_id;
-            return $file;
-        });
 
         return Inertia::render('Files/Index', [
             'files' => $files,
@@ -118,16 +105,8 @@ class FileController extends Controller
     }
     public function show(Request $request, $id)
     {
-        $user = $request->user();
         $file = File::with(['tags', 'user'])
-            ->withCount('starredBy as star_count')
             ->findOrFail($id);
-
-        // Add is_starred attribute and can_edit attribute
-        $file->is_starred = $user ? $user->hasStarred($file) : false;
-
-        // Properly set can_edit attribute
-        $file->can_edit = $user && ($user->id === $file->user_id || ($user->isAdmin() ?? false));
 
         // Get file extension
         $extension = pathinfo($file->path, PATHINFO_EXTENSION);
