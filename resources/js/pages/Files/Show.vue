@@ -2,8 +2,9 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File } from '@/types';
-import { ArrowLeftIcon, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileTextIcon, FileType2Icon } from 'lucide-vue-next';
+import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileTextIcon, FileType2Icon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
+import { Button } from '@/components/ui/button';
 
 interface Props {
     file: File;
@@ -57,6 +58,10 @@ const isPdf = computed(() => props.fileInfo.extension.toLowerCase() === 'pdf');
 const isTxt = computed(() => props.fileInfo.extension.toLowerCase() === 'txt');
 const isImage = computed(() => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(props.fileInfo.extension.toLowerCase()));
 const isPreviewable = computed(() => isPdf.value || isTxt.value || isImage.value);
+
+const isOwner = computed(() => {
+    return props.file.can_edit === true;
+});
 
 const downloadFile = () => {
     if (fileInfo.url.value) {
@@ -221,6 +226,59 @@ const downloadFile = () => {
                                 <FileIcon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
                                 <p>File content not available.</p>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <h3 class="text-lg font-medium">Study Materials</h3>
+                <div class="mt-2 flex flex-wrap gap-4">
+                    <div class="w-full md:w-auto">
+                        <h4 class="mb-2 font-medium">Flashcards</h4>
+                        <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+                            <Link :href="route('files.flashcards.index', file.id)">
+                                <Button variant="outline" class="w-full sm:w-auto">
+                                    <BookOpen class="mr-2 h-4 w-4" />
+                                    View Flashcards
+                                </Button>
+                            </Link>
+                            <Link v-if="isOwner" :href="route('files.flashcards.create', file.id)">
+                                <Button variant="outline" class="w-full sm:w-auto">
+                                    <Pencil class="mr-2 h-4 w-4" />
+                                    Add Flashcard
+                                </Button>
+                            </Link>
+                            <Link :href="route('files.flashcards.practice', file.id)">
+                                <Button variant="default" class="w-full sm:w-auto">
+                                    <BookOpen class="mr-2 h-4 w-4" />
+                                    Practice
+                                </Button>
+                            </Link>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-auto">
+                        <h4 class="mb-2 font-medium">Quizzes</h4>
+                        <div class="flex flex-col space-y-2 sm:flex-row sm:space-x-2 sm:space-y-0">
+                            <Link :href="route('files.quizzes.index', file.id)">
+                                <Button variant="outline" class="w-full sm:w-auto">
+                                    <ListChecks class="mr-2 h-4 w-4" />
+                                    View Quizzes
+                                </Button>
+                            </Link>
+                            <Link v-if="isOwner" :href="route('files.quizzes.create', file.id)">
+                                <Button variant="outline" class="w-full sm:w-auto">
+                                    <Pencil class="mr-2 h-4 w-4" />
+                                    Add Quiz
+                                </Button>
+                            </Link>
+                            <Link :href="route('files.quizzes.test', file.id)">
+                                <Button variant="default" class="w-full sm:w-auto">
+                                    <ListChecks class="mr-2 h-4 w-4" />
+                                    Take Quiz
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>

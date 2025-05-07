@@ -75,9 +75,19 @@ class File extends Model
             ->withTimestamps();
     }
 
-    // public function flashcards(): HasMany
-    // {
-    //     return $this->hasMany(Flashcard::class);
-    // }
+    /**
+     * Get the flashcards for the file.
+     */
+    public function flashcards(): HasMany
+    {
+        return $this->hasMany(Flashcard::class);
+    }
 
+    /**
+     * Get the quizzes for the file.
+     */
+    public function quizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class);
+    }
 }
