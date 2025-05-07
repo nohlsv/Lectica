@@ -18,13 +18,30 @@ function deleteQuiz(quizId) {
         router.delete(route('files.quizzes.destroy', [props.file.id, quizId]));
     }
 }
+
+const breadcrumbs = [
+    { title: 'Home', href: route('home') },
+    { title: props.file.name, href: route('files.show', props.file.id) },
+    { title: 'Quizzes', href: route('files.quizzes.index', props.file.id) },
+];
 </script>
 
 <template>
     <Head title="Quizzes" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-7xl space-y-6 p-6 sm:px-6 lg:px-8">
+            <!-- Breadcrumbs -->
+            <div class="flex items-center text-sm text-muted-foreground">
+                <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
+                    <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
+                        {{ crumb.title }}
+                    </Link>
+                    <span v-else class="font-medium text-foreground">{{ crumb.title }}</span>
+
+                    <span v-if="index < breadcrumbs.length - 1" class="mx-2">/</span>
+                </div>
+            </div>
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Quizzes for "{{ file.name }}"</h2>
                 <div class="flex space-x-2">

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type File } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
+import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import FileCard from '@/components/FileCard.vue';
 import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface RecommendationGroup {
     [key: string]: File[];
@@ -15,12 +16,20 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const page = usePage<SharedData>();
+const user = page.props.auth.user as User;
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Home',
         href: '/home',
     },
 ];
+
+// Check if there are any recommendations across all categories
+const hasAnyRecommendations = computed(() => {
+    return Object.values(props.recommendations).some(files => files && files.length > 0);
+});
 
 // Map recommendation categories to icons and titles
 const recommendationCategories = [
@@ -58,8 +67,7 @@ const recommendationCategories = [
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
             <!-- Welcome Section -->
             <div class="mb-8">
-                <h1 class="text-2xl font-bold">Welcome to Lectica</h1>
-                <p class="text-muted-foreground">Your central hub for academic resources and file sharing</p>
+                <h1 class="text-2xl font-bold">Welcome to Lectica, {{ user.last_name }}, {{ user.first_name }}!</h1>
             </div>
 
             <!-- Quick Actions -->
@@ -115,16 +123,6 @@ const recommendationCategories = [
                     </div>
                 </div>
 
-                <!-- Link to view all recommendations -->
-                <div class="mt-8 text-center">
-                    <Link
-                        href="/recommendations"
-                        class="inline-flex items-center justify-center rounded-md bg-primary/10 text-primary px-4 py-2 text-sm font-medium hover:bg-primary/20 transition-colors"
-                    >
-                        View All Recommendations
-                    </Link>
-                </div>
-            </div>
-        </div>
-    </AppLayout>
-</template>
+                <!-- Message when no recommendations are available -->
+                <div v-if="!hasAnyRecommendations" class="flex flex-col items-center justify-center p-8 text-center">
+                    <div class="rounded-full bg-muted p-3 mb-3

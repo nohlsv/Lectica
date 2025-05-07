@@ -127,6 +127,44 @@ class FileController extends Controller
             ],
         ]);
     }
+            
+            public function indexPersonal(Request $request)
+            {
+                $query = File::with(['tags', 'user'])
+            ->where('user_id', auth()->id())
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->search;
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->when($request->filled('tags') && is_array($request->tags), function ($query) use ($request) {
+                return $query->whereHas('tags', function ($q) use ($request) {
+                    $q->whereIn('tags.id', $request->tags);
+                }, '=', count($request->tags));
+            });
+            
+                $files = $query->withCount(['flashcards', 'quizzes'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(9)
+            ->withQueryString();
+            
+                // Get starred file IDs for the current user
+                $starredFiles = auth()->user()->starredFiles->pluck('id')->toArray();
+                
+                // Add is_starred flag to each file
+                $files->getCollection()->transform(function ($file) use ($starredFiles) {
+            $file->is_starred = in_array($file->id, $starredFiles);
+            return $file;
+                });
+            
+                $tags = Tag::orderBy('name')->get();
+                
+                return Inertia::render('MyFiles', [
+            'files' => $files,
+            'tags' => $tags,
+            'selectedTags' => $request->tags ?? [],
+                ]);
+            }
 
     /**
      * Format file size to human-readable format

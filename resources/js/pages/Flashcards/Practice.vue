@@ -11,6 +11,13 @@ const props = defineProps({
     flashcards: Array,
 });
 
+const breadcrumbs = [
+    { title: 'Home', href: route('home') },
+    { title: props.file.name, href: route('files.show', props.file.id) },
+    { title: 'Flashcards', href: route('files.flashcards.index', props.file.id) },
+    { title: 'Practice', href: route('files.flashcards.practice', props.file.id) },
+];
+
 const currentIndex = ref(0);
 const showAnswer = ref(false);
 const shuffled = ref(false);
@@ -73,7 +80,7 @@ function resetOrder() {
 <template>
     <Head title="Practice Flashcards" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Practice Flashcards</h2>

@@ -19,6 +19,9 @@ Route::get('/files/{file}/download', [FileController::class, 'download'])
 Route::get('/recommendations', [FileRecommendationController::class, 'index'])
     ->name('recommendations.index');
 
+// My Files
+Route::get('/myfiles', [FileController::class, 'indexPersonal'])->name('myfiles');
+
 Route::get('/files', [FileController::class, 'index'])->name('files.index');
 Route::get('/files/create', [FileController::class, 'create'])->name('files.create');
 Route::post('/files', [FileController::class, 'store'])->name('files.store');

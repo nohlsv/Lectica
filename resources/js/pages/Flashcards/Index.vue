@@ -16,12 +16,18 @@ function deleteFlashcard(flashcardId) {
         router.delete(route('files.flashcards.destroy', [props.file.id, flashcardId]));
     }
 }
+
+const breadcrumbs = [
+    { title: 'Home', href: route('home') },
+    { title: props.file.name, href: route('files.show', props.file.id) },
+    { title: 'Flashcards', href: route('files.flashcards.index', props.file.id) },
+];
 </script>
 
 <template>
     <Head title="Flashcards" />
 
-    <AppLayout>
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto max-w-7xl space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Flashcards for "{{ file.name }}"</h2>
