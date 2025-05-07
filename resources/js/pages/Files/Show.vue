@@ -128,6 +128,9 @@ const downloadFile = () => {
                 <div class="space-y-4 md:col-span-1">
                     <div class="rounded-lg border border-border p-4">
                         <h2 class="text-lg font-semibold mb-3">{{file.name}}</h2>
+                        <div v-if="file.description" class="mb-3 text-sm">
+                            <p class="text-muted-foreground">{{ file.description }}</p>
+                        </div>
                         <dl class="space-y-2 text-sm">
 <!--                            <div class="flex justify-between">-->
 <!--                                <dt class="font-medium text-muted-foreground">Name:</dt>-->

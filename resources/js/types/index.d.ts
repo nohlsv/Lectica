@@ -76,6 +76,9 @@ export interface File {
     is_starred?: boolean;
     star_count?: number;
     can_edit?: boolean;
+    description?: string;
+    flashcards_count?: number;
+    quizzes_count?: number;
 }
 
 export interface Tag {

@@ -45,6 +45,7 @@ class FileController extends Controller
         $request->validate([
             'file' => 'required|file|mimes:txt,xlsx,pdf,pptx,doc,docx|max:25600',
             'name' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'tags' => 'nullable|array',
             'tags.*.id' => 'integer|exists:tags,id',
             'tags.*.name' => 'string|max:50',
@@ -85,6 +86,7 @@ class FileController extends Controller
 
         $file = File::create([
             'name' => $fileName,
+            'description' => $request->input('description'),
             'path' => $path,
             'content' => $content,
             'file_hash' => $fileHash,
@@ -127,7 +129,7 @@ class FileController extends Controller
             ],
         ]);
     }
-            
+
             public function indexPersonal(Request $request)
             {
                 $query = File::with(['tags', 'user'])
@@ -142,23 +144,23 @@ class FileController extends Controller
                     $q->whereIn('tags.id', $request->tags);
                 }, '=', count($request->tags));
             });
-            
+
                 $files = $query->withCount(['flashcards', 'quizzes'])
             ->orderBy('created_at', 'desc')
             ->paginate(9)
             ->withQueryString();
-            
+
                 // Get starred file IDs for the current user
                 $starredFiles = auth()->user()->starredFiles->pluck('id')->toArray();
-                
+
                 // Add is_starred flag to each file
                 $files->getCollection()->transform(function ($file) use ($starredFiles) {
             $file->is_starred = in_array($file->id, $starredFiles);
             return $file;
                 });
-            
+
                 $tags = Tag::orderBy('name')->get();
-                
+
                 return Inertia::render('MyFiles', [
             'files' => $files,
             'tags' => $tags,
@@ -199,6 +201,7 @@ class FileController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'tags' => 'nullable|array',
             'tags.*.id' => 'nullable|exists:tags,id',
             'tags.*.name' => 'nullable|string|max:50',
@@ -207,7 +210,10 @@ class FileController extends Controller
         // Authorization is handled by middleware
         // $this->authorize('update', $file);
 
-        $file->update(['name' => $validated['name']]);
+        $file->update([
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+        ]);
 
         // Handle tags
         if ($request->has('tags')) {

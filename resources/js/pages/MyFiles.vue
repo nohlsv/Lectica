@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -6,16 +6,29 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { FileIcon, FolderIcon, StarIcon, PlusIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { type File, type Tag, type BreadcrumbItem } from '@/types';
 
-const props = defineProps({
-    files: Object,
-    tags: Array,
-    selectedTags: Array,
-});
+interface PageProps {
+    files: {
+        data: File[];
+        meta?: {
+            last_page: number;
+            links: Array<{
+                url: string | null;
+                label: string;
+                active: boolean;
+            }>;
+        };
+    };
+    tags: Tag[];
+    selectedTags: number[];
+}
+
+const props = defineProps<PageProps>();
 
 // Computed property to group files by first letter
 const groupedFiles = computed(() => {
-    const grouped = {};
+    const grouped: Record<string, File[]> = {};
 
     props.files.data.forEach(file => {
         const firstLetter = file.name.charAt(0).toUpperCase();
@@ -26,14 +39,14 @@ const groupedFiles = computed(() => {
     });
 
     // Sort groups alphabetically
-    return Object.keys(grouped).sort().reduce((result, key) => {
+    return Object.keys(grouped).sort().reduce<Record<string, File[]>>((result, key) => {
         result[key] = grouped[key];
         return result;
     }, {});
 });
 
-const breadcrumbs = [
-    { title: 'Dashboard', href: route('dashboard') },
+const breadcrumbs: BreadcrumbItem[] = [
+    { title: 'Home', href: route('home') },
     { title: 'My Files', href: route('myfiles') },
 ];
 </script>
@@ -136,7 +149,7 @@ const breadcrumbs = [
             </div>
 
             <!-- Pagination -->
-            <div v-if="files.meta.last_page > 1" class="flex justify-center mt-8">
+            <div v-if="files.meta && files.meta.last_page > 1" class="flex justify-center mt-8">
                 <div class="flex space-x-1">
                     <Link
                         v-for="page in files.meta.links"

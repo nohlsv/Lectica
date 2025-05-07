@@ -29,6 +29,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: props.file.name,
+    description: props.file.description || '',
     tags: props.file.tags as (any[] | undefined) || [],
 });
 
@@ -62,6 +63,24 @@ const submit = () => {
                             id="name"
                             class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
                         />
+                        <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
+                            {{ form.errors.name }}
+                        </p>
+                    </div>
+                    
+                    <!-- File Description -->
+                    <div class="space-y-2">
+                        <label for="description" class="block text-sm font-medium text-foreground">Description</label>
+                        <textarea
+                            id="description"
+                            v-model="form.description"
+                            rows="3"
+                            class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background resize-none"
+                            placeholder="Enter a brief description of this file (optional)"
+                        ></textarea>
+                        <p v-if="form.errors.description" class="mt-1 text-xs text-red-500">
+                            {{ form.errors.description }}
+                        </p>
                     </div>
 
                     <!-- Tags -->

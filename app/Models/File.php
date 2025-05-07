@@ -13,14 +13,14 @@ class File extends Model
 {
 	/** @use HasFactory<\Database\Factories\FileFactory> */
 	use HasFactory;
-    protected $fillable = ['name', 'path', 'content', 'file_hash', 'user_id'];
+    protected $fillable = ['name', 'description', 'path', 'content', 'file_hash', 'user_id'];
 
     /**
      * The accessors to append to the model's array form.
      *
      * @var array
      */
-    protected $appends = ['is_starred', 'can_edit'];
+    protected $appends = ['is_starred', 'can_edit', 'flashcards_count', 'quizzes_count'];
 
     /**
      * The "booted" method of the model.
@@ -89,5 +89,25 @@ class File extends Model
     public function quizzes(): HasMany
     {
         return $this->hasMany(Quiz::class);
+    }
+
+    /**
+     * Get the flashcards_count attribute.
+     *
+     * @return int
+     */
+    public function getFlashcardsCountAttribute(): int
+    {
+        return $this->flashcards()->count();
+    }
+
+    /**
+     * Get the quizzes_count attribute.
+     *
+     * @return int
+     */
+    public function getQuizzesCountAttribute(): int
+    {
+        return $this->quizzes()->count();
     }
 }
