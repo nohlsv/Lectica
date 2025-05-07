@@ -125,4 +125,17 @@ const recommendationCategories = [
 
                 <!-- Message when no recommendations are available -->
                 <div v-if="!hasAnyRecommendations" class="flex flex-col items-center justify-center p-8 text-center">
-                    <div class="rounded-full bg-muted p-3 mb-3
+                    <div class="rounded-full bg-muted p-3 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground h-6 w-6">
+                            <path d="M8 17l4 4 4-4"></path>
+                            <path d="M12 12v9"></path>
+                            <path d="M20 8h-7"></path>
+                            <path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"></path>
+                        </svg>
+                    </div>
+                    <p class="text-muted-foreground">No recommendations available at the moment. Check back later!</p>
+                </div>
+            </div>
+        </div>
+    </AppLayout>
+</template>
