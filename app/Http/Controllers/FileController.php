@@ -115,8 +115,7 @@ class FileController extends Controller
         $extension = pathinfo($file->path, PATHINFO_EXTENSION);
 
         // Check if file exists
-        $filePath = storage_path('app/public/' . $file->path);
-        $fileExists = file_exists($filePath);
+        $fileExists = Storage::exists($file->path);
 
 
         return Inertia::render('Files/Show', [
@@ -124,9 +123,9 @@ class FileController extends Controller
             'fileInfo' => [
                 'extension' => $extension,
                 'exists' => $fileExists,
-                'url' => Storage::url($file->path),
-                'size' => $fileExists ? $this->formatFileSize(filesize($filePath)) : null,
-                'lastModified' => $fileExists ? date('Y-m-d H:i:s', filemtime($filePath)) : null,
+                'url' => $fileExists ? Storage::url($file->path) : null,
+                'size' => $fileExists ? Storage::size($file->path) : null,
+                'lastModified' => $fileExists ? Storage::lastModified($file->path) : null,
             ],
         ]);
     }
