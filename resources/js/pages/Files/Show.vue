@@ -64,9 +64,9 @@ const isOwner = computed(() => {
 });
 
 const downloadFile = () => {
-    if (props.fileInfo.url.value) {
+    if (props.fileInfo.url) {
         const link = document.createElement('a');
-        link.href = route('files.download', { file: props.file.id });
+        link.href = props.fileInfo.url;
         link.setAttribute('download', props.file.name);
         document.body.appendChild(link);
         link.click();
