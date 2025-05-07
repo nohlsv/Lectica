@@ -63,20 +63,21 @@ class FileController extends Controller
         $userID = auth()->id();
 
         // Check for duplicate by name and hash
-        $existingFile = File::where(function($query) use ($userID, $fileHash) {
+        $existingFile = File::where(function ($query) use ($userID, $fileHash) {
             $query->where('user_id', $userID)
-                  ->where('file_hash', $fileHash);
+                ->where('file_hash', $fileHash);
         })->first();
 
         if ($existingFile) {
-            return redirect()->back()->withErrors([
-                'file' => 'This file already exists in the system.',
-                'duplicate_file_id' => $existingFile->id // Optional: to link to the existing file
-            ]
+            return redirect()->back()->withErrors(
+                [
+                    'file' => 'This file already exists in the system.',
+                    'duplicate_file_id' => $existingFile->id // Optional: to link to the existing file
+                ]
             );
         }
 
-        $path = $uploadedFile->store('uploads', 'public');
+        $path = $uploadedFile->store('uploads');
 
         try {
             $content = $this->extractText($uploadedFile);
@@ -99,7 +100,7 @@ class FileController extends Controller
         }
 
         return redirect()->route('files.show', $file->id)->with('success', 'File uploaded successfully!');
-//        return redirect()->back()->with([
+        //        return redirect()->back()->with([
 //            'success' => 'File uploaded successfully!',
 //            'content' => $content,
 //            'file_id' => $file->id,
@@ -130,9 +131,9 @@ class FileController extends Controller
         ]);
     }
 
-            public function indexPersonal(Request $request)
-            {
-                $query = File::with(['tags', 'user'])
+    public function indexPersonal(Request $request)
+    {
+        $query = File::with(['tags', 'user'])
             ->where('user_id', auth()->id())
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->search;
@@ -145,28 +146,28 @@ class FileController extends Controller
                 }, '=', count($request->tags));
             });
 
-                $files = $query->withCount(['flashcards', 'quizzes'])
+        $files = $query->withCount(['flashcards', 'quizzes'])
             ->orderBy('created_at', 'desc')
             ->paginate(9)
             ->withQueryString();
 
-                // Get starred file IDs for the current user
-                $starredFiles = auth()->user()->starredFiles->pluck('id')->toArray();
+        // Get starred file IDs for the current user
+        $starredFiles = auth()->user()->starredFiles->pluck('id')->toArray();
 
-                // Add is_starred flag to each file
-                $files->getCollection()->transform(function ($file) use ($starredFiles) {
+        // Add is_starred flag to each file
+        $files->getCollection()->transform(function ($file) use ($starredFiles) {
             $file->is_starred = in_array($file->id, $starredFiles);
             return $file;
-                });
+        });
 
-                $tags = Tag::orderBy('name')->get();
+        $tags = Tag::orderBy('name')->get();
 
-                return Inertia::render('MyFiles', [
+        return Inertia::render('MyFiles', [
             'files' => $files,
             'tags' => $tags,
             'selectedTags' => $request->tags ?? [],
-                ]);
-            }
+        ]);
+    }
 
     /**
      * Format file size to human-readable format
