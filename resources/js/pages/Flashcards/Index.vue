@@ -1,5 +1,5 @@
 <script setup>
-import AuthLayout from '@/layouts/AuthLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/Components/ui/card';
@@ -21,7 +21,7 @@ function deleteFlashcard(flashcardId) {
 <template>
     <Head title="Flashcards" />
 
-    <AuthLayout>
+    <AppLayout>
         <div class="mx-auto max-w-7xl space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Flashcards for "{{ file.name }}"</h2>
@@ -72,5 +72,5 @@ function deleteFlashcard(flashcardId) {
                 </Card>
             </div>
         </div>
-    </AuthLayout>
+    </AppLayout>
 </template>

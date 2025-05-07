@@ -1,5 +1,5 @@
 <script setup>
-import AuthLayout from '@/layouts/AuthLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -231,7 +231,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
 <template>
     <Head title="Take Quiz" />
 
-    <AuthLayout>
+    <AppLayout>
         <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Quiz: {{ file.name }}</h2>
@@ -505,5 +505,5 @@ watch(() => currentQuiz.value, (newQuiz) => {
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-    </AuthLayout>
+    </AppLayout>
 </template>

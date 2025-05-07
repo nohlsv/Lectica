@@ -1,5 +1,5 @@
 <script setup>
-import AuthLayout from '@/layouts/AuthLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -85,7 +85,7 @@ function submit() {
 <template>
     <Head title="Create Quiz" />
 
-    <AuthLayout>
+    <AppLayout>
         <div class="mx-auto max-w-3xl space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Create Quiz</h2>
@@ -205,5 +205,5 @@ function submit() {
                 </CardFooter>
             </Card>
         </div>
-    </AuthLayout>
+    </AppLayout>
 </template>

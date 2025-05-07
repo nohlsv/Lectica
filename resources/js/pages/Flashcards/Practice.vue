@@ -1,5 +1,5 @@
 <script setup>
-import AuthLayout from '@/layouts/AuthLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -73,7 +73,7 @@ function resetOrder() {
 <template>
     <Head title="Practice Flashcards" />
 
-    <AuthLayout>
+    <AppLayout>
         <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <h2 class="text-2xl font-bold">Practice Flashcards</h2>
@@ -157,5 +157,5 @@ function resetOrder() {
                 </div>
             </div>
         </div>
-    </AuthLayout>
+    </AppLayout>
 </template>
