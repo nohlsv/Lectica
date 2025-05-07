@@ -246,13 +246,13 @@ class FileController extends Controller
 
     public function download(File $file)
     {
-        $filePath = Storage::url($file->path);
+        $filePath = $file->path; // Use the relative path stored in the database
 
         if (!Storage::exists($filePath)) {
             return back()->withErrors(['file' => 'File not found on server.']);
         }
 
-        return response()->download($filePath, $file->name);
+        return Storage::download($filePath, $file->name); // Use Storage::download for proper handling
     }
 
     public function upload(Request $request)

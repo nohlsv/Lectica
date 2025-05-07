@@ -64,14 +64,13 @@ const isOwner = computed(() => {
 });
 
 const downloadFile = () => {
-    if (props.fileInfo.url) {
-        const link = document.createElement('a');
-        link.href = props.fileInfo.url;
-        link.setAttribute('download', props.file.name);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+    const downloadUrl = route('files.download', { file: props.file.id }); // Use the backend route for downloading
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.setAttribute('download', props.file.name);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 };
 
 </script>
