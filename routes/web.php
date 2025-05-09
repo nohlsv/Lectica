@@ -34,6 +34,7 @@ Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
+    Route::get('/statistics', [App\Http\Controllers\StatisticsController::class, 'index'])->name('statistics.index');
 });
 
 require __DIR__ . '/settings.php';

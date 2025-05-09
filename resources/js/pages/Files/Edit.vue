@@ -40,23 +40,23 @@ const submit = () => {
 
 const isGenerating = ref(false);
 
-const generateFlashcardsAndQuizzes = async () => {
-    if (isGenerating.value) return;
+// const generateFlashcardsAndQuizzes = async () => {
+//     if (isGenerating.value) return;
 
-    isGenerating.value = true;
+//     isGenerating.value = true;
 
-    console.log({file: props.file.id});
+//     console.log({file: props.file.id});
 
-    router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
-        preserveScroll: true,
-        onSuccess: () => {
-            alert('Flashcards and quizzes generated successfully!');
-        },
-        onFinish: () => {
-            isGenerating.value = false;
-        }
-    });
-};
+//     router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
+//         preserveScroll: true,
+//         onSuccess: () => {
+//             alert('Flashcards and quizzes generated successfully!');
+//         },
+//         onFinish: () => {
+//             isGenerating.value = false;
+//         }
+//     });
+// };
 </script>
 
 <template>
