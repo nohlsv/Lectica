@@ -20,7 +20,8 @@ class FileController extends Controller
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->search;
                 return $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('content', 'like', "%{$search}%");
             })
             ->when($request->filled('tags') && is_array($request->tags), function ($query) use ($request) {
                 return $query->whereHas('tags', function ($q) use ($request) {

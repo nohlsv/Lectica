@@ -27,7 +27,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const columns = [
     { key: 'name', label: 'Name' },
-    { key: 'content', label: 'Content', class: 'hidden sm:table-cell' },
+    { key: 'description', label: 'Description', class: 'hidden sm:table-cell' },
     { key: 'created_at', label: 'Upload Info', class: 'hidden md:table-cell' },
 ];
 
@@ -59,7 +59,7 @@ const applyFilters = () => {
             <div class="flex items-center justify-between">
                 <h1 class="text-lg font-semibold">Files</h1>
                 <Link href="/files/create" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                    Upload New Filee
+                    Upload New File
                 </Link>
             </div>
             <div class="flex flex-col gap-4">
@@ -88,9 +88,9 @@ const applyFilters = () => {
             <div class="overflow-x-auto -mx-4 sm:mx-0">
                 <DataTable :data="files" :columns="columns" class="min-w-full">
                     <!-- Custom cell template to clamp content text -->
-                    <template #cell-content="{ item }">
+                    <template #cell-description="{ item }">
                         <p class="max-w-full sm:line-clamp-2 line-clamp-4 text-sm text-muted-foreground">
-                            {{ item.content }}
+                            {{ item.description ? item.description : 'No description provided' }}
                         </p>
                     </template>
                     <template #cell-created_at="{ item }">
