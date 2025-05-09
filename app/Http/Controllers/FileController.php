@@ -342,7 +342,7 @@ class FileController extends Controller
                                         "type" => "ARRAY",
                                         "items" => ["type" => "STRING"]
                                     ],
-                                    "correct_option" => ["type" => "STRING"]
+                                    "answer" => ["type" => "STRING"]
                                 ],
                                 "nullable" => False,
                                 "required" => ["question", "options", "correct_option"],
@@ -365,6 +365,7 @@ class FileController extends Controller
         if ($response->successful()) {
             $data = $response->json();
             $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+            logger()->info('Gemini response: ' . $text);
 
             $parsedData = json_decode($text, true);
 
@@ -382,7 +383,7 @@ class FileController extends Controller
                         'question' => $quiz['question'],
                         'type' => 'multiple_choice',
                         'options' => json_encode($quiz['options']),
-                        'correct_option' => $quiz['correct_option'],
+                        'answer' => $quiz['answer'],
                         'file_id' => $file->id,
                     ]);
                 });
