@@ -2,9 +2,15 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
 import { type BreadcrumbItem, type File, type PaginatedData } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { EyeIcon, PencilIcon, StarIcon } from 'lucide-vue-next';
 import { useDateFormat } from '@vueuse/core';
+import { ref, onMounted } from 'vue';
+import axios from 'axios';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Tag } from '@/types';
 
 interface Props {
     files: PaginatedData<File>;
@@ -24,6 +30,26 @@ const columns = [
     { key: 'content', label: 'Content', class: 'hidden sm:table-cell' },
     { key: 'created_at', label: 'Upload Info', class: 'hidden md:table-cell' },
 ];
+
+const searchQuery = ref('');
+const selectedTags = ref<number[]>([]);
+const allTags = ref<Tag[]>([]);
+
+const fetchTags = async () => {
+    const response = await axios.get('/tags');
+    allTags.value = response.data;
+};
+
+onMounted(() => {
+    fetchTags();
+});
+
+const applyFilters = () => {
+    router.get(route('files.index'), {
+        search: searchQuery.value,
+        tags: selectedTags.value,
+    }, { preserveState: true });
+};
 </script>
 
 <template>
@@ -33,8 +59,29 @@ const columns = [
             <div class="flex items-center justify-between">
                 <h1 class="text-lg font-semibold">Files</h1>
                 <Link href="/files/create" class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                    Upload New File
+                    Upload New Filee
                 </Link>
+            </div>
+            <div class="flex flex-col gap-4">
+                <div class="flex items-center gap-4">
+                    <Input
+                        v-model="searchQuery"
+                        placeholder="Search files..."
+                        class="w-full"
+                    />
+                    <Button @click="applyFilters">Search</Button>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <Badge
+                        v-for="tag in allTags"
+                        :key="tag.id"
+                        :variant="selectedTags.includes(tag.id) ? 'default' : 'secondary'"
+                        @click="selectedTags.includes(tag.id) ? selectedTags.splice(selectedTags.indexOf(tag.id), 1) : selectedTags.push(tag.id)"
+                        class="cursor-pointer"
+                    >
+                        {{ tag.name }}
+                    </Badge>
+                </div>
             </div>
         </div>
         <div class="rounded-xl border border-border p-4 sm:p-6 mb-8 overflow-hidden">

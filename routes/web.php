@@ -30,6 +30,8 @@ Route::get('/programs', [ProgramController::class, 'index'])
 Route::get('/programs/search', [ProgramController::class, 'search'])
     ->name('programs.search');
 
+Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
 });

@@ -16,9 +16,19 @@ class FileController extends Controller
 {
     public function index(Request $request)
     {
-        $files = File::with('user')
-            ->latest()
-            ->paginate(10);
+        $query = File::with(['user', 'tags'])
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $search = $request->search;
+                return $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%");
+            })
+            ->when($request->filled('tags') && is_array($request->tags), function ($query) use ($request) {
+                return $query->whereHas('tags', function ($q) use ($request) {
+                    $q->whereIn('tags.id', $request->tags);
+                }, '=', count($request->tags));
+            });
+
+        $files = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Files/Index', [
             'files' => $files,
@@ -332,7 +342,7 @@ class FileController extends Controller
                             "maxItems" => 30,
                             "nullable" => False
                         ],
-                        "quizzes" => [
+                        "multiple_choice_quizzes" => [
                             "type" => "ARRAY",
                             "items" => [
                                 "type" => "OBJECT",
@@ -345,8 +355,8 @@ class FileController extends Controller
                                     "answer" => ["type" => "STRING"]
                                 ],
                                 "nullable" => False,
-                                "required" => ["question", "options", "correct_option"],
-                                "propertyOrdering" => ["question", "options", "correct_option"]
+                                "required" => ["question", "options", "answer"],
+                                "propertyOrdering" => ["question", "options", "answer"]
                             ],
                             "minItems" => 3,
                             "maxItems" => 30,
@@ -378,7 +388,7 @@ class FileController extends Controller
                     ]);
                 });
 
-                $quizzes = collect($parsedData['quizzes'] ?? [])->map(function ($quiz) use ($file) {
+                $quizzes = collect($parsedData['multiple_choice_quizzes'] ?? [])->map(function ($quiz) use ($file) {
                     return \App\Models\Quiz::create([
                         'question' => $quiz['question'],
                         'type' => 'multiple_choice',
