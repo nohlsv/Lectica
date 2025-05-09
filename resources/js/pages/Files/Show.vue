@@ -80,20 +80,17 @@ const generateFlashcardsAndQuizzes = async () => {
 
     isGenerating.value = true;
 
-    console.log('isGenerating is ', isGenerating.value);
-    try {
-        console.log({file: props.file.id});
-        await router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
-            preserveScroll: true,
-            onSuccess: () => {
-                alert('Flashcards and quizzes generated successfully!');
-            },
-        });
-    } catch (error) {
-        console.error('Error generating flashcards and quizzes', error);
-    } finally {
-        isGenerating.value = false;
-    }
+    console.log({file: props.file.id});
+
+    router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            alert('Flashcards and quizzes generated successfully!');
+        },
+        onFinish: () => {
+            isGenerating.value = false;
+        }
+    });
 };
 </script>
 
@@ -101,7 +98,7 @@ const generateFlashcardsAndQuizzes = async () => {
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-6 p-6">
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-4">
                     <Link
                         href="/files"
@@ -110,9 +107,9 @@ const generateFlashcardsAndQuizzes = async () => {
                         <ArrowLeftIcon class="h-4 w-4" />
                         Back to Files
                     </Link>
-                    <h1 class="text-2xl font-bold">File Details</h1>
+                    <h1 class="text-xl md:text-2xl font-bold">File Details</h1>
                 </div>
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <button
                         @click="toggleStar"
                         class="inline-flex items-center justify-center rounded-md bg-background px-3 py-2 text-sm font-medium hover:bg-accent transition-colors border border-border"
@@ -124,7 +121,7 @@ const generateFlashcardsAndQuizzes = async () => {
                         {{ isStarred ? 'Starred' : 'Star' }}
                     </button>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-wrap items-center gap-2">
                     <button
                         type="button"
                         class="inline-flex items-center justify-center gap-1 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/90"
