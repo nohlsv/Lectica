@@ -33,7 +33,9 @@ Route::get('/files/{file}/edit', [FileController::class, 'edit'])
 Route::put('/files/{file}', [FileController::class, 'update'])
     ->name('files.update')
     ->middleware('can:update,file');
-Route::delete('/files/{id}', [FileController::class, 'destroy'])->name('files.destroy');
+Route::delete('/files/{file}', [FileController::class, 'destroy'])
+    ->name('files.destroy')
+    ->middleware('can:delete,file');
 
 // Tag routes
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');

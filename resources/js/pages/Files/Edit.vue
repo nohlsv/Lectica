@@ -40,23 +40,15 @@ const submit = () => {
 
 const isGenerating = ref(false);
 
-// const generateFlashcardsAndQuizzes = async () => {
-//     if (isGenerating.value) return;
-
-//     isGenerating.value = true;
-
-//     console.log({file: props.file.id});
-
-//     router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
-//         preserveScroll: true,
-//         onSuccess: () => {
-//             alert('Flashcards and quizzes generated successfully!');
-//         },
-//         onFinish: () => {
-//             isGenerating.value = false;
-//         }
-//     });
-// };
+const deleteFile = () => {
+    if (confirm('Are you sure you want to delete this file?')) {
+        form.delete(`/files/${props.file.id}`, {
+            onSuccess: () => {
+                router.visit('/files');
+            },
+        });
+    }
+};
 </script>
 
 <template>
@@ -116,28 +108,33 @@ const isGenerating = ref(false);
                         </p>
                     </div>
 
-                    <div class="flex justify-end gap-2">
-                        <!-- <button
-                            type="button"
-                            class="inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/90"
-                            :disabled="isGenerating"
-                            @click="generateFlashcardsAndQuizzes"
-                        >
-                            {{ isGenerating ? 'Generating...' : 'Generate Flashcards & Quizzes' }}
-                        </button> -->
-                        <Link
-                            :href="`/files/${file.id}`"
-                            class="inline-flex items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
-                        >
-                            Cancel
-                        </Link>
-                        <button
-                            type="submit"
-                            class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
-                            :disabled="form.processing"
-                        >
-                            {{ form.processing ? 'Saving...' : 'Save Changes' }}
-                        </button>
+                    <div class="flex justify-between items-center gap-2">
+                        <div> 
+                            <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                @click="deleteFile"
+                                :disabled="form.processing"
+                            >
+                                Delete File
+                            </button>
+                        </div>
+
+                        <div>
+                            <Link
+                                :href="`/files/${file.id}`"
+                                class="inline-flex items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                            >
+                                Cancel
+                            </Link>
+                            <button
+                                type="submit"
+                                class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                                :disabled="form.processing"
+                            >
+                                {{ form.processing ? 'Saving...' : 'Save Changes' }}
+                            </button>
+                        </div>
                     </div>
                 </form>
             </div>

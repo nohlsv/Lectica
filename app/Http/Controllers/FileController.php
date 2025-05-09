@@ -251,9 +251,20 @@ class FileController extends Controller
             ->with('success', 'File updated successfully');
     }
 
-    public function destroy($id)
+    public function destroy(File $file)
     {
-        // Logic to delete a specific file
+        // Check if the user is authorized to delete the file
+        $this->authorize('delete', $file);
+
+        // Delete the file from storage
+        if (Storage::exists($file->path)) {
+            Storage::delete($file->path);
+        }
+
+        // Delete the file record from the database
+        $file->delete();
+
+        return redirect()->route('files.index')->with('success', 'File deleted successfully.');
     }
 
     public function download(File $file)
