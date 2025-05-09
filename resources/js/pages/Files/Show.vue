@@ -2,7 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File } from '@/types';
-import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileTextIcon, FileType2Icon } from 'lucide-vue-next';
+import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 
@@ -63,16 +63,38 @@ const isOwner = computed(() => {
     return props.file.can_edit === true;
 });
 
-const downloadFile = () => {
-    const downloadUrl = route('files.download', { file: props.file.id }); // Use the backend route for downloading
-    const link = document.createElement('a');
-    link.href = downloadUrl;
-    link.setAttribute('download', props.file.name);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-};
+// const downloadFile = () => {
+//     const downloadUrl = route('files.download', { file: props.file.id }); // Use the backend route for downloading
+//     const link = document.createElement('a');
+//     link.href = downloadUrl;
+//     link.setAttribute('download', props.file.name);
+//     document.body.appendChild(link);
+//     link.click();
+//     document.body.removeChild(link);
+// };
 
+const isGenerating = ref(false);
+
+const generateFlashcardsAndQuizzes = async () => {
+    if (isGenerating.value) return;
+
+    isGenerating.value = true;
+
+    console.log('isGenerating is ', isGenerating.value);
+    try {
+        console.log({file: props.file.id});
+        await router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
+            preserveScroll: true,
+            onSuccess: () => {
+                alert('Flashcards and quizzes generated successfully!');
+            },
+        });
+    } catch (error) {
+        console.error('Error generating flashcards and quizzes', error);
+    } finally {
+        isGenerating.value = false;
+    }
+};
 </script>
 
 <template>
@@ -103,6 +125,15 @@ const downloadFile = () => {
                     </button>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button
+                        type="button"
+                        class="inline-flex items-center justify-center gap-1 rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/90"
+                        :disabled="isGenerating"
+                        @click="generateFlashcardsAndQuizzes"
+                    >
+                        <PencilIcon class="h-4 w-4" />
+                        {{ isGenerating ? 'Generating...' : 'Generate Flashcards & Quizzes' }}
+                    </button>
                     <Link
                         v-if="file.can_edit === true"
                         :href="route('files.edit', { file: file.id })"

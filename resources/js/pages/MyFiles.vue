@@ -154,8 +154,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                     <Link
                         v-for="page in files.meta.links"
                         :key="page.label"
-                        :href="page.url"
-                        v-html="page.label"
+                        :href="page.url ? page.url : '#'"
+                        v-text="page.label"
                         :class="[
                             'px-3 py-1 rounded border',
                             page.active

@@ -10,7 +10,7 @@ interface Props {
     files: PaginatedData<File>;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

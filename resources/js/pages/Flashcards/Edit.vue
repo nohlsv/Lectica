@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -7,11 +7,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import InputError from '@/components/InputError.vue';
-
-const props = defineProps({
-    file: Object,
-    flashcard: Object,
-});
+import { type File, type Flashcard } from '@/types';
+interface Props {
+    file: File;
+    flashcard: Flashcard;
+}
+const props = defineProps<Props>();
 
 const form = useForm({
     question: props.flashcard.question,

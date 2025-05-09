@@ -1,17 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Pencil, Trash2, Plus, BookOpen } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
+import { type File, type Flashcard } from '@/types';
+import { computed } from 'vue';
 
-const props = defineProps({
-    file: Object,
-    flashcards: Array,
-});
+interface Props {
+    file: File;
+    flashcards: Flashcard[];
+}
 
-function deleteFlashcard(flashcardId) {
+const props = defineProps<Props>();
+
+function deleteFlashcard(flashcardId: Flashcard['id']): void {
     if (confirm('Are you sure you want to delete this flashcard?')) {
         router.delete(route('files.flashcards.destroy', [props.file.id, flashcardId]));
     }
@@ -22,6 +26,11 @@ const breadcrumbs = [
     { title: props.file.name, href: route('files.show', props.file.id) },
     { title: 'Flashcards', href: route('files.flashcards.index', props.file.id) },
 ];
+
+    // isOwnedByUser: Boolean, // Add this prop to check ownership
+const isOwner = computed(() => {
+    return props.file.can_edit === true;
+});
 </script>
 
 <template>
@@ -35,7 +44,7 @@ const breadcrumbs = [
                     <Link :href="route('files.show', file.id)">
                         <Button variant="outline">Back to File</Button>
                     </Link>
-                    <Link :href="route('files.flashcards.create', file.id)">
+                    <Link v-if="isOwner" :href="route('files.flashcards.create', file.id)">
                         <Button>
                             <Plus class="mr-2 h-4 w-4" />
                             Create Flashcard

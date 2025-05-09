@@ -13,7 +13,7 @@ interface Props {
     programs: Program[];
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const form = useForm({
     first_name: '',

@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 class FileRecommendationService
 {
     // Cache TTL in minutes
-    protected const CACHE_TTL = 60;
+    protected const CACHE_TTL = 5;
 
     /**
      * Get all recommendations for a user
@@ -61,11 +61,11 @@ class FileRecommendationService
                     ->join('users', 'file_stars.user_id', '=', 'users.id')
                     ->where('users.program_id', $user->program_id)
                     ->where('users.id', '!=', $user->id)
-                    ->whereNotIn('files.id', function($query) use ($user) {
-                        $query->select('file_id')
-                            ->from('file_stars')
-                            ->where('user_id', $user->id);
-                    })
+                    ->whereNotIn('files.id', function ($query) use ($user) {
+                    $query->select('file_id')
+                        ->from('file_stars')
+                        ->where('user_id', $user->id);
+                })
                     ->groupBy(['files.id', 'file_stars.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('file_stars.created_at', 'desc')
@@ -97,13 +97,13 @@ class FileRecommendationService
                         $query->select(DB::raw(1))
                             ->from('file_stars as fs2')
                             ->whereColumn('fs1.user_id', 'fs2.user_id')
-                            ->whereIn('fs2.file_id', function($subquery) use ($user) {
+                            ->whereIn('fs2.file_id', function ($subquery) use ($user) {
                                 $subquery->select('file_id')
                                     ->from('file_stars')
                                     ->where('user_id', $user->id);
                             });
                     })
-                    ->whereNotIn('files.id', function($query) use ($user) {
+                    ->whereNotIn('files.id', function ($query) use ($user) {
                         $query->select('file_id')
                             ->from('file_stars')
                             ->where('user_id', $user->id);
@@ -149,7 +149,7 @@ class FileRecommendationService
                     ->select('files.*')
                     ->join('file_tag', 'files.id', '=', 'file_tag.file_id')
                     ->whereIn('file_tag.tag_id', $userTags)
-                    ->whereNotIn('files.id', function($query) use ($user) {
+                    ->whereNotIn('files.id', function ($query) use ($user) {
                         $query->select('file_id')
                             ->from('file_stars')
                             ->where('user_id', $user->id);

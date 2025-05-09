@@ -1,15 +1,18 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { ref, computed } from 'vue';
 import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from 'lucide-vue-next';
+import { type File, type Flashcard } from '@/types';
 
-const props = defineProps({
-    file: Object,
-    flashcards: Array,
-});
+interface Props {
+    file: File;
+    flashcards: Flashcard[];
+}
+
+const props = defineProps<Props>();
 
 const breadcrumbs = [
     { title: 'Home', href: route('home') },
@@ -58,7 +61,7 @@ function reset() {
 
 function shuffleCards() {
     // Fisher-Yates shuffle algorithm
-    let array = [...props.flashcards];
+    const array = [...props.flashcards];
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
@@ -122,11 +125,11 @@ function resetOrder() {
 
                 <Card class="min-h-[300px]">
                     <CardHeader>
-                        <CardTitle class="text-center">{{ currentFlashcard.question }}</CardTitle>
+                        <CardTitle class="text-center">{{ (currentFlashcard as Flashcard).question }}</CardTitle>
                     </CardHeader>
                     <CardContent class="flex items-center justify-center">
                         <div v-if="showAnswer" class="text-center py-8">
-                            <p class="text-lg">{{ currentFlashcard.answer }}</p>
+                            <p class="text-lg">{{ (currentFlashcard as Flashcard).answer }}</p>
                         </div>
                         <Button v-else @click="toggleAnswer" variant="outline" class="mx-auto">
                             Show Answer

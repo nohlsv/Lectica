@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Tag } from '@/types';
-import { FileIcon, UploadIcon, CheckCircleIcon, XIcon } from 'lucide-vue-next';
+import { FileIcon, UploadIcon, } from 'lucide-vue-next';
 import TagInput from '@/components/TagInput.vue';
 import { ref } from 'vue';
 
@@ -10,7 +10,7 @@ interface Props {
     allTags?: Tag[];
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 // Define breadcrumbs
 const breadcrumbs: BreadcrumbItem[] = [
@@ -67,11 +67,40 @@ const handleFileUpload = (event: Event) => {
     }
 };
 
-// Dismiss success message
-// const dismissSuccess = () => {
-//     // Clear flash messages (we're just hiding them in the UI)
-//     document.getElementById('success-alert')?.classList.add('hidden');
-// };
+// Handle drag-and-drop events
+const handleDragOver = (event: DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer!.dropEffect = 'copy';
+};
+
+const handleDrop = (event: DragEvent) => {
+    event.preventDefault();
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+        const file = files[0];
+        form.file = file;
+        fileSelected.value = true;
+        fileName.value = file.name;
+
+        // Set suggested name (remove extension)
+        if (!form.name) {
+            const nameParts = file.name.split('.');
+            if (nameParts.length > 1) {
+                nameParts.pop(); // Remove extension
+            }
+            form.name = nameParts.join('.');
+        }
+
+        // Format file size
+        if (file.size < 1024) {
+            fileSize.value = `${file.size} bytes`;
+        } else if (file.size < 1024 * 1024) {
+            fileSize.value = `${(file.size / 1024).toFixed(2)} KB`;
+        } else {
+            fileSize.value = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        }
+    }
+};
 
 // Form submission
 const submit = () => {
@@ -83,33 +112,8 @@ const submit = () => {
     <Head title="Upload File" />
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-6 p-6">
-            <!-- Success Alert -->
-<!--            <div v-if="success" id="success-alert" class="bg-green-50 border border-green-200 rounded-lg p-4 mb-4 flex items-start justify-between">-->
-<!--                <div class="flex gap-3">-->
-<!--                    <CheckCircleIcon class="h-5 w-5 text-green-500 mt-0.5" />-->
-<!--                    <div>-->
-<!--                        <p class="text-sm font-medium text-green-800">{{ success }}</p>-->
-<!--                        <p v-if="fileId" class="text-sm text-green-700 mt-1">-->
-<!--                            <Link :href="`/files/${fileId}`" class="text-green-800 font-medium hover:underline">-->
-<!--                                View file-->
-<!--                            </Link>-->
-<!--                        </p>-->
-<!--                    </div>-->
-<!--                </div>-->
-<!--                <button @click="dismissSuccess" class="text-green-500 hover:text-green-700">-->
-<!--                    <XIcon class="h-5 w-5" />-->
-<!--                </button>-->
-<!--            </div>-->
-
             <!-- Header -->
             <div class="flex items-center gap-4">
-<!--                <Link-->
-<!--                    href="/files"-->
-<!--                    class="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"-->
-<!--                >-->
-<!--                    <ArrowLeftIcon class="h-4 w-4" />-->
-<!--                    Back to Files-->
-<!--                </Link>-->
                 <h1 class="text-2xl font-bold">Upload New File</h1>
             </div>
 
@@ -123,6 +127,8 @@ const submit = () => {
                             class="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-border p-6 cursor-pointer hover:border-primary transition-colors"
                             :class="{ 'border-primary bg-primary/5': fileSelected }"
                             @click="fileInputRef?.click()"
+                            @dragover="handleDragOver"
+                            @drop="handleDrop"
                         >
                             <input
                                 type="file"
@@ -138,7 +144,7 @@ const submit = () => {
                                 </div>
                                 <div class="text-center">
                                     <p class="text-sm font-medium">Click to upload or drag and drop</p>
-                                    <p class="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, XLS, XLSX (Max 10MB)</p>
+                                    <p class="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, XLS, XLSX (Max 20MB)</p>
                                 </div>
                             </div>
 
@@ -155,8 +161,8 @@ const submit = () => {
                         <div v-if="form.errors.file" class="mt-1 text-xs text-red-500">
                             {{ form.errors.file }}
                             <Link
-                                v-if="form.errors.duplicate_file_id"
-                                :href="`/files/${form.errors.duplicate_file_id}`"
+                                v-if="(form.errors as any).duplicate_file_id"
+                                :href="`/files/${(form.errors as any).duplicate_file_id}`"
                                 class="ml-1 text-primary hover:underline font-medium"
                             >
                                 View duplicate file

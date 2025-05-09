@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -19,20 +19,24 @@ import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Checkbox } from '@/components/ui/checkbox';
+import { type File , type Quiz } from '@/types';
 
-const props = defineProps({
-    file: Object,
-    quizzes: Array,
-    quizTypes: Object,
-});
+interface Props {
+    file: File;
+    quizzes: Quiz[];
+    quizTypes: Record<string, string>;
+}
+
+const props = defineProps<Props>();
 
 const currentIndex = ref(0);
-const userAnswers = ref({});
+const userAnswers = ref<Record<number, any>>({});
 const showFeedback = ref(false);
 const quizFinished = ref(false);
 const shuffled = ref(false);
-const quizQuestions = ref([...props.quizzes]);
+interface QuizQuestion extends Quiz {}
+
+const quizQuestions = ref<QuizQuestion[]>([...props.quizzes]);
 
 // Initialize userAnswers with empty values for each quiz type
 props.quizzes.forEach((quiz, index) => {
@@ -71,7 +75,7 @@ const isCurrentAnswerCorrect = computed(() => {
         let correctCount = 0;
         const requiredAnswers = [...quiz.answers];
 
-        userAnswer.forEach(answer => {
+        userAnswer.forEach((answer: string) => {
             if (answer && requiredAnswers.some(reqAns =>
                 reqAns.toLowerCase() === answer.toLowerCase())) {
                 correctCount++;
@@ -98,11 +102,11 @@ const score = computed(() => {
             }
         } else if (quiz.type === 'enumeration') {
             // For enumeration, check if all required answers are provided
-            let allCorrect = true;
+            // const allCorrect = true;
             const requiredAnswers = [...quiz.answers];
 
             // Check if user has provided all required answers
-            const userAnswersLowerCase = userAnswer.map(ans => ans.toLowerCase());
+            const userAnswersLowerCase = (userAnswer as string[]).map((ans: string) => ans.toLowerCase());
             const requiredAnswersLowerCase = requiredAnswers.map(ans => ans.toLowerCase());
 
             // Check if user has all the required answers
@@ -159,7 +163,7 @@ function reset() {
 
 function shuffleQuizzes() {
     // Fisher-Yates shuffle algorithm
-    let array = [...props.quizzes];
+    const array = [...props.quizzes];
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [array[i], array[j]] = [array[j], array[i]];
@@ -201,7 +205,7 @@ function resetOrder() {
     });
 }
 
-function updateEnumerationAnswer(index, value) {
+function updateEnumerationAnswer(index: number, value: string) {
     userAnswers.value[currentIndex.value][index] = value;
 }
 
@@ -312,7 +316,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
                     </div>
                 </div>
 
-                <Card class="min-h-[300px]">
+                <Card class="min-h-[300px]" v-if="currentQuiz">
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <Badge>{{ quizTypes[currentQuiz.type] }}</Badge>
@@ -469,7 +473,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
                             :disabled="
                                 (currentQuiz.type === 'multiple_choice' && !userAnswers[currentIndex]) ||
                                 (currentQuiz.type === 'true_false' && !userAnswers[currentIndex]) ||
-                                (currentQuiz.type === 'enumeration' && userAnswers[currentIndex].every(a => !a))
+                                (currentQuiz.type === 'enumeration' && userAnswers[currentIndex].every((a: string) => !a))
                             "
                         >
                             Check Answer

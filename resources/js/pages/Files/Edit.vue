@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import TagInput from '@/components/TagInput.vue';
+import { ref } from 'vue';
 
 interface Props {
     file: File;
@@ -35,6 +36,27 @@ const form = useForm({
 
 const submit = () => {
     form.put(`/files/${props.file.id}`);
+};
+
+const isGenerating = ref(false);
+
+const generateFlashcardsAndQuizzes = async () => {
+    if (isGenerating.value) return;
+
+    isGenerating.value = true;
+
+    try {
+        await form.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                alert('Flashcards and quizzes generated successfully!');
+            },
+        });
+    } catch (error) {
+        console.error('Error generating flashcards and quizzes', error);
+    } finally {
+        isGenerating.value = false;
+    }
 };
 </script>
 
@@ -96,6 +118,14 @@ const submit = () => {
                     </div>
 
                     <div class="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="inline-flex items-center justify-center rounded-md bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground hover:bg-secondary/90"
+                            :disabled="isGenerating"
+                            @click="generateFlashcardsAndQuizzes"
+                        >
+                            {{ isGenerating ? 'Generating...' : 'Generate Flashcards & Quizzes' }}
+                        </button>
                         <Link
                             :href="`/files/${file.id}`"
                             class="inline-flex items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"

@@ -10,6 +10,7 @@ use ZipArchive;
 use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
 
 class FileController extends Controller
 {
@@ -252,7 +253,14 @@ class FileController extends Controller
             return back()->withErrors(['file' => 'File not found on server.']);
         }
 
-        return Storage::download($filePath, $file->name); // Use Storage::download for proper handling
+        // Ensure the file name includes the correct extension
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        $fileName = $file->name;
+        if (!str_ends_with($fileName, ".{$extension}")) {
+            $fileName .= ".{$extension}";
+        }
+
+        return Storage::download($filePath, $fileName); // Use Storage::download for proper handling
     }
 
     public function upload(Request $request)
@@ -274,6 +282,129 @@ class FileController extends Controller
     {
         // Logic to untag a file
     }
+
+    public function generateFlashcardsAndQuizzes(Request $request, File $file)
+    {
+        set_time_limit(0);
+        $content = $file->content;
+
+        if (empty($content)) {
+            return response()->json([
+                'error' => 'File content is empty or not available.'
+            ], 400);
+        }
+
+        $apiKey = env('GEMINI_API_KEY'); // Ensure your API key is in the .env file
+        $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+        $payload = [
+            'contents' => [
+                [
+                    'parts' => [
+                        [
+                            'text' =>
+                                "Generate flashcards and quizzes in using the following content:
+
+                            Content:
+                            " . $content
+                        ]
+                    ]
+                ]
+            ],
+            "generationConfig" => [
+                "response_mime_type" => "application/json",
+                "response_schema" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "flashcards" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "answer" => ["type" => "STRING"]
+                                ],
+                                "nullable" => False,
+                                "required" => ["question", "answer"],
+                                "propertyOrdering" => ["question", "answer"]
+                            ],
+                            "minItems" => 3,
+                            "maxItems" => 30,
+                            "nullable" => False
+                        ],
+                        "quizzes" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "options" => [
+                                        "type" => "ARRAY",
+                                        "items" => ["type" => "STRING"]
+                                    ],
+                                    "correct_option" => ["type" => "STRING"]
+                                ],
+                                "nullable" => False,
+                                "required" => ["question", "options", "correct_option"],
+                                "propertyOrdering" => ["question", "options", "correct_option"]
+                            ],
+                            "minItems" => 3,
+                            "maxItems" => 30,
+                            "nullable" => False
+                        ]
+                    ],
+                    "nullable" => False,
+                    "required" => ["flashcards", "quizzes"],
+                    "propertyOrdering" => ["flashcards", "quizzes"],
+                ]
+            ]
+        ];
+
+        $response = Http::post($url, $payload);
+
+        if ($response->successful()) {
+            $data = $response->json();
+            $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+            $parsedData = json_decode($text, true);
+
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $flashcards = collect($parsedData['flashcards'] ?? [])->map(function ($flashcard) use ($file) {
+                    return \App\Models\Flashcard::create([
+                        'question' => $flashcard['question'],
+                        'answer' => $flashcard['answer'],
+                        'file_id' => $file->id,
+                    ]);
+                });
+
+                $quizzes = collect($parsedData['quizzes'] ?? [])->map(function ($quiz) use ($file) {
+                    return \App\Models\Quiz::create([
+                        'question' => $quiz['question'],
+                        'type' => 'multiple_choice',
+                        'options' => json_encode($quiz['options']),
+                        'correct_option' => $quiz['correct_option'],
+                        'file_id' => $file->id,
+                    ]);
+                });
+
+                return response()->json([
+                    'flashcards' => $flashcards,
+                    'quizzes' => $quizzes,
+                ]);
+            } else {
+                return response()->json([
+                    'error' => 'Failed to parse JSON from Gemini response.',
+                    'raw_response' => $text
+                ], 500);
+            }
+        }
+
+        return response()->json([
+            'error' => 'Failed to call Gemini API.',
+            'details' => $response->body()
+        ], $response->status());
+    }
+
 
     private function extractText($file)
     {

@@ -76,6 +76,11 @@ Route::delete('/files/{file}/quizzes/{quiz}', [QuizController::class, 'destroy']
 Route::get('/files/{file}/quizzes-test', [QuizController::class, 'test'])
     ->name('files.quizzes.test');
 
+Route::post('/files/{file}/generate-flashcards-quizzes', [FileController::class, 'generateFlashcardsAndQuizzes'])
+    ->name('files.generate-flashcards-quizzes');
+
+
+
 //Route::prefix('files/{file}')->name('files.')->group(function () {
 //    // Flashcards routes
 //    Route::prefix('flashcards')->name('flashcards.')->group(function () {

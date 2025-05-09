@@ -14,6 +14,10 @@ Route::get('home', function (Request $request) {
     $user = $request->user();
     $recommendationService = app(App\Services\FileRecommendationService::class);
     $recommendations = $recommendationService->getRecommendations($user);
+    logger()->info('Recommendations:', [
+        'user_id' => $user->id,
+        'recommendations' => $recommendations
+    ]);
 
     return Inertia::render('Dashboard', [
         'recommendations' => $recommendations

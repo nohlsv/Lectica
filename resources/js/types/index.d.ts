@@ -81,6 +81,28 @@ export interface File {
     quizzes_count?: number;
 }
 
+export interface Flashcard {
+    id: number;
+    question: string;
+    answer: string;
+    file_id: number;
+    file: File;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface Quiz {
+    id: number;
+    file_id: number;
+    file: File;
+    question: string;
+    type: 'enumeration' | 'multiple_choice' | 'true_false'; // Enum values
+    options?: string[]; // Nullable JSON field for multiple choice options
+    answers: string[]; // JSON field for correct answers
+    created_at: string;
+    updated_at: string;
+}
+
 export interface Tag {
     id: number;
     name: string;

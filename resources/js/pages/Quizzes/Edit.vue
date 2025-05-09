@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
@@ -16,12 +16,15 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import InputError from '@/components/InputError.vue';
 import { ref, watch } from 'vue';
 import { Plus, Trash2 } from 'lucide-vue-next';
+import { type File , type Quiz } from '@/types';
 
-const props = defineProps({
-    file: Object,
-    quiz: Object,
-    quizTypes: Object,
-});
+interface Props {
+    file: File;
+    quiz: Quiz;
+    quizTypes: Record<string, string>;
+}
+
+const props = defineProps<Props>();
 
 const form = useForm({
     question: props.quiz.question,
@@ -49,7 +52,7 @@ function addOption() {
 }
 
 // Remove an option for multiple choice questions
-function removeOption(index) {
+function removeOption(index: number) {
     if (form.options.length > 2) {
         form.options.splice(index, 1);
     }
@@ -61,7 +64,7 @@ function addAnswer() {
 }
 
 // Remove an answer for enumeration questions
-function removeAnswer(index) {
+function removeAnswer(index: number) {
     if (form.answers.length > 1) {
         form.answers.splice(index, 1);
     }

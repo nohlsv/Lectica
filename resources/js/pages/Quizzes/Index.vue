@@ -1,19 +1,23 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2, Plus, ListChecks } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
+import { computed } from 'vue';
+import { type File , type Quiz } from '@/types';
 
-const props = defineProps({
-    file: Object,
-    quizzes: Array,
-    quizTypes: Object,
-});
+interface Props {
+    file: File;
+    quizzes: Quiz[];
+    quizTypes: Record<string, string>;
+}
 
-function deleteQuiz(quizId) {
+const props = defineProps<Props>();
+
+function deleteQuiz(quizId: number) {
     if (confirm('Are you sure you want to delete this quiz?')) {
         router.delete(route('files.quizzes.destroy', [props.file.id, quizId]));
     }
@@ -24,6 +28,10 @@ const breadcrumbs = [
     { title: props.file.name, href: route('files.show', props.file.id) },
     { title: 'Quizzes', href: route('files.quizzes.index', props.file.id) },
 ];
+
+const isOwner = computed(() => {
+    return props.file.can_edit === true;
+});
 </script>
 
 <template>
@@ -48,7 +56,7 @@ const breadcrumbs = [
                     <Link :href="route('files.show', file.id)">
                         <Button variant="outline">Back to File</Button>
                     </Link>
-                    <Link :href="route('files.quizzes.create', file.id)">
+                    <Link v-if="isOwner" :href="route('files.quizzes.create', file.id)">
                         <Button>
                             <Plus class="mr-2 h-4 w-4" />
                             Create Quiz
