@@ -377,7 +377,7 @@ class FileController extends Controller
                     ],
                     "nullable" => False,
                     "required" => ["flashcards", "quizzes"],
-                    "propertyOrdering" => ["flashcards", "quizzes"],
+                    "propertyOrdering" => ["flashcards", "multiple_choice_quizzes"],
                 ]
             ]
         ];
