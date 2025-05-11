@@ -6,9 +6,11 @@ use App\Models\PracticeRecord;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class PracticeRecordController extends Controller
 {
+	use AuthorizesRequests;
 	public function index(): Response
 	{
 		$records = PracticeRecord::with(['file', 'user'])
@@ -41,6 +43,11 @@ class PracticeRecordController extends Controller
 		]);
 
 		$validated['user_id'] = auth()->id();
+
+		// Encode mistakes as JSON
+		if (isset($validated['mistakes'])) {
+			$validated['mistakes'] = json_encode($validated['mistakes']);
+		}
 
 		PracticeRecord::create($validated);
 

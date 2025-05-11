@@ -391,6 +391,17 @@ class FileController extends Controller
 
             $parsedData = json_decode($text, true);
 
+            $parsedQuizzes = collect($parsedData['multiple_choice_quizzes'] ?? [])->map(function ($quiz) {
+                return [
+                    'question' => $quiz['question'],
+                    'options' => json_encode($quiz['options'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                    'answers' => json_encode($quiz['answer'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
+                    'ooptions' => json_encode($quiz['options']),
+                    'aanswers' => json_encode($quiz['answer']),
+                ];
+            });
+
+            // dd($parsedData, $parsedData['flashcards'], $parsedData['multiple_choice_quizzes'], $parsedQuizzes);
             if (json_last_error() === JSON_ERROR_NONE) {
                 $flashcards = collect($parsedData['flashcards'] ?? [])->map(function ($flashcard) use ($file) {
                     return \App\Models\Flashcard::create([
@@ -404,28 +415,26 @@ class FileController extends Controller
                     return \App\Models\Quiz::create([
                         'question' => $quiz['question'],
                         'type' => 'multiple_choice',
-                        'options' => json_encode($quiz['options']),
-                        'answer' => $quiz['answer'],
+                        'options' => $quiz['options'],
+                        'answers' => [$quiz['answer']],
                         'file_id' => $file->id,
                     ]);
                 });
 
-                return response()->json([
-                    'flashcards' => $flashcards,
-                    'quizzes' => $quizzes,
-                ]);
+                return redirect()->route('files.show', $file->id)
+                    ->with('success', 'Flashcards and quizzes generated successfully!');
             } else {
-                return response()->json([
+                return redirect()->back()->withErrors([
                     'error' => 'Failed to parse JSON from Gemini response.',
-                    'raw_response' => $text
-                ], 500);
+                    'raw_response' => $text,
+                ]);
             }
         }
 
-        return response()->json([
+        return redirect()->back()->withErrors([
             'error' => 'Failed to call Gemini API.',
-            'details' => $response->body()
-        ], $response->status());
+            'details' => $response->body(),
+        ]);
     }
 
 
