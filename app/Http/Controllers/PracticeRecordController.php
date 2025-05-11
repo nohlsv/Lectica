@@ -16,7 +16,8 @@ class PracticeRecordController extends Controller
 		$records = PracticeRecord::with(['file', 'user'])
 			->where('user_id', auth()->id())
 			->latest()
-			->paginate(10);
+			->paginate(10)
+			->withQueryString(); // Ensure query string is preserved
 
 		return Inertia::render('PracticeRecords/Index', [
 			'records' => $records,
