@@ -60,8 +60,8 @@ const isOwner = computed(() => {
             </div>
 
             <div v-if="!flashcards || flashcards.length === 0" class="text-center py-10">
-                <p class="text-gray-500">No flashcards found for this file.</p>
-                <p class="text-gray-500 mt-2">Create your first flashcard to start learning!</p>
+                <p class="text-muted-foreground">No flashcards found for this file.</p>
+                <p class="text-muted-foreground mt-2">Create your first flashcard to start learning!</p>
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -70,7 +70,7 @@ const isOwner = computed(() => {
                         <CardTitle class="line-clamp-2">{{ flashcard.question }}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div class="mt-2 text-sm text-gray-700 line-clamp-3">{{ flashcard.answer }}</div>
+                        <div class="mt-2 text-sm text-muted-foreground line-clamp-3">{{ flashcard.answer }}</div>
                     </CardContent>
                     <CardFooter class="flex justify-between">
                         <Link :href="route('files.flashcards.edit', [file.id, flashcard.id])">

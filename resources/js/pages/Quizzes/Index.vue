@@ -72,8 +72,8 @@ const isOwner = computed(() => {
             </div>
 
             <div v-if="quizzes.length === 0" class="text-center py-10">
-                <p class="text-gray-500">No quizzes found for this file.</p>
-                <p class="text-gray-500 mt-2">Create your first quiz to start testing your knowledge!</p>
+                <p class="text-muted-foreground">No quizzes found for this file.</p>
+                <p class="text-muted-foreground mt-2">Create your first quiz to start testing your knowledge!</p>
             </div>
 
             <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -86,7 +86,7 @@ const isOwner = computed(() => {
                     </CardHeader>
                     <CardContent>
                         <div v-if="quiz.type === 'multiple_choice' && quiz.options">
-                            <p class="text-sm text-gray-500 mb-2">Options:</p>
+                            <p class="text-sm text-muted-foreground mb-2">Options:</p>
                             <ul class="list-disc list-inside">
                                 <li v-for="(option, index) in quiz.options" :key="index" class="text-sm">
                                     {{ option }}
@@ -94,12 +94,12 @@ const isOwner = computed(() => {
                             </ul>
                         </div>
                         <div v-else-if="quiz.type === 'enumeration'">
-                            <p class="text-sm text-gray-500">
+                            <p class="text-sm text-muted-foreground">
                                 {{ quiz.answers.length }} item(s) to enumerate
                             </p>
                         </div>
                         <div v-else-if="quiz.type === 'true_false'">
-                            <p class="text-sm text-gray-500">
+                            <p class="text-sm text-muted-foreground">
                                 Answer: {{ quiz.answers[0] === 'true' ? 'True' : 'False' }}
                             </p>
                         </div>

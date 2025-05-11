@@ -6,6 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { ref, computed } from 'vue';
 import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from 'lucide-vue-next';
 import { type File, type Flashcard } from '@/types';
+import axios from 'axios';
 
 interface Props {
     file: File;
@@ -78,6 +79,40 @@ function resetOrder() {
     showAnswer.value = false;
     shuffled.value = false;
 }
+
+function storePracticeRecord(correctAnswers: number, totalQuestions: number, mistakes: any[]) {
+    axios.post(route('practice-records.store'), {
+        file_id: props.file.id,
+        type: 'flashcard',
+        correct_answers: correctAnswers,
+        total_questions: totalQuestions,
+        mistakes,
+    }).then(() => {
+        alert('Practice record saved successfully!');
+    }).catch((error) => {
+        console.error('Error saving practice record:', error);
+    });
+}
+
+function finishPractice() {
+    const mistakes = cards.value
+        .map((card, index) => {
+            if (/* logic to check if the user got the card wrong */) {
+                return {
+                    question: card.question,
+                    your_answer: /* user's answer */,
+                    correct_answer: card.answer,
+                };
+            }
+            return null;
+        })
+        .filter(Boolean);
+
+    const correctAnswers = cards.value.length - mistakes.length;
+    const totalQuestions = cards.value.length;
+
+    storePracticeRecord(correctAnswers, totalQuestions, mistakes);
+}
 </script>
 
 <template>
@@ -103,8 +138,8 @@ function resetOrder() {
             </div>
 
             <div v-if="cards.length === 0" class="text-center py-10">
-                <p class="text-gray-500">No flashcards available.</p>
-                <p class="text-gray-500 mt-2">Create flashcards to start practicing.</p>
+                <p class="text-muted-foreground">No flashcards available.</p>
+                <p class="text-muted-foreground mt-2">Create flashcards to start practicing.</p>
                 <Link :href="route('files.flashcards.create', file.id)" class="mt-4 inline-block">
                     <Button>Create Flashcard</Button>
                 </Link>
@@ -112,7 +147,7 @@ function resetOrder() {
 
             <div v-else class="space-y-4">
                 <div class="flex justify-between items-center">
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-muted-foreground">
                         Card {{ currentIndex + 1 }} of {{ cards.length }}
                     </div>
                     <div class="w-1/2 h-2 bg-gray-200 rounded-full overflow-hidden">

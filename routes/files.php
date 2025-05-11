@@ -7,6 +7,7 @@ use App\Http\Controllers\FileStarController;
 use App\Http\Controllers\FileRecommendationController;
 use App\Http\Controllers\FlashcardController;
 use App\Http\Controllers\QuizController;
+use App\Http\Controllers\PracticeRecordController;
 
 // File stars
 Route::post('/files/{file}/star', [FileStarController::class, 'toggle'])
@@ -81,7 +82,9 @@ Route::get('/files/{file}/quizzes-test', [QuizController::class, 'test'])
 Route::post('/files/{file}/generate-flashcards-quizzes', [FileController::class, 'generateFlashcardsAndQuizzes'])
     ->name('files.generate-flashcards-quizzes');
 
-
+Route::get('/practice-records', [PracticeRecordController::class, 'index'])->name('practice-records.index');
+Route::get('/practice-records/{practiceRecord}', [PracticeRecordController::class, 'show'])->name('practice-records.show');
+Route::post('/practice-records', [PracticeRecordController::class, 'store'])->name('practice-records.store');
 
 //Route::prefix('files/{file}')->name('files.')->group(function () {
 //    // Flashcards routes

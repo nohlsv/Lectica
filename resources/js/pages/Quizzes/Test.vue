@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { type File , type Quiz } from '@/types';
+import axios from 'axios';
 
 interface Props {
     file: File;
@@ -133,7 +134,7 @@ function next() {
         currentIndex.value++;
         showFeedback.value = false;
     } else if (!quizFinished.value) {
-        quizFinished.value = true;
+        finishQuiz();
     }
 }
 
@@ -209,6 +210,48 @@ function updateEnumerationAnswer(index: number, value: string) {
     userAnswers.value[currentIndex.value][index] = value;
 }
 
+function isAnswerCorrect(quiz: Quiz, userAnswer: any) {
+    if (quiz.type === 'multiple_choice' || quiz.type === 'true_false') {
+        return userAnswer === quiz.answers[0];
+    } else if (quiz.type === 'enumeration') {
+        const requiredAnswers = [...quiz.answers];
+        const userAnswersLowerCase = (userAnswer as string[]).map((ans: string) => ans.toLowerCase());
+        const requiredAnswersLowerCase = requiredAnswers.map(ans => ans.toLowerCase());
+        const missingAnswers = requiredAnswersLowerCase.filter(
+            reqAns => !userAnswersLowerCase.includes(reqAns)
+        );
+        return missingAnswers.length === 0;
+    }
+    return false;
+}
+
+function finishQuiz() {
+    quizFinished.value = true;
+
+    // Record practice data
+    const mistakes = quizQuestions.value
+        .map((quiz, index) => {
+            const userAnswer = userAnswers.value[index];
+            if (!isAnswerCorrect(quiz, userAnswer)) {
+                return {
+                    question: quiz.question,
+                    your_answer: userAnswer,
+                    correct_answer: quiz.answers[0],
+                };
+            }
+            return null;
+        })
+        .filter(Boolean);
+
+    axios.post(route('practice-records.store'), {
+        file_id: props.file.id,
+        type: 'quiz',
+        correct_answers: score.value.correct,
+        total_questions: score.value.total,
+        mistakes,
+    });
+}
+
 // Add or remove enumeration answer fields as needed
 watch(() => currentQuiz.value, (newQuiz) => {
     if (newQuiz && newQuiz.type === 'enumeration') {
@@ -255,8 +298,8 @@ watch(() => currentQuiz.value, (newQuiz) => {
             </div>
 
             <div v-if="quizQuestions.length === 0" class="text-center py-10">
-                <p class="text-gray-500">No quizzes available for this file.</p>
-                <p class="text-gray-500 mt-2">Create quizzes to start testing your knowledge.</p>
+                <p class="text-muted-foreground">No quizzes available for this file.</p>
+                <p class="text-muted-foreground mt-2">Create quizzes to start testing your knowledge.</p>
                 <Link :href="route('files.quizzes.create', file.id)" class="mt-4 inline-block">
                     <Button>Create Quiz</Button>
                 </Link>
@@ -308,7 +351,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
 
             <div v-else class="space-y-4">
                 <div class="flex justify-between items-center">
-                    <div class="text-sm text-gray-500">
+                    <div class="text-sm text-muted-foreground">
                         Question {{ currentIndex + 1 }} of {{ quizQuestions.length }}
                     </div>
                     <div class="w-1/2">
@@ -387,7 +430,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
 
                         <!-- Enumeration Question -->
                         <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-4">
-                            <p class="text-sm text-gray-500 mb-2">Enter all {{ currentQuiz.answers.length }} correct answers:</p>
+                            <p class="text-sm text-muted-foreground mb-2">Enter all {{ currentQuiz.answers.length }} correct answers:</p>
                             <div
                                 v-for="(answer, index) in userAnswers[currentIndex]"
                                 :key="index"
@@ -442,13 +485,13 @@ watch(() => currentQuiz.value, (newQuiz) => {
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                                    <h3 class="text-lg font-medium text-muted-foreground dark:text-muted-foreground">
                                         {{ isCurrentAnswerCorrect ? 'Correct!' : 'Incorrect' }}
                                     </h3>
-                                    <p v-if="!isCurrentAnswerCorrect && currentQuiz.type === 'multiple_choice'" class="mt-1 text-gray-700 dark:text-gray-300">
+                                    <p v-if="!isCurrentAnswerCorrect && currentQuiz.type === 'multiple_choice'" class="mt-1 text-muted-foreground dark:text-muted-foreground">
                                         The correct answer is: {{ currentQuiz.answers[0] }}
                                     </p>
-                                    <p v-else-if="!isCurrentAnswerCorrect && currentQuiz.type === 'true_false'" class="mt-1 text-gray-700 dark:text-gray-300">
+                                    <p v-else-if="!isCurrentAnswerCorrect && currentQuiz.type === 'true_false'" class="mt-1 text-muted-foreground dark:text-muted-foreground">
                                         The correct answer is: {{ currentQuiz.answers[0] === 'true' ? 'True' : 'False' }}
                                     </p>
                                 </div>
