@@ -5,6 +5,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\FileRecommendationController;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Http\Controllers\TagController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
