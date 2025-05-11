@@ -57,7 +57,8 @@ const toggleStar = async () => {
 const isPdf = computed(() => props.fileInfo.extension.toLowerCase() === 'pdf');
 const isTxt = computed(() => props.fileInfo.extension.toLowerCase() === 'txt');
 const isImage = computed(() => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(props.fileInfo.extension.toLowerCase()));
-const isPreviewable = computed(() => isPdf.value || isTxt.value || isImage.value);
+const isOfficeFile = computed(() => ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'].includes(props.fileInfo.extension.toLowerCase()));
+const isPreviewable = computed(() => isPdf.value || isTxt.value || isImage.value || isOfficeFile.value);
 
 const isOwner = computed(() => {
     return props.file.can_edit === true;
@@ -291,6 +292,20 @@ const generateFlashcardsAndQuizzes = async () => {
                             <!-- Text Preview -->
                             <div v-else-if="isTxt" class="max-h-[500px] overflow-auto rounded-md bg-accent/50 p-4">
                                 <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+
+                            <!-- Office File Preview -->
+                            <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-border rounded-md">
+                                <iframe
+                                    :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
+                                    width="100%"
+                                    height="100%"
+                                    frameborder="0"
+                                >
+                                    This is an embedded 
+                                    <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by 
+                                    <a target="_blank" href="http://office.com/webapps">Office Online</a>.
+                                </iframe>
                             </div>
                         </div>
 
