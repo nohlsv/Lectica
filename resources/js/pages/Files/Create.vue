@@ -47,14 +47,12 @@ const handleFileUpload = (event: Event) => {
         fileSelected.value = true;
         fileName.value = file.name;
 
-        // Set suggested name (remove extension)
-        if (!form.name) {
-            const nameParts = file.name.split('.');
-            if (nameParts.length > 1) {
-                nameParts.pop(); // Remove extension
-            }
-            form.name = nameParts.join('.');
+        // Reset and set suggested name (remove extension)
+        const nameParts = file.name.split('.');
+        if (nameParts.length > 1) {
+            nameParts.pop(); // Remove extension
         }
+        form.name = nameParts.join('.');
 
         // Format file size
         if (file.size < 1024) {
@@ -82,14 +80,12 @@ const handleDrop = (event: DragEvent) => {
         fileSelected.value = true;
         fileName.value = file.name;
 
-        // Set suggested name (remove extension)
-        if (!form.name) {
-            const nameParts = file.name.split('.');
-            if (nameParts.length > 1) {
-                nameParts.pop(); // Remove extension
-            }
-            form.name = nameParts.join('.');
+        // Reset and set suggested name (remove extension)
+        const nameParts = file.name.split('.');
+        if (nameParts.length > 1) {
+            nameParts.pop(); // Remove extension
         }
+        form.name = nameParts.join('.');
 
         // Format file size
         if (file.size < 1024) {
