@@ -5,6 +5,7 @@ import { type BreadcrumbItem, type File } from '@/types';
 import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
+import { toast } from 'vue-sonner';
 
 interface Props {
     file: File;
@@ -50,7 +51,7 @@ const toggleStar = async () => {
         });
     } catch (error) {
         isStarring.value = false;
-        console.error('Error toggling star', error);
+        toast.error('Error toggling star');
     }
 };
 
@@ -81,12 +82,10 @@ const generateFlashcardsAndQuizzes = async () => {
 
     isGenerating.value = true;
 
-    console.log({file: props.file.id});
-
     router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
         preserveScroll: true,
         onSuccess: () => {
-            alert('Flashcards and quizzes generated successfully!');
+            toast.success('Flashcards and quizzes generated successfully!');
         },
         onFinish: () => {
             isGenerating.value = false;

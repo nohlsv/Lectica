@@ -7,6 +7,7 @@ import { ref, computed } from 'vue';
 import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from 'lucide-vue-next';
 import { type File, type Flashcard } from '@/types';
 import axios from 'axios';
+import { toast } from 'vue-sonner';
 
 interface Props {
     file: File;
@@ -88,9 +89,11 @@ function storePracticeRecord(correctAnswers: number, totalQuestions: number, mis
         total_questions: totalQuestions,
         mistakes,
     }).then(() => {
-        alert('Practice record saved successfully!');
+        toast.success('Practice record saved successfully!');
     }).catch((error) => {
-        console.error('Error saving practice record:', error);
+        toast.error('Failed to save practice record.', {
+            description: error.response?.data.message || 'An error occurred.',
+        });
     });
 }
 

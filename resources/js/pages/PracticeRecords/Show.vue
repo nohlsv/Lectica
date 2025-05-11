@@ -38,11 +38,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-console.log('Record:', props.record);
 
 const decodedMistakes = computed(() => {
     try {
-        console.log('Mistakes JSON:', JSON.parse(props.record.mistakes || '[]'));
         return JSON.parse(props.record.mistakes || '[]');
     } catch (error) {
         console.error('Failed to parse mistakes JSON:', error);
