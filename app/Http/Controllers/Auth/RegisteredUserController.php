@@ -42,7 +42,7 @@ class RegisteredUserController extends Controller
                 'lowercase',
                 'email',
                 'max:255',
-                'unique:'.User::class,
+                'unique:' . User::class,
                 'regex:/^[a-zA-Z0-9._%+-]+@bpsu\.edu\.ph$/',
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
@@ -64,6 +64,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return to_route('home');
+        return to_route('home')->with('success', 'Registration successful! Welcome!');
     }
 }

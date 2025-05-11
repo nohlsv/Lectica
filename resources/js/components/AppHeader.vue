@@ -30,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const page = usePage();
+
 const auth = computed(() => page.props.auth);
 
 const isCurrentRoute = computed(() => (url: string) => page.url === url);

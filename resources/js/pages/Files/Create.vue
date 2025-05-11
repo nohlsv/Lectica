@@ -5,6 +5,7 @@ import { type BreadcrumbItem, type Tag } from '@/types';
 import { FileIcon, UploadIcon, } from 'lucide-vue-next';
 import TagInput from '@/components/TagInput.vue';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     allTags?: Tag[];
@@ -100,7 +101,14 @@ const handleDrop = (event: DragEvent) => {
 
 // Form submission
 const submit = () => {
-    form.post(route('files.store'));
+    form.post(route('files.store'), {
+        onSuccess: () => {
+            toast.success('File uploaded successfully!');
+        },
+        onError: () => {
+            toast.error('Failed to upload file.');
+        },
+    });
 };
 </script>
 

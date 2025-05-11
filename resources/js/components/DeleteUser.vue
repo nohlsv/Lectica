@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 // Components
 import HeadingSmall from '@/components/HeadingSmall.vue';
@@ -30,8 +31,14 @@ const deleteUser = (e: Event) => {
 
     form.delete(route('profile.destroy'), {
         preserveScroll: true,
-        onSuccess: () => closeModal(),
-        onError: () => passwordInput.value?.focus(),
+        onSuccess: () => {
+            toast.success('Account deleted successfully.');
+            closeModal();
+        },
+        onError: () => {
+            toast.error('Failed to delete account. Please try again.');
+            passwordInput.value?.focus();
+        },
         onFinish: () => form.reset(),
     });
 };

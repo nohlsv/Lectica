@@ -21,6 +21,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { type File , type Quiz } from '@/types';
 import axios from 'axios';
+import { toast } from 'vue-sonner';
 
 interface Props {
     file: File;
@@ -185,6 +186,8 @@ function shuffleQuizzes() {
             userAnswers.value[index] = '';
         }
     });
+
+    toast.success('Quizzes shuffled successfully!');
 }
 
 function resetOrder() {
@@ -204,6 +207,8 @@ function resetOrder() {
             userAnswers.value[index] = '';
         }
     });
+
+    toast.success('Quiz order reset successfully!');
 }
 
 function updateEnumerationAnswer(index: number, value: string) {
@@ -249,6 +254,10 @@ function finishQuiz() {
         correct_answers: score.value.correct,
         total_questions: score.value.total,
         mistakes,
+    }).then(() => {
+        toast.success('Quiz results saved successfully!');
+    }).catch(() => {
+        toast.error('Failed to save quiz results.');
     });
 }
 

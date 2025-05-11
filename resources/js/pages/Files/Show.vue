@@ -44,6 +44,7 @@ const toggleStar = async () => {
             preserveScroll: true,
             onSuccess: () => {
                 isStarred.value = !isStarred.value;
+                toast.success(isStarred.value ? 'File starred successfully!' : 'File unstarred successfully!');
             },
             onFinish: () => {
                 isStarring.value = false;
@@ -51,7 +52,7 @@ const toggleStar = async () => {
         });
     } catch (error) {
         isStarring.value = false;
-        toast.error('Error toggling star');
+        toast.error('Error toggling star.');
     }
 };
 
@@ -65,16 +66,6 @@ const isOwner = computed(() => {
     return props.file.can_edit === true;
 });
 
-// const downloadFile = () => {
-//     const downloadUrl = route('files.download', { file: props.file.id }); // Use the backend route for downloading
-//     const link = document.createElement('a');
-//     link.href = downloadUrl;
-//     link.setAttribute('download', props.file.name);
-//     document.body.appendChild(link);
-//     link.click();
-//     document.body.removeChild(link);
-// };
-
 const isGenerating = ref(false);
 
 const generateFlashcardsAndQuizzes = async () => {
@@ -86,6 +77,9 @@ const generateFlashcardsAndQuizzes = async () => {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Flashcards and quizzes generated successfully!');
+        },
+        onError: () => {
+            toast.error('Failed to generate flashcards and quizzes.');
         },
         onFinish: () => {
             isGenerating.value = false;

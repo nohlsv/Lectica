@@ -27,6 +27,7 @@ const currentIndex = ref(0);
 const showAnswer = ref(false);
 const shuffled = ref(false);
 const cards = ref([...props.flashcards]);
+const userAnswers = ref<Record<number, string>>({});
 
 const currentFlashcard = computed(() => {
     if (cards.value.length === 0) return null;
@@ -72,6 +73,7 @@ function shuffleCards() {
     currentIndex.value = 0;
     showAnswer.value = false;
     shuffled.value = true;
+    toast.success('Flashcards shuffled successfully!');
 }
 
 function resetOrder() {
@@ -79,6 +81,11 @@ function resetOrder() {
     currentIndex.value = 0;
     showAnswer.value = false;
     shuffled.value = false;
+    toast.success('Flashcard order reset successfully!');
+}
+
+function recordAnswer(index: number, answer: string) {
+    userAnswers.value[index] = answer;
 }
 
 function storePracticeRecord(correctAnswers: number, totalQuestions: number, mistakes: any[]) {
@@ -100,10 +107,11 @@ function storePracticeRecord(correctAnswers: number, totalQuestions: number, mis
 function finishPractice() {
     const mistakes = cards.value
         .map((card, index) => {
-            if (/* logic to check if the user got the card wrong */) {
+            const userAnswer = userAnswers.value[index];
+            if (userAnswer !== card.answer) {
                 return {
                     question: card.question,
-                    your_answer: /* user's answer */,
+                    your_answer: userAnswer || 'No answer provided',
                     correct_answer: card.answer,
                 };
             }
