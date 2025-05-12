@@ -171,6 +171,17 @@ const submitGenerateRequest = async () => {
                                 <dt class="font-medium text-muted-foreground">Last Modified:</dt>
                                 <dd class="text-right">{{ fileInfo.lastModified }}</dd>
                             </div>
+                            <div class="flex justify-between">
+                                <dt class="font-medium text-muted-foreground">Verified:</dt>
+                                <dd class="text-right">
+                                    <span
+                                        :class="file.verified ? 'text-green-500' : 'text-red-500'"
+                                        class="font-semibold"
+                                    >
+                                        {{ file.verified ? 'Yes' : 'No' }}
+                                    </span>
+                                </dd>
+                            </div>
                             <div class="flex justify-between pt-2 mt-2 border-t border-border">
                                 <dt class="font-medium text-muted-foreground">Uploaded by:</dt>
                                 <dd class="text-right">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
@@ -252,6 +263,7 @@ const submitGenerateRequest = async () => {
                                         type="button"
                                         class="w-full sm:w-auto flex items-center justify-center gap-1 rounded-md bg-secondary px-4 py-2 text-xs font-medium text-secondary-foreground hover:bg-secondary/90"
                                         @click="showGenerateModal = true"
+                                        v-if="file.verified"
                                     >
                                         <PencilIcon class="mr-2 h-3 w-3" />
                                         Generate Flashcards & Quizzes
