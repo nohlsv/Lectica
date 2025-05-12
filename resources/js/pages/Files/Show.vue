@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type BreadcrumbItem, type File } from '@/types';
-import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon } from 'lucide-vue-next';
+import { type BreadcrumbItem, type File, type User } from '@/types';
+import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon, CheckCircleIcon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
@@ -21,8 +21,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
 const isStarred = ref(props.file.is_starred || false);
 const isStarring = ref(false);
+const isVerifying = ref(false);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -58,6 +60,32 @@ const toggleStar = async () => {
     }
 };
 
+const verifyFile = async () => {
+    if (isVerifying.value) return;
+
+    isVerifying.value = true;
+
+    try {
+        router.patch(route('files.verify.update', { file: props.file.id }), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                props.file.verified = true;
+                toast.success('File verified successfully!');
+            },
+            onError: () => {
+                toast.error('Failed to verify the file.');
+            },
+            onFinish: () => {
+                isVerifying.value = false;
+            }
+        });
+    } catch (error) {
+        isVerifying.value = false;
+        toast.error('Error verifying the file.');
+    }
+};
+
 const isPdf = computed(() => props.fileInfo.extension.toLowerCase() === 'pdf');
 const isTxt = computed(() => props.fileInfo.extension.toLowerCase() === 'txt');
 const isImage = computed(() => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(props.fileInfo.extension.toLowerCase()));
@@ -81,6 +109,13 @@ const generateOptions = ref({
     generate_true_false_quizzes: false,
     true_false_count: 3,
 });
+
+interface Auth {
+    user: User;
+}
+const page = usePage();
+const auth = computed<Auth>(() => page.props.auth as Auth);
+const canVerify = computed(() => ['faculty', 'admin'].includes(auth.value.user.user_role));
 
 const submitGenerateRequest = async () => {
     if (isGenerating.value) return;
@@ -128,6 +163,15 @@ const submitGenerateRequest = async () => {
                         <StarIcon class="h-5 w-5 mr-2" :fill="isStarred ? 'currentColor' : 'none'" />
                         {{ file.star_count || 0 }}
                         {{ isStarred ? 'Starred' : 'Star' }}
+                    </button>
+                    <button
+                        v-if="!file.verified && canVerify"
+                        @click="verifyFile"
+                        class="inline-flex items-center justify-center rounded-md bg-background px-3 py-2 text-sm font-medium hover:bg-accent transition-colors border border-border"
+                        :disabled="isVerifying"
+                    >
+                        <CheckCircleIcon class="h-5 w-5 mr-2" />
+                        {{ isVerifying ? 'Verifying...' : 'Verify' }}
                     </button>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -257,13 +301,12 @@ const submitGenerateRequest = async () => {
                                 </div>
                                 <div 
                                     class="gap-2 w-full border-t border-border pt-4 flex justify-center"
-                                    v-if="isOwner"
+                                    v-if="isOwner && file.verified"
                                     >
                                     <Button
                                         type="button"
                                         class="w-full sm:w-auto flex items-center justify-center gap-1 rounded-md bg-secondary px-4 py-2 text-xs font-medium text-secondary-foreground hover:bg-secondary/90"
                                         @click="showGenerateModal = true"
-                                        v-if="file.verified"
                                     >
                                         <PencilIcon class="mr-2 h-3 w-3" />
                                         Generate Flashcards & Quizzes

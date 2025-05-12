@@ -36,8 +36,6 @@ Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
     Route::get('/statistics', [App\Http\Controllers\StatisticsController::class, 'index'])->name('statistics.index');
-    Route::get('/files/verify', [App\Http\Controllers\FileVerificationController::class, 'index'])->name('files.verify');
-    Route::patch('/files/{file}/verify', [App\Http\Controllers\FileVerificationController::class, 'verify'])->name('files.verify.update');
 });
 
 require __DIR__ . '/settings.php';

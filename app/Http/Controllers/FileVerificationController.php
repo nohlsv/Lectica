@@ -18,7 +18,10 @@ class FileVerificationController extends Controller
 	{
 		$this->authorize('verify', File::class);
 
-		$files = File::where('verified', false)->with('user')->paginate(10);
+		$files = File::where('verified', false)
+			->with('user')
+			->paginate(10)
+			->withQueryString(); // Include query string for pagination links
 
 		return Inertia::render('Files/Verify', [
 			'files' => $files,

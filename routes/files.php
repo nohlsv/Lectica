@@ -9,6 +9,10 @@ use App\Http\Controllers\FlashcardController;
 use App\Http\Controllers\QuizController;
 use App\Http\Controllers\PracticeRecordController;
 
+// Verify
+Route::get('/files/verify', [App\Http\Controllers\FileVerificationController::class, 'index'])->name('files.verify');
+Route::patch('/files/{file}/verify', [App\Http\Controllers\FileVerificationController::class, 'verify'])->name('files.verify.update');
+
 // File stars
 Route::post('/files/{file}/star', [FileStarController::class, 'toggle'])
     ->name('files.star');
@@ -85,6 +89,7 @@ Route::post('/files/{file}/generate-flashcards-quizzes', [FileController::class,
 Route::get('/history', [PracticeRecordController::class, 'index'])->name('practice-records.index');
 Route::get('/history/{practiceRecord}', [PracticeRecordController::class, 'show'])->name('practice-records.show');
 Route::post('/practice-records', [PracticeRecordController::class, 'store'])->name('practice-records.store');
+
 
 //Route::prefix('files/{file}')->name('files.')->group(function () {
 //    // Flashcards routes
