@@ -330,13 +330,13 @@ class FileController extends Controller
                                     "question" => ["type" => "STRING"],
                                     "answer" => ["type" => "STRING"]
                                 ],
-                                "nullable" => False,
+                                "nullable" => false,
                                 "required" => ["question", "answer"],
                                 "propertyOrdering" => ["question", "answer"]
                             ],
                             "minItems" => 3,
                             "maxItems" => 30,
-                            "nullable" => False
+                            "nullable" => false
                         ],
                         "multiple_choice_quizzes" => [
                             "type" => "ARRAY",
@@ -350,18 +350,53 @@ class FileController extends Controller
                                     ],
                                     "answer" => ["type" => "STRING"]
                                 ],
-                                "nullable" => False,
+                                "nullable" => false,
                                 "required" => ["question", "options", "answer"],
                                 "propertyOrdering" => ["question", "options", "answer"]
                             ],
                             "minItems" => 3,
                             "maxItems" => 30,
-                            "nullable" => False
+                            "nullable" => false
+                        ],
+                        "enumeration_quizzes" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "answers" => [
+                                        "type" => "ARRAY",
+                                        "items" => ["type" => "STRING"]
+                                    ]
+                                ],
+                                "nullable" => false,
+                                "required" => ["question", "answers"],
+                                "propertyOrdering" => ["question", "answers"]
+                            ],
+                            "minItems" => 3,
+                            "maxItems" => 30,
+                            "nullable" => false
+                        ],
+                        "true_false_quizzes" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "answer" => ["type" => "STRING"]
+                                ],
+                                "nullable" => false,
+                                "required" => ["question", "answer"],
+                                "propertyOrdering" => ["question", "answer"]
+                            ],
+                            "minItems" => 3,
+                            "maxItems" => 30,
+                            "nullable" => false
                         ]
                     ],
-                    "nullable" => False,
-                    "required" => ["flashcards", "multiple_choice_quizzes"],
-                    "propertyOrdering" => ["flashcards", "multiple_choice_quizzes"],
+                    "nullable" => false,
+                    "required" => ["flashcards", "multiple_choice_quizzes", "enumeration_quizzes", "true_false_quizzes"],
+                    "propertyOrdering" => ["flashcards", "multiple_choice_quizzes", "enumeration_quizzes", "true_false_quizzes"],
                 ]
             ]
         ];
@@ -375,15 +410,6 @@ class FileController extends Controller
 
             $parsedData = json_decode($text, true);
 
-            $parsedQuizzes = collect($parsedData['multiple_choice_quizzes'] ?? [])->map(function ($quiz) {
-                return [
-                    'question' => $quiz['question'],
-                    'options' => json_encode($quiz['options'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                    'answers' => json_encode($quiz['answer'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE),
-                    'ooptions' => json_encode($quiz['options']),
-                    'aanswers' => json_encode($quiz['answer']),
-                ];
-            });
 
             // dd($parsedData, $parsedData['flashcards'], $parsedData['multiple_choice_quizzes'], $parsedQuizzes);
             if (json_last_error() === JSON_ERROR_NONE) {
@@ -395,11 +421,31 @@ class FileController extends Controller
                     ]);
                 });
 
-                $quizzes = collect($parsedData['multiple_choice_quizzes'] ?? [])->map(function ($quiz) use ($file) {
+                $multiple_choice_quizzes = collect($parsedData['multiple_choice_quizzes'] ?? [])->map(function ($quiz) use ($file) {
                     return \App\Models\Quiz::create([
                         'question' => $quiz['question'],
                         'type' => 'multiple_choice',
                         'options' => $quiz['options'],
+                        'answers' => [$quiz['answer']],
+                        'file_id' => $file->id,
+                    ]);
+                });
+
+                $enumeration_quizzes = collect($parsedData['enumeration_quizzes'] ?? [])->map(function ($quiz) use ($file) {
+                    return \App\Models\Quiz::create([
+                        'question' => $quiz['question'],
+                        'type' => 'enumeration',
+                        'options' => null,
+                        'answers' => $quiz['answers'],
+                        'file_id' => $file->id,
+                    ]);
+                });
+
+                $true_false_quizzes = collect($parsedData['true_false_quizzes'] ?? [])->map(function ($quiz) use ($file) {
+                    return \App\Models\Quiz::create([
+                        'question' => $quiz['question'],
+                        'type' => 'true_false',
+                        'options' => null,
                         'answers' => [$quiz['answer']],
                         'file_id' => $file->id,
                     ]);
