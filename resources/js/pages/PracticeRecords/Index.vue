@@ -1,7 +1,7 @@
 <template>
     <AppLayout>
         <div class="p-6 space-y-6">
-            <h1 class="text-2xl font-bold">Practice Records</h1>
+            <h1 class="text-2xl font-bold">History</h1>
             <div v-if="records.data.length === 0" class="text-center text-muted-foreground">
                 No practice records found.
             </div>

@@ -62,8 +62,8 @@ const mainNavItems: NavItem[] = [
         icon: FileIcon,
     },
     {
-        title: 'Practice Records',
-        href: '/practice-records',
+        title: 'History',
+        href: '/history',
         icon: FileChartLine,
     },
     {

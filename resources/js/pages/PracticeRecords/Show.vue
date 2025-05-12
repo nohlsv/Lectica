@@ -1,7 +1,7 @@
 <template>
     <AppLayout>
         <div class="p-6 space-y-6">
-            <h1 class="text-2xl font-bold">Practice Record Details</h1>
+            <h1 class="text-2xl font-bold">History Details</h1>
             <div class="p-4 bg-muted rounded-lg shadow">
                 <h2 class="text-lg font-semibold">{{ record.file.name }}</h2>
                 <p>Type: {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</p>

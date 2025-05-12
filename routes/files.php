@@ -82,8 +82,8 @@ Route::get('/files/{file}/quizzes-test', [QuizController::class, 'test'])
 Route::post('/files/{file}/generate-flashcards-quizzes', [FileController::class, 'generateFlashcardsAndQuizzes'])
     ->name('files.generate-flashcards-quizzes');
 
-Route::get('/practice-records', [PracticeRecordController::class, 'index'])->name('practice-records.index');
-Route::get('/practice-records/{practiceRecord}', [PracticeRecordController::class, 'show'])->name('practice-records.show');
+Route::get('/history', [PracticeRecordController::class, 'index'])->name('practice-records.index');
+Route::get('/history/{practiceRecord}', [PracticeRecordController::class, 'show'])->name('practice-records.show');
 Route::post('/practice-records', [PracticeRecordController::class, 'store'])->name('practice-records.store');
 
 //Route::prefix('files/{file}')->name('files.')->group(function () {
