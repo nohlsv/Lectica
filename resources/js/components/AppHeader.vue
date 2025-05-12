@@ -20,6 +20,7 @@ import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {  FileIcon, ChartArea,  LayoutGrid, Menu, Search, TestTube2, FileChartLine } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { User } from '@/types';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -31,7 +32,12 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 
-const auth = computed(() => page.props.auth);
+
+interface Auth {
+    user: User;
+}
+
+const auth = computed<Auth>(() => page.props.auth as Auth);
 
 const isCurrentRoute = computed(() => (url: string) => page.url === url);
 
@@ -64,7 +70,22 @@ const mainNavItems: NavItem[] = [
         title: 'Statistics',
         href: '/statistics',
         icon: ChartArea,
-    }
+    },
+    // Add faculty/admin pages conditionally
+    ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'
+        ? [
+              {
+                  title: 'Manage Files',
+                  href: '/admin/files',
+                  icon: FileIcon,
+              },
+              {
+                  title: 'Manage Users',
+                  href: '/admin/users',
+                  icon: TestTube2,
+              },
+          ]
+        : []),
 ];
 
 const rightNavItems: NavItem[] = [

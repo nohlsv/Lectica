@@ -6,6 +6,8 @@ import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, 
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 
 interface Props {
     file: File;
@@ -68,15 +70,28 @@ const isOwner = computed(() => {
 
 const isGenerating = ref(false);
 
-const generateFlashcardsAndQuizzes = async () => {
+const showGenerateModal = ref(false);
+const generateOptions = ref({
+    generate_flashcards: true,
+    flashcards_count: 5,
+    generate_multiple_choice_quizzes: true,
+    multiple_choice_count: 5,
+    generate_enumeration_quizzes: false,
+    enumeration_count: 3,
+    generate_true_false_quizzes: false,
+    true_false_count: 3,
+});
+
+const submitGenerateRequest = async () => {
     if (isGenerating.value) return;
 
     isGenerating.value = true;
 
-    router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), {}, {
+    router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), generateOptions.value, {
         preserveScroll: true,
         onSuccess: () => {
             toast.success('Flashcards and quizzes generated successfully!');
+            showGenerateModal.value = false;
         },
         onError: () => {
             toast.error('Failed to generate flashcards and quizzes.');
@@ -236,11 +251,10 @@ const generateFlashcardsAndQuizzes = async () => {
                                     <Button
                                         type="button"
                                         class="w-full sm:w-auto flex items-center justify-center gap-1 rounded-md bg-secondary px-4 py-2 text-xs font-medium text-secondary-foreground hover:bg-secondary/90"
-                                        :disabled="isGenerating"
-                                        @click="generateFlashcardsAndQuizzes"
+                                        @click="showGenerateModal = true"
                                     >
                                         <PencilIcon class="mr-2 h-3 w-3" />
-                                        {{ isGenerating ? 'Generating...' : 'Generate Flashcards & Quizzes' }}
+                                        Generate Flashcards & Quizzes
                                     </Button>
                                 </div>
                             </div>
@@ -321,6 +335,57 @@ const generateFlashcardsAndQuizzes = async () => {
                 </div>
             </div>
         </div>
+
+        <Dialog v-if="showGenerateModal" @close="showGenerateModal = false">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Generate Flashcards & Quizzes</DialogTitle>
+                </DialogHeader>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" v-model="generateOptions.generate_flashcards" id="generate_flashcards" />
+                        <label for="generate_flashcards" class="text-sm font-medium">Generate Flashcards</label>
+                    </div>
+                    <div v-if="generateOptions.generate_flashcards" class="flex items-center gap-2">
+                        <label for="flashcards_count" class="text-sm font-medium">Flashcards Count:</label>
+                        <Input type="number" id="flashcards_count" v-model="generateOptions.flashcards_count" min="1" max="30" />
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" v-model="generateOptions.generate_multiple_choice_quizzes" id="generate_multiple_choice_quizzes" />
+                        <label for="generate_multiple_choice_quizzes" class="text-sm font-medium">Generate Multiple Choice Quizzes</label>
+                    </div>
+                    <div v-if="generateOptions.generate_multiple_choice_quizzes" class="flex items-center gap-2">
+                        <label for="multiple_choice_count" class="text-sm font-medium">Multiple Choice Count:</label>
+                        <Input type="number" id="multiple_choice_count" v-model="generateOptions.multiple_choice_count" min="1" max="30" />
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" v-model="generateOptions.generate_enumeration_quizzes" id="generate_enumeration_quizzes" />
+                        <label for="generate_enumeration_quizzes" class="text-sm font-medium">Generate Enumeration Quizzes</label>
+                    </div>
+                    <div v-if="generateOptions.generate_enumeration_quizzes" class="flex items-center gap-2">
+                        <label for="enumeration_count" class="text-sm font-medium">Enumeration Count:</label>
+                        <Input type="number" id="enumeration_count" v-model="generateOptions.enumeration_count" min="1" max="30" />
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" v-model="generateOptions.generate_true_false_quizzes" id="generate_true_false_quizzes" />
+                        <label for="generate_true_false_quizzes" class="text-sm font-medium">Generate True/False Quizzes</label>
+                    </div>
+                    <div v-if="generateOptions.generate_true_false_quizzes" class="flex items-center gap-2">
+                        <label for="true_false_count" class="text-sm font-medium">True/False Count:</label>
+                        <Input type="number" id="true_false_count" v-model="generateOptions.true_false_count" min="1" max="30" />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" @click="showGenerateModal = false">Cancel</Button>
+                    <Button :disabled="isGenerating" @click="submitGenerateRequest">
+                        {{ isGenerating ? 'Generating...' : 'Generate' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 

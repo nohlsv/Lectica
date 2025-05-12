@@ -300,105 +300,124 @@ class FileController extends Controller
             ], 400);
         }
 
-        $apiKey = env('GEMINI_API_KEY'); // Ensure your API key is in the .env file
+        $request->validate([
+            'generate_flashcards' => 'boolean',
+            'generate_multiple_choice_quizzes' => 'boolean',
+            'generate_enumeration_quizzes' => 'boolean',
+            'generate_true_false_quizzes' => 'boolean',
+            'flashcards_count' => 'nullable|integer|min:1|max:30',
+            'multiple_choice_count' => 'nullable|integer|min:1|max:30',
+            'enumeration_count' => 'nullable|integer|min:1|max:30',
+            'true_false_count' => 'nullable|integer|min:1|max:30',
+        ]);
+
+        $apiKey = env('GEMINI_API_KEY');
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+        $generationConfig = [
+            "response_mime_type" => "application/json",
+            "response_schema" => [
+                "type" => "OBJECT",
+                "properties" => [],
+                "nullable" => false,
+                "required" => [],
+            ],
+        ];
+
+        if ($request->boolean('generate_flashcards')) {
+            $generationConfig['response_schema']['properties']['flashcards'] = [
+                "type" => "ARRAY",
+                "items" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "question" => ["type" => "STRING"],
+                        "answer" => ["type" => "STRING"]
+                    ],
+                    "nullable" => false,
+                    "required" => ["question", "answer"],
+                ],
+                "minItems" => $request->input('flashcards_count', 3),
+                "maxItems" => $request->input('flashcards_count', 30),
+                "nullable" => false,
+            ];
+            $generationConfig['response_schema']['required'][] = 'flashcards';
+        }
+
+        if ($request->boolean('generate_multiple_choice_quizzes')) {
+            $generationConfig['response_schema']['properties']['multiple_choice_quizzes'] = [
+                "type" => "ARRAY",
+                "items" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "question" => ["type" => "STRING"],
+                        "options" => [
+                            "type" => "ARRAY",
+                            "items" => ["type" => "STRING"]
+                        ],
+                        "answer" => ["type" => "STRING"]
+                    ],
+                    "nullable" => false,
+                    "required" => ["question", "options", "answer"],
+                ],
+                "minItems" => $request->input('multiple_choice_count', 3),
+                "maxItems" => $request->input('multiple_choice_count', 30),
+                "nullable" => false,
+            ];
+            $generationConfig['response_schema']['required'][] = 'multiple_choice_quizzes';
+        }
+
+        if ($request->boolean('generate_enumeration_quizzes')) {
+            $generationConfig['response_schema']['properties']['enumeration_quizzes'] = [
+                "type" => "ARRAY",
+                "items" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "question" => ["type" => "STRING"],
+                        "answers" => [
+                            "type" => "ARRAY",
+                            "items" => ["type" => "STRING"]
+                        ]
+                    ],
+                    "nullable" => false,
+                    "required" => ["question", "answers"],
+                ],
+                "minItems" => $request->input('enumeration_count', 3),
+                "maxItems" => $request->input('enumeration_count', 30),
+                "nullable" => false,
+            ];
+            $generationConfig['response_schema']['required'][] = 'enumeration_quizzes';
+        }
+
+        if ($request->boolean('generate_true_false_quizzes')) {
+            $generationConfig['response_schema']['properties']['true_false_quizzes'] = [
+                "type" => "ARRAY",
+                "items" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "question" => ["type" => "STRING"],
+                        "answer" => ["type" => "STRING"]
+                    ],
+                    "nullable" => false,
+                    "required" => ["question", "answer"],
+                ],
+                "minItems" => $request->input('true_false_count', 3),
+                "maxItems" => $request->input('true_false_count', 30),
+                "nullable" => false,
+            ];
+            $generationConfig['response_schema']['required'][] = 'true_false_quizzes';
+        }
 
         $payload = [
             'contents' => [
                 [
                     'parts' => [
                         [
-                            'text' =>
-                                "Generate flashcards and quizzes in using the following content:
-
-                            Content:
-                            " . $content
+                            'text' => "Generate flashcards and quizzes using the following content:\n\nContent:\n" . $content
                         ]
                     ]
                 ]
             ],
-            "generationConfig" => [
-                "response_mime_type" => "application/json",
-                "response_schema" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "flashcards" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "answer" => ["type" => "STRING"]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "answer"],
-                                "propertyOrdering" => ["question", "answer"]
-                            ],
-                            "minItems" => 3,
-                            "maxItems" => 30,
-                            "nullable" => false
-                        ],
-                        "multiple_choice_quizzes" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "options" => [
-                                        "type" => "ARRAY",
-                                        "items" => ["type" => "STRING"]
-                                    ],
-                                    "answer" => ["type" => "STRING"]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "options", "answer"],
-                                "propertyOrdering" => ["question", "options", "answer"]
-                            ],
-                            "minItems" => 3,
-                            "maxItems" => 30,
-                            "nullable" => false
-                        ],
-                        "enumeration_quizzes" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "answers" => [
-                                        "type" => "ARRAY",
-                                        "items" => ["type" => "STRING"]
-                                    ]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "answers"],
-                                "propertyOrdering" => ["question", "answers"]
-                            ],
-                            "minItems" => 3,
-                            "maxItems" => 30,
-                            "nullable" => false
-                        ],
-                        "true_false_quizzes" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "answer" => ["type" => "STRING"]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "answer"],
-                                "propertyOrdering" => ["question", "answer"]
-                            ],
-                            "minItems" => 3,
-                            "maxItems" => 30,
-                            "nullable" => false
-                        ]
-                    ],
-                    "nullable" => false,
-                    "required" => ["flashcards", "multiple_choice_quizzes", "enumeration_quizzes", "true_false_quizzes"],
-                    "propertyOrdering" => ["flashcards", "multiple_choice_quizzes", "enumeration_quizzes", "true_false_quizzes"],
-                ]
-            ]
+            "generationConfig" => $generationConfig,
         ];
 
         $response = Http::post($url, $payload);
@@ -410,46 +429,52 @@ class FileController extends Controller
 
             $parsedData = json_decode($text, true);
 
-
-            // dd($parsedData, $parsedData['flashcards'], $parsedData['multiple_choice_quizzes'], $parsedQuizzes);
             if (json_last_error() === JSON_ERROR_NONE) {
-                $flashcards = collect($parsedData['flashcards'] ?? [])->map(function ($flashcard) use ($file) {
-                    return \App\Models\Flashcard::create([
-                        'question' => $flashcard['question'],
-                        'answer' => $flashcard['answer'],
-                        'file_id' => $file->id,
-                    ]);
-                });
+                if (isset($parsedData['flashcards'])) {
+                    collect($parsedData['flashcards'])->each(function ($flashcard) use ($file) {
+                        \App\Models\Flashcard::create([
+                            'question' => $flashcard['question'],
+                            'answer' => $flashcard['answer'],
+                            'file_id' => $file->id,
+                        ]);
+                    });
+                }
 
-                $multiple_choice_quizzes = collect($parsedData['multiple_choice_quizzes'] ?? [])->map(function ($quiz) use ($file) {
-                    return \App\Models\Quiz::create([
-                        'question' => $quiz['question'],
-                        'type' => 'multiple_choice',
-                        'options' => $quiz['options'],
-                        'answers' => [$quiz['answer']],
-                        'file_id' => $file->id,
-                    ]);
-                });
+                if (isset($parsedData['multiple_choice_quizzes'])) {
+                    collect($parsedData['multiple_choice_quizzes'])->each(function ($quiz) use ($file) {
+                        \App\Models\Quiz::create([
+                            'question' => $quiz['question'],
+                            'type' => 'multiple_choice',
+                            'options' => $quiz['options'],
+                            'answers' => [$quiz['answer']],
+                            'file_id' => $file->id,
+                        ]);
+                    });
+                }
 
-                $enumeration_quizzes = collect($parsedData['enumeration_quizzes'] ?? [])->map(function ($quiz) use ($file) {
-                    return \App\Models\Quiz::create([
-                        'question' => $quiz['question'],
-                        'type' => 'enumeration',
-                        'options' => null,
-                        'answers' => $quiz['answers'],
-                        'file_id' => $file->id,
-                    ]);
-                });
+                if (isset($parsedData['enumeration_quizzes'])) {
+                    collect($parsedData['enumeration_quizzes'])->each(function ($quiz) use ($file) {
+                        \App\Models\Quiz::create([
+                            'question' => $quiz['question'],
+                            'type' => 'enumeration',
+                            'options' => null,
+                            'answers' => $quiz['answers'],
+                            'file_id' => $file->id,
+                        ]);
+                    });
+                }
 
-                $true_false_quizzes = collect($parsedData['true_false_quizzes'] ?? [])->map(function ($quiz) use ($file) {
-                    return \App\Models\Quiz::create([
-                        'question' => $quiz['question'],
-                        'type' => 'true_false',
-                        'options' => null,
-                        'answers' => [$quiz['answer']],
-                        'file_id' => $file->id,
-                    ]);
-                });
+                if (isset($parsedData['true_false_quizzes'])) {
+                    collect($parsedData['true_false_quizzes'])->each(function ($quiz) use ($file) {
+                        \App\Models\Quiz::create([
+                            'question' => $quiz['question'],
+                            'type' => 'true_false',
+                            'options' => null,
+                            'answers' => [$quiz['answer']],
+                            'file_id' => $file->id,
+                        ]);
+                    });
+                }
 
                 return redirect()->route('files.show', $file->id)
                     ->with('success', 'Flashcards and quizzes generated successfully!');
@@ -466,7 +491,6 @@ class FileController extends Controller
             'details' => $response->body(),
         ]);
     }
-
 
     private function extractText($file)
     {
