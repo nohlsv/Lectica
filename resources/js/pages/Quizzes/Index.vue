@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import { Badge } from '@/components/ui/badge';
 import { Pencil, Trash2, Plus, ListChecks } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { type File , type Quiz } from '@/types';
 
 interface Props {
@@ -17,9 +17,17 @@ interface Props {
 
 const props = defineProps<Props>();
 
-function deleteQuiz(quizId: number) {
-    if (confirm('Are you sure you want to delete this quiz?')) {
-        router.delete(route('files.quizzes.destroy', [props.file.id, quizId]));
+const showDeleteModal = ref(false);
+const quizToDelete = ref<number | null>(null);
+
+function deleteQuiz() {
+    if (quizToDelete.value !== null) {
+        router.delete(route('files.quizzes.destroy', [props.file.id, quizToDelete.value]), {
+            onSuccess: () => {
+                showDeleteModal.value = false;
+                quizToDelete.value = null;
+            },
+        });
     }
 }
 
@@ -111,7 +119,7 @@ const isOwner = computed(() => {
                                 <span class="ml-2">Edit</span>
                             </Button>
                         </Link>
-                        <Button variant="destructive" size="sm" @click="deleteQuiz(quiz.id)">
+                        <Button variant="destructive" size="sm" @click="() => { quizToDelete = quiz.id; showDeleteModal = true; }">
                             <Trash2 class="h-4 w-4" />
                             <span class="ml-2">Delete</span>
                         </Button>
@@ -120,4 +128,19 @@ const isOwner = computed(() => {
             </div>
         </div>
     </AppLayout>
+
+    <Dialog v-if="showDeleteModal" @close="showDeleteModal = false">
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+            </DialogHeader>
+            <p>Are you sure you want to delete this quiz? This action cannot be undone.</p>
+            <DialogFooter>
+                <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
+                <Button variant="destructive" @click="deleteQuiz">
+                    Delete
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
 </template>

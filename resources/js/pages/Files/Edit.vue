@@ -40,14 +40,14 @@ const submit = () => {
 
 const isGenerating = ref(false);
 
+const showDeleteModal = ref(false);
+
 const deleteFile = () => {
-    if (confirm('Are you sure you want to delete this file?')) {
-        form.delete(`/files/${props.file.id}`, {
-            onSuccess: () => {
-                router.visit('/files');
-            },
-        });
-    }
+    form.delete(`/files/${props.file.id}`, {
+        onSuccess: () => {
+            router.visit('/files');
+        },
+    });
 };
 </script>
 
@@ -113,7 +113,7 @@ const deleteFile = () => {
                             <button
                                 type="button"
                                 class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                                @click="deleteFile"
+                                @click="showDeleteModal = true"
                                 :disabled="form.processing"
                             >
                                 Delete File
@@ -139,6 +139,21 @@ const deleteFile = () => {
                 </form>
             </div>
         </div>
+
+        <Dialog v-if="showDeleteModal" @close="showDeleteModal = false">
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Confirm Deletion</DialogTitle>
+                </DialogHeader>
+                <p>Are you sure you want to delete this file? This action cannot be undone.</p>
+                <DialogFooter>
+                    <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
+                    <Button variant="destructive" @click="deleteFile" :disabled="form.processing">
+                        {{ form.processing ? 'Deleting...' : 'Delete' }}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
 
