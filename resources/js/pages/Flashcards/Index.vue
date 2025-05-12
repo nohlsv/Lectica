@@ -7,6 +7,7 @@ import { Pencil, Trash2, Plus, BookOpen } from 'lucide-vue-next';
 import { router } from '@inertiajs/vue3';
 import { type File, type Flashcard } from '@/types';
 import { computed, ref } from 'vue';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 interface Props {
     file: File;
@@ -86,28 +87,29 @@ const isOwner = computed(() => {
                                 <span class="ml-2">Edit</span>
                             </Button>
                         </Link>
-                        <Button variant="destructive" size="sm" @click="() => { flashcardToDelete = flashcard.id; showDeleteModal = true; }">
-                            <Trash2 class="h-4 w-4" />
-                            <span class="ml-2">Delete</span>
-                        </Button>
+                        <Dialog>
+                            <DialogTrigger>
+                                <Button variant="destructive" size="sm" @click="() => { flashcardToDelete = flashcard.id; showDeleteModal = true; }">
+                                    <Trash2 class="h-4 w-4" />
+                                    <span class="ml-2">Delete</span>
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Confirm Deletion</DialogTitle>
+                                </DialogHeader>
+                                <p>Are you sure you want to delete this flashcard? This action cannot be undone.</p>
+                                <DialogFooter>
+                                    <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
+                                    <Button variant="destructive" @click="deleteFlashcard">
+                                        Delete
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </CardFooter>
                 </Card>
             </div>
         </div>
     </AppLayout>
-
-    <Dialog v-if="showDeleteModal" @close="showDeleteModal = false">
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Confirm Deletion</DialogTitle>
-            </DialogHeader>
-            <p>Are you sure you want to delete this flashcard? This action cannot be undone.</p>
-            <DialogFooter>
-                <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
-                <Button variant="destructive" @click="deleteFlashcard">
-                    Delete
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
 </template>

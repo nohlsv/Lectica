@@ -5,6 +5,9 @@ import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import TagInput from '@/components/TagInput.vue';
 import { ref } from 'vue';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Button from '@/components/ui/button/Button.vue';
+
 
 interface Props {
     file: File;
@@ -110,14 +113,29 @@ const deleteFile = () => {
 
                     <div class="flex justify-between items-center gap-2">
                         <div> 
-                            <button
-                                type="button"
-                                class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                                @click="showDeleteModal = true"
-                                :disabled="form.processing"
-                            >
-                                Delete File
-                            </button>
+                            <Dialog>
+                                <DialogTrigger as-child>
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                        :disabled="form.processing"
+                                    >
+                                        Delete File
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Confirm Deletion</DialogTitle>
+                                    </DialogHeader>
+                                    <p>Are you sure you want to delete this file? This action cannot be undone.</p>
+                                    <DialogFooter>
+                                        <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
+                                        <Button variant="destructive" @click="deleteFile" :disabled="form.processing">
+                                            {{ form.processing ? 'Deleting...' : 'Delete' }}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </div>
 
                         <div>
@@ -139,21 +157,6 @@ const deleteFile = () => {
                 </form>
             </div>
         </div>
-
-        <Dialog v-if="showDeleteModal" @close="showDeleteModal = false">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Confirm Deletion</DialogTitle>
-                </DialogHeader>
-                <p>Are you sure you want to delete this file? This action cannot be undone.</p>
-                <DialogFooter>
-                    <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
-                    <Button variant="destructive" @click="deleteFile" :disabled="form.processing">
-                        {{ form.processing ? 'Deleting...' : 'Delete' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </AppLayout>
 </template>
 
