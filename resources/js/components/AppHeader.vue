@@ -75,14 +75,9 @@ const mainNavItems: NavItem[] = [
     ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'
         ? [
               {
-                  title: 'Manage Files',
-                  href: '/admin/files',
+                  title: 'Verify Files',
+                  href: '/files/verify',
                   icon: FileIcon,
-              },
-              {
-                  title: 'Manage Users',
-                  href: '/admin/users',
-                  icon: TestTube2,
               },
           ]
         : []),

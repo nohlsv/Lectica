@@ -25,7 +25,7 @@ if (page.props.info) {
 if (page.props.message) {
     toast.info(page.props.message);
 }
-console.log(page.props);
+(page.props);
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
