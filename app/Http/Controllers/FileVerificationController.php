@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 use App\Models\File;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class FileVerificationController extends Controller
 {
+	use AuthorizesRequests;
+
 	/**
 	 * Display a list of unverified files.
 	 */

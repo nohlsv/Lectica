@@ -285,26 +285,6 @@ class FileController extends Controller
         return Storage::download($filePath, $fileName); // Use Storage::download for proper handling
     }
 
-    public function upload(Request $request)
-    {
-        // Logic to upload a file
-    }
-
-    public function search(Request $request)
-    {
-        // Logic to search for files
-    }
-
-    public function tag($id, Request $request)
-    {
-        // Logic to tag a file
-    }
-
-    public function untag($id, Request $request)
-    {
-        // Logic to untag a file
-    }
-
     public function generateFlashcardsAndQuizzes(Request $request, File $file)
     {
         if (!$file->verified) {
