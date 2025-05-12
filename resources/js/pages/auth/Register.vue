@@ -27,6 +27,13 @@ const form = useForm({
     user_role: '',
 });
 
+const colleges = computed(() => {
+    return [...new Set(props.programs.map(program => program.college))];
+});
+console.log(colleges.value);
+console.log(props.programs);
+console.log(props.programs.map(program => program.college));
+console.log([...new Set(props.programs.map(program => program.college))]);
 const selectedCollege = ref('');
 const filteredPrograms = computed(() => {
     return selectedCollege.value
@@ -86,7 +93,7 @@ const submit = () => {
                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="">All Colleges</option>
-                        <option v-for="college in [...new Set(props.programs.map(program => program.college))]" :key="college" :value="college">
+                        <option v-for="college in colleges" :key="college" :value="college">
                             {{ college }}
                         </option>
                     </select>

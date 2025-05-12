@@ -11,9 +11,10 @@ use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
-
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 class FileController extends Controller
 {
+    use AuthorizesRequests;
     public function index(Request $request)
     {
         $query = File::verified()->with(['user', 'tags'])

@@ -21,7 +21,7 @@ class RegisteredUserController extends Controller
     public function create(): Response
     {
         return Inertia::render('auth/Register', [
-            'programs' => \App\Models\Program::select('id', 'name', 'code')->orderBy('name')->get()
+            'programs' => \App\Models\Program::orderBy('name')->get()
         ]);
     }
 
