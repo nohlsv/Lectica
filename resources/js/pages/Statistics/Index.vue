@@ -123,12 +123,16 @@ onMounted(async () => {
 
             <div class="mt-6">
                 <h2 class="text-xl font-bold">Files per Program</h2>
-                <canvas id="filesPerProgramChart" style="width: 400px; height: 300px;"></canvas>
+                <div class="w-full max-w-md mx-auto">
+                    <canvas id="filesPerProgramChart"></canvas>
+                </div>
             </div>
 
             <div class="mt-6">
                 <h2 class="text-xl font-bold">Tag Usage</h2>
-                <canvas id="tagsUsageChart" style="width: 400px; height: 300px;"></canvas>
+                <div class="w-full max-w-md mx-auto">
+                    <canvas id="tagsUsageChart"></canvas>
+                </div>
             </div>
 
             <div class="mt-6">
