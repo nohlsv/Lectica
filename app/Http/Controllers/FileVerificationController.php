@@ -35,8 +35,10 @@ class FileVerificationController extends Controller
 	{
 		$this->authorize('verify', $file);
 
-		$file->update(['verified' => true]);
+		// $file->update(['verified' => true]);
+		$file->verified = true;
+		$file->save();
 
-		return redirect()->route('files.verify')->with('success', 'File verified successfully!');
+		return redirect()->back()->with('success', 'File verified successfully!');
 	}
 }
