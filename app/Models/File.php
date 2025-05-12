@@ -11,8 +11,8 @@ use Illuminate\Support\Facades\Auth;
 
 class File extends Model
 {
-	/** @use HasFactory<\Database\Factories\FileFactory> */
-	use HasFactory;
+    /** @use HasFactory<\Database\Factories\FileFactory> */
+    use HasFactory;
     protected $fillable = ['name', 'description', 'path', 'content', 'file_hash', 'user_id'];
 
     /**
@@ -109,5 +109,10 @@ class File extends Model
     public function getQuizzesCountAttribute(): int
     {
         return $this->quizzes()->count();
+    }
+
+    public function scopeVerified($query)
+    {
+        return $query->where('verified', true);
     }
 }

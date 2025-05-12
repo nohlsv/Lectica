@@ -46,6 +46,7 @@ class RegisteredUserController extends Controller
                 'regex:/^[a-zA-Z0-9._%+-]+@bpsu\.edu\.ph$/',
             ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'user_role' => ['required', 'in:student,faculty'],
         ], [
             'email.regex' => 'Only @bpsu.edu.ph email addresses are allowed.',
             'program_id.required' => 'Please select a program.',
@@ -58,6 +59,7 @@ class RegisteredUserController extends Controller
             'email' => $request->email,
             'program_id' => $request->program_id,
             'password' => Hash::make($request->password),
+            'user_role' => $request->user_role,
         ]);
 
         event(new Registered($user));

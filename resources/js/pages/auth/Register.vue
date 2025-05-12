@@ -8,12 +8,13 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
 import type { Program } from '@/types';
+import { ref, computed } from 'vue';
 
 interface Props {
     programs: Program[];
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const form = useForm({
     first_name: '',
@@ -23,6 +24,14 @@ const form = useForm({
     year_of_study: '',
     password: '',
     password_confirmation: '',
+    user_role: '',
+});
+
+const selectedCollege = ref('');
+const filteredPrograms = computed(() => {
+    return selectedCollege.value
+        ? props.programs.filter(program => program.college === selectedCollege.value)
+        : props.programs;
 });
 
 const submit = () => {
@@ -70,6 +79,20 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2">
+                    <Label for="college">College</Label>
+                    <select
+                        id="college"
+                        v-model="selectedCollege"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                        <option value="">All Colleges</option>
+                        <option v-for="college in [...new Set(props.programs.map(program => program.college))]" :key="college" :value="college">
+                            {{ college }}
+                        </option>
+                    </select>
+                </div>
+
+                <div class="grid gap-2">
                     <Label for="program">Program</Label>
                     <select
                         id="program"
@@ -79,7 +102,7 @@ const submit = () => {
                         :tabindex="3"
                     >
                         <option value="" disabled>Select your program</option>
-                        <option v-for="program in programs" :key="program.id" :value="program.id">
+                        <option v-for="program in filteredPrograms" :key="program.id" :value="program.id">
                             {{ program.name }} ({{ program.code }})
                         </option>
                     </select>
@@ -149,6 +172,22 @@ const submit = () => {
                         placeholder="Confirm password"
                     />
                     <InputError :message="form.errors.password_confirmation" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="user_role">Role</Label>
+                    <select
+                        id="user_role"
+                        v-model="form.user_role"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                        required
+                        :tabindex="9"
+                    >
+                        <option value="" disabled>Select your role</option>
+                        <option value="student">Student</option>
+                        <option value="faculty">Faculty</option>
+                    </select>
+                    <InputError :message="form.errors.user_role" />
                 </div>
 
                 <Button type="submit" class="mt-2 w-full" tabindex="8" :disabled="form.processing">

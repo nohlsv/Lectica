@@ -63,4 +63,12 @@ class FilePolicy
     {
         return $user->id === $file->user_id || $user->isAdmin();
     }
+
+    /**
+     * Determine whether the user can verify the file.
+     */
+    public function verify(User $user): bool
+    {
+        return in_array($user->user_role, ['faculty', 'admin']);
+    }
 }

@@ -16,7 +16,7 @@ class FileController extends Controller
 {
     public function index(Request $request)
     {
-        $query = File::with(['user', 'tags'])
+        $query = File::verified()->with(['user', 'tags'])
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->search;
                 return $query->where('name', 'like', "%{$search}%")
@@ -307,6 +307,10 @@ class FileController extends Controller
 
     public function generateFlashcardsAndQuizzes(Request $request, File $file)
     {
+        if (!$file->verified) {
+            return redirect()->back()->withErrors(['error' => 'File must be verified by a faculty or admin before generating flashcards and quizzes.']);
+        }
+
         set_time_limit(0);
         $content = $file->content;
 

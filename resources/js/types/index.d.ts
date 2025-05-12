@@ -62,6 +62,7 @@ export interface User {
     college?: string;
     created_at: string;
     updated_at: string;
+    user_role: string;
 }
 export interface File {
     id: number;
@@ -79,6 +80,7 @@ export interface File {
     description?: string;
     flashcards_count?: number;
     quizzes_count?: number;
+    verified: boolean;
 }
 
 export interface Flashcard {
