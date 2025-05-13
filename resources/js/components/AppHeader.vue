@@ -66,11 +66,6 @@ const mainNavItems: NavItem[] = [
         href: '/history',
         icon: FileChartLine,
     },
-    {
-        title: 'Statistics',
-        href: '/statistics',
-        icon: ChartArea,
-    },
     // Add faculty/admin pages conditionally
     ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'
         ? [
@@ -79,6 +74,11 @@ const mainNavItems: NavItem[] = [
                   href: '/files/verify',
                   icon: FileIcon,
               },
+                {
+                    title: 'Statistics',
+                    href: '/statistics',
+                    icon: ChartArea,
+                },
           ]
         : []),
 ];
