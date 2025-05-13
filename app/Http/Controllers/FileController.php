@@ -460,6 +460,13 @@ class FileController extends Controller
                 $items = $parsedData[$type] ?? [];
 
                 collect($items)->each(function ($item) use ($file, $type) {
+                    if ($type === 'multiple_choice_quizzes') {
+                        // Ensure the answer is included in the options
+                        if (!in_array($item['answer'], $item['options'])) {
+                            $item['options'][] = $item['answer'];
+                        }
+                    }
+
                     match ($type) {
                         'flashcards' => \App\Models\Flashcard::create([
                             'question' => $item['question'],
