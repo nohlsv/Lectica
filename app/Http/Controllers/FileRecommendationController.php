@@ -12,7 +12,8 @@ class FileRecommendationController extends Controller
 {
     public function __construct(
         private FileRecommendationService $recommendationService
-    ) {}
+    ) {
+    }
 
     /**
      * Display file recommendations
@@ -23,7 +24,7 @@ class FileRecommendationController extends Controller
         $recommendations = $this->recommendationService->getRecommendations($user);
 
         // Remove duplicates from recommendations
-        $uniqueRecommendations = $recommendations->unique();
+        $uniqueRecommendations = array_unique($recommendations);
 
         return Inertia::render('Files/Recommendations', [
             'recommendations' => $uniqueRecommendations,

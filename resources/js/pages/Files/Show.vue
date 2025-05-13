@@ -303,11 +303,10 @@ const submitGenerateRequest = async () => {
                                     class="gap-2 w-full border-t border-border pt-4 flex justify-center"
                                     v-if="isOwner && file.verified"
                                 >
-                                    <Dialog :open="isDialogOpen" @close="isDialogOpen = false">
+                                    <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
                                         <DialogTrigger asChild>
                                             <Button
                                                 class="w-full sm:w-auto flex items-center justify-center gap-1 rounded-md bg-secondary px-4 py-2 text-xs font-medium text-secondary-foreground hover:bg-secondary/90"
-                                                @click="isDialogOpen = true"
                                             >
                                                 <PencilIcon class="mr-2 h-3 w-3" />
                                                 Generate Flashcards & Quizzes
