@@ -55,14 +55,14 @@ onMounted(async () => {
         }],
     }, { responsive: true });
 
-    renderChart('tagsUsageChart', 'pie', {
-        labels: props.statistics.most_used_tags.map((t) => t.name),
-        datasets: [{
-            label: 'Tag Usage',
-            data: props.statistics.most_used_tags.map((t) => t.files_count),
-            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-        }],
-    }, { responsive: true });
+    // renderChart('tagsUsageChart', 'pie', {
+    //     labels: props.statistics.most_used_tags.map((t) => t.name),
+    //     datasets: [{
+    //         label: 'Tag Usage',
+    //         data: props.statistics.most_used_tags.map((t) => t.files_count),
+    //         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+    //     }],
+    // }, { responsive: true });
 });
 </script>
 
@@ -128,12 +128,12 @@ onMounted(async () => {
                 </div>
             </div>
 
-            <div class="mt-6">
+            <!-- <div class="mt-6">
                 <h2 class="text-xl font-bold">Tag Usage</h2>
                 <div class="w-full max-w-md mx-auto">
                     <canvas id="tagsUsageChart"></canvas>
                 </div>
-            </div>
+            </div> -->
 
             <div class="mt-6">
                 <h2 class="text-xl font-bold">Flashcards per Tag</h2>
