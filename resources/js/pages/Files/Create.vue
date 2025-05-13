@@ -149,7 +149,7 @@ const submit = () => {
                                 </div>
                                 <div class="text-center">
                                     <p class="text-sm font-medium">Click to upload or drag and drop</p>
-                                    <p class="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, TXT, XLS, XLSX (Max 25MB)</p>
+                                    <p class="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, PPTX, TXT, XLSX (Max 25MB)</p>
                                 </div>
                             </div>
 
