@@ -22,8 +22,11 @@ class FileRecommendationController extends Controller
         $user = $request->user();
         $recommendations = $this->recommendationService->getRecommendations($user);
 
+        // Remove duplicates from recommendations
+        $uniqueRecommendations = $recommendations->unique();
+
         return Inertia::render('Files/Recommendations', [
-            'recommendations' => $recommendations,
+            'recommendations' => $uniqueRecommendations,
             'userProgram' => $user->program ? $user->program->name : null,
         ]);
     }

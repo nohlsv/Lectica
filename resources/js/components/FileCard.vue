@@ -64,7 +64,7 @@ const toggleStar = async () => {
         <!-- File content -->
         <div class="p-4 flex-1">
             <p class="text-sm text-muted-foreground line-clamp-3 mb-3">
-                {{ file.content }}
+                {{ file.description ? file.description : file.content }}
             </p>
 
             <!-- Tags -->
