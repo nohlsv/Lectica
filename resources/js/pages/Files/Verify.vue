@@ -79,7 +79,7 @@ const verifyFile = (fileId: number) => {
                             'bg-primary-foreground text-primary': link.active,
                             'bg-muted text-muted-foreground': !link.active,
                         }"
-                        v-text="link.label"
+                        v-html="link.label"
                     >
                     </button>
                 </nav>
