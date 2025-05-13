@@ -326,8 +326,8 @@ const submitGenerateRequest = async () => {
                                                         id="flashcards_count"
                                                         v-model="generateOptions.flashcards_count"
                                                         min="1"
-                                                        max="30"
-                                                        @input="generateOptions.flashcards_count = Math.min(Math.max(generateOptions.flashcards_count, 1), 30)"
+                                                        max="15"
+                                                        @input="generateOptions.flashcards_count = Math.min(Math.max(generateOptions.flashcards_count, 1), 15)"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -341,8 +341,8 @@ const submitGenerateRequest = async () => {
                                                         id="multiple_choice_count"
                                                         v-model="generateOptions.multiple_choice_count"
                                                         min="1"
-                                                        max="30"
-                                                        @input="generateOptions.multiple_choice_count = Math.min(Math.max(generateOptions.multiple_choice_count, 1), 30)"
+                                                        max="15"
+                                                        @input="generateOptions.multiple_choice_count = Math.min(Math.max(generateOptions.multiple_choice_count, 1), 15)"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -356,8 +356,8 @@ const submitGenerateRequest = async () => {
                                                         id="enumeration_count"
                                                         v-model="generateOptions.enumeration_count"
                                                         min="1"
-                                                        max="30"
-                                                        @input="generateOptions.enumeration_count = Math.min(Math.max(generateOptions.enumeration_count, 1), 30)"
+                                                        max="15"
+                                                        @input="generateOptions.enumeration_count = Math.min(Math.max(generateOptions.enumeration_count, 1), 15)"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -371,8 +371,8 @@ const submitGenerateRequest = async () => {
                                                         id="true_false_count"
                                                         v-model="generateOptions.true_false_count"
                                                         min="1"
-                                                        max="30"
-                                                        @input="generateOptions.true_false_count = Math.min(Math.max(generateOptions.true_false_count, 1), 30)"
+                                                        max="15"
+                                                        @input="generateOptions.true_false_count = Math.min(Math.max(generateOptions.true_false_count, 1), 15)"
                                                     />
                                                 </div>
                                             </div>

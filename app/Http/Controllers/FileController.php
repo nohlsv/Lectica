@@ -306,10 +306,10 @@ class FileController extends Controller
             'generate_multiple_choice_quizzes' => 'boolean',
             'generate_enumeration_quizzes' => 'boolean',
             'generate_true_false_quizzes' => 'boolean',
-            'flashcards_count' => 'nullable|integer|min:1|max:30',
-            'multiple_choice_count' => 'nullable|integer|min:1|max:30',
-            'enumeration_count' => 'nullable|integer|min:1|max:30',
-            'true_false_count' => 'nullable|integer|min:1|max:30',
+            'flashcards_count' => 'nullable|integer|min:1|max:15',
+            'multiple_choice_count' => 'nullable|integer|min:1|max:15',
+            'enumeration_count' => 'nullable|integer|min:1|max:15',
+            'true_false_count' => 'nullable|integer|min:1|max:15',
         ]);
 
         $apiKey = env('GEMINI_API_KEY');
