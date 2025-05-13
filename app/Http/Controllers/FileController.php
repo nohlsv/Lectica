@@ -28,6 +28,11 @@ class FileController extends Controller
                 return $query->whereHas('tags', function ($q) use ($request) {
                     $q->whereIn('tags.id', $request->tags);
                 }, '=', count($request->tags));
+            })
+            ->when($request->boolean('starred'), function ($query) {
+                $query->whereHas('starredBy', function ($q) {
+                    $q->where('user_id', auth()->id());
+                });
             });
 
         $files = $query->paginate(10)->withQueryString();

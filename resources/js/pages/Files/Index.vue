@@ -34,6 +34,7 @@ const columns = [
 const searchQuery = ref('');
 const selectedTags = ref<number[]>([]);
 const allTags = ref<Tag[]>([]);
+const showStarredOnly = ref(false);
 
 const fetchTags = async () => {
     const response = await axios.get('/tags');
@@ -48,6 +49,7 @@ const applyFilters = () => {
     router.get(route('files.index'), {
         search: searchQuery.value,
         tags: selectedTags.value,
+        starred: showStarredOnly.value,
     }, { preserveState: true });
 };
 </script>
@@ -70,6 +72,12 @@ const applyFilters = () => {
                         class="w-full"
                     />
                     <Button @click="applyFilters">Search</Button>
+                </div>
+                <div class="flex items-center gap-4">
+                    <label class="flex items-center gap-2">
+                        <input type="checkbox" v-model="showStarredOnly" @change="applyFilters" />
+                        <span>Show Starred Only</span>
+                    </label> 
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <Badge
