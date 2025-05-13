@@ -105,7 +105,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                                     <div class="flex justify-between items-start">
                                         <div class="flex items-center">
                                             <FileIcon class="h-5 w-5 mr-2 text-primary" />
-                                            <CardTitle class="text-lg">{{ file.name }}</CardTitle>
+                                            <CardTitle class="text-lg truncate max-w-[280px]" title="{{ file.name }}">
+                                                {{ file.name }}
+                                            </CardTitle>
                                         </div>
                                         <StarIcon
                                             :class="[
@@ -124,7 +126,8 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             v-for="tag in file.tags"
                                             :key="tag.id"
                                             variant="secondary"
-                                            class="text-xs"
+                                            class="text-xs truncate"
+                                            :title="tag.name"
                                         >
                                             {{ tag.name }}
                                         </Badge>

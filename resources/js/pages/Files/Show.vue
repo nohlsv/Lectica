@@ -321,7 +321,14 @@ const submitGenerateRequest = async () => {
                                                 </div>
                                                 <div v-if="generateOptions.generate_flashcards" class="flex items-center gap-2">
                                                     <label for="flashcards_count" class="text-sm font-medium">Flashcards Count:</label>
-                                                    <Input type="number" id="flashcards_count" v-model="generateOptions.flashcards_count" min="1" max="30" />
+                                                    <Input
+                                                        type="number"
+                                                        id="flashcards_count"
+                                                        v-model="generateOptions.flashcards_count"
+                                                        min="1"
+                                                        max="30"
+                                                        @input="generateOptions.flashcards_count = Math.min(Math.max(generateOptions.flashcards_count, 1), 30)"
+                                                    />
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <input type="checkbox" v-model="generateOptions.generate_multiple_choice_quizzes" id="generate_multiple_choice_quizzes" />
@@ -329,7 +336,14 @@ const submitGenerateRequest = async () => {
                                                 </div>
                                                 <div v-if="generateOptions.generate_multiple_choice_quizzes" class="flex items-center gap-2">
                                                     <label for="multiple_choice_count" class="text-sm font-medium">Multiple Choice Count:</label>
-                                                    <Input type="number" id="multiple_choice_count" v-model="generateOptions.multiple_choice_count" min="1" max="30" />
+                                                    <Input
+                                                        type="number"
+                                                        id="multiple_choice_count"
+                                                        v-model="generateOptions.multiple_choice_count"
+                                                        min="1"
+                                                        max="30"
+                                                        @input="generateOptions.multiple_choice_count = Math.min(Math.max(generateOptions.multiple_choice_count, 1), 30)"
+                                                    />
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <input type="checkbox" v-model="generateOptions.generate_enumeration_quizzes" id="generate_enumeration_quizzes" />
@@ -337,7 +351,14 @@ const submitGenerateRequest = async () => {
                                                 </div>
                                                 <div v-if="generateOptions.generate_enumeration_quizzes" class="flex items-center gap-2">
                                                     <label for="enumeration_count" class="text-sm font-medium">Enumeration Count:</label>
-                                                    <Input type="number" id="enumeration_count" v-model="generateOptions.enumeration_count" min="1" max="30" />
+                                                    <Input
+                                                        type="number"
+                                                        id="enumeration_count"
+                                                        v-model="generateOptions.enumeration_count"
+                                                        min="1"
+                                                        max="30"
+                                                        @input="generateOptions.enumeration_count = Math.min(Math.max(generateOptions.enumeration_count, 1), 30)"
+                                                    />
                                                 </div>
                                                 <div class="flex items-center gap-2">
                                                     <input type="checkbox" v-model="generateOptions.generate_true_false_quizzes" id="generate_true_false_quizzes" />
@@ -345,7 +366,14 @@ const submitGenerateRequest = async () => {
                                                 </div>
                                                 <div v-if="generateOptions.generate_true_false_quizzes" class="flex items-center gap-2">
                                                     <label for="true_false_count" class="text-sm font-medium">True/False Count:</label>
-                                                    <Input type="number" id="true_false_count" v-model="generateOptions.true_false_count" min="1" max="30" />
+                                                    <Input
+                                                        type="number"
+                                                        id="true_false_count"
+                                                        v-model="generateOptions.true_false_count"
+                                                        min="1"
+                                                        max="30"
+                                                        @input="generateOptions.true_false_count = Math.min(Math.max(generateOptions.true_false_count, 1), 30)"
+                                                    />
                                                 </div>
                                             </div>
                                             <DialogFooter>
