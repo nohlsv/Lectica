@@ -71,11 +71,17 @@ class StatisticsController extends Controller
 				})
 				->sortByDesc('quizzes_count')
 				->first(),
-			'user_with_most_stars' => User::with('files')
+			'user_with_most_stars' => User::with('files.starredBy')
 				->get()
 				->map(function ($user) {
-					$user->files_sum_stars = $user->files->sum('stars'); // Assuming 'stars' is a column in the files table
-					return $user;
+					$user->files_sum_stars = $user->files->sum(function ($file) {
+						return $file->starredBy->count(); // Count the number of stars for each file
+					});
+					return [
+						'id' => $user->id,
+						'name' => $user->name,
+						'files_sum_stars' => $user->files_sum_stars,
+					];
 				})
 				->sortByDesc('files_sum_stars')
 				->first(),
