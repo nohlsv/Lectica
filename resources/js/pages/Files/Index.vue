@@ -35,6 +35,7 @@ const searchQuery = ref('');
 const selectedTags = ref<number[]>([]);
 const allTags = ref<Tag[]>([]);
 const showStarredOnly = ref(false);
+const showSameProgramOnly = ref(false);
 
 const sortOptions = ref([
     { value: 'name', label: 'Name' },
@@ -58,6 +59,7 @@ const applyFilters = () => {
         search: searchQuery.value,
         tags: selectedTags.value,
         starred: showStarredOnly.value,
+        sameProgram: showSameProgramOnly.value,
         sort: selectedSort.value,
         direction: sortDirection.value,
     }, { preserveState: true });
@@ -84,9 +86,13 @@ const applyFilters = () => {
                     <Button @click="applyFilters">Search</Button>
                 </div>
                 <div class="flex items-center gap-4">
-                    <label class="flex items-center gap-2" text-sm font-medium>
+                    <label class="flex items-center gap-2 text-sm font-medium">
                         <input type="checkbox" v-model="showStarredOnly" @change="applyFilters" />
                         <span>Show Starred Only</span>
+                    </label>
+                    <label class="flex items-center gap-2 text-sm font-medium">
+                        <input type="checkbox" v-model="showSameProgramOnly" @change="applyFilters" />
+                        <span>Show Users from Same Program Only</span>
                     </label>
                     <div class="flex items-center gap-2">
                         <label for="sort" class="text-sm font-medium">Sort By:</label>

@@ -33,6 +33,14 @@ class FileController extends Controller
                 $query->whereHas('starredBy', function ($q) {
                     $q->where('user_id', auth()->id());
                 });
+            })
+            ->when($request->boolean('sameProgram'), function ($query) {
+                $userProgramId = auth()->user()->program_id;
+                if ($userProgramId) {
+                    $query->whereHas('user', function ($q) use ($userProgramId) {
+                        $q->where('program_id', $userProgramId);
+                    });
+                }
             });
 
         // Handle sorting
