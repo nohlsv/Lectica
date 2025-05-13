@@ -286,19 +286,81 @@ class FileController extends Controller
         return Storage::download($filePath, $fileName); // Use Storage::download for proper handling
     }
 
+    public function generateFlashcards(Request $request, File $file)
+    {
+        return $this->generateContent($request, $file, 'flashcards', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "answer" => ["type" => "STRING"]
+                ],
+                "nullable" => false,
+                "required" => ["question", "answer"],
+            ],
+        ]);
+    }
+
+    public function generateMultipleChoiceQuizzes(Request $request, File $file)
+    {
+        return $this->generateContent($request, $file, 'multiple_choice_quizzes', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "options" => [
+                        "type" => "ARRAY",
+                        "items" => ["type" => "STRING"]
+                    ],
+                    "answer" => ["type" => "STRING"]
+                ],
+                "nullable" => false,
+                "required" => ["question", "options", "answer"],
+            ],
+        ]);
+    }
+
+    public function generateEnumerationQuizzes(Request $request, File $file)
+    {
+        return $this->generateContent($request, $file, 'enumeration_quizzes', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "answers" => [
+                        "type" => "ARRAY",
+                        "items" => ["type" => "STRING"]
+                    ]
+                ],
+                "nullable" => false,
+                "required" => ["question", "answers"],
+            ],
+        ]);
+    }
+
+    public function generateTrueFalseQuizzes(Request $request, File $file)
+    {
+        return $this->generateContent($request, $file, 'true_false_quizzes', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "answer" => ["type" => "STRING"]
+                ],
+                "nullable" => false,
+                "required" => ["question", "answer"],
+            ],
+        ]);
+    }
+
     public function generateFlashcardsAndQuizzes(Request $request, File $file)
     {
         if (!$file->verified) {
             return redirect()->back()->withErrors(['error' => 'File must be verified by a faculty or admin before generating flashcards and quizzes.']);
-        }
-
-        set_time_limit(0);
-        $content = $file->content;
-
-        if (empty($content)) {
-            return response()->json([
-                'error' => 'File content is empty or not available.'
-            ], 400);
         }
 
         $request->validate([
@@ -312,6 +374,47 @@ class FileController extends Controller
             'true_false_count' => 'nullable|integer|min:1|max:15',
         ]);
 
+        if ($request->boolean('generate_flashcards')) {
+            $this->generateFlashcards(new Request(['count' => $request->input('flashcards_count', 3)]), $file);
+        }
+
+        if ($request->boolean('generate_multiple_choice_quizzes')) {
+            $this->generateMultipleChoiceQuizzes(new Request(['count' => $request->input('multiple_choice_count', 3)]), $file);
+        }
+
+        if ($request->boolean('generate_enumeration_quizzes')) {
+            $this->generateEnumerationQuizzes(new Request(['count' => $request->input('enumeration_count', 3)]), $file);
+        }
+
+        if ($request->boolean('generate_true_false_quizzes')) {
+            $this->generateTrueFalseQuizzes(new Request(['count' => $request->input('true_false_count', 3)]), $file);
+        }
+
+        return redirect()->route('files.show', $file->id)
+            ->with('success', 'Flashcards and quizzes generated successfully!');
+    }
+
+    private function generateContent(Request $request, File $file, string $type, array $schema)
+    {
+        if (!$file->verified) {
+            return redirect()->back()->withErrors(['error' => 'File must be verified by a faculty or admin before generating content.']);
+        }
+
+        set_time_limit(0);
+        $content = $file->content;
+
+        if (empty($content)) {
+            return response()->json([
+                'error' => 'File content is empty or not available.'
+            ], 400);
+        }
+
+        $request->validate([
+            'count' => 'required|integer|min:1|max:15',
+        ]);
+
+        $count = $request->input('count');
+
         $apiKey = env('GEMINI_API_KEY');
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
 
@@ -319,101 +422,24 @@ class FileController extends Controller
             "response_mime_type" => "application/json",
             "response_schema" => [
                 "type" => "OBJECT",
-                "properties" => [],
+                "properties" => [
+                    $type => array_merge($schema, [
+                        "minItems" => $count,
+                        "maxItems" => $count,
+                        "nullable" => false,
+                    ]),
+                ],
                 "nullable" => false,
-                "required" => [],
+                "required" => [$type],
             ],
         ];
-
-        if ($request->boolean('generate_flashcards')) {
-            $generationConfig['response_schema']['properties']['flashcards'] = [
-                "type" => "ARRAY",
-                "items" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "question" => ["type" => "STRING"],
-                        "answer" => ["type" => "STRING"]
-                    ],
-                    "nullable" => false,
-                    "required" => ["question", "answer"],
-                ],
-                "minItems" => $request->input('flashcards_count', 3),
-                "maxItems" => $request->input('flashcards_count', 30),
-                "nullable" => false,
-            ];
-            $generationConfig['response_schema']['required'][] = 'flashcards';
-        }
-
-        if ($request->boolean('generate_multiple_choice_quizzes')) {
-            $generationConfig['response_schema']['properties']['multiple_choice_quizzes'] = [
-                "type" => "ARRAY",
-                "items" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "question" => ["type" => "STRING"],
-                        "options" => [
-                            "type" => "ARRAY",
-                            "items" => ["type" => "STRING"]
-                        ],
-                        "answer" => ["type" => "STRING"]
-                    ],
-                    "nullable" => false,
-                    "required" => ["question", "options", "answer"],
-                ],
-                "minItems" => $request->input('multiple_choice_count', 3),
-                "maxItems" => $request->input('multiple_choice_count', 30),
-                "nullable" => false,
-            ];
-            $generationConfig['response_schema']['required'][] = 'multiple_choice_quizzes';
-        }
-
-        if ($request->boolean('generate_enumeration_quizzes')) {
-            $generationConfig['response_schema']['properties']['enumeration_quizzes'] = [
-                "type" => "ARRAY",
-                "items" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "question" => ["type" => "STRING"],
-                        "answers" => [
-                            "type" => "ARRAY",
-                            "items" => ["type" => "STRING"]
-                        ]
-                    ],
-                    "nullable" => false,
-                    "required" => ["question", "answers"],
-                ],
-                "minItems" => $request->input('enumeration_count', 3),
-                "maxItems" => $request->input('enumeration_count', 30),
-                "nullable" => false,
-            ];
-            $generationConfig['response_schema']['required'][] = 'enumeration_quizzes';
-        }
-
-        if ($request->boolean('generate_true_false_quizzes')) {
-            $generationConfig['response_schema']['properties']['true_false_quizzes'] = [
-                "type" => "ARRAY",
-                "items" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "question" => ["type" => "STRING"],
-                        "answer" => ["type" => "STRING"]
-                    ],
-                    "nullable" => false,
-                    "required" => ["question", "answer"],
-                ],
-                "minItems" => $request->input('true_false_count', 3),
-                "maxItems" => $request->input('true_false_count', 30),
-                "nullable" => false,
-            ];
-            $generationConfig['response_schema']['required'][] = 'true_false_quizzes';
-        }
 
         $payload = [
             'contents' => [
                 [
                     'parts' => [
                         [
-                            'text' => "Generate flashcards and quizzes using the following content:\n\nContent:\n" . $content
+                            'text' => "Generate {$type} using the following content:\n\nContent:\n" . $content
                         ]
                     ]
                 ]
@@ -431,54 +457,41 @@ class FileController extends Controller
             $parsedData = json_decode($text, true);
 
             if (json_last_error() === JSON_ERROR_NONE) {
-                if (isset($parsedData['flashcards'])) {
-                    collect($parsedData['flashcards'])->each(function ($flashcard) use ($file) {
-                        \App\Models\Flashcard::create([
-                            'question' => $flashcard['question'],
-                            'answer' => $flashcard['answer'],
-                            'file_id' => $file->id,
-                        ]);
-                    });
-                }
+                $items = $parsedData[$type] ?? [];
 
-                if (isset($parsedData['multiple_choice_quizzes'])) {
-                    collect($parsedData['multiple_choice_quizzes'])->each(function ($quiz) use ($file) {
-                        \App\Models\Quiz::create([
-                            'question' => $quiz['question'],
+                collect($items)->each(function ($item) use ($file, $type) {
+                    match ($type) {
+                        'flashcards' => \App\Models\Flashcard::create([
+                            'question' => $item['question'],
+                            'answer' => $item['answer'],
+                            'file_id' => $file->id,
+                        ]),
+                        'multiple_choice_quizzes' => \App\Models\Quiz::create([
+                            'question' => $item['question'],
                             'type' => 'multiple_choice',
-                            'options' => $quiz['options'],
-                            'answers' => [$quiz['answer']],
+                            'options' => $item['options'],
+                            'answers' => [$item['answer']],
                             'file_id' => $file->id,
-                        ]);
-                    });
-                }
-
-                if (isset($parsedData['enumeration_quizzes'])) {
-                    collect($parsedData['enumeration_quizzes'])->each(function ($quiz) use ($file) {
-                        \App\Models\Quiz::create([
-                            'question' => $quiz['question'],
+                        ]),
+                        'enumeration_quizzes' => \App\Models\Quiz::create([
+                            'question' => $item['question'],
                             'type' => 'enumeration',
                             'options' => null,
-                            'answers' => $quiz['answers'],
+                            'answers' => $item['answers'],
                             'file_id' => $file->id,
-                        ]);
-                    });
-                }
-
-                if (isset($parsedData['true_false_quizzes'])) {
-                    collect($parsedData['true_false_quizzes'])->each(function ($quiz) use ($file) {
-                        \App\Models\Quiz::create([
-                            'question' => $quiz['question'],
+                        ]),
+                        'true_false_quizzes' => \App\Models\Quiz::create([
+                            'question' => $item['question'],
                             'type' => 'true_false',
                             'options' => null,
-                            'answers' => [$quiz['answer']],
+                            'answers' => [$item['answer']],
                             'file_id' => $file->id,
-                        ]);
-                    });
-                }
+                        ]),
+                    };
+                });
 
                 return redirect()->route('files.show', $file->id)
-                    ->with('success', 'Flashcards and quizzes generated successfully!');
+                    ->with('success', ucfirst(str_replace('_', ' ', $type)) . ' generated successfully!');
             } else {
                 return redirect()->back()->withErrors([
                     'error' => 'Failed to parse JSON from Gemini response.',
