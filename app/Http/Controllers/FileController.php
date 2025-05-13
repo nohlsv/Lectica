@@ -421,7 +421,7 @@ class FileController extends Controller
             "generationConfig" => $generationConfig,
         ];
 
-        $response = Http::post($url, $payload);
+        $response = Http::timeout(300)->post($url, $payload);
 
         if ($response->successful()) {
             $data = $response->json();
