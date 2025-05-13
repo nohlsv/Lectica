@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import FileCard from '@/components/FileCard.vue';
-import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon } from 'lucide-vue-next';
+import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon, HistoryIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface RecommendationGroup {
@@ -88,11 +88,11 @@ const recommendationCategories = [
                         <span class="font-medium">Browse Files</span>
                     </Link>
 
-                    <Link href="/recommendations" class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
+                    <Link href="/myfiles" class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
                         <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M12 2l4 4h6v16H2V6h6l4-4z"></path><path d="M12 12v8"></path></svg>
                         </div>
-                        <span class="font-medium">All Recommendations</span>
+                        <span class="font-medium">My Files</span>
                     </Link>
                 </div>
             </div>

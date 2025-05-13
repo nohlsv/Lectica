@@ -43,14 +43,13 @@ class DatabaseSeeder extends Seeder
             $studentInformation = [
                 ['first_name' => 'Linus', 'last_name' => 'Torvalds', 'email' => 'torvalds@bpsu.edu.ph', 'program_id' => 1], // Computer Science
                 ['first_name' => 'Alan', 'last_name' => 'Turing', 'email' => 'turing@bpsu.edu.ph', 'program_id' => 1], // Computer Science
-                ['first_name' => 'Marie', 'last_name' => 'Curie', 'email' => 'curie@bpsu.edu.ph', 'program_id' => 12], // Nursing
-                ['first_name' => 'Florence', 'last_name' => 'Nightingale', 'email' => 'nightingale@bpsu.edu.ph', 'program_id' => 12], // Nursing
-                ['first_name' => 'Ada', 'last_name' => 'Lovelace', 'email' => 'lovelace@bpsu.edu.ph', 'program_id' => 4], // Software Engineering
-                ['first_name' => 'Nikola', 'last_name' => 'Tesla', 'email' => 'tesla@bpsu.edu.ph', 'program_id' => 6], // Electrical Engineering
-                ['first_name' => 'Grace', 'last_name' => 'Hopper', 'email' => 'hopper@bpsu.edu.ph', 'program_id' => 3], // Entertainment and Multimedia Computing
-                ['first_name' => 'Rosalind', 'last_name' => 'Franklin', 'email' => 'franklin@bpsu.edu.ph', 'program_id' => 13], // Midwifery
-                ['first_name' => 'Thomas', 'last_name' => 'Edison', 'email' => 'edison@bpsu.edu.ph', 'program_id' => 7], // Mechanical Engineering
-                ['first_name' => 'Leonardo', 'last_name' => 'da Vinci', 'email' => 'davinci@bpsu.edu.ph', 'program_id' => 9], // Architecture
+                // ['first_name' => 'Marie', 'last_name' => 'Curie', 'email' => 'curie@bpsu.edu.ph', 'program_id' => 12], // Nursing
+                // ['first_name' => 'Florence', 'last_name' => 'Nightingale', 'email' => 'nightingale@bpsu.edu.ph', 'program_id' => 12], // Nursing
+                // ['first_name' => 'Nikola', 'last_name' => 'Tesla', 'email' => 'tesla@bpsu.edu.ph', 'program_id' => 6], // Electrical Engineering
+                // ['first_name' => 'Grace', 'last_name' => 'Hopper', 'email' => 'hopper@bpsu.edu.ph', 'program_id' => 3], // Entertainment and Multimedia Computing
+                // ['first_name' => 'Rosalind', 'last_name' => 'Franklin', 'email' => 'franklin@bpsu.edu.ph', 'program_id' => 13], // Midwifery
+                // ['first_name' => 'Thomas', 'last_name' => 'Edison', 'email' => 'edison@bpsu.edu.ph', 'program_id' => 7], // Mechanical Engineering
+                // ['first_name' => 'Leonardo', 'last_name' => 'da Vinci', 'email' => 'davinci@bpsu.edu.ph', 'program_id' => 9], // Architecture
             ];
 
             foreach ($studentInformation as $student) {
