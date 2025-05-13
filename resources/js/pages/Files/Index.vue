@@ -1,7 +1,22 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import DataTable from '@/components/DataTable.vue';
-import { type BreadcrumbItem, type File, type PaginatedData } from '@/types';
+import { type BreadcrumbItem, type PaginatedData } from '@/types';
+
+interface File {
+    id: number;
+    name: string;
+    description?: string;
+    created_at: string;
+    user: {
+        first_name: string;
+        last_name: string;
+    };
+    is_starred?: boolean;
+    star_count?: number;
+    can_edit?: boolean;
+    is_starring?: boolean; // Added property
+}
 import { Head, Link, router } from '@inertiajs/vue3';
 import { EyeIcon, PencilIcon, StarIcon } from 'lucide-vue-next';
 import { useDateFormat } from '@vueuse/core';
@@ -11,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tag } from '@/types';
+import { toast } from 'vue-sonner';
 
 interface Props {
     files: PaginatedData<File>;
@@ -63,6 +79,31 @@ const applyFilters = () => {
         sort: selectedSort.value,
         direction: sortDirection.value,
     }, { preserveState: true });
+};
+
+const toggleStar = async (file: File) => {
+    if (file.is_starring) return;
+
+    file.is_starring = true;
+
+    try {
+        await router.post(route('files.star', { file: file.id }), {}, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                file.is_starred = !file.is_starred;
+                file.star_count = file.is_starred ? (file.star_count || 0) + 1 : (file.star_count || 0) - 1;
+            },
+            onFinish: () => {
+                file.is_starring = false;
+            }
+        });
+    } catch (error) {
+        file.is_starring = false;
+        toast.error('Error toggling star', {
+            description: 'An error occurred while toggling the star status. Please try again.',
+        });
+    }
 };
 </script>
 
@@ -155,7 +196,14 @@ const applyFilters = () => {
                             <div v-else class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-40" title="Only the uploader can edit this file">
                                 <PencilIcon class="h-4 w-4" />
                             </div>
-                            <StarIcon class="h-4 w-4 text-amber-500" />
+                            <button
+                                @click.prevent="toggleStar(item)"
+                                class="inline-flex items-center justify-center rounded-full p-1 hover:bg-accent transition-colors"
+                                :class="{'text-amber-500': item.is_starred, 'text-muted-foreground': !item.is_starred}"
+                                :disabled="item.is_starring"
+                            >
+                                <StarIcon class="h-4 w-4" :fill="item.is_starred ? 'currentColor' : 'none'" />
+                            </button>
                             <span>{{ item.star_count || 0 }}</span>
                         </div>
                     </template>
