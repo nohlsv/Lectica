@@ -104,7 +104,6 @@ const handleDrop = (event: DragEvent) => {
 const submit = () => {
     form.post(route('files.store'), {
         onSuccess: () => {
-            toast.success('File uploaded successfully!');
         },
         onError: () => {
             toast.error('Failed to upload file.');
