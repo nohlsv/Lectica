@@ -69,12 +69,12 @@ class ProgramSeeder extends Seeder
         [
             'name' => 'Nursing',
             'code' => 'NUR',
-            'college' => 'College of Applied Health and Sciences',
+            'college' => 'College of Allied Health and Sciences',
         ],
         [
             'name' => 'Midwifery',
             'code' => 'MID',
-            'college' => 'College of Applied Health and Sciences',
+            'college' => 'College of Allied Health and Sciences',
         ],
     ];
     public function run(): void

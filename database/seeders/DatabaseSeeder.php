@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\File;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -18,24 +19,66 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             ProgramSeeder::class,
-            // Other seeders...
         ]);
 
         // User::factory(10)->create();
         if (User::count() === 0) {
             User::factory()->create([
-                'first_name' => 'Test',
-                'last_name' => 'User',
-                'email' => 'test@bpsu.edu.ph',
+                'first_name' => 'Admin',
+                'last_name' => '',
+                'email' => 'admin@bpsu.edu.ph',
+                'password' => Hash::make('password'),
+                'user_role' => 'admin',
             ]);
+
+            User::factory()->create([
+                'first_name' => 'Albert',
+                'last_name' => 'Einstein',
+                'email' => 'einstein@bpsu.edu.ph',
+                'program_id' => 1, // Computer Science
+                'password' => Hash::make('password'),
+                'user_role' => 'faculty',
+            ]);
+
+            $studentInformation = [
+                ['first_name' => 'Linus', 'last_name' => 'Torvalds', 'email' => 'torvalds@bpsu.edu.ph', 'program_id' => 1], // Computer Science
+                ['first_name' => 'Alan', 'last_name' => 'Turing', 'email' => 'turing@bpsu.edu.ph', 'program_id' => 1], // Computer Science
+                ['first_name' => 'Marie', 'last_name' => 'Curie', 'email' => 'curie@bpsu.edu.ph', 'program_id' => 12], // Nursing
+                ['first_name' => 'Florence', 'last_name' => 'Nightingale', 'email' => 'curie@bpsu.edu.ph', 'program_id' => 12], // Nursing
+
+            ];
+
+            foreach ($studentInformation as $student) {
+                User::factory()->create($student + [
+                    'password' => Hash::make('password'),
+                    'user_role' => 'student',
+                    'year_of_study' => '1st Year',
+                ]);
+            }
         }
 
         // Define some predefined unique tag names
         $predefinedTags = [
-            'programming', 'math', 'science', 'history', 'english',
-            'physics', 'chemistry', 'biology', 'literature', 'psychology',
-            'sociology', 'economics', 'statistics', 'calculus', 'algebra',
-            'geometry', 'research', 'engineering', 'computer_science', 'education'
+            'programming',
+            'math',
+            'science',
+            'history',
+            'english',
+            'physics',
+            'chemistry',
+            'biology',
+            'literature',
+            'psychology',
+            'sociology',
+            'economics',
+            'statistics',
+            'calculus',
+            'algebra',
+            'geometry',
+            'research',
+            'engineering',
+            'computer_science',
+            'education'
         ];
 
         foreach ($predefinedTags as $tagName) {
