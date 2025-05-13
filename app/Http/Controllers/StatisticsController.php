@@ -79,7 +79,8 @@ class StatisticsController extends Controller
 					});
 					return [
 						'id' => $user->id,
-						'name' => $user->name,
+						'first_name' => $user->first_name,
+						'last_name' => $user->last_name,
 						'files_sum_stars' => $user->files_sum_stars,
 					];
 				})
