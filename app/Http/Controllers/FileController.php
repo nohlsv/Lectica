@@ -544,6 +544,11 @@ class FileController extends Controller
                 throw new \Exception('Unsupported file type');
         }
 
+        // Ensure the content is UTF-8 encoded
+        if (!mb_detect_encoding($content, 'UTF-8', true)) {
+            $content = mb_convert_encoding($content, 'UTF-8');
+        }
+
         return $content;
     }
 
