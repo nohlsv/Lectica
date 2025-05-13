@@ -36,6 +36,14 @@ const selectedTags = ref<number[]>([]);
 const allTags = ref<Tag[]>([]);
 const showStarredOnly = ref(false);
 
+const sortOptions = ref([
+    { value: 'name', label: 'Name' },
+    { value: 'created_at', label: 'Upload Date' },
+    { value: 'star_count', label: 'Star Count' },
+]);
+const selectedSort = ref('name');
+const sortDirection = ref('asc');
+
 const fetchTags = async () => {
     const response = await axios.get('/tags');
     allTags.value = response.data;
@@ -50,6 +58,8 @@ const applyFilters = () => {
         search: searchQuery.value,
         tags: selectedTags.value,
         starred: showStarredOnly.value,
+        sort: selectedSort.value,
+        direction: sortDirection.value,
     }, { preserveState: true });
 };
 </script>
@@ -74,10 +84,21 @@ const applyFilters = () => {
                     <Button @click="applyFilters">Search</Button>
                 </div>
                 <div class="flex items-center gap-4">
-                    <label class="flex items-center gap-2">
+                    <label class="flex items-center gap-2" text-sm font-medium>
                         <input type="checkbox" v-model="showStarredOnly" @change="applyFilters" />
                         <span>Show Starred Only</span>
-                    </label> 
+                    </label>
+                    <div class="flex items-center gap-2">
+                        <label for="sort" class="text-sm font-medium">Sort By:</label>
+                        <select id="sort" v-model="selectedSort" @change="applyFilters" class="border rounded px-2 py-1 text-sm bg-background">
+                            <option v-for="option in sortOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                            </option>
+                        </select>
+                        <Button @click="sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'; applyFilters()" class="text-sm font-medium">
+                            {{ sortDirection === 'asc' ? 'Ascending' : 'Descending' }}
+                        </Button>
+                    </div>
                 </div>
                 <div class="flex flex-wrap gap-2">
                     <Badge

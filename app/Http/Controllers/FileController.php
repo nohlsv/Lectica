@@ -35,6 +35,12 @@ class FileController extends Controller
                 });
             });
 
+        // Handle sorting
+        if ($request->filled('sort') && in_array($request->input('sort'), ['name', 'created_at', 'star_count'])) {
+            $direction = $request->input('direction', 'asc') === 'desc' ? 'desc' : 'asc';
+            $query->orderBy($request->input('sort'), $direction);
+        }
+
         $files = $query->paginate(10)->withQueryString();
 
         return Inertia::render('Files/Index', [
