@@ -184,8 +184,7 @@ class FileRecommendationService
                     ->orderByRaw('COUNT(*) DESC')
                     ->with(['tags', 'user'])
                     ->limit($limit)
-                    ->get()
-                    ->unique('id'); // Ensure no duplicates within this category
+                    ->get();
             }
         );
     }
