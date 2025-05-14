@@ -62,16 +62,17 @@ class FileRecommendationService
                     ->where('users.program_id', $user->program_id)
                     ->where('users.id', '!=', $user->id)
                     ->whereNotIn('files.id', function ($query) use ($user) {
-                    $query->select('file_id')
-                        ->from('file_stars')
-                        ->where('user_id', $user->id);
-                })
+                        $query->select('file_id')
+                            ->from('file_stars')
+                            ->where('user_id', $user->id);
+                    })
                     ->groupBy(['files.id', 'file_stars.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('file_stars.created_at', 'desc')
                     ->with(['tags', 'user', 'user.program'])
                     ->limit($limit)
-                    ->get();
+                    ->get()
+                    ->unique('id'); // Ensure no duplicates within this category
             }
         );
     }
@@ -113,7 +114,8 @@ class FileRecommendationService
                     ->orderBy('fs1.created_at', 'desc')
                     ->with(['tags', 'user'])
                     ->limit($limit)
-                    ->get();
+                    ->get()
+                    ->unique('id'); // Ensure no duplicates within this category
             }
         );
     }
@@ -159,7 +161,8 @@ class FileRecommendationService
                     ->orderByRaw('COUNT(*) DESC') // More matching tags = higher ranking
                     ->with(['tags', 'user'])
                     ->limit($limit)
-                    ->get();
+                    ->get()
+                    ->unique('id'); // Ensure no duplicates within this category
             }
         );
     }
@@ -181,7 +184,8 @@ class FileRecommendationService
                     ->orderByRaw('COUNT(*) DESC')
                     ->with(['tags', 'user'])
                     ->limit($limit)
-                    ->get();
+                    ->get()
+                    ->unique('id'); // Ensure no duplicates within this category
             }
         );
     }
