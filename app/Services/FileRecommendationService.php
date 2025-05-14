@@ -174,7 +174,7 @@ class FileRecommendationService
     {
         return Cache::remember(
             "recommendations:trending",
-            Carbon::now()->addMinutes(5), // Shorter cache for trending
+            Carbon::now()->addMinutes(1), // Shorter cache for trending
             function () use ($limit) {
                 return File::query()
                     ->select('files.*')
