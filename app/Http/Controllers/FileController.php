@@ -332,7 +332,10 @@ class FileController extends Controller
                     "question" => ["type" => "STRING"],
                     "options" => [
                         "type" => "ARRAY",
-                        "items" => ["type" => "STRING"]
+                        "items" => ["type" => "STRING"],
+                        "minItems" => 2,
+                        "maxItems" => 4,
+                        "nullable" => false,
                     ],
                     "answer" => ["type" => "STRING"]
                 ],
@@ -352,7 +355,10 @@ class FileController extends Controller
                     "question" => ["type" => "STRING"],
                     "answers" => [
                         "type" => "ARRAY",
-                        "items" => ["type" => "STRING"]
+                        "items" => ["type" => "STRING"],
+                        "minItems" => 1,
+                        "maxItems" => 10,
+                        "nullable" => false,
                     ]
                 ],
                 "nullable" => false,
