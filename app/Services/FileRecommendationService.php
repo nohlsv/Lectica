@@ -12,7 +12,7 @@ use Illuminate\Support\Collection;
 class FileRecommendationService
 {
     // Cache TTL in minutes
-    protected const CACHE_TTL = 5;
+    protected const CACHE_TTL = 1;
 
     /**
      * Get all recommendations for a user
@@ -62,10 +62,10 @@ class FileRecommendationService
                     ->where('users.program_id', $user->program_id)
                     ->where('users.id', '!=', $user->id)
                     ->whereNotIn('files.id', function ($query) use ($user) {
-                        $query->select('file_id')
-                            ->from('file_stars')
-                            ->where('user_id', $user->id);
-                    })
+                    $query->select('file_id')
+                        ->from('file_stars')
+                        ->where('user_id', $user->id);
+                })
                     ->groupBy(['files.id', 'file_stars.created_at'])
                     ->orderByRaw('COUNT(*) DESC')
                     ->orderBy('file_stars.created_at', 'desc')
