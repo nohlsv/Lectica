@@ -53,7 +53,7 @@ const props = defineProps();
                     <div class="flex flex-col items-center justify-center mb-8">
                         <img src="/android-chrome-512x512.png" alt="Lectica Logo" class="h-24 w-24 mb-4 object-contain" />
                         <h1 class="text-3xl font-bold mb-2">Lectica</h1>
-                        <p class="text-lg font-medium text-primary">Review, Repeat, Retain</p>
+                        <p class="text-xl font-medium text-primary">Review, Repeat, Retain</p>
                     </div>
 
                     <p class="mb-6 text-[#706f6c] dark:text-[#A1A09A] text-base">
