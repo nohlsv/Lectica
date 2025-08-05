@@ -10,14 +10,16 @@ const props = defineProps();
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
-    <div class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] dark:text-[#EDEDEC] dark:bg-[#0a0a0a] lg:justify-center lg:p-8">
+    <!-- Overall background -->
+    <div class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] dark:text-[#EDEDEC] dark:bg-gradient-to-b dark:from-black dark:to-[#5e0107] lg:justify-center lg:p-8">
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="flex items-center justify-between">
+
                 <!-- Logo and Name on the left -->
-                <div class="flex items-center gap-2">
-                    <AppLogoIcon className="h-10 w-10" />
-                    <span class="text-xl font-bold">Lectica</span>
-                </div>
+                <!--<div class="flex items-center gap-2">-->
+                    <!--<AppLogoIcon className="h-10 w-10" />-->
+                    <!--<span class="text-xl font-bold">Lectica</span>-->
+                <!--</div>-->
 
                 <!-- Navigation on the right -->
                 <nav class="flex items-center gap-4">
@@ -47,13 +49,20 @@ const props = defineProps();
         </header>
         <div class="duration-750 starting:opacity-0 flex w-full items-center justify-center opacity-100 transition-opacity lg:grow">
             <main class="flex w-full max-w-[335px] flex-col-reverse overflow-hidden rounded-lg lg:max-w-4xl lg:flex-row">
+
+                <!-- fallback for the border in the middle
+                 class="flex-1 rounded-bl-lg rounded-br-lg bg-white p-6 pb-12 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-br-none lg:rounded-tl-lg lg:p-20
+                 -->
+
+                <!-- Container for the text-->
                 <div
-                    class="flex-1 rounded-bl-lg rounded-br-lg bg-white p-6 pb-12 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-br-none lg:rounded-tl-lg lg:p-20"
+                   class="flex-1 text-center"
                 >
+
                     <div class="flex flex-col items-center justify-center mb-8">
                         <img src="/android-chrome-512x512.png" alt="Lectica Logo" class="h-24 w-24 mb-4 object-contain" />
-                        <h1 class="text-3xl font-bold mb-2">Lectica</h1>
-                        <p class="text-xl font-medium text-primary">Review, Repeat, Retain</p>
+                        <h1 class="text-3xl font-bold mb-2 text-primary dark:bg-gradient-to-r dark:from-[#fe1d41] dark:to-[#fe7c16] dark:bg-clip-text dark:text-transparent">Lectica</h1>
+                        <p class="text-4xl text-primary">Review, Repeat, Retain</p>
                     </div>
 
                     <p class="mb-6 text-[#706f6c] dark:text-[#A1A09A] text-base">
@@ -77,6 +86,5 @@ const props = defineProps();
                 </div>
             </main>
         </div>
-        <div class="h-14.5 hidden lg:block"></div>
     </div>
 </template>
