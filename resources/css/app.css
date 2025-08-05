@@ -9,7 +9,7 @@
 
 @theme inline {
   --font-sans:
-    Instrument Sans, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Pixelify Sans','Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 
   --radius-lg: var(--radius);
@@ -81,10 +81,12 @@
 @layer utilities {
   body,
   html {
-    --font-sans:
+    --main-font:
+      'Pixelify Sans',
       'Instrument Sans', ui-sans-serif, system-ui, sans-serif,
       'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol',
       'Noto Color Emoji';
+
   }
 }
 
