@@ -11,7 +11,7 @@ const props = defineProps();
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
     <!-- Overall background -->
-    <div class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] dark:text-[#EDEDEC] dark:bg-gradient-to-b dark:from-black dark:to-[#5e0107] lg:justify-center lg:p-8">
+    <div class="flex min-h-screen w-full flex-col items-center justify-center bg-[#FDFDFC] p-6 bg-darkmode lg:p-8">
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="flex items-center justify-between">
 
@@ -48,7 +48,7 @@ const props = defineProps();
             </div>
         </header>
         <div class="duration-750 starting:opacity-0 flex w-full items-center justify-center opacity-100 transition-opacity lg:grow">
-            <main class="flex w-full max-w-[335px] flex-col-reverse overflow-hidden rounded-lg lg:max-w-4xl lg:flex-row">
+            <main class="flex items-center justify-center">
 
                 <!-- fallback for the border in the middle
                  class="flex-1 rounded-bl-lg rounded-br-lg bg-white p-6 pb-12 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-br-none lg:rounded-tl-lg lg:p-20
@@ -65,20 +65,20 @@ const props = defineProps();
                         <p class="text-4xl text-primary">Review, Repeat, Retain</p>
                     </div>
 
-                    <p class="mb-6 text-[#706f6c] dark:text-[#A1A09A] text-base">
+                    <p class=" text-lg mb-6 text-[#706f6c] dark:text-[#bebdb8]">
                         Your personal learning companion for efficient knowledge retention
                     </p>
 
                     <div v-if="!$page.props.auth.user" class="flex justify-center gap-4 mt-4">
                         <Link
                             :href="route('register')"
-                            class="inline-block rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                            class="inline-block rounded-md bg-primary px-6 py-2 text-sm font-medium text-[#FDFDFC] dark:bg-[#3aa035] dark:hover:bg-[#66b562]"
                         >
                             Get Started
                         </Link>
                         <Link
                             :href="route('login')"
-                            class="inline-block rounded-md border border-border px-6 py-2 text-sm font-medium hover:bg-accent/50"
+                            class="inline-block rounded-md border border-[#FDFDFC] px-6 py-2 text-sm font-medium hover:bg-accent/70"
                         >
                             Log In
                         </Link>
