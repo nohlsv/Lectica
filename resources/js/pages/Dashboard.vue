@@ -71,7 +71,7 @@ const isStudent = computed(() => user.user_role === 'student');
         <AppLayout :breadcrumbs="breadcrumbs">
             <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <!-- Welcome Section -->
-                <div class="mb-10 w-full min-h-[200px] bg-[url(/8-bit-bg.png)] bg-cover bg-center rounded-xl flex items-center justify-center p-6">
+                <div class="mb-10 w-full min-h-[215px] bg-[url(/8-bit-bg.png)] bg-cover bg-center rounded-xl flex items-center justify-center p-6">
                     <h1 class="text-2xl font-bold text-white text-shadow-black">Welcome to Lectica, {{ user.last_name }}, {{ user.first_name }}!</h1>
                 </div>
 
