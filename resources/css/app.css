@@ -93,6 +93,10 @@
   .bg-darkmode {
     @apply bg-[#FDFDFC] dark:text-[#EDEDEC] dark:bg-gradient-to-b dark:from-black dark:to-[#5e0107];
   }
+
+  .text-shadow-black {
+  text-shadow: 2px 2px 2px black;
+  }
 }
 
 :root {

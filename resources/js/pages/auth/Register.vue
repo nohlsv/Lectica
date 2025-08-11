@@ -52,7 +52,7 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="user_role">Role</Label>
+                    <Label class="text-base" for="user_role">Role</Label>
                     <select
                         id="user_role"
                         v-model="form.user_role"
@@ -69,7 +69,7 @@ const submit = () => {
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="grid gap-2">
-                        <Label for="first_name">First Name</Label>
+                        <Label class="text-base" for="first_name">First Name</Label>
                         <Input
                             id="first_name"
                             type="text"
@@ -84,7 +84,7 @@ const submit = () => {
                     </div>
 
                     <div class="grid gap-2">
-                        <Label for="last_name">Last Name</Label>
+                        <Label class="text-base" for="last_name">Last Name</Label>
                         <Input
                             id="last_name"
                             type="text"
@@ -99,7 +99,7 @@ const submit = () => {
                 </div>
 
                 <div v-if="form.user_role === 'student'" class="grid gap-2">
-                    <Label for="college">College</Label>
+                    <Label class="text-base" for="college">College</Label>
                     <select
                         id="college"
                         v-model="selectedCollege"
@@ -113,7 +113,7 @@ const submit = () => {
                 </div>
 
                 <div v-if="form.user_role === 'student'" class="grid gap-2">
-                    <Label for="program">Program</Label>
+                    <Label class="text-base" for="program">Program</Label>
                     <select
                         id="program"
                         v-model="form.program_id"
@@ -130,7 +130,7 @@ const submit = () => {
                 </div>
 
                 <div v-if="form.user_role === 'student'" class="grid gap-2">
-                    <Label for="year_of_study">Year Level</Label>
+                    <Label class="base" for="year_of_study">Year Level</Label>
                     <select
                         id="year_of_study"
                         v-model="form.year_of_study"
@@ -150,7 +150,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label class="text-base" for="email">Email address</Label>
                     <Input
                         id="email"
                         type="email"
@@ -167,7 +167,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password">Password</Label>
+                    <Label class="text-base" for="password">Password</Label>
                     <Input
                         id="password"
                         type="password"
@@ -181,7 +181,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation">Confirm password</Label>
+                    <Label class="text-base" for="password_confirmation">Confirm password</Label>
                     <Input
                         id="password_confirmation"
                         type="password"
