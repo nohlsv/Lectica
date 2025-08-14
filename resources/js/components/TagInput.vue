@@ -28,7 +28,7 @@ const selectedTags = computed({
 });
 
 const filteredSuggestions = computed(() => {
-  if (!inputValue.value) return props.existingTags.slice(0, 5);
+  if (!inputValue.value) return props.existingTags;
 
   return suggestedTags.value.filter(tag =>
     !selectedTags.value.some(selectedTag => selectedTag.id === tag.id)
@@ -140,18 +140,18 @@ onMounted(() => {
 <template>
   <div class="tag-input-container relative w-full">
     <div
-      class="flex flex-wrap gap-2 p-2 rounded-md border border-input bg-background min-h-10"
+      class="flex flex-wrap gap-2 p-2 rounded-md border border-input dark:bg-[#d9d9d9] dark:text-[#2F2F2F]  min-h-10"
       @click="focusInput"
     >
       <!-- Selected Tags -->
       <div
         v-for="tag in selectedTags"
         :key="tag.id"
-        class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-primary/10 text-primary"
+        class="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md dark:text-[#2F2F2F]"
       >
         {{ tag.name }}
-        <button @click.stop="removeTag(tag.id)" class="text-primary hover:text-primary/70">
-          <XIcon class="h-3 w-3" />
+        <button @click.stop="removeTag(tag.id)" class="dark:text-[#2F2F2F] hover:text-primary/70">
+          <XIcon class="h-3 w-3 dark:color-[#2F2F2F]" />
         </button>
       </div>
 
@@ -171,7 +171,7 @@ onMounted(() => {
     <!-- Dropdown -->
     <div
       v-if="showDropdown"
-      class="absolute z-10 mt-1 w-full rounded-md border border-border bg-background shadow-md py-1"
+      class="absolute z-10 mt-1 w-full rounded-md border border-border bg-background shadow-md py-1 max-h-45 overflow-y-auto"
     >
       <div v-if="isLoading" class="px-3 py-2 text-sm text-muted-foreground">
         Loading...

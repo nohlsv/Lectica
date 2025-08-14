@@ -65,14 +65,15 @@ const isStudent = computed(() => user.user_role === 'student');
 </script>
 
 <template>
-    <div class="bg-[#161615]">
+    <div class="dark:bg-[#161615]">
         <Head title="Home" />
 
         <AppLayout :breadcrumbs="breadcrumbs">
             <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
                 <!-- Welcome Section -->
                 <div class="mb-10 w-full min-h-[215px] bg-[url(/8-bit-bg.png)] bg-cover bg-center rounded-xl flex items-center justify-center p-6">
-                    <h1 class="text-2xl font-bold text-white text-shadow-black">Welcome to Lectica, {{ user.last_name }}, {{ user.first_name }}!</h1>
+                    <!--<h1 class="text-2xl font-bold text-white text-shadow-black">Welcome to Lectica, {{ user.last_name }}, {{ user.first_name }}!</h1> -->
+                    <h1 class="text-2xl font-bold text-white text-shadow-black text-center">Welcome to Lectica, {{ user.first_name }}!</h1>
                 </div>
 
                 <!-- Quick Actions -->
@@ -85,7 +86,7 @@ const isStudent = computed(() => user.user_role === 'student');
                             class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
                         >
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
                                     <path d="M9 11l3 3L22 4"></path>
                                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                                 </svg>
@@ -99,7 +100,7 @@ const isStudent = computed(() => user.user_role === 'student');
                             class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
                         >
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
                                     <path d="M3 3v18h18"></path>
                                     <path d="M9 17V9"></path>
                                     <path d="M15 17V13"></path>
@@ -112,7 +113,7 @@ const isStudent = computed(() => user.user_role === 'student');
                         <Link v-if="isStudent"
                             href="/files/create" class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
                                 <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d"  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
                                 </div>
                                     <span class="font-medium">Upload File</span>
                         </Link>
@@ -121,7 +122,7 @@ const isStudent = computed(() => user.user_role === 'student');
                             href="/files"
                             class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
                                 <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                 </div>
                                     <span class="font-medium">Browse Files</span>
                         </Link>
@@ -132,7 +133,7 @@ const isStudent = computed(() => user.user_role === 'student');
                             class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
                         >
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
                                     <path d="M3 3h18v18H3z"></path>
                                     <path d="M9 17V7"></path>
                                     <path d="M15 17V11"></path>
@@ -144,6 +145,7 @@ const isStudent = computed(() => user.user_role === 'student');
                 </div>
 
                 <!-- Recommendations Section -->
+                <hr>
                 <div class="mb-10">
                     <h2 class="text-xl font-semibold mb-6">Recommended Files</h2>
 
