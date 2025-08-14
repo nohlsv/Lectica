@@ -286,19 +286,19 @@ watch(() => currentQuiz.value, (newQuiz) => {
 
 <template>
     <Head title="Take Quiz" />
-
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
         <AppLayout>
-            <h2 class="text-lg sm:text-xl md:text-2xl font-bold break-words">
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold break-words mt-3">
                 Quiz: {{ file.name }}
                 </h2>
             <div class="flex justify-between">
                 <div class="flex space-x-2">
                     <Link :href="route('files.quizzes.index', file.id)">
-                        <Button 
-                            class="bg-red-500 border-4 border-red-700 text-white font-bold 
+                        <Button
+                            class="bg-red-500 border-4 border-red-700 text-white font-bold
                                 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                                 hover:bg-red-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-                                active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] 
+                                active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
                                 transition-all duration-150 ease-in-out"
                         >
                         Escape
@@ -315,21 +315,23 @@ watch(() => currentQuiz.value, (newQuiz) => {
                 </div>
             </div>
             <div
-            
+
                 class="relative w-full min-h-screen overflow-hidden bg-cover bg-center flex flex-col"
                 style="background-image: url('/images/game-background.png');"
             >
-            
+
+            <!-- Question Box -->
             <div
-                class="absolute top-10 sm:top-10 left-1/2 -translate-x-1/2
-                    flex items-center gap-4 sm:gap-6
+                class="absolute top-10 sm:top-10
+                    left-4 right-4 sm:left-1/2 sm:-translate-x-1/2
+                    flex items-center gap-3 sm:gap-6
                     bg-white/95 border-[6px] border-black rounded-none
-                    px-4 sm:px-6 py-3 sm:py-4
+                    px-3 sm:px-6 py-3 sm:py-4
                     shadow-[6px_6px_0px_rgba(0,0,0,1),-3px_-3px_0px_rgba(0,0,0,1)]
-                    max-w-3xl w-full
+                    w-auto sm:max-w-3xl
                     font-pixel"
                 style="image-rendering: pixelated;"
-                
+
             >
                 <div
                     class="absolute -top-5 left-0
@@ -340,8 +342,8 @@ watch(() => currentQuiz.value, (newQuiz) => {
                 Funko the Pop
                 </div>
             <div
-            
-            
+
+
                 class="flex-1 text-lg sm:text-xl md:text-2xl text-black"
             >
             "{{ currentQuiz?.question }}"
@@ -357,7 +359,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
 
         <div class="mb-2 w-full min-h-[250px] bg-[url(/8-bit-bg.png)] bg-cover bg-center rounded-xl flex items-center justify-center p-6">
                 </div>
-    
+
             <div v-if="quizQuestions.length === 0" class="text-center py-10">
                 <p class="text-muted-foreground">No quizzes available for this file.</p>
                 <p class="text-muted-foreground mt-2">Create quizzes to start testing your knowledge.</p>
@@ -427,12 +429,13 @@ watch(() => currentQuiz.value, (newQuiz) => {
                         </div>
                     </CardHeader>
                     <CardContent>
+
                         <!-- Multiple Choice Question -->
                     <div v-if="currentQuiz.type === 'multiple_choice'" class="w-full">
-                        <RadioGroup 
-                            v-model="userAnswers[currentIndex]" 
+                        <RadioGroup
+                            v-model="userAnswers[currentIndex]"
                             class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch w-full"
-                        >        
+                        >
                     <div
                         v-for="(option, index) in currentQuiz.options"
                         :key="index"
@@ -440,7 +443,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
                         >
                     <Label
                         :for="`option-${index}`"
-                        class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold 
+                        class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
                         rounded-lg border-4 border-green-700 bg-green-500 text-white
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                         cursor-pointer select-none text-center text-balance
@@ -467,14 +470,14 @@ watch(() => currentQuiz.value, (newQuiz) => {
 
                         <!-- True/False Question - Arcade Style -->
 <div v-else-if="currentQuiz.type === 'true_false'" class="w-full">
-  <RadioGroup 
-    v-model="userAnswers[currentIndex]" 
+  <RadioGroup
+    v-model="userAnswers[currentIndex]"
     class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
   >
     <!-- TRUE Button -->
     <Label
       for="answer-true"
-      class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold 
+      class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
              rounded-lg border-4 border-green-700 bg-green-500 text-white
              shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
              cursor-pointer select-none text-center text-balance
@@ -494,7 +497,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
     <!-- FALSE Button -->
     <Label
       for="answer-false"
-      class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold 
+      class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
              rounded-lg border-4 border-red-700 bg-red-500 text-white
              shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
              cursor-pointer select-none text-center text-balance
@@ -555,7 +558,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
                             >🚫</span>
                         </div>
                     </div>
-                        <div v-if="showFeedback && !isCurrentAnswerCorrect" 
+                        <div v-if="showFeedback && !isCurrentAnswerCorrect"
                             class="mt-4 p-3 bg-green-100 border-4 border-green-700 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,0.4)]">
                             <p class="font-bold text-green-800">Correct answers:</p>
                             <ul class="list-disc list-inside mt-1 text-green-900">
@@ -648,4 +651,5 @@ watch(() => currentQuiz.value, (newQuiz) => {
             </AlertDialogContent>
         </AlertDialog>
     </AppLayout>
+</div>
 </template>
