@@ -469,53 +469,44 @@ watch(() => currentQuiz.value, (newQuiz) => {
         </div>
 
                         <!-- True/False Question - Arcade Style -->
-<div v-else-if="currentQuiz.type === 'true_false'" class="w-full">
-  <RadioGroup
-    v-model="userAnswers[currentIndex]"
-    class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full"
-  >
-    <!-- TRUE Button -->
-    <Label
-      for="answer-true"
-      class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
-             rounded-lg border-4 border-green-700 bg-green-500 text-white
-             shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-             cursor-pointer select-none text-center text-balance
-             transform transition-all duration-150 ease-in-out
-             hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-             active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
-      :class="{
-        'bg-green-600 border-green-800': !showFeedback && userAnswers[currentIndex] === 'true',
-        'bg-green-700 border-green-800': showFeedback && 'true' === currentQuiz.answers[0],
-        'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === 'true' && 'true' !== currentQuiz.answers[0]
-      }"
-    >
-      <RadioGroupItem value="true" id="answer-true" :disabled="showFeedback" class="hidden" />
-      TRUE
-    </Label>
+                    <div v-else-if="currentQuiz.type === 'true_false'" class="w-full">
+                        <RadioGroup v-model="userAnswers[currentIndex]"
+                            class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                        <!-- TRUE Button -->
+                            <Label
+                                for="answer-true"
+                                class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
+                                    rounded-lg border-4 border-green-700 bg-green-500 text-white
+                                    shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                                    cursor-pointer select-none text-center text-balance
+                                    transform transition-all duration-150 ease-in-out
+                                    hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                                    active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                :class="{'bg-green-600 border-green-800': !showFeedback && userAnswers[currentIndex] === 'true',
+                                    'bg-green-700 border-green-800': showFeedback && 'true' === currentQuiz.answers[0],
+                                    'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === 'true' && 'true' !== currentQuiz.answers[0]
+                                    }">
+                        <RadioGroupItem value="true" id="answer-true" :disabled="showFeedback" class="hidden" />TRUE
+                            </Label>
 
-    <!-- FALSE Button -->
-    <Label
-      for="answer-false"
-      class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
-             rounded-lg border-4 border-red-700 bg-red-500 text-white
-             shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-             cursor-pointer select-none text-center text-balance
-             transform transition-all duration-150 ease-in-out
-             hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-             active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
-      :class="{
-        'bg-red-600 border-red-800': !showFeedback && userAnswers[currentIndex] === 'false',
-        'bg-green-700 border-green-800': showFeedback && 'false' === currentQuiz.answers[0],
-        'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === 'false' && 'false' !== currentQuiz.answers[0]
-      }"
-    >
-      <RadioGroupItem value="false" id="answer-false" :disabled="showFeedback" class="hidden" />
-      FALSE
-    </Label>
-  </RadioGroup>
-</div>
-
+                        <!-- FALSE Button -->
+                            <Label
+                                for="answer-false"
+                                class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
+                                rounded-lg border-4 border-red-700 bg-red-500 text-white
+                                shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                                cursor-pointer select-none text-center text-balance
+                                transform transition-all duration-150 ease-in-out
+                                hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                                active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                :class="{'bg-red-600 border-red-800': !showFeedback && userAnswers[currentIndex] === 'false',
+                                    'bg-green-700 border-green-800': showFeedback && 'false' === currentQuiz.answers[0],
+                                    'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === 'false' && 'false' !== currentQuiz.answers[0]
+                                    }">
+                        <RadioGroupItem value="false" id="answer-false" :disabled="showFeedback" class="hidden" />FALSE
+                            </Label>
+                        </RadioGroup>
+                    </div>
 
                         <!-- Enumeration Question -->
                         <div v-else-if="currentQuiz.type === 'enumeration'" class="w-full space-y-4">

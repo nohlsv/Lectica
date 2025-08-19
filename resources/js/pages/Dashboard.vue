@@ -69,21 +69,40 @@ const isStudent = computed(() => user.user_role === 'student');
         <Head title="Home" />
 
         <AppLayout :breadcrumbs="breadcrumbs">
-            <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-                <!-- Welcome Section -->
-                <div class="mb-10 w-full min-h-[215px] bg-[url(/8-bit-bg.png)] bg-cover bg-center rounded-xl flex items-center justify-center p-6">
-                    <!--<h1 class="text-2xl font-bold text-white text-shadow-black">Welcome to Lectica, {{ user.last_name }}, {{ user.first_name }}!</h1> -->
-                    <h1 class="text-2xl font-bold text-white text-shadow-black text-center">Welcome to Lectica, {{ user.first_name }}!</h1>
+            <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 bg-[url(https://i.pinimg.com/originals/fd/40/a4/fd40a4b8b151c4e432106576187d03c9.gif)] bg-cover bg-center">
+                <!--Welcome Section-->
+                <div class="mb-10 w-full min-h-[215px] rounded-xl 
+                        flex flex-col sm:flex-row justify-center items-center gap-6 p-6 text-center sm:text-left">
+                    <!--Avatar-->
+                    <div class="relative flex flex-col items-center gap-2">
+                        <img src="https://cdn130.picsart.com/248878984010212.png"
+                            class="w-20 sm:w-28 md:w-32 animate-floating"
+                            style="image-rendering: pixelated;"/>
+                    </div>
+                    <!--Greeting-->
+                    <div>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white 
+                                [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">Welcome to Lectica,</h1>
+                    <!--Name-->
+                        <div class="flex justify-center sm:justify-start items-center gap-2">
+                            <p class="bg-black text-yellow-300 px-4 py-2 text-2xl sm:text-3xl md:text-4xl font-extrabold font-pixel
+                                    border-2 border-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce inline-block">
+                                    {{ user.first_name }} {{ user.last_name }}</p>
+                            <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Quick Actions -->
                 <div class="mb-8">
-                    <h2 class="text-xl font-semibold mb-4">Quick Actions</h2>
+            <h2 class="text-xl font-semibold mb-6 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] wave">
+                <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span>
+                <span>t</span><span>i</span><span>o</span><span>n</span><span>s</span></h2>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Link
                             v-if="isFacultyOrAdmin"
                             href="/files/verify"
-                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
+                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors opacity-75 hover:opacity-90"
                         >
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
@@ -97,7 +116,7 @@ const isStudent = computed(() => user.user_role === 'student');
                         <Link
                             v-if="isFacultyOrAdmin"
                             href="/statistics"
-                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
+                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors opacity-75 hover:opacity-90"
                         >
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
@@ -111,7 +130,7 @@ const isStudent = computed(() => user.user_role === 'student');
                         </Link>
 
                         <Link v-if="isStudent"
-                            href="/files/create" class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
+                            href="/files/create" class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors opacity-75 hover:opacity-90">
                                 <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d"  stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
                                 </div>
@@ -120,7 +139,7 @@ const isStudent = computed(() => user.user_role === 'student');
 
                         <Link v-if="isStudent"
                             href="/files"
-                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors">
+                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors opacity-75 hover:opacity-90">
                                 <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                                 </div>
@@ -130,7 +149,7 @@ const isStudent = computed(() => user.user_role === 'student');
                         <Link
                             v-if="isStudent"
                             href="/history"
-                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
+                            class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors opacity-75 hover:opacity-90"
                         >
                             <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#7eea7d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
@@ -147,18 +166,17 @@ const isStudent = computed(() => user.user_role === 'student');
                 <!-- Recommendations Section -->
                 <hr>
                 <div class="mb-10">
-                    <h2 class="text-xl font-semibold mb-6">Recommended Files</h2>
+                    <h2 class="text-xl font-semibold mb-6 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">Recommended Files</h2>
 
                     <div class="grid gap-8">
                         <div v-for="category in recommendationCategories" :key="category.key" class="space-y-4">
                             <!-- Only show categories that have files -->
                             <div v-if="recommendations[category.key]?.length">
                                 <div class="flex items-center gap-2 mb-3">
-                                    <component :is="category.icon" class="h-5 w-5 text-primary" />
-                                    <h3 class="text-lg font-medium">{{ category.title }}</h3>
+                                    <component :is="category.icon" class="h-5 w-5 text-primary drop-shadow-[0_-2px_0_black]"/>
+                                    <h3 class="text-lg font-medium [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ category.title }}</h3>
                                 </div>
-
-                                <p class="text-sm text-muted-foreground mb-4">{{ category.description }}</p>
+                                <p class="text-sm mb-6 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ category.description }}</p>
 
                                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <FileCard
