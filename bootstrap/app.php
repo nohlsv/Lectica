@@ -18,8 +18,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
-        // Add CORS middleware
+        // Add CORS middleware to API routes
         $middleware->api(prepend: [
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
+
+        // Add CORS middleware to web routes as well
+        $middleware->web(prepend: [
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
 
