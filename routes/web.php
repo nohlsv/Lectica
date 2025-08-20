@@ -34,7 +34,7 @@ Route::get('/programs/search', [ProgramController::class, 'search'])
 
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 
-// Game Lobby routes
+// MultiplayerGame Lobby routes
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/games/lobby', [GameController::class, 'lobby'])->name('games.lobby');
     Route::post('/games', [GameController::class, 'store'])->name('games.store');

@@ -32,7 +32,7 @@ const gameState = ref<Game>(props.game);
 
 
 window.Echo.channel('game.' + gameState.value.id)
-  .listen('GameUpdated', (e: any) => {
+  .listen('MultiplayerGameUpdated', (e: any) => {
     const wasWaiting = !gameState.value.player_two_id && !!e.game.player_two_id;
     gameState.value = e.game;
     if (wasWaiting) {
@@ -58,7 +58,7 @@ watch(() => gameState.value.questions, (questions) => {
         game_end_reason: 'no_more_questions',
       }, {
         preserveScroll: true,
-        onSuccess: () => toast.success('Game finished: No more questions.'),
+        onSuccess: () => toast.success('MultiplayerGame finished: No more questions.'),
         onError: () => toast.error('Failed to update game status.'),
       });
     }
@@ -108,7 +108,7 @@ function startGame() {
           (page.props?.suggestion || 'Add starred files with quizzes to your account and try again.')
         );
       } else {
-        toast.success('Game started!');
+        toast.success('MultiplayerGame started!');
       }
     },
     onError: (errors) => {

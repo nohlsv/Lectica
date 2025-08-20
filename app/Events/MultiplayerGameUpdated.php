@@ -2,7 +2,7 @@
 
 namespace App\Events;
 
-use App\Models\Game;
+use App\Models\MultiplayerGame;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PresenceChannel;
@@ -11,13 +11,13 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class GameUpdated implements ShouldBroadcast
+class MultiplayerGameUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public Game $game;
+    public MultiplayerGame $game;
 
-    public function __construct(Game $game)
+    public function __construct(MultiplayerGame $game)
     {
         $this->game = $game;
     }

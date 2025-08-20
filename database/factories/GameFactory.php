@@ -6,7 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Game>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\MultiplayerGame>
  */
 class GameFactory extends Factory
 {

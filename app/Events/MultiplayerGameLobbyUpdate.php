@@ -9,18 +9,18 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Game;
+use App\Models\MultiplayerGame;
 
-class GameLobbyUpdate implements ShouldBroadcast
+class MultiplayerGameLobbyUpdate implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
 
-    public Game $game;
+    public MultiplayerGame $game;
     /**
      * Create a new event instance.
      */
-    public function __construct( Game $game )
+    public function __construct(MultiplayerGame $game )
     {
         $this->game = $game;
     }

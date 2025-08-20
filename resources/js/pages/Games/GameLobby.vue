@@ -12,7 +12,7 @@ const props = defineProps<Props>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Game Lobby',
+        title: 'MultiplayerGame Lobby',
         href: '/games/lobby',
     },
 ];
@@ -43,7 +43,7 @@ const echo = window.Echo;
 onMounted(() => {
   props.games.forEach(game => {
     echo.channel('game.' + game.id)
-      .listen('GameUpdated', (e: any) => {
+      .listen('MultiplayerGameUpdated', (e: any) => {
         // If game is finished or filled, reload lobby
         if (e.game.status === 'finished' || e.game.player_two_id) {
           router.reload();
@@ -51,7 +51,7 @@ onMounted(() => {
       });
   });
   echo.channel('game.lobby')
-      .listen('GameLobbyUpdate', (e: any) => {
+      .listen('MultiplayerGameLobbyUpdate', (e: any) => {
           console.log('Lobby updated:', e);
           router.reload();
       });
@@ -59,7 +59,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   props.games.forEach(game => {
-    echo.channel('game.' + game.id).stopListening('GameUpdated');
+    echo.channel('game.' + game.id).stopListening('MultiplayerGameUpdated');
   });
 });
 </script>
