@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import FileCard from '@/components/FileCard.vue';
-import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon, HistoryIcon } from 'lucide-vue-next';
+import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon} from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface RecommendationGroup {
@@ -71,7 +71,7 @@ const isStudent = computed(() => user.user_role === 'student');
         <AppLayout :breadcrumbs="breadcrumbs">
             <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 bg-[url(https://i.pinimg.com/originals/fd/40/a4/fd40a4b8b151c4e432106576187d03c9.gif)] bg-cover bg-center">
                 <!--Welcome Section-->
-                <div class="mb-10 w-full min-h-[215px] rounded-xl 
+                <div class="mb-10 w-full min-h-[215px] rounded-xl
                         flex flex-col sm:flex-row justify-center items-center gap-6 p-6 text-center sm:text-left">
                     <!--Avatar-->
                     <div class="relative flex flex-col items-center gap-2">
@@ -81,7 +81,7 @@ const isStudent = computed(() => user.user_role === 'student');
                     </div>
                     <!--Greeting-->
                     <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white 
+                        <h1 class="text-2xl sm:text-3xl font-bold text-white
                                 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">Welcome to Lectica,</h1>
                     <!--Name-->
                         <div class="flex justify-center sm:justify-start items-center gap-2">
@@ -91,8 +91,6 @@ const isStudent = computed(() => user.user_role === 'student');
                             <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
                         </div>
                         <span class="font-medium">History</span>
-                    </Link>
-
                     <Link
                         href="/games/lobby"
                         class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
@@ -220,4 +218,5 @@ const isStudent = computed(() => user.user_role === 'student');
             </div>
         </div>
     </AppLayout>
+    </div>
 </template>
