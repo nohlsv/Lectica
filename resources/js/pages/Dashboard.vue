@@ -90,7 +90,22 @@ const isStudent = computed(() => user.user_role === 'student');
                                     {{ user.first_name }} {{ user.last_name }}</p>
                             <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
                         </div>
-                    </div>
+                        <span class="font-medium">History</span>
+                    </Link>
+
+                    <Link
+                        href="/games/lobby"
+                        class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
+                    >
+                        <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M8 12h8"></path>
+                                <path d="M12 8v8"></path>
+                            </svg>
+                        </div>
+                        <span class="font-medium">Game Lobby</span>
+                    </Link>
                 </div>
 
                 <!-- Quick Actions -->
@@ -203,6 +218,6 @@ const isStudent = computed(() => user.user_role === 'student');
                     </div>
                 </div>
             </div>
-        </AppLayout>
-    </div>
+        </div>
+    </AppLayout>
 </template>
