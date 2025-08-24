@@ -42,7 +42,7 @@ const auth = computed<Auth>(() => page.props.auth as Auth);
 const isCurrentRoute = computed(() => (url: string) => page.url === url);
 
 const activeItemStyles = computed(
-    () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:bg-neutral-800 dark:text-neutral-100' : ''),
+    () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:text-[#7eea7d]' : ''),
 );
 
 const mainNavItems: NavItem[] = [
@@ -166,7 +166,7 @@ const rightNavItems: NavItem[] = [
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-white"
+                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-[#7eea7d]"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>

@@ -286,14 +286,23 @@ watch(() => currentQuiz.value, (newQuiz) => {
 
 <template>
     <Head title="Take Quiz" />
-
-    <AppLayout>
-        <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
+        <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+        <AppLayout>
+            <h2 class="text-lg sm:text-xl md:text-2xl font-bold break-words mt-3">
+                Quiz: {{ file.name }}
+                </h2>
             <div class="flex justify-between">
-                <h2 class="text-2xl font-bold">Quiz: {{ file.name }}</h2>
                 <div class="flex space-x-2">
                     <Link :href="route('files.quizzes.index', file.id)">
-                        <Button variant="outline">Back to Quizzes</Button>
+                        <Button
+                            class="bg-red-500 border-4 border-red-700 text-white font-bold
+                                shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                                hover:bg-red-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                                active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
+                                transition-all duration-150 ease-in-out"
+                        >
+                        Escape
+                        </Button>
                     </Link>
                     <Button @click="shuffleQuizzes" v-if="!shuffled && !quizFinished">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"></path><path d="m18 2 4 4-4 4"></path><path d="M2 6h1.9c1.5 0 2.9.8 3.7 2l.3.5"></path><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"></path><path d="m18 14 4 4-4 4"></path></svg>
@@ -305,6 +314,51 @@ watch(() => currentQuiz.value, (newQuiz) => {
                     </Button>
                 </div>
             </div>
+            <div
+
+                class="relative w-full min-h-screen overflow-hidden bg-cover bg-center flex flex-col"
+                style="background-image: url('/images/game-background.png');"
+            >
+
+            <!-- Question Box -->
+            <div
+                class="absolute top-10 sm:top-10
+                    left-4 right-4 sm:left-1/2 sm:-translate-x-1/2
+                    flex items-center gap-3 sm:gap-6
+                    bg-white/95 border-[6px] border-black rounded-none
+                    px-3 sm:px-6 py-3 sm:py-4
+                    shadow-[6px_6px_0px_rgba(0,0,0,1),-3px_-3px_0px_rgba(0,0,0,1)]
+                    w-auto sm:max-w-3xl
+                    font-pixel"
+                style="image-rendering: pixelated;"
+
+            >
+                <div
+                    class="absolute -top-5 left-0
+                    bg-black text-white px-3 py-1
+                    text-sm sm:text-base font-pixel
+                    border-2 border-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)]"
+                >
+                Funko the Pop
+                </div>
+            <div
+
+
+                class="flex-1 text-lg sm:text-xl md:text-2xl text-black"
+            >
+            "{{ currentQuiz?.question }}"
+            </div>
+            <div class="flex-shrink-0">
+                <img
+                    src="https://cdn130.picsart.com/248878984010212.png"
+                    class="w-20 sm:w-28 md:w-32 animate-floating"
+                    style="image-rendering: pixelated;"
+                />
+            </div>
+        </div>
+
+        <div class="mb-2 w-full min-h-[250px] bg-[url(/8-bit-bg.png)] bg-cover bg-center rounded-xl flex items-center justify-center p-6">
+                </div>
 
             <div v-if="quizQuestions.length === 0" class="text-center py-10">
                 <p class="text-muted-foreground">No quizzes available for this file.</p>
@@ -358,7 +412,7 @@ watch(() => currentQuiz.value, (newQuiz) => {
                 </Card>
             </div>
 
-            <div v-else class="space-y-4">
+            <div v-else class="space-y-2">
                 <div class="flex justify-between items-center">
                     <div class="text-sm text-muted-foreground">
                         Question {{ currentIndex + 1 }} of {{ quizQuestions.length }}
@@ -373,112 +427,138 @@ watch(() => currentQuiz.value, (newQuiz) => {
                         <div class="flex items-center justify-between">
                             <Badge>{{ quizTypes[currentQuiz.type] }}</Badge>
                         </div>
-                        <CardTitle class="mt-2">{{ currentQuiz.question }}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <!-- Multiple Choice Question -->
-                        <div v-if="currentQuiz.type === 'multiple_choice'" class="space-y-4">
-                            <RadioGroup v-model="userAnswers[currentIndex]">
-                                <div
-                                    v-for="(option, index) in currentQuiz.options"
-                                    :key="index"
-                                    class="flex items-center space-x-2 p-2 rounded-md"
-                                    :class="{
-                                        'bg-green-100 dark:bg-green-900/20': showFeedback && option === currentQuiz.answers[0],
-                                        'bg-red-100 dark:bg-red-900/20': showFeedback && userAnswers[currentIndex] === option && option !== currentQuiz.answers[0],
-                                    }"
-                                >
-                                    <RadioGroupItem :value="option" :id="`option-${index}`" :disabled="showFeedback" />
-                                    <Label :for="`option-${index}`" class="flex-1">
-                                        {{ option }}
-                                    </Label>
-                                    <CheckIcon v-if="showFeedback && option === currentQuiz.answers[0]" class="h-5 w-5 text-green-500" />
-                                    <XIcon
-                                        v-if="showFeedback && userAnswers[currentIndex] === option && option !== currentQuiz.answers[0]"
-                                        class="h-5 w-5 text-red-500"
-                                    />
-                                </div>
-                            </RadioGroup>
-                        </div>
 
-                        <!-- True/False Question -->
-                        <div v-else-if="currentQuiz.type === 'true_false'" class="space-y-4">
-                            <RadioGroup v-model="userAnswers[currentIndex]">
-                                <div
-                                    class="flex items-center space-x-2 p-2 rounded-md"
-                                    :class="{
-                                        'bg-green-100 dark:bg-green-900/20': showFeedback && 'true' === currentQuiz.answers[0],
-                                        'bg-red-100 dark:bg-red-900/20': showFeedback && userAnswers[currentIndex] === 'true' && 'true' !== currentQuiz.answers[0],
-                                    }"
-                                >
-                                    <RadioGroupItem value="true" id="answer-true" :disabled="showFeedback" />
-                                    <Label for="answer-true" class="flex-1">True</Label>
-                                    <CheckIcon v-if="showFeedback && 'true' === currentQuiz.answers[0]" class="h-5 w-5 text-green-500" />
-                                    <XIcon
-                                        v-if="showFeedback && userAnswers[currentIndex] === 'true' && 'true' !== currentQuiz.answers[0]"
-                                        class="h-5 w-5 text-red-500"
-                                    />
-                                </div>
-                                <div
-                                    class="flex items-center space-x-2 p-2 rounded-md"
-                                    :class="{
-                                        'bg-green-100 dark:bg-green-900/20': showFeedback && 'false' === currentQuiz.answers[0],
-                                        'bg-red-100 dark:bg-red-900/20': showFeedback && userAnswers[currentIndex] === 'false' && 'false' !== currentQuiz.answers[0],
-                                    }"
-                                >
-                                    <RadioGroupItem value="false" id="answer-false" :disabled="showFeedback" />
-                                    <Label for="answer-false" class="flex-1">False</Label>
-                                    <CheckIcon v-if="showFeedback && 'false' === currentQuiz.answers[0]" class="h-5 w-5 text-green-500" />
-                                    <XIcon
-                                        v-if="showFeedback && userAnswers[currentIndex] === 'false' && 'false' !== currentQuiz.answers[0]"
-                                        class="h-5 w-5 text-red-500"
-                                    />
-                                </div>
-                            </RadioGroup>
-                        </div>
+                        <!-- Multiple Choice Question -->
+                    <div v-if="currentQuiz.type === 'multiple_choice'" class="w-full">
+                        <RadioGroup
+                            v-model="userAnswers[currentIndex]"
+                            class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-stretch w-full"
+                        >
+                    <div
+                        v-for="(option, index) in currentQuiz.options"
+                        :key="index"
+                        class="w-full h-full"
+                        >
+                    <Label
+                        :for="`option-${index}`"
+                        class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
+                        rounded-lg border-4 border-green-700 bg-green-500 text-white
+                        shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                        cursor-pointer select-none text-center text-balance
+                        transform transition-all duration-150 ease-in-out
+                        hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                        active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                    :class="{
+                        'bg-green-600 border-green-800': !showFeedback && userAnswers[currentIndex] === option,
+                        'bg-green-700 border-green-800': showFeedback && option === currentQuiz.answers[0],
+                        'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === option && option !== currentQuiz.answers[0]
+                    }"
+                >
+                    <RadioGroupItem
+                        :value="option"
+                        :id="`option-${index}`"
+                        :disabled="showFeedback"
+                        class="hidden"
+                />
+                    {{ option }}
+                    </Label>
+                </div>
+            </RadioGroup>
+        </div>
+
+                        <!-- True/False Question - Arcade Style -->
+                    <div v-else-if="currentQuiz.type === 'true_false'" class="w-full">
+                        <RadioGroup v-model="userAnswers[currentIndex]"
+                            class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                        <!-- TRUE Button -->
+                            <Label
+                                for="answer-true"
+                                class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
+                                    rounded-lg border-4 border-green-700 bg-green-500 text-white
+                                    shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                                    cursor-pointer select-none text-center text-balance
+                                    transform transition-all duration-150 ease-in-out
+                                    hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                                    active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                :class="{'bg-green-600 border-green-800': !showFeedback && userAnswers[currentIndex] === 'true',
+                                    'bg-green-700 border-green-800': showFeedback && 'true' === currentQuiz.answers[0],
+                                    'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === 'true' && 'true' !== currentQuiz.answers[0]
+                                    }">
+                        <RadioGroupItem value="true" id="answer-true" :disabled="showFeedback" class="hidden" />TRUE
+                            </Label>
+
+                        <!-- FALSE Button -->
+                            <Label
+                                for="answer-false"
+                                class="flex items-center justify-center w-full h-full px-6 py-3 text-lg font-bold
+                                rounded-lg border-4 border-red-700 bg-red-500 text-white
+                                shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                                cursor-pointer select-none text-center text-balance
+                                transform transition-all duration-150 ease-in-out
+                                hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                                active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                :class="{'bg-red-600 border-red-800': !showFeedback && userAnswers[currentIndex] === 'false',
+                                    'bg-green-700 border-green-800': showFeedback && 'false' === currentQuiz.answers[0],
+                                    'bg-red-500 border-red-700': showFeedback && userAnswers[currentIndex] === 'false' && 'false' !== currentQuiz.answers[0]
+                                    }">
+                        <RadioGroupItem value="false" id="answer-false" :disabled="showFeedback" class="hidden" />FALSE
+                            </Label>
+                        </RadioGroup>
+                    </div>
 
                         <!-- Enumeration Question -->
-                        <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-4">
-                            <p class="text-sm text-muted-foreground mb-2">Enter all {{ currentQuiz.answers.length }} correct answers:</p>
-                            <div
-                                v-for="(answer, index) in userAnswers[currentIndex]"
+                        <div v-else-if="currentQuiz.type === 'enumeration'" class="w-full space-y-4">
+                            <p class="text-sm font-bold text-white bg-green-500 border-4 border-green-700 px-4 py-2 rounded-lg
+                                shadow-[4px_4px_0px_rgba(0,0,0,0.4)]">
+                                INSERT {{ currentQuiz.answers.length }} COINS (answers) TO CONTINUE
+                            </p>
+                        <div
+                            v-for="(answer, index) in userAnswers[currentIndex]"
                                 :key="index"
-                                class="space-y-2"
-                            >
-                                <div
-                                    class="flex items-center space-x-2 p-2 rounded-md"
-                                    :class="{
-                                        'bg-green-100 dark:bg-green-900/20': showFeedback && currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase()),
-                                        'bg-red-100 dark:bg-red-900/20': showFeedback && answer && !currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase()),
-                                    }"
-                                >
-                                    <Input
-                                        v-model="userAnswers[currentIndex][index]"
-                                        :placeholder="`Answer ${index + 1}`"
-                                        :disabled="showFeedback"
-                                    />
-                                    <CheckIcon
-                                        v-if="showFeedback && answer && currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase())"
-                                        class="h-5 w-5 text-green-500 ml-2"
-                                    />
-                                    <XIcon
-                                        v-if="showFeedback && answer && !currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase())"
-                                        class="h-5 w-5 text-red-500 ml-2"
-                                    />
-                                </div>
-                            </div>
-
-                            <div v-if="showFeedback">
-                                <div v-if="!isCurrentAnswerCorrect" class="mt-4 p-3 bg-muted rounded-md">
-                                    <p class="font-medium">Correct answers:</p>
-                                    <ul class="list-disc list-inside mt-1">
-                                        <li v-for="(answer, i) in currentQuiz.answers" :key="i">
-                                            {{ answer }}
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+                                class="w-full"
+                        >
+                        <div
+                            class="flex items-center w-full px-4 py-2 text-lg font-bold rounded-lg border-4
+                                bg-gradient-to-b from-gray-800 to-gray-900 text-yellow-300
+                                shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                                transform transition-all duration-150 ease-in-out
+                                hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
+                                active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                            :class="{
+                                'border-gray-700': !showFeedback,
+                                'bg-green-700 border-green-800 text-white': showFeedback && currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase()),
+                                'bg-red-700 border-red-800 text-white': showFeedback && answer && !currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase())
+                            }"
+                        >
+                        <div class="absolute -mt-5 w-10 h-2 bg-yellow-400 rounded-sm shadow-[inset_0_-1px_2px_rgba(0,0,0,0.5)]"></div>
+                            <Input
+                                v-model="userAnswers[currentIndex][index]"
+                                :placeholder="`Coin Slot ${index + 1}`"
+                                :disabled="showFeedback"
+                                class="flex-1 text-center bg-transparent border-none outline-none placeholder-yellow-400 placeholder-opacity-60 focus:animate-bounce"
+                            />
+                            <span
+                                v-if="showFeedback && answer && currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase())"
+                                class="ml-3 text-white"
+                            >💰</span>
+                            <span
+                                v-if="showFeedback && answer && !currentQuiz.answers.some(a => a.toLowerCase() === answer.toLowerCase())"
+                                class="ml-3 text-white"
+                            >🚫</span>
                         </div>
+                    </div>
+                        <div v-if="showFeedback && !isCurrentAnswerCorrect"
+                            class="mt-4 p-3 bg-green-100 border-4 border-green-700 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,0.4)]">
+                            <p class="font-bold text-green-800">Correct answers:</p>
+                            <ul class="list-disc list-inside mt-1 text-green-900">
+                                <li v-for="(answer, i) in currentQuiz.answers" :key="i">
+                                    {{ answer }}
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
 
                         <!-- Feedback area -->
                         <div v-if="showFeedback" class="mt-6 p-4 rounded-md" :class="isCurrentAnswerCorrect ? 'bg-green-50 dark:bg-green-950/30' : 'bg-red-50 dark:bg-red-950/30'">
@@ -562,4 +642,5 @@ watch(() => currentQuiz.value, (newQuiz) => {
             </AlertDialogContent>
         </AlertDialog>
     </AppLayout>
+</div>
 </template>

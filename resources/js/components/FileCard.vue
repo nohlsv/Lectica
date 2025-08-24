@@ -47,10 +47,11 @@ const toggleStar = async () => {
 </script>
 
 <template>
-    <div class="flex flex-col rounded-lg border border-border overflow-hidden transition-shadow duration-200 hover:shadow-md">
+    <div class="flex flex-col rounded-lg border border-border overflow-hidden transition-shadow duration-200 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
+                hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 ">
         <!-- File header -->
         <div class="bg-accent/30 p-4 flex items-center justify-between border-b border-border">
-            <h3 class="font-medium text-foreground line-clamp-1">{{ file.name }}</h3>
+            <h3 class="font-medium text-foreground line-clamp-1 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
             <button
                 @click.prevent="toggleStar"
                 class="inline-flex items-center justify-center rounded-full p-1 hover:bg-accent transition-colors"
@@ -63,7 +64,7 @@ const toggleStar = async () => {
 
         <!-- File content -->
         <div class="p-4 flex-1">
-            <p class="text-sm text-muted-foreground line-clamp-3 mb-3">
+            <p class="text-sm text-muted-foreground line-clamp-3 mb-3 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                 {{ file.description ? file.description : file.content }}
             </p>
 
@@ -72,7 +73,7 @@ const toggleStar = async () => {
                 <span
                     v-for="tag in file.tags"
                     :key="tag.id"
-                    class="inline-flex px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary"
+                    class="inline-flex px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
                 >
                     {{ tag.name }}
                 </span>
@@ -81,7 +82,7 @@ const toggleStar = async () => {
 
         <!-- File footer -->
         <div class="border-t border-border p-4 flex justify-between items-center">
-            <div class="flex items-center gap-1 text-xs text-muted-foreground">
+            <div class="flex items-center gap-1 text-xs text-muted-foreground [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                 <span>{{ formattedDate }}</span>
                 <span class="px-1.5">•</span>
                 <span class="flex items-center gap-0.5">

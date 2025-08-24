@@ -10,14 +10,16 @@ const props = defineProps();
         <link rel="preconnect" href="https://rsms.me/" />
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
-    <div class="flex min-h-screen flex-col items-center bg-[#FDFDFC] p-6 text-[#1b1b18] dark:text-[#EDEDEC] dark:bg-[#0a0a0a] lg:justify-center lg:p-8">
+    <!-- Overall background -->
+    <div class="flex min-h-screen w-full flex-col items-center justify-center bg-[url(https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/64c9ea21-82be-48a3-a6f5-6d1786a3fc7e/d849dwo-0cdfe0ca-4bbe-43d5-b8d4-6c58db906e1e.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzY0YzllYTIxLTgyYmUtNDhhMy1hNmY1LTZkMTc4NmEzZmM3ZVwvZDg0OWR3by0wY2RmZTBjYS00YmJlLTQzZDUtYjhkNC02YzU4ZGI5MDZlMWUuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.n3jDMgOwazieu5EgWAGyGW4kZSx12Xqbs3BMHPLp6o4)] bg-cover bg-center bg-[#FDFDFC] p-6 lg:p-8">
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="flex items-center justify-between">
+
                 <!-- Logo and Name on the left -->
-                <div class="flex items-center gap-2">
-                    <AppLogoIcon className="h-10 w-10" />
-                    <span class="text-xl font-bold">Lectica</span>
-                </div>
+                <!--<div class="flex items-center gap-2">-->
+                    <!--<AppLogoIcon className="h-10 w-10" />-->
+                    <!--<span class="text-xl font-bold">Lectica</span>-->
+                <!--</div>-->
 
                 <!-- Navigation on the right -->
                 <nav class="flex items-center gap-4">
@@ -46,30 +48,37 @@ const props = defineProps();
             </div>
         </header>
         <div class="duration-750 starting:opacity-0 flex w-full items-center justify-center opacity-100 transition-opacity lg:grow">
-            <main class="flex w-full max-w-[335px] flex-col-reverse overflow-hidden rounded-lg lg:max-w-4xl lg:flex-row">
+            <main class="flex items-center justify-center">
+
+                <!-- fallback for the border in the middle
+                 class="flex-1 rounded-bl-lg rounded-br-lg bg-white p-6 pb-12 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-br-none lg:rounded-tl-lg lg:p-20
+                 -->
+
+                <!-- Container for the text-->
                 <div
-                    class="flex-1 rounded-bl-lg rounded-br-lg bg-white p-6 pb-12 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-br-none lg:rounded-tl-lg lg:p-20"
+                   class="flex-1 text-center"
                 >
+
                     <div class="flex flex-col items-center justify-center mb-8">
-                        <img src="/android-chrome-512x512.png" alt="Lectica Logo" class="h-24 w-24 mb-4 object-contain" />
-                        <h1 class="text-3xl font-bold mb-2">Lectica</h1>
-                        <p class="text-lg font-medium text-primary">Review, Repeat, Retain</p>
+                        <img src="/android-chrome-512x512.png" alt="Lectica Logo" class="h-50 w-50 mb-4 object-contain" />
+                        <h1 class="text-3xl font-bold mb-2 text-primary dark:bg-gradient-to-r dark:from-[#fe1d41] dark:to-[#fe7c16] dark:bg-clip-text dark:text-transparent">Lectica</h1>
+                        <p class="text-4xl text-primary">Review, Repeat, Retain</p>
                     </div>
 
-                    <p class="mb-6 text-[#706f6c] dark:text-[#A1A09A] text-base">
+                    <p class=" text-lg mb-6 text-[#706f6c] dark:text-[#bebdb8]">
                         Your personal learning companion for efficient knowledge retention
                     </p>
 
                     <div v-if="!$page.props.auth.user" class="flex justify-center gap-4 mt-4">
                         <Link
                             :href="route('register')"
-                            class="inline-block rounded-md bg-primary px-6 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                            class="inline-block rounded-md bg-primary px-6 py-2 text-sm font-medium text-[#FDFDFC] dark:bg-[#3aa035] dark:hover:bg-[#66b562]"
                         >
                             Get Started
                         </Link>
                         <Link
                             :href="route('login')"
-                            class="inline-block rounded-md border border-border px-6 py-2 text-sm font-medium hover:bg-accent/50"
+                            class="inline-block rounded-md border border-[#FDFDFC] px-6 py-2 text-sm font-medium hover:bg-accent/70"
                         >
                             Log In
                         </Link>
@@ -77,6 +86,5 @@ const props = defineProps();
                 </div>
             </main>
         </div>
-        <div class="h-14.5 hidden lg:block"></div>
     </div>
 </template>
