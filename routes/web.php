@@ -34,8 +34,12 @@ Route::get('/programs/search', [ProgramController::class, 'search'])
 
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
 
-// MultiplayerGame Lobby routes
+// Game routes
 Route::middleware(['auth', 'verified'])->group(function () {
+//    Route::get('/battles', [App\Http\Controllers\BattleController::class, 'index'])->name('battles.index');
+//    Route::post('/battles', [App\Http\Controllers\BattleController::class, 'store'])->name('battles.store');
+    Route::get('/battles/{battle}', [App\Http\Controllers\BattleController::class, 'show'])->name('battles.show');
+
     Route::get('/games/lobby', [GameController::class, 'lobby'])->name('games.lobby');
     Route::post('/games', [GameController::class, 'store'])->name('games.store');
     Route::post('/games/{id}/join', [GameController::class, 'join'])->name('games.join');
