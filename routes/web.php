@@ -6,6 +6,7 @@ use App\Http\Controllers\FileRecommendationController;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\GameController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -32,6 +33,27 @@ Route::get('/programs/search', [ProgramController::class, 'search'])
     ->name('programs.search');
 
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+
+// Game routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Battle routes - complete battle system
+    Route::get('/battles', [App\Http\Controllers\BattleController::class, 'index'])->name('battles.index');
+    Route::get('/battles/create', [App\Http\Controllers\BattleController::class, 'create'])->name('battles.create');
+    Route::post('/battles', [App\Http\Controllers\BattleController::class, 'store'])->name('battles.store');
+    Route::get('/battles/{battle}', [App\Http\Controllers\BattleController::class, 'show'])->name('battles.show');
+    Route::post('/battles/{battle}/answer', [App\Http\Controllers\BattleController::class, 'answerQuestion'])->name('battles.answer');
+    Route::post('/battles/{battle}/end', [App\Http\Controllers\BattleController::class, 'end'])->name('battles.end');
+    Route::post('/battles/complete', [App\Http\Controllers\BattleController::class, 'complete'])->name('battles.complete');
+    Route::get('/battle-stats', [App\Http\Controllers\BattleController::class, 'stats'])->name('battles.stats');
+    Route::get('/api/monsters', [App\Http\Controllers\BattleController::class, 'getMonstersByDifficulty'])->name('api.monsters');
+
+    Route::get('/games/lobby', [GameController::class, 'lobby'])->name('games.lobby');
+    Route::post('/games', [GameController::class, 'store'])->name('games.store');
+    Route::post('/games/{id}/join', [GameController::class, 'join'])->name('games.join');
+    Route::get('/games/{id}', [GameController::class, 'show'])->name('games.show');
+    Route::post('/games/{id}/start', [GameController::class, 'startQuizGame'])->name('games.start');
+    Route::post('/games/{id}/finish', [GameController::class, 'finish'])->name('games.finish');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';

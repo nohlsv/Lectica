@@ -18,7 +18,7 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import {  FileIcon, ChartArea,  LayoutGrid, Menu, Search, TestTube2, FileChartLine } from 'lucide-vue-next';
+import {  FileIcon, ChartArea,  LayoutGrid, Menu, Search, TestTube2, FileChartLine, Sword, Swords  } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { User } from '@/types';
 
@@ -60,6 +60,11 @@ const mainNavItems: NavItem[] = [
         title: 'My Files',
         href: '/myfiles',
         icon: FileIcon,
+    },
+    {
+        title: 'Battles',
+        href: '/battles',
+        icon: Swords,
     },
     {
         title: 'History',
