@@ -152,7 +152,7 @@ const rightNavItems: NavItem[] = [
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="hidden h-full lg:flex lg:flex-1">
+                <div class="hidden h-full lg:flex lg:flex-1 bg-[#7f1003] text-[#fce3aa]">
                     <NavigationMenu class="ml-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch space-x-2">
                             <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">
@@ -166,7 +166,7 @@ const rightNavItems: NavItem[] = [
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-[#7eea7d]"
+                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-[#fe9104]"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>
