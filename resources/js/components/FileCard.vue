@@ -47,10 +47,10 @@ const toggleStar = async () => {
 </script>
 
 <template>
-    <div class="flex flex-col rounded-lg border border-border overflow-hidden transition-shadow duration-200 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 ">
+    <div class="flex flex-col border-4 border-black bg-black/75 p-4 font-pixelshadow-[6px_6px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]
+            transition-transform duration-200">
         <!-- File header -->
-        <div class="bg-accent/30 p-4 flex items-center justify-between border-b border-border">
+        <div class="bg-red-900/75 p-4 -mx-4 flex items-center justify-between border-b border-border">
             <h3 class="font-medium text-foreground line-clamp-1 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
             <button
                 @click.prevent="toggleStar"
