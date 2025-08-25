@@ -51,7 +51,7 @@ const toggleStar = async () => {
             transition-transform duration-200">
         <!-- File header -->
         <div class="bg-red-900/75 p-4 -mx-4 flex items-center justify-between border-b border-border">
-            <h3 class="font-medium text-foreground line-clamp-1 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
+            <h3 class="font-medium text-foreground truncate max-w-[16rem] [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
             <button
                 @click.prevent="toggleStar"
                 class="inline-flex items-center justify-center rounded-full p-1 hover:bg-accent transition-colors"
@@ -64,7 +64,7 @@ const toggleStar = async () => {
 
         <!-- File content -->
         <div class="p-4 flex-1">
-            <p class="text-sm text-muted-foreground line-clamp-3 mb-3 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+            <p class="text-sm text-muted-foreground mb-3 break-words whitespace-normal text-justify [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                 {{ file.description ? file.description : file.content }}
             </p>
 
