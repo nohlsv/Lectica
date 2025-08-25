@@ -151,7 +151,7 @@ const submitGenerateRequest = async () => {
                     <Link
                         href="/files"
                         class="inline-flex items-center gap-2 px-4 py-2 text-white bg-red-700 border-2 border-yellow-400 rounded-md shadow-md hover:bg-yellow-400
-                             hover:text-red-700 transition-colors duration-300 font-bold"
+                             hover:text-red-700 duration-300 font-bold"
                     >
                         <ArrowLeftIcon class="h-4 w-4" />
                         Back to Files

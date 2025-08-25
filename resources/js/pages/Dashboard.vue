@@ -91,6 +91,8 @@ const isStudent = computed(() => user.user_role === 'student');
                             <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
                         </div>
                         <span class="font-medium">History</span>
+
+
                     <Link
                         href="/games/lobby"
                         class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors"
