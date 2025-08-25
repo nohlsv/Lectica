@@ -3,7 +3,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import FileCard from '@/components/FileCard.vue';
-import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon, HistoryIcon } from 'lucide-vue-next';
+import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon} from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface RecommendationGroup {
@@ -91,7 +91,7 @@ const isStudent = computed(() => user.user_role === 'student');
                             <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
                         </div>
                         <span class="font-medium">History</span>
-
+                    </Link>
 
                     <Link
                         href="/games/lobby"
