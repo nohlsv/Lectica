@@ -97,13 +97,15 @@ function checkAnswer() {
     // Process battle mechanics
     if (isCurrentAnswerCorrect.value) {
         correctAnswers.value++;
-        // Player attacks monster
-        const damage = calculateDamage(props.battle.user.attack, props.battle.monster.defense);
+        // Player attacks monster - use fixed player attack value
+        const playerAttack = 20; // Default player attack value
+        const damage = calculateDamage(playerAttack, props.battle.monster.defense);
         monsterHp.value = Math.max(0, monsterHp.value - damage);
         attackMessages.value.unshift(`You dealt ${damage} damage to ${props.battle.monster.name}!`);
     } else {
-        // Monster attacks player
-        const damage = calculateDamage(props.battle.monster.attack, 10);
+        // Monster attacks player - use default player defense
+        const playerDefense = 10; // Default player defense value
+        const damage = calculateDamage(props.battle.monster.attack, playerDefense);
         playerHp.value = Math.max(0, playerHp.value - damage);
         attackMessages.value.unshift(`${props.battle.monster.name} dealt ${damage} damage to you!`);
     }
@@ -115,9 +117,16 @@ function checkAnswer() {
 }
 
 function calculateDamage(attack: number, defense: number) {
-    const baseDamage = Math.max(1, attack - (defense / 2));
+    // Ensure we have valid numbers
+    const validAttack = Number(attack) || 0;
+    const validDefense = Number(defense) || 0;
+
+    const baseDamage = Math.max(1, validAttack - (validDefense / 2));
     const variance = baseDamage * 0.2; // 20% variance
-    return Math.round(baseDamage + (Math.random() * variance * 2 - variance));
+    const finalDamage = Math.round(baseDamage + (Math.random() * variance * 2 - variance));
+
+    // Ensure we return a valid number, minimum 1 damage
+    return Math.max(1, finalDamage || 1);
 }
 
 function next() {
