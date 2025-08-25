@@ -110,4 +110,12 @@ export interface Tag {
     name: string;
 }
 
+export interface Game {
+    id: number;
+    player_one_id: number;
+    player_two_id: number;
+    created_at: string;
+    updated_at: string;
+}
+
 export type BreadcrumbItemType = BreadcrumbItem;

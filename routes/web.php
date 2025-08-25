@@ -6,6 +6,7 @@ use App\Http\Controllers\FileRecommendationController;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\TagController;
+use App\Http\Controllers\GameController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -32,6 +33,16 @@ Route::get('/programs/search', [ProgramController::class, 'search'])
     ->name('programs.search');
 
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+
+// MultiplayerGame Lobby routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/games/lobby', [GameController::class, 'lobby'])->name('games.lobby');
+    Route::post('/games', [GameController::class, 'store'])->name('games.store');
+    Route::post('/games/{id}/join', [GameController::class, 'join'])->name('games.join');
+    Route::get('/games/{id}', [GameController::class, 'show'])->name('games.show');
+    Route::post('/games/{id}/start', [GameController::class, 'startQuizGame'])->name('games.start');
+    Route::post('/games/{id}/finish', [GameController::class, 'finish'])->name('games.finish');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';

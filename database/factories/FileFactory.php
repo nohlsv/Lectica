@@ -21,6 +21,19 @@ class FileFactory extends Factory
             'path' => $this->faker->filePath(),
             'content' => $this->faker->text(),
             'user_id' => \App\Models\User::factory(),
+            'verified' => $this->faker->boolean(),
         ];
+    }
+
+    public function configure()
+    {
+        return $this->afterCreating(function ($file) {
+            $file->quizzes()->saveMany(
+                \App\Models\Quiz::factory()->count(3)->make()
+            );
+            $file->flashcards()->saveMany(
+                \App\Models\Flashcard::factory()->count(3)->make()
+            );
+        });
     }
 }
