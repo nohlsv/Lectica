@@ -90,8 +90,6 @@ const isStudent = computed(() => user.user_role === 'student');
                                     {{ user.first_name }} {{ user.last_name }}</p>
                             <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
                         </div>
-                        <span class="font-medium">History</span>
-                    </Link>
 
                     <Link
                         href="/games/lobby"
