@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Battle;
 use App\Models\File;
 use App\Models\Quiz;
-use App\Monster;
+use App\Models\Monster;
 use App\Enums\BattleStatus;
 use Illuminate\Support\Facades\Auth;
 

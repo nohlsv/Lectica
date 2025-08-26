@@ -111,6 +111,16 @@ class File extends Model
         return $this->quizzes()->count();
     }
 
+    /**
+     * Check if the file has any quizzes.
+     *
+     * @return bool
+     */
+    public function hasQuizzes(): bool
+    {
+        return $this->quizzes()->exists();
+    }
+
     public function scopeVerified($query)
     {
         return $query->where('verified', true);

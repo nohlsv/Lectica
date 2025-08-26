@@ -14,9 +14,9 @@ return new class extends Migration
         Schema::create('battles', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('monster_id')->constrained()->onDelete('cascade');
+            $table->string('monster_id'); // Changed to string to match Monster class
             $table->foreignId('file_id')->constrained()->onDelete('cascade');
-            $table->enum('status', ['in_progress', 'victory', 'defeat']);
+            $table->enum('status', ['active', 'won', 'lost', 'abandoned']); // Updated to match BattleStatus enum
             $table->integer('player_hp');
             $table->integer('monster_hp');
             $table->integer('correct_answers')->default(0);

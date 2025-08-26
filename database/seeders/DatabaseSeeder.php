@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             ProgramSeeder::class,
+            QuestSeeder::class,
+            MonsterSeeder::class,
         ]);
 
         // User::factory(10)->create();
