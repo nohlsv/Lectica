@@ -47,6 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/battle-stats', [App\Http\Controllers\BattleController::class, 'stats'])->name('battles.stats');
     Route::get('/api/monsters', [App\Http\Controllers\BattleController::class, 'getMonstersByDifficulty'])->name('api.monsters');
 
+    // Quest routes
+    Route::get('/quests', [App\Http\Controllers\QuestController::class, 'index'])->name('quests.index');
+    Route::get('/quests/stats', [App\Http\Controllers\QuestController::class, 'stats'])->name('quests.stats');
+    Route::get('/api/quests/progress', [App\Http\Controllers\QuestController::class, 'progress'])->name('api.quests.progress');
+
     Route::get('/games/lobby', [GameController::class, 'lobby'])->name('games.lobby');
     Route::post('/games', [GameController::class, 'store'])->name('games.store');
     Route::post('/games/{id}/join', [GameController::class, 'join'])->name('games.join');
