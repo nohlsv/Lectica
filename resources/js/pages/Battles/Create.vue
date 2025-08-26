@@ -150,6 +150,7 @@
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 import { ref, watch } from 'vue'
+import { toast } from 'vue-sonner'
 
 const props = defineProps({
     monsters: Array,
@@ -187,6 +188,17 @@ watch(selectedDifficulty, (newDifficulty) => {
 }, { immediate: true })
 
 const submit = () => {
+    // Validate that both file and monster are selected
+    if (!form.file_id) {
+        toast.error('Please select a file');
+        return;
+    }
+
+    if (!form.monster_id) {
+        toast.error('Please select a monster');
+        return;
+    }
+
     // Ensure monster_id is a string
     form.monster_id = String(form.monster_id)
     form.post(route('battles.store'))

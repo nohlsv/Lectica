@@ -29,8 +29,8 @@ const battleFinished = ref(false);
 const playerHp = ref(props.battle.player_hp);
 const monsterHp = ref(props.battle.monster_hp);
 const attackMessages = ref<string[]>([]);
-const correctAnswers = ref(0);
-const totalAnswered = ref(0);
+const correctAnswers = ref(props.battle.correct_answers || 0);
+const totalAnswered = ref(props.battle.total_questions || 0);
 
 // Initialize userAnswers
 props.quizzes.forEach((quiz, index) => {
@@ -44,7 +44,7 @@ props.quizzes.forEach((quiz, index) => {
 });
 
 const currentQuiz = computed(() => {
-    if (props.quizzes.length === 0) return null;
+    if (props.quizzes.length === 0 || currentIndex.value >= props.quizzes.length) return null;
     return props.quizzes[currentIndex.value];
 });
 
@@ -133,24 +133,30 @@ function next() {
     if (currentIndex.value < props.quizzes.length - 1) {
         currentIndex.value++;
         showFeedback.value = false;
+    } else {
+        // All questions have been answered, finish the battle
+        finishBattle();
     }
 }
 
 function finishBattle() {
     battleFinished.value = true;
 
-    // Save battle results
-    axios.post(route('battles.complete'), {
+    // Save battle results using router.post instead of axios
+    router.post(route('battles.complete'), {
         battle_id: props.battle.id,
         player_hp: playerHp.value,
         monster_hp: monsterHp.value,
         correct_answers: correctAnswers.value,
         total_questions: totalAnswered.value,
         status: battleResult.value
-    }).then(() => {
-        toast.success('Battle results recorded!');
-    }).catch(() => {
-        toast.error('Failed to save battle results');
+    }, {
+        onSuccess: () => {
+            toast.success('Battle results recorded!');
+        },
+        onError: () => {
+            toast.error('Failed to save battle results');
+        }
     });
 }
 </script>
@@ -337,8 +343,9 @@ function finishBattle() {
                             <SwordIcon class="h-4 w-4 mr-2" />
                             Attack with Answer
                         </Button>
-                        <Button v-else @click="next" variant="default" class="w-full">
-                            Next Question
+                        <Button v-else @click="next" variant="default" class="w-full"
+                                :disabled="currentIndex >= props.quizzes.length - 1 && !battleResult">
+                            {{ currentIndex >= props.quizzes.length - 1 ? 'Finish Battle' : 'Next Question' }}
                         </Button>
                     </CardFooter>
                 </Card>

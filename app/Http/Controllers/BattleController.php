@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Battle;
 use App\Models\Monster;
 use App\Models\File;
+use App\Models\Quiz;
 use App\Services\BattleService;
 use App\Services\QuestService;
 use Illuminate\Http\Request;
