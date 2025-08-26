@@ -65,7 +65,7 @@ const toggleStar = async () => {
         <!-- File content -->
         <div class="p-4 flex-1">
             <p class="text-sm text-muted-foreground mb-3 break-words whitespace-normal text-justify [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                {{ file.description ? file.description : file.content }}
+                {{ file.description ? file.description : "No description provided." }}
             </p>
 
             <!-- Tags -->

@@ -109,7 +109,6 @@ const isStudent = computed(() => user.user_role === 'student');
                                     {{ user.first_name }} {{ user.last_name }}</p>
                             <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
                         </div>
-<<<<<<< HEAD
 
                     <Link
                         href="/games/lobby"
@@ -124,16 +123,14 @@ const isStudent = computed(() => user.user_role === 'student');
                         </div>
                         <span class="font-medium">Game Lobby</span>
                     </Link>
-=======
                     </div>
->>>>>>> kurt-fork/main
                 </div>
             <!--Divider-->
             <hr class="h-2 -mx-4 bg-red-500 border-2 border-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">
             </div>
 
             <!--Main Content-->
-            <div class="flex h-full flex-1 flex-col gap-4 pt-4 px-4 pb-0 lg:p-8 bg-gradient-to-b from-[#161615] to-[#800000]">
+            <div class="flex h-full flex-1 flex-col gap-4 pt-4 px-4 pb-0 lg:p-8 bg-gradient">
                 <!-- Quick Actions -->
                 <div class="mb-8">
                     <h2 class="text-xl font-semibold mb-6 text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] wave">
@@ -238,7 +235,7 @@ const isStudent = computed(() => user.user_role === 'student');
                                 <button @click="scrollRight(category.key)"
                                     class="absolute right-0 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full z-10 hover:bg-black">></button>
                                 <!-- Scroll container -->
-                                <div :ref="el => scrollContainers[category.key] = el as HTMLElement | null"class="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth px-10">
+                                <div :ref="el => scrollContainers[category.key] = el as HTMLElement | null" class="flex gap-6 overflow-x-auto scrollbar-hide scroll-smooth px-10">
                                     <FileCard
                                         v-for="file in recommendations[category.key]"
                                         :key="file.id"
