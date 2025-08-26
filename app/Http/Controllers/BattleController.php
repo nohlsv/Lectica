@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BattleStatus;
 use App\Models\Battle;
 use App\Models\Monster;
 use App\Models\File;
@@ -117,7 +118,7 @@ class BattleController extends Controller
         ];
 
         // If battle is active and has quizzes, show the battle interface
-        if ($battle->status === 'active' && $quizzes->count() > 0) {
+        if ($battle->status === BattleStatus::ACTIVE && $quizzes->count() > 0) {
             return Inertia::render('Battles/BattleQuiz', [
                 'battle' => array_merge($battle->toArray(), [
                     'monster' => $monster,

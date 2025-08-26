@@ -105,6 +105,7 @@
 
                         <!-- Action Buttons -->
                         <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                            <!-- For active battles, the controller will automatically show BattleQuiz -->
                             <Link
                                 v-if="battle.status === 'active'"
                                 :href="route('battles.show', battle.id)"
@@ -113,6 +114,7 @@
                                 Continue Battle
                             </Link>
 
+                            <!-- Start New Battle button -->
                             <Link
                                 :href="route('battles.create')"
                                 class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-center"
@@ -120,6 +122,7 @@
                                 Start New Battle
                             </Link>
 
+                            <!-- Back to battles list -->
                             <Link
                                 :href="route('battles.index')"
                                 class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg text-center"
@@ -127,6 +130,7 @@
                                 Back to Battles
                             </Link>
 
+                            <!-- View Statistics -->
                             <Link
                                 :href="route('battles.stats')"
                                 class="bg-purple-500 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg text-center"
@@ -159,6 +163,12 @@ const accuracy = computed(() => {
 })
 
 const getDifficultyText = (difficulty) => {
+    // Handle both string and numeric difficulty values
+    if (typeof difficulty === 'string') {
+        return difficulty.charAt(0).toUpperCase() + difficulty.slice(1); // Capitalize first letter
+    }
+
+    // Legacy numeric difficulty mapping
     const levels = {
         1: 'Easy',
         2: 'Medium',
