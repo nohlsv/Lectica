@@ -63,32 +63,35 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Define some predefined unique tag names
+        // Define some predefined unique tag names with aliases
         $predefinedTags = [
-            'programming',
-            'math',
-            'science',
-            'history',
-            'english',
-            'physics',
-            'chemistry',
-            'biology',
-            'literature',
-            'psychology',
-            'sociology',
-            'economics',
-            'statistics',
-            'calculus',
-            'algebra',
-            'geometry',
-            'research',
-            'engineering',
-            'computer_science',
-            'education'
+            ['name' => 'programming', 'aliases' => ['coding', 'development', 'software']],
+            ['name' => 'math', 'aliases' => ['mathematics', 'maths', 'numerical']],
+            ['name' => 'science', 'aliases' => ['scientific', 'research', 'experimental']],
+            ['name' => 'history', 'aliases' => ['historical', 'past', 'timeline']],
+            ['name' => 'english', 'aliases' => ['language', 'grammar', 'literature']],
+            ['name' => 'physics', 'aliases' => ['physical_science', 'mechanics', 'quantum']],
+            ['name' => 'chemistry', 'aliases' => ['chemical', 'organic', 'inorganic']],
+            ['name' => 'biology', 'aliases' => ['life_science', 'anatomy', 'genetics']],
+            ['name' => 'literature', 'aliases' => ['books', 'novels', 'poetry']],
+            ['name' => 'psychology', 'aliases' => ['mental_health', 'behavior', 'cognitive']],
+            ['name' => 'sociology', 'aliases' => ['social_science', 'society', 'culture']],
+            ['name' => 'economics', 'aliases' => ['finance', 'money', 'market']],
+            ['name' => 'statistics', 'aliases' => ['stats', 'data_analysis', 'probability']],
+            ['name' => 'calculus', 'aliases' => ['derivatives', 'integrals', 'limits']],
+            ['name' => 'algebra', 'aliases' => ['equations', 'variables', 'polynomials']],
+            ['name' => 'geometry', 'aliases' => ['shapes', 'angles', 'triangles']],
+            ['name' => 'research', 'aliases' => ['study', 'investigation', 'analysis']],
+            ['name' => 'engineering', 'aliases' => ['technical', 'design', 'construction']],
+            ['name' => 'computer_science', 'aliases' => ['cs', 'computing', 'algorithms']],
+            ['name' => 'education', 'aliases' => ['learning', 'teaching', 'pedagogy']]
         ];
 
-        foreach ($predefinedTags as $tagName) {
-            Tag::firstOrCreate(['name' => $tagName]);
+        foreach ($predefinedTags as $tagData) {
+            Tag::firstOrCreate(
+                ['name' => $tagData['name']],
+                ['aliases' => $tagData['aliases']]
+            );
         }
         foreach (ProgramSeeder::programs as $program) {
             Tag::firstOrCreate(['name' => str_replace(' ', '_', strtolower($program['name']))]);

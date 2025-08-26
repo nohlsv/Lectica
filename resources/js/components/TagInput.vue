@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
-import { XIcon, PlusIcon } from 'lucide-vue-next';
+import { ref, computed, onMounted, watch } from 'vue';
+import { XIcon, PlusIcon, ClockIcon, TrendingUpIcon, UsersIcon, LinkIcon } from 'lucide-vue-next';
 import { type Tag } from '@/types';
 import axios from 'axios';
 
@@ -8,19 +8,23 @@ interface Props {
   modelValue: Tag[];
   existingTags?: Tag[];
   addNewTags?: boolean;
+  showSuggestions?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   existingTags: () => [],
-  addNewTags: true
+  addNewTags: true,
+  showSuggestions: true
 });
 
 const emit = defineEmits(['update:modelValue']);
 
 const inputValue = ref('');
 const showDropdown = ref(false);
-const suggestedTags = ref<Tag[]>([]);
+const suggestedTags = ref<any[]>([]);
+const relatedTags = ref<any[]>([]);
 const isLoading = ref(false);
+const currentSection = ref('suggestions'); // 'suggestions' or 'search'
 
 const selectedTags = computed({
   get: () => props.modelValue,
@@ -28,33 +32,83 @@ const selectedTags = computed({
 });
 
 const filteredSuggestions = computed(() => {
-  if (!inputValue.value) return props.existingTags;
-
   return suggestedTags.value.filter(tag =>
     !selectedTags.value.some(selectedTag => selectedTag.id === tag.id)
   );
 });
 
-const loadSuggestions = async (query = '') => {
-  if (query.length === 0 && props.existingTags.length > 0) {
-    suggestedTags.value = props.existingTags;
-    return;
-  }
+const filteredRelatedTags = computed(() => {
+  return relatedTags.value.filter(tag =>
+    !selectedTags.value.some(selectedTag => selectedTag.id === tag.id)
+  );
+});
 
+// Load personalized suggestions
+const loadSuggestions = async (query = '') => {
   isLoading.value = true;
   try {
-    const response = await axios.get('/tags/search', { params: { query } });
-    suggestedTags.value = response.data;
+    const endpoint = query ? '/tags/suggestions' : '/tags/suggestions';
+    const response = await axios.get(endpoint, {
+      params: query ? { query, limit: 10 } : { limit: 10 }
+    });
+
+    if (query) {
+      suggestedTags.value = response.data.suggestions || [];
+      currentSection.value = 'search';
+    } else {
+      suggestedTags.value = response.data.suggestions || [];
+      currentSection.value = 'suggestions';
+    }
   } catch (error) {
-    console.error('Error fetching tags:', error);
+    console.error('Error fetching tag suggestions:', error);
+    // Fallback to basic search if suggestions fail
+    if (query) {
+      const response = await axios.get('/tags/search', { params: { query } });
+      suggestedTags.value = response.data.map(tag => ({
+        ...tag,
+        suggestion_type: 'fallback'
+      }));
+    }
   } finally {
     isLoading.value = false;
   }
 };
 
-const addTag = (tag: Tag) => {
-  if (!selectedTags.value.some(t => t.id === tag.id)) {
-    selectedTags.value = [...selectedTags.value, tag];
+// Load related tags based on selected tags
+const loadRelatedTags = async () => {
+  if (selectedTags.value.length === 0) {
+    relatedTags.value = [];
+    return;
+  }
+
+  try {
+    const selectedTagIds = selectedTags.value.map(tag => tag.id);
+    const response = await axios.get('/tags/related', {
+      params: { selected_tags: selectedTagIds, limit: 5 }
+    });
+    relatedTags.value = response.data.related_tags || [];
+  } catch (error) {
+    console.error('Error fetching related tags:', error);
+    relatedTags.value = [];
+  }
+};
+
+// Watch for changes in selected tags to update related suggestions
+watch(selectedTags, () => {
+  if (props.showSuggestions) {
+    loadRelatedTags();
+  }
+}, { deep: true });
+
+const addTag = (tag: any) => {
+  const tagToAdd = {
+    id: tag.id,
+    name: tag.name,
+    aliases: tag.aliases || []
+  };
+
+  if (!selectedTags.value.some(t => t.id === tagToAdd.id)) {
+    selectedTags.value = [...selectedTags.value, tagToAdd];
   }
   inputValue.value = '';
   showDropdown.value = false;
@@ -76,7 +130,6 @@ const createNewTag = async () => {
     console.error('Error creating tag:', error);
 
     // If it's a 422 error (validation), it's likely the tag already exists
-    // Let's add it directly as a new tag object
     if (error.response?.status === 422) {
       const existingTag = suggestedTags.value.find(
         tag => tag.name.toLowerCase() === inputValue.value.toLowerCase()
@@ -99,11 +152,11 @@ const handleInput = () => {
 };
 
 const focusInput = () => {
-    const tagInput = document.getElementById('tag-input');
-    if (tagInput) {
-      tagInput.focus();
-    }
-}
+  const tagInput = document.getElementById('tag-input');
+  if (tagInput) {
+    tagInput.focus();
+  }
+};
 
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Enter') {
@@ -120,11 +173,47 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 };
 
+const getSuggestionIcon = (suggestionType: string) => {
+  switch (suggestionType) {
+    case 'recent': return ClockIcon;
+    case 'most_used': return TrendingUpIcon;
+    case 'popular': return UsersIcon;
+    case 'related': return LinkIcon;
+    default: return PlusIcon;
+  }
+};
+
+const getSuggestionLabel = (suggestionType: string) => {
+  switch (suggestionType) {
+    case 'recent': return 'Recently used';
+    case 'most_used': return 'Most used';
+    case 'popular': return 'Popular';
+    case 'related': return 'Related';
+    case 'user_match': return 'Your tag';
+    case 'global_match': return 'Search result';
+    default: return '';
+  }
+};
+
+const getSuggestionColor = (suggestionType: string) => {
+  switch (suggestionType) {
+    case 'recent': return 'text-blue-600 dark:text-blue-400';
+    case 'most_used': return 'text-green-600 dark:text-green-400';
+    case 'popular': return 'text-purple-600 dark:text-purple-400';
+    case 'related': return 'text-orange-600 dark:text-orange-400';
+    case 'user_match': return 'text-indigo-600 dark:text-indigo-400';
+    default: return 'text-gray-600 dark:text-gray-400';
+  }
+};
+
 onMounted(() => {
-  if (props.existingTags.length > 0) {
-    suggestedTags.value = props.existingTags;
-  } else {
+  if (props.showSuggestions) {
     loadSuggestions();
+  } else if (props.existingTags.length > 0) {
+    suggestedTags.value = props.existingTags.map(tag => ({
+      ...tag,
+      suggestion_type: 'existing'
+    }));
   }
 
   // Close dropdown when clicking outside
@@ -200,7 +289,15 @@ onMounted(() => {
           class="px-3 py-2 text-sm hover:bg-accent cursor-pointer"
           @click="addTag(tag)"
         >
-          {{ tag.name }}
+          <div class="flex items-center gap-2">
+            <component
+              :is="getSuggestionIcon(tag.suggestion_type)"
+              class="h-4 w-4"
+              v-tooltip="getSuggestionLabel(tag.suggestion_type)"
+              :class="getSuggestionColor(tag.suggestion_type)"
+            />
+            <span>{{ tag.name }}</span>
+          </div>
         </div>
       </div>
     </div>
