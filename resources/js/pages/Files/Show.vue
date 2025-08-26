@@ -2,7 +2,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type User } from '@/types';
-import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon, CheckCircleIcon,} from 'lucide-vue-next';
+import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon, CheckCircleIcon, ArrowRightLeftIcon} from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
@@ -161,7 +161,7 @@ const showFlashcards = ref(true)
 <template>
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class=" bg-[#fad380]">
+        <div class="bg-gradient">
 
             <!-- First Container (Opening) -->
             <div class="flex flex-col justify-between gap-4">
@@ -173,20 +173,20 @@ const showFlashcards = ref(true)
                         class="inline-flex items-center gap-2 px-4 py-2 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
                              hover:text-red-700 duration-300 font-bold"
                     >
-                        <ArrowLeftIcon class="h-5 w-5   " />
+                        <ArrowLeftIcon class="h-5 w-5" />
                         Back to Files
                     </Link>
                 </div>
 
                 <!-- File Detail part -->
                 <div class="rounded-xl px-10 py-2 text-3xl sm:text-3xl md:text-4xl font-extrabold welcome-banner
-                            shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce justify-center m-auto mb-3"
+                            shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce justify-center m-auto mb-3 pixel-outline"
                             style="image-rendering: pixelated;">
                     <h1 class="text-2xl md:text-2xl font-extrabold text-center">File Details</h1>
                 </div>
             </div>
 
-            <div class="bg-[#801403] ml-3 mr-3 mb-3 border-[#680d00] border-8 rounded-md">
+            <div class="bg-[url(https://copilot.microsoft.com/th/id/BCO.ab3e539b-6d32-496d-af01-807c0c4549fc.png)] ml-3 mr-3 mb-3 border-[#680d00] border-8 rounded-md">
                 <!-- Separator -->
                 <div class="grid gap-6 md:grid-cols-3">
                     <div class="space-y-4 md:col-span-1">
@@ -251,58 +251,58 @@ const showFlashcards = ref(true)
                                 <h3 class="text-2xl font-medium text-center text-[#fb9e1b] mb-5">Study Materials</h3>
 
                                 <!-- Toggle Button -->
-                                <div class="flex justify-center mb-2 duration-300">
+                                <div class="flex justify-center mb-5 duration-300">
                                 <button
                                     @click="showFlashcards = !showFlashcards"
-                                    class="text-base text-[#fb9e1b] bg-[#fff3cd] px-2 py-2 rounded-md hover:bg-[#ffe8a1] transition"
+                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#D66A4A] duration-300 pixel-outline border-border border-2"
                                 >
+                                    <ArrowRightLeftIcon class="h-4 w-4 mr-2 pixel-outline-icon"/>
                                     {{ showFlashcards ? 'Switch to Quizzes' : 'Switch to Flashcards' }}
                                 </button>
                                 </div>
 
                                 <!-- Toggleable Content -->
-                                <div class="relative min-h-[160px] overflow-hidden bg-red-400">
-                                <transition name="fade" mode="out-in">
+                                <div class="relative min-h-[110px]">
                                     <div v-if="showFlashcards" key="flashcards" class="absolute inset-0">
-                                    <!-- Flashcards Section -->
-                                    <div class="w-full py-2">
-                                        <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                        <Link :href="route('files.flashcards.index', file.id)">
-                                            <Button variant="outline" class="w-full sm:w-auto text-xs">
-                                            <BookOpen class="mr-2 h-3 w-3" />
-                                            View Flashcards
-                                            </Button>
-                                        </Link>
-                                        <Link :href="route('files.flashcards.practice', file.id)">
-                                            <Button variant="default" class="w-full sm:w-auto text-xs">
-                                            <BookOpen class="mr-2 h-3 w-3" />
-                                            Practice
-                                            </Button>
-                                        </Link>
+                                        <!-- Flashcards Section -->
+                                        <div class="w-full py-2">
+                                            <div class="flex flex-wrap mb-2 gap-6 justify-center">
+                                            <Link :href="route('files.flashcards.index', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-border border-2 pixel-outline">
+                                                <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                View Flashcards
+                                                </Button>
+                                            </Link>
+                                            <Link :href="route('files.flashcards.practice', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-border border-2 pixel-outline">
+                                                <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon " />
+                                                Practice
+                                                </Button>
+                                            </Link>
+                                            </div>
                                         </div>
-                                    </div>
-                                    </div>
+                                        </div>
 
-                                    <div v-else key="quizzes" class="absolute inset-0">
-                                    <!-- Quizzes Section -->
-                                    <div class="w-full py-2">
-                                        <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                        <Link :href="route('files.quizzes.index', file.id)">
-                                            <Button variant="outline" class="w-full sm:w-auto text-xs">
-                                            <ListChecks class="mr-2 h-3 w-3" />
-                                            View Quizzes
-                                            </Button>
-                                        </Link>
-                                        <Link :href="route('files.quizzes.test', file.id)">
-                                            <Button variant="default" class="w-full sm:w-auto text-xs">
-                                            <ListChecks class="mr-2 h-3 w-3" />
-                                            Take Quiz
-                                            </Button>
-                                        </Link>
+                                        <div v-else key="quizzes" class="absolute inset-0">
+                                        <!-- Quizzes Section -->
+                                        <div class="w-full py-2">
+                                            <div class="flex flex-wrap mb-2 gap-6 justify-center">
+                                            <Link :href="route('files.quizzes.index', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-border border-2 pixel-outline">
+                                                <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                View Quizzes
+                                                </Button>
+                                            </Link>
+                                            <Link :href="route('files.quizzes.test', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-border border-2 pixel-outline">
+                                                <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                Take Quiz
+                                                </Button>
+                                            </Link>
+                                            </div>
                                         </div>
                                     </div>
-                                    </div>
-                                </transition>
+                                    <p class="absolute bottom-2 left-2 text-white animate-soft-bounce pixel-outline text-sm align-content-center text-center ">Tip:  Get your files verified to generate flashcards and quizzes automatically!</p>
                                 </div>
 
                                 <!-- Generate flashcards and quiz butotn -->
@@ -313,9 +313,9 @@ const showFlashcards = ref(true)
                                         <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
                                             <DialogTrigger asChild>
                                                <Button
-                                                    class="w-full sm:w-auto flex items-center justify-center text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-5 py-5 font-semibold text-[#4a1c00] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#ffd166] hover:to-[#ffe680] active:scale-95"
+                                                    class="w-full sm:w-auto flex items-center justify-center text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-5 py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#ffd166] hover:to-[#ffe680] pixel-outline active:scale-95"
                                                         >
-                                                <PencilIcon class="h-8 w-8 text-[#4a1c00] animate-bounce" />
+                                                <PencilIcon class="h-8 w-8 text-[#fdf6ee] animate-bounce pixel-outline pixel-outline-icon" />
                                                     Generate Flashcards & Quizzes
                                                 </Button>
 
@@ -409,21 +409,21 @@ const showFlashcards = ref(true)
                                     <div class="flex flex-wrap items-center gap-3">
                                         <button
                                             @click="toggleStar"
-                                            class="inline-flex items-center justify-center rounded-md bg-[#faa800] px-3 py-2 text-sm font-medium hover:bg-[#ffd166]  border-2 border-border duration-300 hover:scale-105"
-                                            :class="{'text-[#661500]': isStarred, 'text-[#a65c00] bg-[#f5e1b2]': !isStarred}"
+                                            class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#f08a4b] border-2 border-border duration-300 hover:scale-105 pixel-outline"
+                                            :class="{'text-yellow-300': isStarred, 'bg-[#6f4f3b]': !isStarred}"
                                             :disabled="isStarring"
                                         >
-                                            <StarIcon class="h-5 w-5 mr-2" :fill="isStarred ? 'currentColor' : 'none'" />
+                                            <StarIcon class="h-5 w-5 mr-2 pixel-outline-icon" :fill="isStarred ? 'currentColor' : 'none'" />
                                             {{ file.star_count || 0 }}
                                             {{ isStarred ? 'Starred' : 'Star' }}
                                         </button>
                                         <button
                                             v-if="!file.verified && canVerify"
                                             @click="verifyFile"
-                                            class="inline-flex items-center justify-center rounded-md bg-[#faa800] px-3 py-2 text-sm font-medium hover:bg-accent transition-colors border-2"
+                                            class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#8be6a0] border-border duration-300 border-2"
                                             :disabled="isVerifying"
                                         >
-                                            <CheckCircleIcon class="h-5 w-5 mr-2" />
+                                            <CheckCircleIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
                                             {{ isVerifying ? 'Verifying...' : 'Verify' }}
                                         </button>
 
@@ -433,17 +433,17 @@ const showFlashcards = ref(true)
                                         <Link
                                             v-if="file.can_edit === true"
                                             :href="route('files.edit', { file: file.id })"
-                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 border-[#680d00] bg-[#faa800] px-4 py-2 text-sm font-medium text-[#661500] hover:bg-[#ffd166] hover:text-[#4a0e00] duration-300"
+                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#8cc9f2] border-border duration-300 pixel-outline"
                                         >
-                                            <PencilIcon class="h-4 w-4" />
+                                            <PencilIcon class="h-4 w-4 pixel-outline-icon" />
                                             Edit
                                         </Link>
                                         <a
                                             :href="route('files.download', { file: file.id })"
                                             download
-                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 border-[#680d00] bg-[#feaf00] px-4 py-2 text-sm font-medium text-[#661500]  hover:bg-[#ffd166] hover:text-[#4a0e00] duration-300"
+                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#f2aa86] border-border duration-300 pixel-outline"
                                         >
-                                            <DownloadIcon class="h-4 w-4" />
+                                            <DownloadIcon class="h-4 w-4 pixel-outline-icon" />
                                             Download
                                         </a>
                                         </div>
