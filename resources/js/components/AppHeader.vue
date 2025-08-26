@@ -102,6 +102,19 @@ const rightNavItems: NavItem[] = [
     },
     */
 ];
+
+// Calculate experience progress percentage for current level
+const getExperienceProgress = () => {
+    const user = auth.value.user;
+    const experience = user.experience || 0;
+    const experienceToNextLevel = user.experience_to_next_level || 100;
+
+    if (experienceToNextLevel === 0) {
+        return 100;
+    }
+
+    return Math.round((experience / experienceToNextLevel) * 100);
+};
 </script>
 
 <template>
@@ -202,6 +215,30 @@ const rightNavItems: NavItem[] = [
                                     </Tooltip>
                                 </TooltipProvider>
                             </template>
+                        </div>
+                    </div>
+
+                    <!-- Level and XP Display -->
+                    <div class="hidden md:flex items-center space-x-3 px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <!-- Level Badge -->
+                        <div class="flex items-center space-x-1">
+                            <span class="text-xs font-medium text-blue-600 dark:text-blue-400">LVL</span>
+                            <span class="text-sm font-bold text-blue-700 dark:text-blue-300">{{ auth.user.level || 1 }}</span>
+                        </div>
+
+                        <!-- XP Progress -->
+                        <div class="flex items-center space-x-2">
+                            <div class="flex flex-col">
+                                <div class="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                    <div
+                                        class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                                        :style="{ width: `${getExperienceProgress()}%` }"
+                                    ></div>
+                                </div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                                    {{ auth.user.experience || 0 }}/{{ auth.user.experience_to_next_level || 100 }} XP
+                                </div>
+                            </div>
                         </div>
                     </div>
 

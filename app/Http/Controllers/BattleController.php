@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Battle;
-use App\Monster;
-use App\Models\File;
-use App\Models\Quiz;
+use App\Models\Monster;
+use App\Services\BattleService;
+use App\Services\QuestService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +13,11 @@ use Illuminate\Support\Facades\DB;
 
 class BattleController extends Controller
 {
+    public function __construct(
+        private BattleService $battleService,
+        private QuestService $questService
+    ) {}
+
     /**
      * Display a listing of battles.
      */
@@ -226,6 +231,8 @@ class BattleController extends Controller
             abort(403, 'You can only complete your own battles.');
         }
 
+        $user = Auth::user();
+
         // Update battle with final results
         $battle->update([
             'player_hp' => $request->player_hp,
@@ -235,7 +242,21 @@ class BattleController extends Controller
             'status' => $request->status === 'victory' ? 'won' : 'lost',
         ]);
 
-        return response()->json(['success' => true]);
+        // Award XP based on battle performance
+        $baseXP = $request->status === 'victory' ? 50 : 25; // Victory gives more XP
+        $accuracyBonus = round(($request->correct_answers / max(1, $request->total_questions)) * 20); // Up to 20 bonus XP for accuracy
+        $totalXP = $baseXP + $accuracyBonus;
+
+        $user->addExperience($totalXP);
+
+        // Update quest progress for completing a battle
+        $this->questService->checkQuestCompletion($user, 'battle');
+
+        return response()->json([
+            'success' => true,
+            'xp_gained' => $totalXP,
+            'new_level' => $user->level
+        ]);
     }
 
     /**

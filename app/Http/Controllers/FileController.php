@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\File;
 use App\Models\Tag;
 use App\Services\FileRecommendationService;
+use App\Services\QuestService;
 use Inertia\Inertia;
 use ZipArchive;
 use DOMDocument;
@@ -12,9 +13,15 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 class FileController extends Controller
 {
     use AuthorizesRequests;
+
+    public function __construct(
+        private QuestService $questService
+    ) {}
+
     public function index(Request $request)
     {
         $query = File::verified()->with(['user', 'tags'])
@@ -94,6 +101,7 @@ class FileController extends Controller
         }
 
         $userID = auth()->id();
+        $user = auth()->user();
 
         // Check for duplicate by name and hash
         $existingFile = File::where(function ($query) use ($userID, $fileHash) {
@@ -127,18 +135,34 @@ class FileController extends Controller
             'user_id' => auth()->id(),
         ]);
 
-        if ($request->has('tags')) {
-            $tagIds = collect($request->input('tags'))->pluck('id')->all();
-            $file->tags()->sync($tagIds);
-        }
+            // Handle tags
+            if ($request->has('tags')) {
+                $tagIds = [];
+                foreach ($request->input('tags') as $tagData) {
+                    if (isset($tagData['id'])) {
+                        $tagIds[] = $tagData['id'];
+                    } elseif (isset($tagData['name'])) {
+                        $tag = Tag::firstOrCreate(['name' => $tagData['name']]);
+                        $tagIds[] = $tag->id;
+                    }
+                }
+                $file->tags()->sync($tagIds);
+            }
 
-        return redirect()->route('files.show', $file->id)->with('success', 'File uploaded successfully!');
-        //        return redirect()->back()->with([
-//            'success' => 'File uploaded successfully!',
-//            'content' => $content,
-//            'file_id' => $file->id,
-//        ]);
+            // Award XP for file upload (20 base XP)
+            $user->addExperience(20);
+
+            // Update quest progress for file upload
+            $this->questService->checkQuestCompletion($user, 'file_upload');
+
+            return redirect()->route('files.show', $file)
+                ->with([
+                    'success' => 'File uploaded successfully! You gained 20 XP!',
+                    'content' => $content,
+                    'file_id' => $file->id,
+                ]);
     }
+
     public function show(Request $request, $id)
     {
         $file = File::with(['tags', 'user'])

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Monster;
+use App\Models\Monster;
 use App\Enums\BattleStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
