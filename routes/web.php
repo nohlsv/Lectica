@@ -33,6 +33,21 @@ Route::get('/programs/search', [ProgramController::class, 'search'])
     ->name('programs.search');
 
 Route::get('/tags', [TagController::class, 'index'])->name('tags.index');
+Route::get('/tags/search', [TagController::class, 'search'])->name('tags.search');
+
+// Tag suggestion routes (for authenticated users)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/tags/suggestions', [TagController::class, 'suggestions'])->name('tags.suggestions');
+    Route::get('/tags/related', [TagController::class, 'related'])->name('tags.related');
+});
+
+// Tag alias management routes (for admin/faculty)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::post('/tags', [TagController::class, 'store'])->name('tags.store');
+    Route::put('/tags/{tag}', [TagController::class, 'update'])->name('tags.update');
+    Route::post('/tags/{tag}/aliases', [TagController::class, 'addAlias'])->name('tags.addAlias');
+    Route::delete('/tags/{tag}/aliases', [TagController::class, 'removeAlias'])->name('tags.removeAlias');
+});
 
 // Game routes
 Route::middleware(['auth', 'verified'])->group(function () {
