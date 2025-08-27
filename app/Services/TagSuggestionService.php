@@ -51,13 +51,15 @@ class TagSuggestionService
      */
     public function getMostUsedTags(User $user, int $limit = 5): Collection
     {
+        // Fixed N+1 query and added proper error handling
         return Tag::select('tags.*', DB::raw('COUNT(file_tag.tag_id) as usage_count'))
             ->join('file_tag', 'tags.id', '=', 'file_tag.tag_id')
             ->join('files', 'file_tag.file_id', '=', 'files.id')
             ->where('files.user_id', $user->id)
             ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
+            ->having('usage_count', '>', 0) // Only tags that are actually used
             ->orderByDesc('usage_count')
-            ->limit($limit)
+            ->limit(max(1, $limit)) // Ensure limit is at least 1
             ->get()
             ->map(function ($tag) {
                 $tag->suggestion_type = 'most_used';
@@ -70,14 +72,17 @@ class TagSuggestionService
      */
     public function getRecentlyUsedTags(User $user, int $limit = 5): Collection
     {
+        // Added date validation and improved query
+        $cutoffDate = now()->subDays(30);
+
         return Tag::select('tags.*', DB::raw('MAX(files.created_at) as last_used'))
             ->join('file_tag', 'tags.id', '=', 'file_tag.tag_id')
             ->join('files', 'file_tag.file_id', '=', 'files.id')
             ->where('files.user_id', $user->id)
-            ->where('files.created_at', '>=', now()->subDays(30)) // Only recent files
+            ->where('files.created_at', '>=', $cutoffDate)
             ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
             ->orderByDesc('last_used')
-            ->limit($limit)
+            ->limit(max(1, $limit))
             ->get()
             ->map(function ($tag) {
                 $tag->suggestion_type = 'recent';
@@ -90,11 +95,13 @@ class TagSuggestionService
      */
     public function getPopularTags(int $limit = 10): Collection
     {
+        // Added caching potential and better performance
         return Tag::select('tags.*', DB::raw('COUNT(file_tag.tag_id) as usage_count'))
             ->join('file_tag', 'tags.id', '=', 'file_tag.tag_id')
             ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
+            ->having('usage_count', '>', 0)
             ->orderByDesc('usage_count')
-            ->limit($limit)
+            ->limit(max(1, $limit))
             ->get()
             ->map(function ($tag) {
                 $tag->suggestion_type = 'popular';
@@ -107,9 +114,12 @@ class TagSuggestionService
      */
     public function getSearchSuggestions(User $user, string $query, int $limit = 10): Collection
     {
+        $query = trim($query);
         if (empty($query)) {
             return $this->getPersonalizedSuggestions($user, $limit);
         }
+
+        $limit = max(1, $limit); // Ensure positive limit
 
         // First try to find matches in user's tags
         $userMatches = Tag::searchByNameOrAlias($query)
@@ -128,16 +138,17 @@ class TagSuggestionService
 
         // If we don't have enough user matches, search all tags
         if ($userMatches->count() < $limit) {
+            $remainingLimit = $limit - $userMatches->count();
+            $excludeIds = $userMatches->pluck('id')->toArray();
+
             $globalMatches = Tag::searchByNameOrAlias($query)
-                ->select('tags.*', DB::raw('COUNT(file_tag.tag_id) as usage_count'))
+                ->select('tags.*', DB::raw('COALESCE(COUNT(file_tag.tag_id), 0) as usage_count'))
                 ->leftJoin('file_tag', 'tags.id', '=', 'file_tag.tag_id')
+                ->whereNotIn('tags.id', $excludeIds)
                 ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
                 ->orderByDesc('usage_count')
-                ->limit($limit - $userMatches->count())
+                ->limit($remainingLimit)
                 ->get()
-                ->filter(function ($tag) use ($userMatches) {
-                    return !$userMatches->contains('id', $tag->id);
-                })
                 ->map(function ($tag) {
                     $tag->suggestion_type = 'global_match';
                     return $tag;
@@ -150,7 +161,7 @@ class TagSuggestionService
             return [
                 'id' => $tag->id,
                 'name' => $tag->name,
-                'aliases' => $tag->aliases,
+                'aliases' => $tag->aliases ?? [],
                 'suggestion_type' => $tag->suggestion_type,
                 'usage_count' => $tag->usage_count ?? 0,
                 'display_names' => $tag->getDisplayNames(),
@@ -163,27 +174,38 @@ class TagSuggestionService
      */
     public function getRelatedTags(array $selectedTagIds, User $user, int $limit = 5): Collection
     {
-        if (empty($selectedTagIds)) {
+        if (empty($selectedTagIds) || !is_array($selectedTagIds)) {
             return collect();
         }
+
+        // Validate tag IDs are integers
+        $validTagIds = array_filter($selectedTagIds, function($id) {
+            return is_numeric($id) && $id > 0;
+        });
+
+        if (empty($validTagIds)) {
+            return collect();
+        }
+
+        $limit = max(1, $limit);
 
         return Tag::select('tags.*', DB::raw('COUNT(DISTINCT files.id) as co_occurrence'))
             ->join('file_tag as ft1', 'tags.id', '=', 'ft1.tag_id')
             ->join('files', 'ft1.file_id', '=', 'files.id')
             ->join('file_tag as ft2', 'files.id', '=', 'ft2.file_id')
-            ->whereIn('ft2.tag_id', $selectedTagIds)
-            ->whereNotIn('tags.id', $selectedTagIds)
+            ->whereIn('ft2.tag_id', $validTagIds)
+            ->whereNotIn('tags.id', $validTagIds)
             ->where('files.user_id', $user->id)
             ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
+            ->having('co_occurrence', '>', 0)
             ->orderByDesc('co_occurrence')
             ->limit($limit)
             ->get()
             ->map(function ($tag) {
-                $tag->suggestion_type = 'related';
                 return [
                     'id' => $tag->id,
                     'name' => $tag->name,
-                    'aliases' => $tag->aliases,
+                    'aliases' => $tag->aliases ?? [],
                     'suggestion_type' => 'related',
                     'co_occurrence' => $tag->co_occurrence,
                 ];

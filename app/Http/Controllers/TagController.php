@@ -84,12 +84,24 @@ class TagController extends Controller
     public function addAlias(Request $request, Tag $tag): JsonResponse
     {
         $validated = $request->validate([
-            'alias' => 'required|string|max:50',
+            'alias' => 'required|string|max:50|min:1',
         ]);
 
-        $tag->addAlias($validated['alias'])->save();
+        try {
+            $tag->addAlias($validated['alias']);
+            $tag->save();
 
-        return response()->json($tag);
+            return response()->json([
+                'success' => true,
+                'tag' => $tag->fresh(),
+                'message' => 'Alias added successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to add alias: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -101,9 +113,21 @@ class TagController extends Controller
             'alias' => 'required|string|max:50',
         ]);
 
-        $tag->removeAlias($validated['alias'])->save();
+        try {
+            $tag->removeAlias($validated['alias']);
+            $tag->save();
 
-        return response()->json($tag);
+            return response()->json([
+                'success' => true,
+                'tag' => $tag->fresh(),
+                'message' => 'Alias removed successfully'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to remove alias: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -112,23 +136,37 @@ class TagController extends Controller
     public function suggestions(Request $request): JsonResponse
     {
         $user = $request->user();
-        $query = $request->input('query', '');
-        $limit = $request->input('limit', 10);
-
-        $tagSuggestionService = app(TagSuggestionService::class);
-
-        if (empty($query)) {
-            // Return personalized suggestions (recent + most used + popular)
-            $suggestions = $tagSuggestionService->getPersonalizedSuggestions($user, $limit);
-        } else {
-            // Return search results with personalization
-            $suggestions = $tagSuggestionService->getSearchSuggestions($user, $query, $limit);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
         }
 
-        return response()->json([
-            'suggestions' => $suggestions,
-            'query' => $query
+        $validated = $request->validate([
+            'query' => 'nullable|string|max:100',
+            'limit' => 'nullable|integer|min:1|max:50',
         ]);
+
+        $query = $validated['query'] ?? '';
+        $limit = $validated['limit'] ?? 10;
+
+        try {
+            $tagSuggestionService = app(TagSuggestionService::class);
+
+            if (empty($query)) {
+                $suggestions = $tagSuggestionService->getPersonalizedSuggestions($user, $limit);
+            } else {
+                $suggestions = $tagSuggestionService->getSearchSuggestions($user, $query, $limit);
+            }
+
+            return response()->json([
+                'suggestions' => $suggestions,
+                'query' => $query
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch suggestions',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -137,14 +175,31 @@ class TagController extends Controller
     public function related(Request $request): JsonResponse
     {
         $user = $request->user();
-        $selectedTagIds = $request->input('selected_tags', []);
-        $limit = $request->input('limit', 5);
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
 
-        $tagSuggestionService = app(TagSuggestionService::class);
-        $relatedTags = $tagSuggestionService->getRelatedTags($selectedTagIds, $user, $limit);
-
-        return response()->json([
-            'related_tags' => $relatedTags
+        $validated = $request->validate([
+            'selected_tags' => 'nullable|array',
+            'selected_tags.*' => 'integer|min:1',
+            'limit' => 'nullable|integer|min:1|max:20',
         ]);
+
+        $selectedTagIds = $validated['selected_tags'] ?? [];
+        $limit = $validated['limit'] ?? 5;
+
+        try {
+            $tagSuggestionService = app(TagSuggestionService::class);
+            $relatedTags = $tagSuggestionService->getRelatedTags($selectedTagIds, $user, $limit);
+
+            return response()->json([
+                'related_tags' => $relatedTags
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to fetch related tags',
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }
