@@ -124,7 +124,7 @@ const getExperienceProgress = () => {
 
 <template>
     <div>
-        <div class="border-b border-sidebar-border/80">
+        <div class="border-b border-sidebar-border/80 bg-[#4d0a02]">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
                 <div class="lg:hidden">
@@ -170,12 +170,12 @@ const getExperienceProgress = () => {
                     </Sheet>
                 </div>
 
-                <Link :href="route('home')" class="flex items-center gap-x-2">
+                <Link :href="route('home')" class="flex items-center gap-x-2 bg-[#4d0a02] ">
                     <AppLogo />
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="hidden h-full lg:flex lg:flex-1 bg-[#7f1003] text-[#fce3aa]">
+                <div class="hidden h-full lg:flex lg:flex-1 text-[#fce3aa]">
                     <NavigationMenu class="ml-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch space-x-2">
                             <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">

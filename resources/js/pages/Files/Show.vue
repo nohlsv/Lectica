@@ -186,35 +186,34 @@ const showFlashcards = ref(true)
                 </div>
             </div>
 
-
-            <div class="bg-container ml-3 mr-3 mb-3 p-6">
+            <div class="bg-[url(https://copilot.microsoft.com/th/id/BCO.ab3e539b-6d32-496d-af01-807c0c4549fc.png)] ml-3 mr-3 mb-3 border-[#f68500] border-8 rounded-md">
                 <!-- Separator -->
                 <div class="grid gap-6 md:grid-cols-3">
                     <div class="space-y-4 md:col-span-1">
 
                         <!-- File Information (1st Major Container)-->
                         <div class="p-4">
-                            <h2 class="text-3xl font-semibold mb-3 text-[#fb9e1b] align-middle pixel-outline">{{file.name}}</h2>
+                            <h2 class="text-3xl font-semibold mb-3 text-[#fb9e1b] pixel-outline align-middle">{{file.name}}</h2>
                             <!--<div v-if="file.description" class="mb-3 text-sm">
                                 <p class="text-muted-foreground">{{ file.description }}</p>
                                 </div>
                             -->
                             <dl class="space-y-2 text-sm">
                                 <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085]">File Type:</dt>
-                                    <dd class="text-right uppercase">{{ fileInfo.extension }}</dd>
+                                    <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
+                                    <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
                                 </div>
                                 <div class="flex justify-between" v-if="fileInfo.size">
-                                    <dt class="text-base text-[#fce085]"> File Size:</dt>
-                                    <dd class="text-right">{{ formattedFileSize }}</dd>
+                                    <dt class="text-base text-[#fce085] pixel-outline"> File Size:</dt>
+                                    <dd class="text-right pixel-outline">{{ formattedFileSize }}</dd>
                                 </div>
                                 <!-- <div class="flex justify-between" v-if="fileInfo.lastModified">
                                     <dt class="text-base text-[#fce085]">Last Modified:</dt>
                                     <dd class="text-right">{{ fileInfo.lastModified }}</dd>
                                 </div>-->
                                 <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085]">Verified:</dt>
-                                    <dd class="text-right">
+                                    <dt class="text-base text-[#fce085] pixel-outline">Verified:</dt>
+                                    <dd class="text-right pixel-outline">
                                         <span
                                             :class="file.verified ? 'text-green-500' : 'text-red-500'"
                                             class="font-semibold"
@@ -224,15 +223,15 @@ const showFlashcards = ref(true)
                                     </dd>
                                 </div>
                                 <div class="flex justify-between pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085]">Uploaded by:</dt>
-                                    <dd class="text-right">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
+                                    <dt class="text-base text-[#fce085] pixel-outline">Uploaded by:</dt>
+                                    <dd class="text-right pixel-outline">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
                                 </div>
                                 <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085]">Upload Date:</dt>
-                                    <dd class="text-right">{{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
+                                    <dt class="text-base text-[#fce085] pixel-outline">Upload Date:</dt>
+                                    <dd class="text-right pixel-outline">{{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
                                 </div>
                                 <div class="pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] mb-2">Tags:</dt>
+                                    <dt class="text-base text-[#fce085] pixel-outline mb-2">Tags:</dt>
                                     <dd class="flex flex-wrap gap-1">
                                         <span
                                             v-for="tag in file.tags"
@@ -249,7 +248,7 @@ const showFlashcards = ref(true)
                             </dl>
 
                            <div class="mt-4 border-t border-[#faa800] py-4 space-y-2">
-                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] mb-5">Study Materials</h3>
+                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] pixel-outline mb-5">Study Materials</h3>
 
                                 <!-- Toggle Button -->
                                 <div class="flex justify-center mb-5 duration-300">
@@ -404,8 +403,8 @@ const showFlashcards = ref(true)
                     <div class="space-y-4 md:col-span-2">
                         <div class="p-4">
                                 <!-- Top buttons container-->
-                                <div class="flex flex-col md:flex-row justify-between items-center px-4 py-3">
-                                    <h2 class="text-xl font-semibold justify-center flex text-left pixel-outline text-[#fce085]">File Preview</h2>
+                                <div class="flex flex-row justify-between items-center gap-3 px-4 py-3">
+                                    <h2 class="text-xl font-semibold justify-center flex text-left px-4 py-3  text-[#fce085] pixel-outline">File Preview</h2>
 
                                     <!-- Buttons container -->
                                     <div class="flex flex-wrap items-center gap-3 justify-center mt-3 md:mt-0">
