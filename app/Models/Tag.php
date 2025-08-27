@@ -26,10 +26,16 @@ class Tag extends Model
      */
     public static function searchByNameOrAlias(string $search)
     {
+        $search = trim($search);
+        if (empty($search)) {
+            return static::query();
+        }
+
         return static::where('name', 'LIKE', "%{$search}%")
             ->orWhereJsonContains('aliases', $search)
             ->orWhere(function ($query) use ($search) {
-                $query->whereRaw('JSON_UNQUOTE(JSON_EXTRACT(aliases, "$[*]")) LIKE ?', ["%{$search}%"]);
+                // Fixed SQL injection vulnerability by using parameter binding
+                $query->whereRaw('JSON_SEARCH(aliases, "one", ?) IS NOT NULL', ["%{$search}%"]);
             });
     }
 
@@ -41,10 +47,14 @@ class Tag extends Model
         $terms = [$this->name];
 
         if ($this->aliases && is_array($this->aliases)) {
-            $terms = array_merge($terms, $this->aliases);
+            // Filter out empty/null aliases
+            $validAliases = array_filter($this->aliases, function($alias) {
+                return !empty(trim($alias));
+            });
+            $terms = array_merge($terms, $validAliases);
         }
 
-        return array_unique($terms);
+        return array_unique(array_filter($terms));
     }
 
     /**
@@ -52,6 +62,11 @@ class Tag extends Model
      */
     public function matchesSearchTerm(string $term): bool
     {
+        $term = trim($term);
+        if (empty($term)) {
+            return false;
+        }
+
         $searchableTerms = $this->getSearchableTerms();
 
         foreach ($searchableTerms as $searchableTerm) {
@@ -68,9 +83,16 @@ class Tag extends Model
      */
     public function addAlias(string $alias): self
     {
+        $alias = trim($alias);
+        if (empty($alias)) {
+            return $this;
+        }
+
         $aliases = $this->aliases ?? [];
 
-        if (!in_array($alias, $aliases)) {
+        // Case-insensitive check to prevent duplicates
+        $existingAliases = array_map('tolower', $aliases);
+        if (!in_array(strtolower($alias), $existingAliases) && strtolower($alias) !== strtolower($this->name)) {
             $aliases[] = $alias;
             $this->aliases = $aliases;
         }
@@ -83,10 +105,16 @@ class Tag extends Model
      */
     public function removeAlias(string $alias): self
     {
+        $alias = trim($alias);
+        if (empty($alias)) {
+            return $this;
+        }
+
         $aliases = $this->aliases ?? [];
 
+        // Case-insensitive removal
         $this->aliases = array_values(array_filter($aliases, function ($item) use ($alias) {
-            return $item !== $alias;
+            return strcasecmp($item, $alias) !== 0;
         }));
 
         return $this;
