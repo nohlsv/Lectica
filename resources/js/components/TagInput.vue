@@ -140,7 +140,7 @@ onMounted(() => {
 <template>
   <div class="tag-input-container relative w-full">
     <div
-      class="flex flex-wrap gap-2 p-2 rounded-md border border-input dark:bg-[#d9d9d9] dark:text-[#2F2F2F]  min-h-10"
+      class="flex flex-wrap gap-2 p-2 rounded-md border border-input text-[#333333] bg-[#FFF8F2]/80  min-h-10"
       @click="focusInput"
     >
       <!-- Selected Tags -->
