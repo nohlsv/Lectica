@@ -257,6 +257,16 @@
 
 }
 
+.bg-container{
+  background-image:
+        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+        url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
+  background-size: cover;
+  background-position: center;
+  border: 8px solid #680d00;
+  border-radius: 6px;
+}
+
 .pixel-outline{
    text-shadow: 2px 0 black, -2px 0 black, 0 2px black, 0 -2px black;
 }
