@@ -1,35 +1,39 @@
 <template>
     <AppLayout>
-        <div class="p-6 space-y-6">
-            <h1 class="text-2xl font-bold">History</h1>
-            <div v-if="records.data.length === 0" class="text-center text-muted-foreground">
-                No practice records found.
+        <div class="p-6 space-y-6 bg-gradient">
+            <div class="flex justify-center items-center">
+                <h1 class="text-2xl font-bold welcome-banner animate-soft-bounce pixel-outline w-fit py-2 px-10">History</h1>
             </div>
-            <div v-else class="space-y-4">
-                <div v-for="record in records.data" :key="record.id" class="p-4 bg-muted border-2 rounded-lg shadow">
-                    <h2 class="text-lg font-semibold">
-                        {{ record.file.name }} - {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}
-                    </h2>
-                    <p>Score: {{ record.correct_answers }} / {{ record.total_questions }}</p>
-                    <Link :href="route('practice-records.show', record.id)" class="text-primary underline">
-                        View Details
-                    </Link>
+            <div class="p-6 bg-container">
+                <div v-if="records.data.length === 0" class="text-center text-muted-foreground">
+                    No practice records found.
                 </div>
-            </div>
-            <!-- Pagination -->
-            <div v-if="records.last_page > 1" class="flex justify-center mt-6">
-                <div class="flex space-x-2">
-                    <Link
-                        v-for="page in paginationLinks"
-                        :key="page.label"
-                        :href="page.url || '#'"
-                        :class="[
-                            'px-3 py-1 rounded border',
-                            page.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
-                            !page.url && 'opacity-50 cursor-not-allowed'
-                        ]"
-                        v-html="page.label"
-                    ></Link>
+                <div v-else class="space-y-4">
+                    <div v-for="record in records.data" :key="record.id" class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg shadow">
+                        <h2 class="text-lg font-semibold">
+                            {{ record.file.name }} - {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}
+                        </h2>
+                        <p>Score: {{ record.correct_answers }} / {{ record.total_questions }}</p>
+                        <Link :href="route('practice-records.show', record.id)" class="text-primary underline">
+                            View Details
+                        </Link>
+                    </div>
+                </div>
+                <!-- Pagination -->
+                <div v-if="records.last_page > 1" class="flex justify-center mt-6">
+                    <div class="flex space-x-2">
+                        <Link
+                            v-for="page in paginationLinks"
+                            :key="page.label"
+                            :href="page.url || '#'"
+                            :class="[
+                                'px-3 py-1 rounded border',
+                                page.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                                !page.url && 'opacity-50 cursor-not-allowed'
+                            ]"
+                            v-html="page.label"
+                        ></Link>
+                    </div>
                 </div>
             </div>
         </div>

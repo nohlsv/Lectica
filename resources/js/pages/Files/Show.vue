@@ -186,14 +186,14 @@ const showFlashcards = ref(true)
                 </div>
             </div>
 
-            <div class="bg-[url(https://copilot.microsoft.com/th/id/BCO.ab3e539b-6d32-496d-af01-807c0c4549fc.png)] ml-3 mr-3 mb-3 border-[#680d00] border-8 rounded-md">
+            <div class="bg-container ml-3 mr-3 mb-3 p-6">
                 <!-- Separator -->
                 <div class="grid gap-6 md:grid-cols-3">
                     <div class="space-y-4 md:col-span-1">
 
                         <!-- File Information (1st Major Container)-->
                         <div class="p-4">
-                            <h2 class="text-3xl font-semibold mb-3 text-[#fb9e1b] align-middle">{{file.name}}</h2>
+                            <h2 class="text-3xl font-semibold mb-3 text-[#fb9e1b] align-middle pixel-outline">{{file.name}}</h2>
                             <!--<div v-if="file.description" class="mb-3 text-sm">
                                 <p class="text-muted-foreground">{{ file.description }}</p>
                                 </div>
@@ -254,7 +254,7 @@ const showFlashcards = ref(true)
                                 <div class="flex justify-center mb-5 duration-300">
                                 <button
                                     @click="showFlashcards = !showFlashcards"
-                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#D66A4A] duration-300 pixel-outline border-border border-2"
+                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#D66A4A] duration-300 pixel-outline border-[#0c0a03] border-2"
                                 >
                                     <ArrowRightLeftIcon class="h-4 w-4 mr-2 pixel-outline-icon"/>
                                     {{ showFlashcards ? 'Switch to Quizzes' : 'Switch to Flashcards' }}
@@ -268,13 +268,13 @@ const showFlashcards = ref(true)
                                         <div class="w-full py-2">
                                             <div class="flex flex-wrap mb-2 gap-6 justify-center">
                                             <Link :href="route('files.flashcards.index', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-border border-2 pixel-outline">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
                                                 <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
                                                 View Flashcards
                                                 </Button>
                                             </Link>
                                             <Link :href="route('files.flashcards.practice', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-border border-2 pixel-outline">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
                                                 <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon " />
                                                 Practice
                                                 </Button>
@@ -288,13 +288,13 @@ const showFlashcards = ref(true)
                                         <div class="w-full py-2">
                                             <div class="flex flex-wrap mb-2 gap-6 justify-center">
                                             <Link :href="route('files.quizzes.index', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-border border-2 pixel-outline">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
                                                 <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
                                                 View Quizzes
                                                 </Button>
                                             </Link>
                                             <Link :href="route('files.quizzes.test', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-border border-2 pixel-outline">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
                                                 <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
                                                 Take Quiz
                                                 </Button>
@@ -315,22 +315,22 @@ const showFlashcards = ref(true)
                                                <Button
                                                     class="w-full sm:w-auto flex items-center justify-center text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-5 py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#ffd166] hover:to-[#ffe680] pixel-outline active:scale-95"
                                                         >
-                                                <PencilIcon class="h-8 w-8 text-[#fdf6ee] animate-bounce pixel-outline pixel-outline-icon" />
+                                                <PencilIcon class="h-8 w-8 text-[#fdf6ee] pixel-outline pixel-outline-icon" />
                                                     Generate Flashcards & Quizzes
                                                 </Button>
 
                                             </DialogTrigger>
-                                            <DialogContent class="bg-[#851103] text-[#fbd178]">
+                                            <DialogContent class="bg-[#8E2C38] text-[#fbd178] border-8 border-[#0c0a03]">
                                                 <DialogHeader>
-                                                    <DialogTitle class="text-[#fb9e1b] text-lg">Generate Flashcards & Quizzes</DialogTitle>
+                                                    <DialogTitle class="text-[#F5E3C8] text-xl pixel-outline">Generate Flashcards & Quizzes</DialogTitle>
                                                 </DialogHeader>
                                                 <div class="space-y-4">
                                                     <div class="flex items-center gap-2 ">
                                                         <input type="checkbox" v-model="generateOptions.generate_flashcards" id="generate_flashcards" />
                                                         <label for="generate_flashcards" class="text-sm font-medium">Generate Flashcards</label>
                                                     </div>
-                                                    <div v-if="generateOptions.generate_flashcards" class="flex items-center gap-2 border-b mb-5 pb-2 border-[#fbd178]">
-                                                        <label for="flashcards_count" class="text-sm font-medium">Flashcards Count:</label>
+                                                    <div v-if="generateOptions.generate_flashcards" class="flex items-center gap-2 border-b mb-10 pb-2 border-[#fbd178]">
+                                                        <label for="flashcards_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">Flashcards Count:</label>
                                                         <Input
                                                             type="number"
                                                             id="flashcards_count"
@@ -338,6 +338,7 @@ const showFlashcards = ref(true)
                                                             min="1"
                                                             max="15"
                                                             @input="generateOptions.flashcards_count = Math.min(Math.max(generateOptions.flashcards_count, 1), 15)"
+                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
                                                         />
                                                     </div>
                                                     <div class="flex items-center gap-2">
@@ -345,7 +346,7 @@ const showFlashcards = ref(true)
                                                         <label for="generate_multiple_choice_quizzes" class="text-sm font-medium">Generate Multiple Choice Quizzes</label>
                                                     </div>
                                                     <div v-if="generateOptions.generate_multiple_choice_quizzes" class="flex items-center gap-2">
-                                                        <label for="multiple_choice_count" class="text-sm font-medium">Multiple Choice Count:</label>
+                                                        <label for="multiple_choice_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">Multiple Choice Count:</label>
                                                         <Input
                                                             type="number"
                                                             id="multiple_choice_count"
@@ -353,6 +354,7 @@ const showFlashcards = ref(true)
                                                             min="1"
                                                             max="15"
                                                             @input="generateOptions.multiple_choice_count = Math.min(Math.max(generateOptions.multiple_choice_count, 1), 15)"
+                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
                                                         />
                                                     </div>
                                                     <div class="flex items-center gap-2">
@@ -360,7 +362,7 @@ const showFlashcards = ref(true)
                                                         <label for="generate_enumeration_quizzes" class="text-sm font-medium">Generate Enumeration Quizzes</label>
                                                     </div>
                                                     <div v-if="generateOptions.generate_enumeration_quizzes" class="flex items-center gap-2">
-                                                        <label for="enumeration_count" class="text-sm font-medium">Enumeration Count:</label>
+                                                        <label for="enumeration_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">Enumeration Count:</label>
                                                         <Input
                                                             type="number"
                                                             id="enumeration_count"
@@ -368,6 +370,7 @@ const showFlashcards = ref(true)
                                                             min="1"
                                                             max="15"
                                                             @input="generateOptions.enumeration_count = Math.min(Math.max(generateOptions.enumeration_count, 1), 15)"
+                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
                                                         />
                                                     </div>
                                                     <div class="flex items-center gap-2">
@@ -375,7 +378,7 @@ const showFlashcards = ref(true)
                                                         <label for="generate_true_false_quizzes" class="text-sm font-medium">Generate True/False Quizzes</label>
                                                     </div>
                                                     <div v-if="generateOptions.generate_true_false_quizzes" class="flex items-center gap-2">
-                                                        <label for="true_false_count" class="text-sm font-medium">True/False Count:</label>
+                                                        <label for="true_false_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">True/False Count:</label>
                                                         <Input
                                                             type="number"
                                                             id="true_false_count"
@@ -383,11 +386,12 @@ const showFlashcards = ref(true)
                                                             min="1"
                                                             max="15"
                                                             @input="generateOptions.true_false_count = Math.min(Math.max(generateOptions.true_false_count, 1), 15)"
+                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
                                                         />
                                                     </div>
                                                 </div>
                                                 <DialogFooter>
-                                                    <Button :disabled="isGenerating" @click="submitGenerateRequest">
+                                                    <Button :disabled="isGenerating" @click="submitGenerateRequest" class="border-[#0c0a03] bg-[#10B981] border-2 text-[#fdf6ee] pixel-outline tracking-wide hover:scale-110 duration-300 hover:bg-[#1fe1a2]">
                                                         {{ isGenerating ? 'Generating...' : 'Generate' }}
                                                     </Button>
                                                 </DialogFooter>
@@ -409,7 +413,7 @@ const showFlashcards = ref(true)
                                     <div class="flex flex-wrap items-center gap-3">
                                         <button
                                             @click="toggleStar"
-                                            class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#f08a4b] border-2 border-border duration-300 hover:scale-105 pixel-outline"
+                                            class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#f08a4b] border-2 border-[#0c0a03] duration-300 hover:scale-105 pixel-outline"
                                             :class="{'text-yellow-300': isStarred, 'bg-[#6f4f3b]': !isStarred}"
                                             :disabled="isStarring"
                                         >
@@ -420,7 +424,7 @@ const showFlashcards = ref(true)
                                         <button
                                             v-if="!file.verified && canVerify"
                                             @click="verifyFile"
-                                            class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#8be6a0] border-border duration-300 border-2"
+                                            class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#8be6a0] border-[#0c0a03] duration-300 border-2"
                                             :disabled="isVerifying"
                                         >
                                             <CheckCircleIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
@@ -433,7 +437,7 @@ const showFlashcards = ref(true)
                                         <Link
                                             v-if="file.can_edit === true"
                                             :href="route('files.edit', { file: file.id })"
-                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#8cc9f2] border-border duration-300 pixel-outline"
+                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#8cc9f2] border-[#0c0a03] duration-300 pixel-outline"
                                         >
                                             <PencilIcon class="h-4 w-4 pixel-outline-icon" />
                                             Edit
@@ -441,7 +445,7 @@ const showFlashcards = ref(true)
                                         <a
                                             :href="route('files.download', { file: file.id })"
                                             download
-                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#f2aa86] border-border duration-300 pixel-outline"
+                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#f2aa86] border-[#0c0a03] duration-300 pixel-outline"
                                         >
                                             <DownloadIcon class="h-4 w-4 pixel-outline-icon" />
                                             Download
@@ -484,7 +488,7 @@ const showFlashcards = ref(true)
                                 </div>
 
                                 <!-- Office File Preview -->
-                                <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-border rounded-md">
+                                <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-[#0c0a03] rounded-md">
                                     <iframe
                                         :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
                                         width="100%"
@@ -500,14 +504,14 @@ const showFlashcards = ref(true)
 
                             <!-- Extracted Text Content -->
                             <div v-if="!isPreviewable && file.content" class="mt-4">
-                                <h3 class="text-md font-medium mb-2">Extracted Text</h3>
-                                <div class="max-h-[400px] overflow-auto rounded-md bg-accent/50 p-4">
+                                <h3 class="text-md font-medium mb-2 text-[#fce085]">Extracted Text</h3>
+                                <div class="max-h-[400px] overflow-auto rounded-md bg-accent/60 p-4">
                                     <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
                                 </div>
                             </div>
 
                             <!-- File Not Found -->
-                            <div v-if="!fileInfo.exists" class="flex items-center justify-center h-[200px] bg-accent/20 rounded-md">
+                            <div v-if="!fileInfo.exists" class="flex items-center justify-center h-[200px] bg-accent/60  rounded-md">
                                 <div class="text-center">
                                     <FileIcon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
                                     <p>File content not available.</p>
