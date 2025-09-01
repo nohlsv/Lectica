@@ -122,7 +122,7 @@ const submit = () => {
             </div>
 
             <!-- Form -->
-            <div class="flex justify-center p-6 self-center w-full bg-[url(https://copilot.microsoft.com/th/id/BCO.ab3e539b-6d32-496d-af01-807c0c4549fc.png)] border-[#680d00] border-8 rounded-md">
+            <div class="flex justify-center p-6 self-center w-full bg-container border-[#680d00] border-8 rounded-md">
                 <form @submit.prevent="submit" class="space-y-6 w-full max-w-xl">
                 <!-- File Upload -->
                     <div class="space-y-2">

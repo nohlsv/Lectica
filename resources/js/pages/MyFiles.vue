@@ -55,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="My Files" />
 
     <AppLayout>
-        <div class="container py-6">
+        <div class="px-3 sm:px-6 py-6">
             <!-- Breadcrumbs -->
             <div class="mb-6 flex items-center text-sm text-muted-foreground">
                 <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
@@ -68,105 +68,111 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mb-6">
-                <h1 class="text-3xl font-bold">My Files</h1>
-                <Link :href="route('files.create')">
-                    <Button>
-                        <PlusIcon class="h-4 w-4 mr-2" />
-                        Add New File
-                    </Button>
-                </Link>
-            </div>
+            <div class="bg-gradient p-6 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                    <h1 class="text-3xl font-bold welcome-banner py-2 px-10 animate-soft-bounce">My Files</h1>
+                    <Link :href="route('files.create')">
+                        <Button class="bg-[#6B7A58] text-[#fdf6ee] hover:bg-[#7F8F6A] border-border border-2 text-base py-3 px-4 sm:px-6 md:px-10 pixel-outline tracking-wide">
+                            <PlusIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
+                            Add New File
+                        </Button>
+                    </Link>
+                </div>
 
-            <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12">
-                <FolderIcon class="h-16 w-16 text-muted-foreground mb-4" />
-                <h2 class="text-xl font-semibold mb-2">No files found</h2>
-                <p class="text-muted-foreground mb-6">You haven't uploaded any files yet.</p>
-                <Link :href="route('files.create')">
-                    <Button>
-                        <PlusIcon class="h-4 w-4 mr-2" />
-                        Upload Your First File
-                    </Button>
-                </Link>
-            </div>
+                <!-- If no files are uploaded -->
+                <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12 bg-container">
+                    <FolderIcon class="h-16 w-16 text-muted-foreground mb-4" />
+                    <h2 class="text-xl font-semibold mb-2">No files found</h2>
+                    <p class="text-muted-foreground mb-6">You haven't uploaded any files yet.</p>
+                    <Link :href="route('files.create')">
+                        <Button class="bg-[#4ECDC4]">
+                            <PlusIcon class="h-4 w-4 mr-2" />
+                            Upload Your First File
+                        </Button>
+                    </Link>
+                </div>
 
-            <div v-else class="space-y-6">
-                <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
-                    <h2 class="text-xl font-bold border-b pb-2">{{ letter }}</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        <Link
-                            v-for="file in files"
-                            :key="file.id"
-                            :href="route('files.show', file.id)"
-                            class="no-underline"
-                        >
-                            <Card class="h-full transition-all hover:shadow-md">
-                                <CardHeader class="pb-2">
-                                    <div class="flex justify-between items-start">
-                                        <div class="flex items-center">
-                                            <FileIcon class="h-5 w-5 mr-2 text-primary" />
-                                            <CardTitle class="text-lg truncate max-w-[280px]" title="{{ file.name }}">
+                <!-- Main container -->
+                <div v-else class="bg-container space-y-6 p-6 w-full max-w-screen-xl mx-auto">
+                    <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
+                        <h2 class="text-2xl font-extrabold border-b border-[#fb9e1b] pb-2 pixel-outline text-[#fce085]">{{ letter }}</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+                            <Link
+                                v-for="file in files"
+                                :key="file.id"
+                                :href="route('files.show', file.id)"
+                                class="no-underline"
+                            >
+                                <Card class="h-full overflow-hidden rounded-lg transition-all hover:bg-[#322017] bg-[#1C110E] border-[#0c0a03] border-2 text-[#F0EAD6] hover:scale-105 duration-300">
+                                    <CardHeader class="pb-2">
+                                        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                                            <div class="flex items-center gap-2 flex-wrap">
+                                                <FileIcon class="h-6 w-6 text-[#89643e]" />
+                                                <CardTitle
+                                                class="text-base sm:text-lg truncate max-w-full sm:max-w-[260px] text-[#e0c28d]"
+                                                :title="file.name"
+                                                >
                                                 {{ file.name }}
-                                            </CardTitle>
-                                        </div>
-                                        <StarIcon
-                                            :class="[
-                                                'h-5 w-5',
+                                                </CardTitle>
+                                            </div>
+                                            <StarIcon
+                                                :class="[
+                                                'h-5 w-5 shrink-0 self-start sm:self-auto',
                                                 file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
-                                            ]"
-                                        />
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <CardDescription class="line-clamp-2">
-                                        {{ file.description || 'No description provided' }}
-                                    </CardDescription>
-                                    <div class="mt-2 flex flex-wrap gap-1">
-                                        <Badge
-                                            v-for="tag in file.tags"
-                                            :key="tag.id"
-                                            variant="secondary"
-                                            class="text-xs truncate"
-                                            :title="tag.name"
-                                        >
-                                            {{ tag.name }}
-                                        </Badge>
-                                    </div>
-                                </CardContent>
-                                <CardFooter class="flex justify-between text-xs text-muted-foreground">
-                                    <span>Created: {{ new Date(file.created_at).toLocaleDateString() }}</span>
-                                    <div class="flex items-center space-x-2">
-                                        <div class="flex items-center">
-                                            <span>{{ file.flashcards_count || 0 }} flashcards</span>
+                                                ]"
+                                            />
+                                            </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <CardDescription class="line-clamp-2 text-[#c8ba9a]">
+                                            {{ file.description || 'No description provided' }}
+                                        </CardDescription>
+                                        <div class="mt-2 flex flex-wrap gap-1">
+                                            <Badge
+                                                v-for="tag in file.tags"
+                                                :key="tag.id"
+                                                class="text-xs truncate bg-[#6B7A58] text-[#fdf6ee]"
+                                                :title="tag.name"
+                                            >
+                                                {{ tag.name }}
+                                            </Badge>
                                         </div>
-                                        <span>•</span>
-                                        <div class="flex items-center">
-                                            <span>{{ file.quizzes_count || 0 }} quizzes</span>
+                                    </CardContent>
+                                    <CardFooter class="flex justify-between text-xs text-[#a89b85]">
+                                        <span>Created: {{ new Date(file.created_at).toLocaleDateString() }}</span>
+                                        <div class="flex items-center space-x-2">
+                                            <div class="flex items-center">
+                                                <span>{{ file.flashcards_count || 0 }} flashcards</span>
+                                            </div>
+                                            <span>•</span>
+                                            <div class="flex items-center">
+                                                <span>{{ file.quizzes_count || 0 }} quizzes</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardFooter>
-                            </Card>
-                        </Link>
+                                    </CardFooter>
+                                </Card>
+                            </Link>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Pagination -->
-            <div v-if="files.meta && files.meta.last_page > 1" class="flex justify-center mt-8">
-                <div class="flex space-x-1">
-                    <Link
-                        v-for="page in files.meta.links"
-                        :key="page.label"
-                        :href="page.url ? page.url : '#'"
-                        v-text="page.label"
-                        :class="[
-                            'px-3 py-1 rounded border',
-                            page.active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted',
-                            !page.url && 'opacity-50 cursor-not-allowed'
-                        ]"
-                    />
+                <!-- Pagination -->
+                <div v-if="files.meta && files.meta.last_page > 1" class="flex justify-center mt-8">
+                    <div class="flex space-x-1">
+                        <Link
+                            v-for="page in files.meta.links"
+                            :key="page.label"
+                            :href="page.url ? page.url : '#'"
+                            v-text="page.label"
+                            :class="[
+                                'px-3 py-1 rounded border',
+                                page.active
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'hover:bg-muted',
+                                !page.url && 'opacity-50 cursor-not-allowed'
+                            ]"
+                        />
+                    </div>
                 </div>
             </div>
         </div>
