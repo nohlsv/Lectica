@@ -49,9 +49,20 @@ const columns = [
 
 const searchQuery = ref('');
 const selectedTags = ref<number[]>([]);
-const allTags = ref<Tag[]>([]);
 const showStarredOnly = ref(false);
 const showSameProgramOnly = ref(false);
+const showCollectionModal = ref(false);
+const selectedFileForCollection = ref<File | null>(null);
+const selectedCollection = ref<number | null>(null);
+const userCollections = ref<Collection[]>([]);
+const allTags = ref<Tag[]>([]);
+
+interface Collection {
+    id: number;
+    name: string;
+    file_count: number;
+    is_public: boolean;
+}
 
 const sortOptions = ref([
     { value: 'name', label: 'Name' },
@@ -103,6 +114,50 @@ const toggleStar = async (file: File) => {
         toast.error('Error toggling star', {
             description: 'An error occurred while toggling the star status. Please try again.',
         });
+    }
+};
+
+// Fetch user's collections for adding files
+const fetchUserCollections = async () => {
+    try {
+        const response = await axios.get('/api/user/collections');
+        userCollections.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch collections:', error);
+    }
+};
+
+const openCollectionModal = (file: File) => {
+    selectedFileForCollection.value = file;
+    selectedCollection.value = null;
+    showCollectionModal.value = true;
+    fetchUserCollections();
+};
+
+const addToCollection = async () => {
+    if (!selectedFileForCollection.value || !selectedCollection.value) return;
+
+    try {
+        await router.post(route('collections.add-file', selectedCollection.value), {
+            file_id: selectedFileForCollection.value.id
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showCollectionModal.value = false;
+                selectedFileForCollection.value = null;
+                selectedCollection.value = null;
+                toast.success('File added to collection successfully!');
+            },
+            onError: (errors) => {
+                if (errors.file) {
+                    toast.error(errors.file);
+                } else {
+                    toast.error('Failed to add file to collection');
+                }
+            }
+        });
+    } catch (error) {
+        toast.error('Failed to add file to collection');
     }
 };
 </script>
@@ -215,7 +270,96 @@ const toggleStar = async (file: File) => {
                         </div>
                     </div>
                 </div>
+                <div class="flex flex-wrap gap-2">
+                    <Badge
+                        v-for="tag in allTags"
+                        :key="tag.id"
+                        :variant="selectedTags.includes(tag.id) ? 'default' : 'secondary'"
+                        @click="selectedTags.includes(tag.id) ? selectedTags.splice(selectedTags.indexOf(tag.id), 1) : selectedTags.push(tag.id)"
+                        class="cursor-pointer"
+                    >
+                        {{ tag.name }}
+                    </Badge>
+                </div>
             </div>
         </div>
+        <div class="rounded-xl border border-border p-4 sm:p-6 mb-8 overflow-hidden">
+            <div class="overflow-x-auto -mx-4 sm:mx-0">
+                <DataTable :data="files" :columns="columns" class="min-w-full">
+                    <!-- Custom cell template to clamp content text -->
+                    <template #cell-description="{ item }">
+                        <p class="max-w-full sm:line-clamp-2 line-clamp-4 text-sm text-muted-foreground">
+                            {{ item.description ? item.description : 'No description provided' }}
+                        </p>
+                    </template>
+                    <template #cell-created_at="{ item }">
+                        <p class="max-w-full text-sm text-muted-foreground">
+                            By {{item.user.last_name}}, {{item.user.first_name}}<br>
+                            {{ useDateFormat(item.created_at, 'MMM D, YYYY').value }}
+                        </p>
+                    </template>
+
+                    <template #actions="{ item }">
+                        <div class="flex items-center gap-2">
+                            <Link
+                                :href="`/files/${item.id}`"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"
+                                title="View file details"
+                            >
+                                <EyeIcon class="h-4 w-4" />
+                            </Link>
+                            <Link
+                                v-if="item.can_edit"
+                                :href="`/files/${item.id}/edit`"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"
+                                title="Edit file"
+                            >
+                                <PencilIcon class="h-4 w-4" />
+                            </Link>
+                            <div v-else class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-40" title="Only the uploader can edit this file">
+                                <PencilIcon class="h-4 w-4" />
+                            </div>
+                            <button
+                                @click.prevent="toggleStar(item)"
+                                class="inline-flex items-center justify-center rounded-full p-1 hover:bg-accent transition-colors"
+                                :class="{'text-amber-500': item.is_starred, 'text-muted-foreground': !item.is_starred}"
+                                :disabled="item.is_starring"
+                            >
+                                <StarIcon class="h-4 w-4" :fill="item.is_starred ? 'currentColor' : 'none'" />
+                            </button>
+                            <span>{{ item.star_count || 0 }}</span>
+                            <Button @click.prevent="openCollectionModal(item)" class="text-sm">
+                                Add to Collection
+                            </Button>
+                        </div>
+                    </template>
+                </DataTable>
+            </div>
+        </div>
+
+        <!-- Collection Modal -->
+        <Transition name="modal">
+            <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                <div class="w-full max-w-md rounded-lg bg-background p-6">
+                    <h2 class="text-lg font-semibold mb-4">Add File to Collection</h2>
+                    <div class="mb-4">
+                        <label for="collection" class="block text-sm font-medium mb-2">Select Collection</label>
+                        <select id="collection" v-model="selectedCollection" class="w-full rounded border bg-background px-3 py-2 text-sm">
+                            <option v-for="collection in userCollections" :key="collection.id" :value="collection.id">
+                                {{ collection.name }} ({{ collection.file_count }})
+                            </option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <Button @click="showCollectionModal = false" variant="outline" class="text-sm">
+                            Cancel
+                        </Button>
+                        <Button @click="addToCollection" class="text-sm">
+                            Add to Collection
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
     </AppLayout>
 </template>

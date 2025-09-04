@@ -1,10 +1,10 @@
 <template>
-    <Head title="Start New Battle" />
+    <Head title="Create Multiplayer Game" />
 
     <AppLayout>
         <template #header>
             <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                Start New Battle
+                Create Multiplayer Battle
             </h2>
         </template>
 
@@ -59,7 +59,7 @@
                                 </div>
                             </div>
 
-                            <!-- File Selection (when source_type is 'file') -->
+                            <!-- File Selection -->
                             <div v-if="form.source_type === 'file'" class="mb-6">
                                 <label for="file_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Select Your Study File
@@ -84,7 +84,7 @@
                                 </div>
                             </div>
 
-                            <!-- Collection Selection (when source_type is 'collection') -->
+                            <!-- Collection Selection -->
                             <div v-if="form.source_type === 'collection'" class="mb-6">
                                 <label for="collection_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Select Your Collection
@@ -116,74 +116,15 @@
                                 </div>
                             </div>
 
-                            <!-- Difficulty Selection -->
-                            <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Choose Difficulty
-                                </label>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                    <button
-                                        type="button"
-                                        @click="selectedDifficulty = 'easy'"
-                                        :class="selectedDifficulty === 'easy'
-                                            ? 'ring-2 ring-green-500 border-green-500 bg-green-50 dark:bg-green-900/20'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-green-300'"
-                                        class="p-4 border rounded-lg text-center transition-colors"
-                                    >
-                                        <div class="text-green-500 mb-2">
-                                            <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                            </svg>
-                                        </div>
-                                        <h3 class="font-medium">Easy</h3>
-                                        <p class="text-sm text-gray-500">Lower HP monsters</p>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        @click="selectedDifficulty = 'medium'"
-                                        :class="selectedDifficulty === 'medium'
-                                            ? 'ring-2 ring-yellow-500 border-yellow-500 bg-yellow-50 dark:bg-yellow-900/20'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-yellow-300'"
-                                        class="p-4 border rounded-lg text-center transition-colors"
-                                    >
-                                        <div class="text-yellow-500 mb-2">
-                                            <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                                            </svg>
-                                        </div>
-                                        <h3 class="font-medium">Medium</h3>
-                                        <p class="text-sm text-gray-500">Balanced challenge</p>
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        @click="selectedDifficulty = 'hard'"
-                                        :class="selectedDifficulty === 'hard'
-                                            ? 'ring-2 ring-red-500 border-red-500 bg-red-50 dark:bg-red-900/20'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-red-300'"
-                                        class="p-4 border rounded-lg text-center transition-colors"
-                                    >
-                                        <div class="text-red-500 mb-2">
-                                            <svg class="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                            </svg>
-                                        </div>
-                                        <h3 class="font-medium">Hard</h3>
-                                        <p class="text-sm text-gray-500">High HP monsters</p>
-                                    </button>
-                                </div>
-                            </div>
-
                             <!-- Monster Selection -->
-                            <div v-if="availableMonsters.length > 0" class="mb-6">
+                            <div class="mb-6">
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                     Choose Your Opponent
                                 </label>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <button
                                         type="button"
-                                        v-for="monster in availableMonsters"
+                                        v-for="monster in monsters"
                                         :key="monster.id"
                                         @click="form.monster_id = monster.id"
                                         :class="form.monster_id === monster.id
@@ -210,25 +151,38 @@
                                 </div>
                             </div>
 
+                            <!-- Game Info -->
+                            <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                                <h3 class="text-lg font-medium text-purple-900 dark:text-purple-100 mb-2">
+                                    How Multiplayer Battles Work
+                                </h3>
+                                <ul class="text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                                    <li>• You and another player take turns answering questions</li>
+                                    <li>• Correct answers deal damage to the monster</li>
+                                    <li>• Wrong answers cause the monster to damage the current player</li>
+                                    <li>• Work together to defeat the monster before it defeats you both!</li>
+                                </ul>
+                            </div>
+
                             <!-- Submit Button -->
                             <div class="flex items-center justify-between">
                                 <Link
-                                    :href="route('battles.index')"
+                                    :href="route('multiplayer-games.index')"
                                     class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
                                 >
-                                    ← Back to Battles
+                                    ← Back to Games
                                 </Link>
 
                                 <button
                                     type="submit"
                                     :disabled="form.processing || !canSubmit"
-                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 focus:bg-indigo-700 active:bg-indigo-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 disabled:opacity-50"
+                                    class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 disabled:opacity-50"
                                 >
                                     <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Start Battle
+                                    Create Game & Wait for Player
                                 </button>
                             </div>
                         </form>
@@ -240,7 +194,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 
@@ -250,7 +204,6 @@ interface Monster {
     hp: number
     attack: number
     image: string
-    difficulty: string
 }
 
 interface File {
@@ -273,8 +226,6 @@ const props = defineProps<{
     collections: Collection[]
 }>()
 
-const selectedDifficulty = ref('easy')
-
 const form = useForm({
     source_type: 'file',
     file_id: '',
@@ -282,20 +233,9 @@ const form = useForm({
     monster_id: ''
 })
 
-const availableMonsters = computed(() => {
-    return props.monsters.filter(monster =>
-        monster.difficulty === selectedDifficulty.value
-    )
-})
-
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id
-    return hasSource && form.monster_id && selectedDifficulty.value
-})
-
-// Reset monster selection when difficulty changes
-watch(selectedDifficulty, () => {
-    form.monster_id = ''
+    return hasSource && form.monster_id
 })
 
 // Reset file/collection when source type changes
@@ -305,6 +245,6 @@ watch(() => form.source_type, () => {
 })
 
 const submit = () => {
-    form.post(route('battles.store'))
+    form.post(route('multiplayer-games.store'))
 }
 </script>
