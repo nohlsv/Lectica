@@ -27,6 +27,7 @@ class MultiplayerGame extends Model
         'player_two_score',
         'current_turn',
         'status',
+        'game_mode', // Add game_mode to fillable
         'correct_answers_p1',
         'correct_answers_p2',
         'total_questions_p1',
@@ -79,7 +80,7 @@ class MultiplayerGame extends Model
     public function monster(): Attribute
     {
         return Attribute::make(
-            get: fn () => Monster::find($this->monster_id)
+            get: fn () => $this->monster_id ? Monster::find($this->monster_id) : null
         );
     }
 
@@ -268,5 +269,21 @@ class MultiplayerGame extends Model
     public function getTotalAvailableQuestions(): int
     {
         return $this->getAvailableQuizzes()->count();
+    }
+
+    /**
+     * Check if this is a PVP game.
+     */
+    public function isPvp(): bool
+    {
+        return $this->game_mode === 'pvp';
+    }
+
+    /**
+     * Check if this is a PVE game.
+     */
+    public function isPve(): bool
+    {
+        return $this->game_mode === 'pve';
     }
 }
