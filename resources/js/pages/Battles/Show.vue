@@ -68,11 +68,12 @@
                                 <div class="flex justify-center mb-3">
                                     <img
                                         v-if="monster?.image_path"
-                                        :src="`/images/monsters/${monster.image_path}`"
+                                        :src="monster.image_path"
                                         :alt="monster.name"
                                         class="w-16 h-16 rounded-lg object-cover"
                                         @error="$event.target.style.display = 'none'"
                                     />
+                                    <div v-else class="text-red-500 text-sm">No image_path found</div>
                                 </div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
