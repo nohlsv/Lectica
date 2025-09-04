@@ -330,7 +330,7 @@
                         <div>
                             <button
                                 @click="submit"
-                                :disabled="!canSubmit"
+                                :disabled="!canSubmit || form.processing"
                                 class="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-gray-800"
                             >
                                 <span v-if="form.processing" class="flex items-center justify-center">
@@ -487,7 +487,7 @@ interface Player {
 }
 
 interface Monster {
-    id: string;
+    id: number;
     name: string;
     hp: number;
     attack: number;
@@ -544,9 +544,9 @@ const activeTab = ref<'lobby' | 'create' | 'mygames'>('lobby');
 // Game creation form
 const form = useForm({
     source_type: 'file',
-    file_id: '',
-    collection_id: '',
-    monster_id: '',
+    file_id: null,
+    collection_id: null,
+    monster_id: null,
     game_mode: 'pve',
 });
 
