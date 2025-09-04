@@ -220,42 +220,56 @@ const addToCollection = async () => {
         </div>
 
         <!-- Add to Collection Modal -->
-        <Dialog v-model:open="showCollectionModal">
-            <DialogOverlay class="fixed inset-0 bg-black/30" />
-            <DialogContent class="fixed left-1/2 top-1/2 max-h-[85vh] w-full max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-lg border border-border bg-background p-6 shadow-md">
-                <DialogHeader>
-                    <DialogTitle class="text-lg font-semibold">Add File to Collection</DialogTitle>
-                </DialogHeader>
+        <div v-if="showCollectionModal" class="fixed inset-0 z-50 overflow-y-auto">
+            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showCollectionModal = false"></div>
+                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
+                            Add File to Collection
+                        </h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                            Select a collection to add this file to. You can also create a new collection from the
+                            <Link href="/collections/create" class="text-indigo-600 hover:text-indigo-500 underline">
+                                Collections page
+                            </Link>.
+                        </p>
 
-                <div class="mt-4">
-                    <p class="text-sm text-muted-foreground">
-                        Select a collection to add this file to. You can also create a new collection from the
-                        <Link href="/collections/create" class="text-primary hover:underline">
-                            Collections page
-                        </Link>.
-                    </p>
-                </div>
-
-                <div class="mt-4 space-y-2">
-                    <div v-for="collection in userCollections" :key="collection.id" class="flex items-center justify-between rounded-md border border-border bg-background p-4">
-                        <div>
-                            <p class="text-sm font-medium text-foreground">{{ collection.name }}</p>
-                            <p class="text-xs text-muted-foreground">{{ collection.file_count }} file(s)</p>
+                        <div v-if="userCollections.length === 0" class="text-center py-4">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">No collections found.</p>
+                            <Link
+                                href="/collections/create"
+                                class="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500"
+                            >
+                                Create your first collection
+                            </Link>
                         </div>
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="selectedCollection = collection.id; addToCollection()"
-                        >
-                            Add
-                        </Button>
+
+                        <div v-else class="space-y-2 max-h-64 overflow-y-auto">
+                            <div
+                                v-for="collection in userCollections"
+                                :key="collection.id"
+                                class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                :class="{
+                                    'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700': selectedCollection === collection.id,
+                                    'bg-white dark:bg-gray-800': selectedCollection !== collection.id
+                                }"
+                                @click="selectedCollection = collection.id; addToCollection()"
+                            >
+                                <div>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ collection.name }}</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{ collection.file_count }} file(s) • {{ collection.is_public ? 'Public' : 'Private' }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                        <Button variant="outline" @click="showCollectionModal = false">Close</Button>
                     </div>
                 </div>
-
-                <DialogFooter class="mt-4">
-                    <Button variant="outline" @click="showCollectionModal = false">Close</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            </div>
+        </div>
     </AppLayout>
 </template>
