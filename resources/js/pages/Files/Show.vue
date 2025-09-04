@@ -2,12 +2,13 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type User } from '@/types';
-import { ArrowLeftIcon, ListChecks, Pencil, BookOpen, PencilIcon, DownloadIcon, StarIcon, FileIcon, FileType2Icon, CheckCircleIcon } from 'lucide-vue-next';
+import { ArrowLeftIcon, StarIcon, CheckCircleIcon, PencilIcon, DownloadIcon, BookOpen, ListChecks, FileType2Icon, FileIcon, PlusIcon } from 'lucide-vue-next';
 import { ref, computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue-sonner';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
+import axios from 'axios';
 
 interface Props {
     file: File;
@@ -28,6 +29,9 @@ const isVerifying = ref(false);
 const showCollectionModal = ref(false);
 const userCollections = ref<Collection[]>([]);
 const selectedCollection = ref<number | null>(null);
+const showCreateNewCollection = ref(false);
+const newCollectionName = ref('');
+const isCreatingCollection = ref(false);
 
 interface Collection {
     id: number;
@@ -161,7 +165,31 @@ const fetchUserCollections = async () => {
 const openCollectionModal = () => {
     selectedCollection.value = null;
     showCollectionModal.value = true;
+    showCreateNewCollection.value = false;
+    newCollectionName.value = '';
     fetchUserCollections();
+};
+
+const createNewCollection = async () => {
+    if (!newCollectionName.value.trim()) return;
+
+    isCreatingCollection.value = true;
+    try {
+        const response = await axios.post('/api/collections', {
+            name: newCollectionName.value.trim(),
+            is_public: false
+        });
+
+        await fetchUserCollections();
+        selectedCollection.value = response.data.id;
+        showCreateNewCollection.value = false;
+        newCollectionName.value = '';
+        toast.success('Collection created successfully!');
+    } catch (error) {
+        toast.error('Failed to create collection');
+    } finally {
+        isCreatingCollection.value = false;
+    }
 };
 
 const addToCollection = async () => {
@@ -244,6 +272,13 @@ const addToCollection = async () => {
                         <DownloadIcon class="h-4 w-4" />
                         Download
                     </a>
+                    <button
+                        @click="openCollectionModal"
+                        class="inline-flex items-center justify-center gap-1 rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                    >
+                        <PlusIcon class="h-4 w-4" />
+                        Add to Collection
+                    </button>
                 </div>
             </div>
 
@@ -524,44 +559,75 @@ const addToCollection = async () => {
                         <DialogTitle>Add File to Collection</DialogTitle>
                     </DialogHeader>
                     <div class="space-y-4">
-                        <p class="text-sm text-muted-foreground">
-                            Select a collection to add this file to. You can also create a new collection from your
-                            <Link href="/collections" class="text-primary underline"> collections page</Link>.
-                        </p>
-                        <div v-if="userCollections.length === 0" class="text-center py-10">
-                            <p class="text-sm text-muted-foreground">No collections found.</p>
-                        </div>
-                        <div v-else class="space-y-2">
-                            <div
-                                v-for="collection in userCollections"
-                                :key="collection.id"
-                                class="flex items-center justify-between p-3 rounded-md border cursor-pointer hover:bg-accent transition-colors"
-                                @click="selectedCollection = collection.id"
-                            >
-                                <div>
-                                    <p class="text-sm font-medium">{{ collection.name }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ collection.file_count }} file(s)</p>
-                                </div>
-                                <div v-if="selectedCollection === collection.id">
-                                    <CheckCircleIcon class="h-5 w-5 text-primary" />
+
+                        <div v-if="!showCreateNewCollection">
+                            <p class="text-sm text-muted-foreground mb-3">
+                                Select a collection to add this file to.
+                            </p>
+                            <div v-if="userCollections.length === 0" class="text-center py-10">
+                                <p class="text-sm text-muted-foreground">No collections found.</p>
+                            </div>
+                            <div v-else class="space-y-2 max-h-60 overflow-y-auto">
+                                <div
+                                    v-for="collection in userCollections"
+                                    :key="collection.id"
+                                    class="flex items-center justify-between p-3 rounded-md border cursor-pointer hover:bg-accent transition-colors"
+                                    :class="{'border-primary bg-primary/5': selectedCollection === collection.id}"
+                                    @click="selectedCollection = collection.id"
+                                >
+                                    <div>
+                                        <p class="text-sm font-medium">{{ collection.name }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ collection.file_count }} files</p>
+                                    </div>
+                                    <div v-if="selectedCollection === collection.id">
+                                        <CheckCircleIcon class="h-5 w-5 text-primary" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <div v-if="showCreateNewCollection" class="space-y-3">
+                            <p class="text-sm text-muted-foreground">Create a new collection for this file.</p>
+                            <Input
+                                v-model="newCollectionName"
+                                placeholder="Enter collection name"
+                                class="w-full"
+                                :disabled="isCreatingCollection"
+                                @keydown.enter="createNewCollection"
+                            />
+                        </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" @click="showCollectionModal = false">
-                            Cancel
-                        </Button>
+                    <DialogFooter class="flex justify-between">
                         <Button
-                            @click="addToCollection"
-                            :disabled="!selectedCollection"
+                            @click="showCreateNewCollection = !showCreateNewCollection"
+                            variant="ghost"
+                            class="text-sm"
                         >
-                            Add to Collection
+                            {{ showCreateNewCollection ? 'Select Existing' : 'Create New' }}
                         </Button>
+                        <div class="flex gap-2">
+                            <Button variant="outline" @click="showCollectionModal = false">
+                                Cancel
+                            </Button>
+                            <Button
+                                v-if="!showCreateNewCollection"
+                                @click="addToCollection"
+                                :disabled="!selectedCollection"
+                            >
+                                Add to Collection
+                            </Button>
+                            <Button
+                                v-else
+                                @click="createNewCollection"
+                                :disabled="!newCollectionName.trim() || isCreatingCollection"
+                            >
+                                <span v-if="isCreatingCollection">Creating...</span>
+                                <span v-else>Create & Add</span>
+                            </Button>
+                        </div>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div>
     </AppLayout>
 </template>
-
