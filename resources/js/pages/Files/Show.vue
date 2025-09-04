@@ -553,7 +553,6 @@ const addToCollection = async () => {
                             Cancel
                         </Button>
                         <Button
-                            variant="primary"
                             @click="addToCollection"
                             :disabled="!selectedCollection"
                         >
