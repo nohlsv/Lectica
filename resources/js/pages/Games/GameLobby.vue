@@ -23,8 +23,7 @@ const user = (usePage().props.auth as {user: User}).user;
 
 function createLobby() {
     loading.value = true;
-
-    router.post('/games', { player_one_id: user.id }, {
+    router.post(route('games.store'), { player_one_id: user.id }, {
         onSuccess: () => router.reload(),
         onFinish: () => loading.value = false,
     });
@@ -32,7 +31,7 @@ function createLobby() {
 
 function joinGame(gameId: number) {
     loading.value = true;
-    router.post(`/games/${gameId}/join`, { player_two_id: user.id }, {
+    router.post(route('games.join', gameId), { player_two_id: user.id }, {
         onSuccess: () => router.reload(),
         onFinish: () => loading.value = false,
     });

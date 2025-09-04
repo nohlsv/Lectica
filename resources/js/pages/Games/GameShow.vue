@@ -53,7 +53,7 @@ watch(() => gameState.value.questions, (questions) => {
     if (gameState.value.status !== 'finished') {
       gameState.value.status = 'finished';
       gameState.value.game_end_reason = 'no_more_questions';
-      router.post(`/games/${gameState.value.id}/finish`, {
+      router.post(route('games.finish', gameState.value.id), {
         status: 'finished',
         game_end_reason: 'no_more_questions',
       }, {
@@ -86,7 +86,7 @@ function getInitials(player: any) {
 function submitAnswer() {
   if (!answer.value) return;
   submitting.value = true;
-  router.post(`/games/${gameState.value.id}/answer`, {
+  router.post(route('games.answer', gameState.value.id), {
     player_id: user.id,
     answer: answer.value,
   }, {
@@ -97,7 +97,7 @@ function submitAnswer() {
 }
 
 function startGame() {
-  router.post(`/games/${gameState.value.id}/start`, {}, {
+  router.post(route('games.start', gameState.value.id), {}, {
     preserveScroll: true,
     onSuccess: (page) => {
       if (page.props?.game?.game_end_reason === 'no_quizzes_found' || page.props?.error === 'No quizzes available for either player.') {
@@ -128,12 +128,12 @@ function startGame() {
 
 function returnToLobby() {
   // Finish the game before returning to lobby
-  router.post(`/games/${gameState.value.id}/finish`, {
+  router.post(route('games.finish', gameState.value.id), {
     status: 'finished',
     game_end_reason: 'quit',
   }, {
     preserveScroll: true,
-    onFinish: () => router.visit('/games/lobby'),
+    onFinish: () => router.visit(route('games.lobby')),
   });
 }
 </script>

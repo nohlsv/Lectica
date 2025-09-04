@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\MultiplayerGame;
 use App\Models\User;
-
-
 use App\Models\Quiz;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
@@ -41,18 +39,28 @@ class GameController extends Controller
     }
 
     // List games without player two
-    public function openLobbies() {
+    public function openLobbies(Request $request) {
         $games = MultiplayerGame::whereNull('player_two_id')
             ->where('status', '!=', 'finished')
             ->get();
-        return response()->json($games);
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($games);
+        }
+
+        // Redirect to game lobby for browser requests
+        return redirect()->route('games.lobby');
     }
 
     // Join a game as player two
     public function join(Request $request, $id) {
         $game = MultiplayerGame::findOrFail($id);
         if ($game->player_two_id) {
-            return response()->json(['error' => 'MultiplayerGame already has two players'], 400);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'MultiplayerGame already has two players'], 400);
+            }
+            return redirect()->route('games.lobby')->with('error', 'Game already has two players.');
         }
         $validated = $request->validate([
             'player_two_id' => 'required|exists:users,id',
@@ -73,6 +81,7 @@ class GameController extends Controller
         if (!empty($game->questions) && count($game->questions) > 0) {
             return response()->json(['error' => 'MultiplayerGame already started'], 400);
         }
+
         // Fetch quizzes from each player's starred files
         $playerOne = User::find($game->player_one_id);
         $playerTwo = User::find($game->player_two_id);
@@ -120,25 +129,40 @@ class GameController extends Controller
         broadcast(new \App\Events\MultiplayerGameUpdated($game));
         return $game;
     }
+
     // Start a quiz game when both players are present
-    public function startQuizGame($id) {
+    public function startQuizGame(Request $request, $id) {
         $game = $this->_startQuizGame($id);
         if ($game instanceof \Illuminate\Http\JsonResponse) {
             return $game;
         }
-        return response()->json(['game' => $game->toArray() + ['phase' => $game->phase]]);
+
+        $response = ['game' => $game->toArray() + ['phase' => $game->phase]];
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($response);
+        }
+
+        // Redirect to game show for browser requests
+        return redirect()->route('games.show', ['id' => $game->id]);
     }
 
     // Answer a question
     public function answer(Request $request, $id) {
         $game = MultiplayerGame::findOrFail($id);
         if ($game->status !== 'active') {
-            return response()->json(['error' => 'MultiplayerGame not active'], 400);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'MultiplayerGame not active'], 400);
+            }
+            return redirect()->route('games.show', ['id' => $id])->with('error', 'Game is not active.');
         }
+
         $validated = $request->validate([
             'player_id' => 'required|exists:users,id',
             'answer' => 'required',
         ]);
+
         $currentQuestion = $game->questions[0];
         $isCorrect = in_array($validated['answer'], $currentQuestion['answers']);
         if ($isCorrect) {
@@ -176,7 +200,16 @@ class GameController extends Controller
         $game->save();
         // Broadcast game state using Laravel Reverb
         broadcast(new \App\Events\MultiplayerGameUpdated($game));
-        return response()->json($game->toArray() + ['phase' => $game->phase]);
+
+        $response = $game->toArray() + ['phase' => $game->phase];
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($response);
+        }
+
+        // Redirect to game show for browser requests
+        return redirect()->route('games.show', ['id' => $id]);
     }
 
     // Render the game lobby, but forcefully redirect to the user's active game if they are already in one
@@ -220,6 +253,13 @@ class GameController extends Controller
         $game->game_end_reason = $validated['game_end_reason'] ?? null;
         $game->save();
         broadcast(new \App\Events\MultiplayerGameUpdated($game));
-        return response()->json($game);
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($game);
+        }
+
+        // Redirect to game lobby for browser requests
+        return redirect()->route('games.lobby')->with('success', 'Game finished successfully.');
     }
 }

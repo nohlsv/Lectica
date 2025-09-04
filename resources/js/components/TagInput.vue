@@ -47,23 +47,18 @@ const filteredRelatedTags = computed(() => {
 const loadSuggestions = async (query = '') => {
   isLoading.value = true;
   try {
-    const endpoint = query ? '/tags/suggestions' : '/tags/suggestions';
+    // Use route helper instead of hardcoded URL
+    const endpoint = query ? route('tags.suggestions') : route('tags.suggestions');
     const response = await axios.get(endpoint, {
-      params: query ? { query, limit: 10 } : { limit: 10 }
+      params: { query, limit: 10 }
     });
 
-    if (query) {
-      suggestedTags.value = response.data.suggestions || [];
-      currentSection.value = 'search';
-    } else {
-      suggestedTags.value = response.data.suggestions || [];
-      currentSection.value = 'suggestions';
-    }
+    suggestedTags.value = response.data.suggestions || [];
   } catch (error) {
     console.error('Error fetching tag suggestions:', error);
     // Fallback to basic search if suggestions fail
     if (query) {
-      const response = await axios.get('/tags/search', { params: { query } });
+      const response = await axios.get(route('tags.search'), { params: { query } });
       suggestedTags.value = response.data.map(tag => ({
         ...tag,
         suggestion_type: 'fallback'
@@ -83,7 +78,7 @@ const loadRelatedTags = async () => {
 
   try {
     const selectedTagIds = selectedTags.value.map(tag => tag.id);
-    const response = await axios.get('/tags/related', {
+    const response = await axios.get(route('tags.related'), {
       params: { selected_tags: selectedTagIds, limit: 5 }
     });
     relatedTags.value = response.data.related_tags || [];
@@ -124,7 +119,7 @@ const createNewTag = async () => {
   }
 
   try {
-    const response = await axios.post('/tags', { name: inputValue.value.trim() });
+    const response = await axios.post(route('tags.store'), { name: inputValue.value.trim() });
     addTag(response.data);
   } catch (error: any) {
     console.error('Error creating tag:', error);

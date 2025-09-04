@@ -62,7 +62,7 @@ const selectedSort = ref('name');
 const sortDirection = ref('asc');
 
 const fetchTags = async () => {
-    const response = await axios.get('/tags');
+    const response = await axios.get(route('tags.index'));
     allTags.value = response.data;
 };
 
