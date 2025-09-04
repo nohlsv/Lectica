@@ -6,23 +6,30 @@ use App\Models\Tag;
 use App\Services\TagSuggestionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class TagController extends Controller
 {
-    //
     /**
      * Get all tags for dropdown selection
      */
-    public function index(): JsonResponse
+    public function index(Request $request)
     {
         $tags = Tag::orderBy('name')->get();
-        return response()->json($tags);
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($tags);
+        }
+
+        // Redirect to a proper page for browser requests
+        return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 
     /**
      * Create a new tag
      */
-    public function store(Request $request): JsonResponse
+    public function store(Request $request)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:50|unique:tags,name',
@@ -32,13 +39,19 @@ class TagController extends Controller
 
         $tag = Tag::create($validated);
 
-        return response()->json($tag, 201);
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($tag, 201);
+        }
+
+        // Redirect to a proper page for browser requests
+        return redirect()->route('dashboard')->with('success', 'Tag created successfully.');
     }
 
     /**
      * Update an existing tag
      */
-    public function update(Request $request, Tag $tag): JsonResponse
+    public function update(Request $request, Tag $tag)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:50|unique:tags,name,' . $tag->id,
@@ -48,13 +61,19 @@ class TagController extends Controller
 
         $tag->update($validated);
 
-        return response()->json($tag);
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($tag);
+        }
+
+        // Redirect to a proper page for browser requests
+        return redirect()->route('dashboard')->with('success', 'Tag updated successfully.');
     }
 
     /**
      * Search for tags by name or aliases
      */
-    public function search(Request $request): JsonResponse
+    public function search(Request $request)
     {
         $query = $request->input('query', '');
 
@@ -67,7 +86,7 @@ class TagController extends Controller
                 ->get();
         }
 
-        return response()->json($tags->map(function ($tag) {
+        $formattedTags = $tags->map(function ($tag) {
             return [
                 'id' => $tag->id,
                 'name' => $tag->name,
@@ -75,13 +94,21 @@ class TagController extends Controller
                 'display_names' => $tag->getDisplayNames(),
                 'searchable_terms' => $tag->getSearchableTerms(),
             ];
-        }));
+        });
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($formattedTags);
+        }
+
+        // Redirect to a proper page for browser requests
+        return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 
     /**
      * Add an alias to a tag
      */
-    public function addAlias(Request $request, Tag $tag): JsonResponse
+    public function addAlias(Request $request, Tag $tag)
     {
         $validated = $request->validate([
             'alias' => 'required|string|max:50|min:1',
@@ -91,23 +118,36 @@ class TagController extends Controller
             $tag->addAlias($validated['alias']);
             $tag->save();
 
-            return response()->json([
+            $response = [
                 'success' => true,
                 'tag' => $tag->fresh(),
                 'message' => 'Alias added successfully'
-            ]);
+            ];
+
+            // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($response);
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Alias added successfully.');
         } catch (\Exception $e) {
-            return response()->json([
+            $errorResponse = [
                 'success' => false,
                 'message' => 'Failed to add alias: ' . $e->getMessage()
-            ], 500);
+            ];
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($errorResponse, 500);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'Failed to add alias: ' . $e->getMessage());
         }
     }
 
     /**
      * Remove an alias from a tag
      */
-    public function removeAlias(Request $request, Tag $tag): JsonResponse
+    public function removeAlias(Request $request, Tag $tag)
     {
         $validated = $request->validate([
             'alias' => 'required|string|max:50',
@@ -117,27 +157,43 @@ class TagController extends Controller
             $tag->removeAlias($validated['alias']);
             $tag->save();
 
-            return response()->json([
+            $response = [
                 'success' => true,
                 'tag' => $tag->fresh(),
                 'message' => 'Alias removed successfully'
-            ]);
+            ];
+
+            // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($response);
+            }
+
+            return redirect()->route('dashboard')->with('success', 'Alias removed successfully.');
         } catch (\Exception $e) {
-            return response()->json([
+            $errorResponse = [
                 'success' => false,
                 'message' => 'Failed to remove alias: ' . $e->getMessage()
-            ], 500);
+            ];
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($errorResponse, 500);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'Failed to remove alias: ' . $e->getMessage());
         }
     }
 
     /**
      * Get personalized tag suggestions for the authenticated user
      */
-    public function suggestions(Request $request): JsonResponse
+    public function suggestions(Request $request)
     {
         $user = $request->user();
         if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            return redirect()->route('login');
         }
 
         $validated = $request->validate([
@@ -157,26 +213,42 @@ class TagController extends Controller
                 $suggestions = $tagSuggestionService->getSearchSuggestions($user, $query, $limit);
             }
 
-            return response()->json([
+            $response = [
                 'suggestions' => $suggestions,
                 'query' => $query
-            ]);
+            ];
+
+            // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($response);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
         } catch (\Exception $e) {
-            return response()->json([
+            $errorResponse = [
                 'error' => 'Failed to fetch suggestions',
                 'message' => $e->getMessage()
-            ], 500);
+            ];
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($errorResponse, 500);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'Failed to fetch suggestions: ' . $e->getMessage());
         }
     }
 
     /**
      * Get related tags based on currently selected tags
      */
-    public function related(Request $request): JsonResponse
+    public function related(Request $request)
     {
         $user = $request->user();
         if (!$user) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['error' => 'Unauthorized'], 401);
+            }
+            return redirect()->route('login');
         }
 
         $validated = $request->validate([
@@ -192,14 +264,27 @@ class TagController extends Controller
             $tagSuggestionService = app(TagSuggestionService::class);
             $relatedTags = $tagSuggestionService->getRelatedTags($selectedTagIds, $user, $limit);
 
-            return response()->json([
+            $response = [
                 'related_tags' => $relatedTags
-            ]);
+            ];
+
+            // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($response);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
         } catch (\Exception $e) {
-            return response()->json([
+            $errorResponse = [
                 'error' => 'Failed to fetch related tags',
                 'message' => $e->getMessage()
-            ], 500);
+            ];
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json($errorResponse, 500);
+            }
+
+            return redirect()->route('dashboard')->with('error', 'Failed to fetch related tags: ' . $e->getMessage());
         }
     }
 }

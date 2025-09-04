@@ -136,11 +136,17 @@ class QuestController extends Controller
     /**
      * Get quest progress for API calls.
      */
-    public function progress()
+    public function progress(Request $request)
     {
         $user = Auth::user();
         $questSummary = $this->questService->getUserQuestSummary($user);
 
-        return response()->json($questSummary);
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json($questSummary);
+        }
+
+        // Redirect to quest stats page for browser requests
+        return redirect()->route('quests.stats')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 }
