@@ -49,13 +49,37 @@ class MultiplayerGameController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'game_mode' => 'required|in:pve,pvp',
-            'monster_id' => 'required_if:game_mode,pve|string',
-            'source_type' => 'required|in:file,collection',
-            'file_id' => 'required_if:source_type,file|exists:files,id',
-            'collection_id' => 'required_if:source_type,collection|exists:collections,id',
+        // Add debugging
+        \Log::info('Multiplayer game creation attempt', [
+            'user_id' => Auth::id(),
+            'request_data' => $request->all()
         ]);
+
+        try {
+            $request->validate([
+                'game_mode' => 'required|in:pve,pvp',
+                'monster_id' => 'required_if:game_mode,pve|numeric|exists:monsters,id',
+                'source_type' => 'required|in:file,collection',
+                'file_id' => [
+                    'required_if:source_type,file',
+                    'nullable',
+                    'exists:files,id'
+                ],
+                'collection_id' => [
+                    'required_if:source_type,collection',
+                    'nullable',
+                    'exists:collections,id'
+                ],
+            ]);
+
+            \Log::info('Validation passed for multiplayer game creation');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed for multiplayer game creation', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            throw $e; // Re-throw to show errors in form
+        }
 
         // Validate monster only for PVE mode
         $monster = null;
@@ -71,26 +95,36 @@ class MultiplayerGameController extends Controller
         $quizCount = 0;
 
         if ($request->source_type === 'file') {
-            $file = File::findOrFail($request->file_id);
+            \Log::info('Attempting to find file', ['file_id' => $request->file_id]);
 
-            // Check if user owns the file
-            if ($file->user_id !== Auth::id()) {
-                abort(403, 'You can only create games with your own files.');
+            try {
+                $file = File::findOrFail($request->file_id);
+                \Log::info('File found', ['file' => $file->toArray()]);
+            } catch (\Exception $e) {
+                \Log::error('File not found', ['file_id' => $request->file_id, 'error' => $e->getMessage()]);
+                return back()->withErrors(['file_id' => 'The selected file could not be found.']);
             }
 
             $quizCount = Quiz::where('file_id', $file->id)->count();
+            \Log::info('Quiz count for file', ['file_id' => $file->id, 'quiz_count' => $quizCount]);
+
             if ($quizCount === 0) {
                 return back()->withErrors(['file_id' => 'This file has no quizzes. Please generate quizzes first.']);
             }
         } else {
-            $collection = Collection::findOrFail($request->collection_id);
+            \Log::info('Attempting to find collection', ['collection_id' => $request->collection_id]);
 
-            // Check if user owns the collection
-            if ($collection->user_id !== Auth::id()) {
-                abort(403, 'You can only create games with your own collections.');
+            try {
+                $collection = Collection::findOrFail($request->collection_id);
+                \Log::info('Collection found', ['collection' => $collection->toArray()]);
+            } catch (\Exception $e) {
+                \Log::error('Collection not found', ['collection_id' => $request->collection_id, 'error' => $e->getMessage()]);
+                return back()->withErrors(['collection_id' => 'The selected collection could not be found.']);
             }
 
             $quizCount = $collection->getTotalQuizzesCount();
+            \Log::info('Quiz count for collection', ['collection_id' => $collection->id, 'quiz_count' => $quizCount]);
+
             if ($quizCount === 0) {
                 return back()->withErrors(['collection_id' => 'This collection has no quizzes. Please add files with quizzes first.']);
             }
@@ -120,12 +154,25 @@ class MultiplayerGameController extends Controller
             $gameData['monster_hp'] = $monster->hp;
         }
 
-        $game = MultiplayerGame::create($gameData);
+        \Log::info('Attempting to create game with data', ['game_data' => $gameData]);
 
-        // Broadcast to lobby for real-time updates
-        broadcast(new \App\Events\MultiplayerGameLobbyUpdate())->toOthers();
+        try {
+            $game = MultiplayerGame::create($gameData);
+            \Log::info('Game created successfully', ['game_id' => $game->id]);
 
-        return redirect()->route('multiplayer-games.show', $game);
+            // Broadcast to lobby for real-time updates
+            broadcast(new \App\Events\MultiplayerGameLobbyUpdate())->toOthers();
+
+            \Log::info('Broadcasting completed, redirecting to game');
+            return redirect()->route('multiplayer-games.show', $game);
+        } catch (\Exception $e) {
+            \Log::error('Failed to create multiplayer game', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'game_data' => $gameData
+            ]);
+            return back()->withErrors(['general' => 'Failed to create the game. Please try again.']);
+        }
     }
 
     /**
