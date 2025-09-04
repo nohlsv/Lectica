@@ -193,9 +193,11 @@
                                     >
                                         <div class="flex items-center">
                                             <img
-                                                :src="monster.image"
+                                                v-if="monster.image_path"
+                                                :src="monster.image_path"
                                                 :alt="monster.name"
                                                 class="w-12 h-12 rounded-full mr-3"
+                                                @error="$event.target.style.display = 'none'"
                                             >
                                             <div>
                                                 <h3 class="font-medium">{{ monster.name }}</h3>

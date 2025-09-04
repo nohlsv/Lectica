@@ -192,7 +192,7 @@ function finishBattle() {
                         <div class="text-white font-bold ml-2">{{ monsterHp }}/{{ battle.monster.hp }}</div>
                     </div>
                     <div class="relative">
-                        <img :src="`/images/monsters/${battle.monster.image_path}`" class="h-40 animate-floating"
+                        <img :src="battle.monster.image_path" class="h-40 animate-floating"
                              :alt="battle.monster.name"
                              @error="$event.target.style.display = 'none'" />
                     </div>

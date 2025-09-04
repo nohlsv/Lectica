@@ -58,13 +58,11 @@ class Battle extends Model
     }
 
     /**
-     * Get the monster data from config (not a database relationship).
+     * Get the monster for this battle.
      */
-    public function monster(): Attribute
+    public function monster(): BelongsTo
     {
-        return Attribute::make(
-            get: fn () => Monster::find($this->monster_id)
-        );
+        return $this->belongsTo(Monster::class);
     }
 
     /**
