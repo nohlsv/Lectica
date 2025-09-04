@@ -151,9 +151,9 @@ class Collection extends Model
     public function getTotalQuizzesCount(): int
     {
         return $this->files()
-            ->withSum('quizzes', 'id')
+            ->withCount('quizzes')
             ->get()
-            ->sum('quizzes_sum_id') ?? 0;
+            ->sum('quizzes_count');
     }
 
     /**
