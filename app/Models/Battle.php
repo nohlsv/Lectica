@@ -17,6 +17,7 @@ class Battle extends Model
         'user_id',
         'monster_id',
         'file_id',
+        'collection_id',
         'status',
         'player_hp',
         'monster_hp',
@@ -49,6 +50,14 @@ class Battle extends Model
     }
 
     /**
+     * Get the collection used in the battle.
+     */
+    public function collection(): BelongsTo
+    {
+        return $this->belongsTo(Collection::class);
+    }
+
+    /**
      * Get the monster data from config (not a database relationship).
      */
     public function monster(): Attribute
@@ -56,6 +65,44 @@ class Battle extends Model
         return Attribute::make(
             get: fn () => Monster::find($this->monster_id)
         );
+    }
+
+    /**
+     * Get all quizzes available for this battle (from file or collection).
+     */
+    public function getAvailableQuizzes()
+    {
+        if ($this->collection_id) {
+            // Get quizzes from all files in the collection
+            return Quiz::whereIn('file_id', $this->collection->files()->pluck('id'))->get();
+        } elseif ($this->file_id) {
+            // Get quizzes from the single file
+            return Quiz::where('file_id', $this->file_id)->get();
+        }
+
+        return collect([]);
+    }
+
+    /**
+     * Get the source name (file name or collection name).
+     */
+    public function getSourceName(): string
+    {
+        if ($this->collection_id) {
+            return $this->collection->name;
+        } elseif ($this->file_id) {
+            return $this->file->name;
+        }
+
+        return 'Unknown Source';
+    }
+
+    /**
+     * Get the total number of available questions.
+     */
+    public function getTotalAvailableQuestions(): int
+    {
+        return $this->getAvailableQuizzes()->count();
     }
 
     /**

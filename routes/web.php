@@ -62,6 +62,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/battle-stats', [App\Http\Controllers\BattleController::class, 'stats'])->name('battles.stats');
     Route::get('/api/monsters', [App\Http\Controllers\BattleController::class, 'getMonstersByDifficulty'])->name('api.monsters');
 
+    // Collection routes - playlist-like file management system
+    Route::get('/collections', [App\Http\Controllers\CollectionController::class, 'index'])->name('collections.index');
+    Route::get('/collections/create', [App\Http\Controllers\CollectionController::class, 'create'])->name('collections.create');
+    Route::post('/collections', [App\Http\Controllers\CollectionController::class, 'store'])->name('collections.store');
+    Route::get('/collections/browse', [App\Http\Controllers\CollectionController::class, 'browse'])->name('collections.browse');
+    Route::get('/collections/{collection}', [App\Http\Controllers\CollectionController::class, 'show'])->name('collections.show');
+    Route::get('/collections/{collection}/edit', [App\Http\Controllers\CollectionController::class, 'edit'])->name('collections.edit');
+    Route::put('/collections/{collection}', [App\Http\Controllers\CollectionController::class, 'update'])->name('collections.update');
+    Route::delete('/collections/{collection}', [App\Http\Controllers\CollectionController::class, 'destroy'])->name('collections.destroy');
+    Route::post('/collections/{collection}/files', [App\Http\Controllers\CollectionController::class, 'addFile'])->name('collections.add-file');
+    Route::delete('/collections/{collection}/files', [App\Http\Controllers\CollectionController::class, 'removeFile'])->name('collections.remove-file');
+    Route::patch('/collections/{collection}/reorder', [App\Http\Controllers\CollectionController::class, 'reorderFiles'])->name('collections.reorder');
+    Route::post('/collections/{collection}/copy', [App\Http\Controllers\CollectionController::class, 'copy'])->name('collections.copy');
+    Route::post('/collections/{collection}/favorite', [App\Http\Controllers\CollectionController::class, 'toggleFavorite'])->name('collections.favorite');
+
     // Multiplayer Game routes - battle-like multiplayer system
     Route::get('/multiplayer-games', [App\Http\Controllers\MultiplayerGameController::class, 'index'])->name('multiplayer-games.index');
     Route::get('/multiplayer-games/create', [App\Http\Controllers\MultiplayerGameController::class, 'create'])->name('multiplayer-games.create');

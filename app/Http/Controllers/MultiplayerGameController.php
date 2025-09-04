@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\Collection;
 
 class MultiplayerGameController extends Controller
 {
@@ -44,10 +45,15 @@ class MultiplayerGameController extends Controller
     {
         $monsters = Monster::all();
         $files = File::where('user_id', Auth::id())->get();
+        $collections = Collection::where('user_id', Auth::id())
+            ->with(['files'])
+            ->where('file_count', '>', 0)
+            ->get();
 
         return Inertia::render('MultiplayerGames/Create', [
             'monsters' => $monsters,
-            'files' => $files
+            'files' => $files,
+            'collections' => $collections
         ]);
     }
 
@@ -58,7 +64,9 @@ class MultiplayerGameController extends Controller
     {
         $request->validate([
             'monster_id' => 'required|string',
-            'file_id' => 'required|exists:files,id',
+            'source_type' => 'required|in:file,collection',
+            'file_id' => 'required_if:source_type,file|exists:files,id',
+            'collection_id' => 'required_if:source_type,collection|exists:collections,id',
         ]);
 
         $monster = Monster::find($request->monster_id);
@@ -66,22 +74,40 @@ class MultiplayerGameController extends Controller
             return back()->withErrors(['monster_id' => 'Invalid monster selected.']);
         }
 
-        $file = File::findOrFail($request->file_id);
+        $file = null;
+        $collection = null;
+        $quizCount = 0;
 
-        // Check if user owns the file
-        if ($file->user_id !== Auth::id()) {
-            abort(403, 'You can only create games with your own files.');
-        }
+        if ($request->source_type === 'file') {
+            $file = File::findOrFail($request->file_id);
 
-        // Check if file has quizzes
-        $quizCount = Quiz::where('file_id', $file->id)->count();
-        if ($quizCount === 0) {
-            return back()->withErrors(['file_id' => 'This file has no quizzes. Please generate quizzes first.']);
+            // Check if user owns the file
+            if ($file->user_id !== Auth::id()) {
+                abort(403, 'You can only create games with your own files.');
+            }
+
+            $quizCount = Quiz::where('file_id', $file->id)->count();
+            if ($quizCount === 0) {
+                return back()->withErrors(['file_id' => 'This file has no quizzes. Please generate quizzes first.']);
+            }
+        } else {
+            $collection = Collection::findOrFail($request->collection_id);
+
+            // Check if user owns the collection
+            if ($collection->user_id !== Auth::id()) {
+                abort(403, 'You can only create games with your own collections.');
+            }
+
+            $quizCount = $collection->getTotalQuizzesCount();
+            if ($quizCount === 0) {
+                return back()->withErrors(['collection_id' => 'This collection has no quizzes. Please add files with quizzes first.']);
+            }
         }
 
         $game = MultiplayerGame::create([
             'player_one_id' => Auth::id(),
-            'file_id' => $file->id,
+            'file_id' => $file?->id,
+            'collection_id' => $collection?->id,
             'monster_id' => $request->monster_id,
             'status' => MultiplayerGameStatus::WAITING,
             'player_one_hp' => 100,
@@ -110,8 +136,7 @@ class MultiplayerGameController extends Controller
             abort(403, 'You are not part of this game.');
         }
 
-        $file = File::find($multiplayerGame->file_id);
-        $quizzes = Quiz::where('file_id', $file->id)->get();
+        $quizzes = $multiplayerGame->getAvailableQuizzes();
         $monster = Monster::find($multiplayerGame->monster_id);
 
         $quizTypes = [
@@ -127,9 +152,9 @@ class MultiplayerGameController extends Controller
                     'monster' => $monster,
                     'playerOne' => $multiplayerGame->playerOne,
                     'playerTwo' => $multiplayerGame->playerTwo,
-                    'currentUser' => Auth::user()
+                    'currentUser' => Auth::user(),
+                    'source_name' => $multiplayerGame->getSourceName()
                 ]),
-                'file' => $file,
                 'quizzes' => $quizzes,
                 'quizTypes' => $quizTypes,
             ]);
@@ -141,9 +166,9 @@ class MultiplayerGameController extends Controller
                 'game' => array_merge($multiplayerGame->toArray(), [
                     'monster' => $monster,
                     'playerOne' => $multiplayerGame->playerOne,
-                    'currentUser' => Auth::user()
+                    'currentUser' => Auth::user(),
+                    'source_name' => $multiplayerGame->getSourceName()
                 ]),
-                'file' => $file,
             ]);
         }
 
@@ -151,9 +176,9 @@ class MultiplayerGameController extends Controller
         return Inertia::render('MultiplayerGames/Show', [
             'game' => $multiplayerGame,
             'monster' => $monster,
-            'file' => $file,
             'playerOne' => $multiplayerGame->playerOne,
             'playerTwo' => $multiplayerGame->playerTwo,
+            'source_name' => $multiplayerGame->getSourceName(),
             'quizTypes' => $quizTypes,
         ]);
     }
@@ -326,3 +351,4 @@ class MultiplayerGameController extends Controller
             ->with('success', 'Game abandoned.');
     }
 }
+
