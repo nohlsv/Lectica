@@ -75,7 +75,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Multiplayer',
-        href: '/multiplayer-games',
+        href: '/multiplayer-games/lobby',
         icon: Users,
     },
     {

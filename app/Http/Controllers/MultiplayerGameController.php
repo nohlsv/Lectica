@@ -235,6 +235,13 @@ class MultiplayerGameController extends Controller
      */
     public function lobby()
     {
+        $monsters = Monster::all();
+        $files = File::where('user_id', Auth::id())->get();
+        $collections = Collection::where('user_id', Auth::id())
+            ->with(['files'])
+            ->where('file_count', '>', 0)
+            ->get();
+
         $waitingGames = MultiplayerGame::with(['file', 'playerOne'])
             ->waiting()
             ->where('player_one_id', '!=', Auth::id())
@@ -242,6 +249,9 @@ class MultiplayerGameController extends Controller
             ->paginate(10);
 
         return Inertia::render('MultiplayerGames/Lobby', [
+            'monsters' => $monsters,
+            'files' => $files,
+            'collections' => $collections,
             'waitingGames' => $waitingGames->through(function ($game) {
                 $monster = Monster::find($game->monster_id);
                 $game->monster = $monster;
