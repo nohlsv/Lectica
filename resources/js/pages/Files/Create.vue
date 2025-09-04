@@ -39,6 +39,15 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 const fileSelected = ref(false);
 const fileName = ref('');
 const fileSize = ref('');
+const userCollections = ref<Collection[]>([]);
+const selectedCollections = ref<number[]>([]);
+
+interface Collection {
+    id: number;
+    name: string;
+    file_count: number;
+    is_public: boolean;
+}
 
 // Handle file upload
 const handleFileUpload = (event: Event) => {
@@ -48,66 +57,72 @@ const handleFileUpload = (event: Event) => {
         form.file = file;
         fileSelected.value = true;
         fileName.value = file.name;
+        fileSize.value = formatFileSize(file.size);
 
-        // Reset and set suggested name (remove extension)
-        const nameParts = file.name.split('.');
-        if (nameParts.length > 1) {
-            nameParts.pop(); // Remove extension
-        }
-        form.name = nameParts.join('.');
-
-        // Format file size
-        if (file.size < 1024) {
-            fileSize.value = `${file.size} bytes`;
-        } else if (file.size < 1024 * 1024) {
-            fileSize.value = `${(file.size / 1024).toFixed(2)} KB`;
-        } else {
-            fileSize.value = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
+        // Auto-populate the name field if it's empty
+        if (!form.name) {
+            form.name = file.name.replace(/\.[^/.]+$/, ''); // Remove file extension
         }
     }
 };
 
-// Handle drag-and-drop events
-const handleDragOver = (event: DragEvent) => {
-    event.preventDefault();
-    event.dataTransfer!.dropEffect = 'copy';
+// Format file size
+const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
-const handleDrop = (event: DragEvent) => {
-    event.preventDefault();
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-        const file = files[0];
-        form.file = file;
-        fileSelected.value = true;
-        fileName.value = file.name;
+// Fetch user's collections
+const fetchUserCollections = async () => {
+    try {
+        const response = await fetch('/api/user/collections');
+        const data = await response.json();
+        userCollections.value = data;
+    } catch (error) {
+        console.error('Failed to fetch collections:', error);
+    }
+};
 
-        // Reset and set suggested name (remove extension)
-        const nameParts = file.name.split('.');
-        if (nameParts.length > 1) {
-            nameParts.pop(); // Remove extension
-        }
-        form.name = nameParts.join('.');
+// Initialize collections on component mount
+fetchUserCollections();
 
-        // Format file size
-        if (file.size < 1024) {
-            fileSize.value = `${file.size} bytes`;
-        } else if (file.size < 1024 * 1024) {
-            fileSize.value = `${(file.size / 1024).toFixed(2)} KB`;
-        } else {
-            fileSize.value = `${(file.size / (1024 * 1024)).toFixed(2)} MB`;
-        }
+// Toggle collection selection
+const toggleCollection = (collectionId: number) => {
+    const index = selectedCollections.value.indexOf(collectionId);
+    if (index === -1) {
+        selectedCollections.value.push(collectionId);
+    } else {
+        selectedCollections.value.splice(index, 1);
     }
 };
 
 // Form submission
 const submit = () => {
-    form.post(route('files.store'), {
+    if (!form.file) {
+        toast.error('Please select a file to upload.');
+        return;
+    }
+
+    // Add selected collections to form data
+    const formData = {
+        ...form.data(),
+        collections: selectedCollections.value
+    };
+
+    form.transform((data) => ({
+        ...data,
+        collections: selectedCollections.value
+    })).post('/files', {
         onSuccess: () => {
+            toast.success('File uploaded successfully!');
         },
-        onError: () => {
-            toast.error('Failed to upload file.');
-        },
+        onError: (errors) => {
+            console.error('Upload failed:', errors);
+            toast.error('Failed to upload file. Please try again.');
+        }
     });
 };
 </script>
@@ -216,6 +231,39 @@ const submit = () => {
                         </p>
                     </div>
 
+                    <!-- Collections -->
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-foreground">Collections</label>
+                        <div class="flex flex-col gap-2">
+                            <div
+                                v-for="collection in userCollections"
+                                :key="collection.id"
+                                class="flex items-center gap-3 rounded-md border border-input p-3 text-sm cursor-pointer hover:bg-accent transition-colors"
+                                :class="{ 'bg-accent': selectedCollections.includes(collection.id) }"
+                                @click="toggleCollection(collection.id)"
+                            >
+                                <input
+                                    type="checkbox"
+                                    :id="`collection-${collection.id}`"
+                                    :checked="selectedCollections.includes(collection.id)"
+                                    class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                                />
+                                <label
+                                    :for="`collection-${collection.id}`"
+                                    class="flex-1 font-medium text-foreground"
+                                >
+                                    {{ collection.name }}
+                                </label>
+                                <span class="text-xs text-muted-foreground">
+                                    {{ collection.file_count }} file(s)
+                                </span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Select collections to organize your file. You can create new collections in the Collections page.
+                        </p>
+                    </div>
+
                     <!-- Action Buttons -->
                     <div class="flex justify-end gap-2 pt-2">
                         <Link
@@ -238,4 +286,3 @@ const submit = () => {
         </div>
     </AppLayout>
 </template>
-

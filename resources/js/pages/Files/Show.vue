@@ -25,6 +25,16 @@ const props = defineProps<Props>();
 const isStarred = ref(props.file.is_starred || false);
 const isStarring = ref(false);
 const isVerifying = ref(false);
+const showCollectionModal = ref(false);
+const userCollections = ref<Collection[]>([]);
+const selectedCollection = ref<number | null>(null);
+
+interface Collection {
+    id: number;
+    name: string;
+    file_count: number;
+    is_public: boolean;
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -135,6 +145,49 @@ const submitGenerateRequest = async () => {
             isGenerating.value = false;
         }
     });
+};
+
+// Fetch user's collections for adding files
+const fetchUserCollections = async () => {
+    try {
+        const response = await fetch('/api/user/collections');
+        const data = await response.json();
+        userCollections.value = data;
+    } catch (error) {
+        console.error('Failed to fetch collections:', error);
+    }
+};
+
+const openCollectionModal = () => {
+    selectedCollection.value = null;
+    showCollectionModal.value = true;
+    fetchUserCollections();
+};
+
+const addToCollection = async () => {
+    if (!selectedCollection.value) return;
+
+    try {
+        await router.post(route('collections.add-file', selectedCollection.value), {
+            file_id: props.file.id
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showCollectionModal.value = false;
+                selectedCollection.value = null;
+                toast.success('File added to collection successfully!');
+            },
+            onError: (errors) => {
+                if (errors.file) {
+                    toast.error(errors.file);
+                } else {
+                    toast.error('Failed to add file to collection');
+                }
+            }
+        });
+    } catch (error) {
+        toast.error('Failed to add file to collection');
+    }
 };
 </script>
 
@@ -299,7 +352,7 @@ const submitGenerateRequest = async () => {
                                         </Link>
                                     </div>
                                 </div>
-                                <div 
+                                <div
                                     class="gap-2 w-full border-t border-border pt-4 flex justify-center"
                                     v-if="isOwner && file.verified"
                                 >
@@ -438,8 +491,8 @@ const submitGenerateRequest = async () => {
                                     height="100%"
                                     frameborder="0"
                                 >
-                                    This is an embedded 
-                                    <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by 
+                                    This is an embedded
+                                    <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
                                     <a target="_blank" href="http://office.com/webapps">Office Online</a>.
                                 </iframe>
                             </div>
@@ -463,6 +516,52 @@ const submitGenerateRequest = async () => {
                     </div>
                 </div>
             </div>
+
+            <!-- Add to Collection Modal -->
+            <Dialog v-model:open="showCollectionModal" onOpenChange="showCollectionModal = $event">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add File to Collection</DialogTitle>
+                    </DialogHeader>
+                    <div class="space-y-4">
+                        <p class="text-sm text-muted-foreground">
+                            Select a collection to add this file to. You can also create a new collection from your
+                            <Link href="/collections" class="text-primary underline"> collections page</Link>.
+                        </p>
+                        <div v-if="userCollections.length === 0" class="text-center py-10">
+                            <p class="text-sm text-muted-foreground">No collections found.</p>
+                        </div>
+                        <div v-else class="space-y-2">
+                            <div
+                                v-for="collection in userCollections"
+                                :key="collection.id"
+                                class="flex items-center justify-between p-3 rounded-md border cursor-pointer hover:bg-accent transition-colors"
+                                @click="selectedCollection = collection.id"
+                            >
+                                <div>
+                                    <p class="text-sm font-medium">{{ collection.name }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ collection.file_count }} file(s)</p>
+                                </div>
+                                <div v-if="selectedCollection === collection.id">
+                                    <CheckCircleIcon class="h-5 w-5 text-primary" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" @click="showCollectionModal = false">
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            @click="addToCollection"
+                            :disabled="!selectedCollection"
+                        >
+                            Add to Collection
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     </AppLayout>
 </template>
