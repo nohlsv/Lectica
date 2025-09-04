@@ -63,15 +63,20 @@ class MultiplayerGameController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'monster_id' => 'required|string',
+            'game_mode' => 'required|in:pve,pvp',
+            'monster_id' => 'required_if:game_mode,pve|string',
             'source_type' => 'required|in:file,collection',
             'file_id' => 'required_if:source_type,file|exists:files,id',
             'collection_id' => 'required_if:source_type,collection|exists:collections,id',
         ]);
 
-        $monster = Monster::find($request->monster_id);
-        if (!$monster) {
-            return back()->withErrors(['monster_id' => 'Invalid monster selected.']);
+        // Validate monster only for PVE mode
+        $monster = null;
+        if ($request->game_mode === 'pve') {
+            $monster = Monster::find($request->monster_id);
+            if (!$monster) {
+                return back()->withErrors(['monster_id' => 'Invalid monster selected.']);
+            }
         }
 
         $file = null;
@@ -104,26 +109,36 @@ class MultiplayerGameController extends Controller
             }
         }
 
-        $game = MultiplayerGame::create([
+        // Create the game with appropriate values based on game mode
+        $gameData = [
             'player_one_id' => Auth::id(),
-            'file_id' => $file?->id,
-            'collection_id' => $collection?->id,
-            'monster_id' => $request->monster_id,
+            'game_mode' => $request->game_mode,
             'status' => MultiplayerGameStatus::WAITING,
             'player_one_hp' => 100,
             'player_two_hp' => 100,
-            'monster_hp' => $monster->hp,
             'player_one_score' => 0,
             'player_two_score' => 0,
-            'current_turn' => 1,
-            'correct_answers_p1' => 0,
-            'correct_answers_p2' => 0,
-            'total_questions_p1' => 0,
-            'total_questions_p2' => 0,
-        ]);
+        ];
 
-        return redirect()->route('multiplayer-games.show', $game)
-            ->with('success', 'Multiplayer game created! Waiting for another player to join.');
+        // Add file or collection
+        if ($request->source_type === 'file') {
+            $gameData['file_id'] = $file->id;
+        } else {
+            $gameData['collection_id'] = $collection->id;
+        }
+
+        // Add monster data only for PVE mode
+        if ($request->game_mode === 'pve' && $monster) {
+            $gameData['monster_id'] = $monster->id;
+            $gameData['monster_hp'] = $monster->hp;
+        }
+
+        $game = MultiplayerGame::create($gameData);
+
+        // Broadcast to lobby for real-time updates
+        broadcast(new \App\Events\MultiplayerGameLobbyUpdate())->toOthers();
+
+        return redirect()->route('multiplayer-games.show', $game);
     }
 
     /**
@@ -265,8 +280,6 @@ class MultiplayerGameController extends Controller
             return response()->json(['error' => 'Game is not active.'], 400);
         }
 
-        $monster = Monster::find($multiplayerGame->monster_id);
-
         // Update question statistics
         if ($isPlayerOne) {
             $multiplayerGame->increment('total_questions_p1');
@@ -280,58 +293,109 @@ class MultiplayerGameController extends Controller
             }
         }
 
-        // Apply damage based on answer
-        if ($request->is_correct) {
-            // Player deals damage to monster
-            $damage = 10; // Base damage for correct answer
-            $newMonsterHp = max(0, $multiplayerGame->monster_hp - $damage);
-            $multiplayerGame->update(['monster_hp' => $newMonsterHp]);
+        $damageDealt = 0;
+        $damageReceived = 0;
 
-            // Increase player score
-            if ($isPlayerOne) {
-                $multiplayerGame->increment('player_one_score', 10);
+        if ($multiplayerGame->isPvp()) {
+            // PVP Mode: Player vs Player
+            if ($request->is_correct) {
+                // Player deals damage to opponent
+                $damage = 15; // Base damage for correct answer in PVP
+                $damageDealt = $damage;
+
+                if ($isPlayerOne) {
+                    $newOpponentHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                    $multiplayerGame->update(['player_two_hp' => $newOpponentHp]);
+                    $multiplayerGame->increment('player_one_score', 10);
+                } else {
+                    $newOpponentHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                    $multiplayerGame->update(['player_one_hp' => $newOpponentHp]);
+                    $multiplayerGame->increment('player_two_score', 10);
+                }
             } else {
-                $multiplayerGame->increment('player_two_score', 10);
+                // Player takes damage for wrong answer
+                $damage = 5; // Self-damage for wrong answer in PVP
+                $damageReceived = $damage;
+
+                if ($isPlayerOne) {
+                    $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                    $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
+                } else {
+                    $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                    $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
+                }
             }
         } else {
-            // Monster deals damage to current player
-            $damage = $monster->attack ?? 15;
+            // PVE Mode: Player vs Monster
+            $monster = Monster::find($multiplayerGame->monster_id);
 
-            if ($isPlayerOne) {
-                $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
-                $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
+            if ($request->is_correct) {
+                // Player deals damage to monster
+                $damage = 10; // Base damage for correct answer
+                $damageDealt = $damage;
+                $newMonsterHp = max(0, $multiplayerGame->monster_hp - $damage);
+                $multiplayerGame->update(['monster_hp' => $newMonsterHp]);
+
+                // Increase player score
+                if ($isPlayerOne) {
+                    $multiplayerGame->increment('player_one_score', 10);
+                } else {
+                    $multiplayerGame->increment('player_two_score', 10);
+                }
             } else {
-                $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
-                $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
+                // Monster deals damage to current player
+                $damage = $monster->attack ?? 15;
+                $damageReceived = $damage;
+
+                if ($isPlayerOne) {
+                    $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                    $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
+                } else {
+                    $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                    $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
+                }
             }
         }
 
         // Check win/lose conditions
         $multiplayerGame->refresh();
 
-        if ($multiplayerGame->monster_hp <= 0) {
-            // Both players win against the monster
-            $multiplayerGame->markAsFinished();
-        } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
-            // Both players lost
-            $multiplayerGame->markAsFinished();
-        } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
-            // One player lost
-            $multiplayerGame->markAsFinished();
+        if ($multiplayerGame->isPvp()) {
+            // PVP win conditions
+            if ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
+                $multiplayerGame->markAsFinished();
+            } else {
+                $multiplayerGame->switchTurn();
+            }
         } else {
-            // Game continues, switch turns
-            $multiplayerGame->switchTurn();
+            // PVE win conditions
+            if ($multiplayerGame->monster_hp <= 0) {
+                // Both players win against the monster
+                $multiplayerGame->markAsFinished();
+            } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
+                // Both players lost
+                $multiplayerGame->markAsFinished();
+            } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
+                // One player lost
+                $multiplayerGame->markAsFinished();
+            } else {
+                // Game continues, switch turns
+                $multiplayerGame->switchTurn();
+            }
         }
+
+        // Broadcast game update via websockets
+        broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
 
         return response()->json([
             'success' => true,
             'game' => array_merge($multiplayerGame->fresh()->toArray(), [
-                'monster' => $monster,
+                'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
                 'playerOne' => $multiplayerGame->playerOne,
                 'playerTwo' => $multiplayerGame->playerTwo,
             ]),
-            'damage_dealt' => $request->is_correct ? 10 : 0,
-            'damage_received' => $request->is_correct ? 0 : ($monster->attack ?? 15),
+            'damage_dealt' => $damageDealt,
+            'damage_received' => $damageReceived,
         ]);
     }
 

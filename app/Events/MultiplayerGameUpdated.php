@@ -15,17 +15,26 @@ class MultiplayerGameUpdated implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
-    public MultiplayerGame $game;
+    public $game;
+    public $eventType;
 
-    public function __construct(MultiplayerGame $game)
+    public function __construct(MultiplayerGame $game, string $eventType = 'updated')
     {
-        $this->game = $game;
+        $this->game = $game->load(['playerOne', 'playerTwo', 'file', 'collection']);
+        $this->eventType = $eventType;
     }
 
     public function broadcastOn()
     {
-        return new Channel('game.' . $this->game->id);
+        return new Channel('multiplayer-game.' . $this->game->id);
     }
 
+    public function broadcastWith()
+    {
+        return [
+            'game' => $this->game,
+            'event_type' => $this->eventType,
+            'timestamp' => now()->toISOString(),
+        ];
+    }
 }
-

@@ -11,6 +11,54 @@
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form @submit.prevent="submit">
+                            <!-- Game Mode Selection -->
+                            <div class="mb-6">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Choose Game Mode</label>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <button
+                                        type="button"
+                                        @click="form.game_mode = 'pve'"
+                                        :class="
+                                            form.game_mode === 'pve'
+                                                ? 'border-green-500 bg-green-50 ring-2 ring-green-500 dark:bg-green-900/20'
+                                                : 'border-gray-300 hover:border-green-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
+                                    >
+                                        <div class="flex items-center">
+                                            <svg class="mr-3 h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                            <div>
+                                                <h3 class="font-medium">PvE (Co-op)</h3>
+                                                <p class="text-sm text-gray-500">Fight together against a monster</p>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        @click="form.game_mode = 'pvp'"
+                                        :class="
+                                            form.game_mode === 'pvp'
+                                                ? 'border-red-500 bg-red-50 ring-2 ring-red-500 dark:bg-red-900/20'
+                                                : 'border-gray-300 hover:border-red-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
+                                    >
+                                        <div class="flex items-center">
+                                            <svg class="mr-3 h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                            </svg>
+                                            <div>
+                                                <h3 class="font-medium">PvP (Versus)</h3>
+                                                <p class="text-sm text-gray-500">Battle directly against another player</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- Source Type Selection -->
                             <div class="mb-6">
                                 <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Battle Source </label>
@@ -121,9 +169,9 @@
                                 </div>
                             </div>
 
-                            <!-- Monster Selection -->
-                            <div class="mb-6">
-                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Your Opponent </label>
+                            <!-- Monster Selection (Only for PvE mode) -->
+                            <div v-if="form.game_mode === 'pve'" class="mb-6">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Your Monster Opponent </label>
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <button
                                         type="button"
@@ -138,7 +186,12 @@
                                         class="rounded-lg border p-4 text-left transition-colors"
                                     >
                                         <div class="flex items-center">
-                                            <img :src="monster.image" :alt="monster.name" class="mr-3 h-12 w-12 rounded-full" />
+                                            <img
+                                                :src="monster.image_path || '/images/default-monster.png'"
+                                                :alt="monster.name"
+                                                class="mr-3 h-12 w-12 rounded-full object-cover"
+                                                @error="handleImageError"
+                                            />
                                             <div>
                                                 <h3 class="font-medium">{{ monster.name }}</h3>
                                                 <p class="text-sm text-gray-500">HP: {{ monster.hp }}</p>
@@ -153,13 +206,23 @@
                             </div>
 
                             <!-- Game Info -->
-                            <div class="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-900/20">
-                                <h3 class="mb-2 text-lg font-medium text-purple-900 dark:text-purple-100">How Multiplayer Battles Work</h3>
-                                <ul class="space-y-1 text-sm text-purple-700 dark:text-purple-300">
-                                    <li>• You and another player take turns answering questions</li>
-                                    <li>• Correct answers deal damage to the monster</li>
-                                    <li>• Wrong answers cause the monster to damage the current player</li>
-                                    <li>• Work together to defeat the monster before it defeats you both!</li>
+                            <div class="mb-6 rounded-lg border p-4" :class="form.game_mode === 'pve' ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20' : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'">
+                                <h3 class="mb-2 text-lg font-medium" :class="form.game_mode === 'pve' ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'">
+                                    {{ form.game_mode === 'pve' ? 'How PvE (Co-op) Battles Work' : 'How PvP (Versus) Battles Work' }}
+                                </h3>
+                                <ul class="space-y-1 text-sm" :class="form.game_mode === 'pve' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'">
+                                    <template v-if="form.game_mode === 'pve'">
+                                        <li>• You and another player take turns answering questions</li>
+                                        <li>• Correct answers deal damage to the monster</li>
+                                        <li>• Wrong answers cause the monster to damage the current player</li>
+                                        <li>• Work together to defeat the monster before it defeats you both!</li>
+                                    </template>
+                                    <template v-else>
+                                        <li>• You and another player take turns answering questions</li>
+                                        <li>• Correct answers deal damage to your opponent</li>
+                                        <li>• Wrong answers cause damage to yourself</li>
+                                        <li>• Be the last player standing to win!</li>
+                                    </template>
                                 </ul>
                             </div>
 
@@ -240,11 +303,14 @@ const form = useForm({
     file_id: '',
     collection_id: '',
     monster_id: '',
+    game_mode: 'pve',
 });
 
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
-    return hasSource && form.monster_id;
+    // For PVP mode, monster is not required; for PVE mode, monster is required
+    const hasRequiredMonster = form.game_mode === 'pvp' || (form.game_mode === 'pve' && form.monster_id);
+    return hasSource && hasRequiredMonster;
 });
 
 // Reset file/collection when source type changes
@@ -255,6 +321,21 @@ watch(
         form.collection_id = '';
     },
 );
+
+// Reset monster when game mode changes from PVE to PVP
+watch(
+    () => form.game_mode,
+    (newMode) => {
+        if (newMode === 'pvp') {
+            form.monster_id = '';
+        }
+    },
+);
+
+const handleImageError = (event: Event) => {
+    const img = event.target as HTMLImageElement;
+    img.src = '/images/default-monster.png';
+};
 
 const submit = () => {
     form.post(route('multiplayer-games.store'));
