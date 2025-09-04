@@ -410,7 +410,7 @@ class FileController extends Controller
     public function generateFlashcardsAndQuizzes(Request $request, File $file)
     {
         if (!$file->verified) {
-            return redirect()->back()->withErrors(['error' => 'File must be verified by a faculty or admin before generating flashcards and quizzes.']);
+            return back()->withErrors(['error' => 'File must be verified by a faculty or admin before generating flashcards and quizzes.']);
         }
 
         $request->validate([
@@ -424,24 +424,50 @@ class FileController extends Controller
             'true_false_count' => 'nullable|integer|min:1|max:15',
         ]);
 
-        if ($request->boolean('generate_flashcards')) {
-            $this->generateFlashcards(new Request(['count' => $request->input('flashcards_count', 3)]), $file);
-        }
+        try {
+            $results = [];
 
-        if ($request->boolean('generate_multiple_choice_quizzes')) {
-            $this->generateMultipleChoiceQuizzes(new Request(['count' => $request->input('multiple_choice_count', 3)]), $file);
-        }
+            if ($request->boolean('generate_flashcards')) {
+                $flashcardResult = $this->generateFlashcardsContent($file, $request->input('flashcards_count', 5));
+                if (!$flashcardResult['success']) {
+                    return back()->withErrors(['error' => $flashcardResult['error']]);
+                }
+                $results[] = $flashcardResult['message'];
+            }
 
-        if ($request->boolean('generate_enumeration_quizzes')) {
-            $this->generateEnumerationQuizzes(new Request(['count' => $request->input('enumeration_count', 3)]), $file);
-        }
+            if ($request->boolean('generate_multiple_choice_quizzes')) {
+                $quizResult = $this->generateMultipleChoiceContent($file, $request->input('multiple_choice_count', 5));
+                if (!$quizResult['success']) {
+                    return back()->withErrors(['error' => $quizResult['error']]);
+                }
+                $results[] = $quizResult['message'];
+            }
 
-        if ($request->boolean('generate_true_false_quizzes')) {
-            $this->generateTrueFalseQuizzes(new Request(['count' => $request->input('true_false_count', 3)]), $file);
-        }
+            if ($request->boolean('generate_enumeration_quizzes')) {
+                $enumResult = $this->generateEnumerationContent($file, $request->input('enumeration_count', 3));
+                if (!$enumResult['success']) {
+                    return back()->withErrors(['error' => $enumResult['error']]);
+                }
+                $results[] = $enumResult['message'];
+            }
 
-        return redirect()->route('files.show', $file->id)
-            ->with('success', 'Flashcards and quizzes generated successfully!');
+            if ($request->boolean('generate_true_false_quizzes')) {
+                $tfResult = $this->generateTrueFalseContent($file, $request->input('true_false_count', 3));
+                if (!$tfResult['success']) {
+                    return back()->withErrors(['error' => $tfResult['error']]);
+                }
+                $results[] = $tfResult['message'];
+            }
+
+            if (empty($results)) {
+                return back()->withErrors(['error' => 'No content types selected for generation.']);
+            }
+
+            return back()->with('success', 'Content generated successfully: ' . implode(', ', $results));
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'An error occurred during generation: ' . $e->getMessage()]);
+        }
     }
 
     private function generateContent(Request $request, File $file, string $type, array $schema)
@@ -465,7 +491,7 @@ class FileController extends Controller
 
         $count = $request->input('count');
 
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('services.gemini.api_key');
         $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
 
         $generationConfig = [
@@ -561,6 +587,362 @@ class FileController extends Controller
             'error' => 'Failed to call Gemini API.',
             'details' => $response->body(),
         ]);
+    }
+
+    private function generateFlashcardsContent(File $file, int $count)
+    {
+        try {
+            set_time_limit(0);
+            $content = $file->content;
+
+            if (empty($content)) {
+                return ['success' => false, 'error' => 'File content is empty or not available.'];
+            }
+
+            $apiKey = config('services.gemini.api_key');
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+            $generationConfig = [
+                "response_mime_type" => "application/json",
+                "response_schema" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "flashcards" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "answer" => ["type" => "STRING"]
+                                ],
+                                "nullable" => false,
+                                "required" => ["question", "answer"],
+                            ],
+                            "minItems" => $count,
+                            "maxItems" => $count,
+                            "nullable" => false,
+                        ],
+                    ],
+                    "nullable" => false,
+                    "required" => ["flashcards"],
+                ],
+            ];
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => "Generate flashcards using the following content:\n\nContent:\n" . $content
+                            ]
+                        ]
+                    ]
+                ],
+                "generationConfig" => $generationConfig,
+            ];
+
+            $response = Http::timeout(300)->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+                $parsedData = json_decode($text, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $flashcards = $parsedData['flashcards'] ?? [];
+
+                    foreach ($flashcards as $flashcard) {
+                        \App\Models\Flashcard::create([
+                            'question' => $flashcard['question'],
+                            'answer' => $flashcard['answer'],
+                            'file_id' => $file->id,
+                        ]);
+                    }
+
+                    return ['success' => true, 'message' => count($flashcards) . ' flashcards generated'];
+                } else {
+                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
+                }
+            }
+
+            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => 'Error generating flashcards: ' . $e->getMessage()];
+        }
+    }
+
+    private function generateMultipleChoiceContent(File $file, int $count)
+    {
+        try {
+            set_time_limit(0);
+            $content = $file->content;
+
+            if (empty($content)) {
+                return ['success' => false, 'error' => 'File content is empty or not available.'];
+            }
+
+            $apiKey = config('services.gemini.api_key');
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+            $generationConfig = [
+                "response_mime_type" => "application/json",
+                "response_schema" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "multiple_choice_quizzes" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "options" => [
+                                        "type" => "ARRAY",
+                                        "items" => ["type" => "STRING"],
+                                        "minItems" => 2,
+                                        "maxItems" => 4,
+                                        "nullable" => false,
+                                    ],
+                                    "answer" => ["type" => "STRING"]
+                                ],
+                                "nullable" => false,
+                                "required" => ["question", "options", "answer"],
+                            ],
+                            "minItems" => $count,
+                            "maxItems" => $count,
+                            "nullable" => false,
+                        ],
+                    ],
+                    "nullable" => false,
+                    "required" => ["multiple_choice_quizzes"],
+                ],
+            ];
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => "Generate multiple choice quizzes using the following content:\n\nContent:\n" . $content
+                            ]
+                        ]
+                    ]
+                ],
+                "generationConfig" => $generationConfig,
+            ];
+
+            $response = Http::timeout(300)->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+                $parsedData = json_decode($text, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $quizzes = $parsedData['multiple_choice_quizzes'] ?? [];
+
+                    foreach ($quizzes as $quiz) {
+                        // Ensure the answer is included in the options
+                        if (!in_array($quiz['answer'], $quiz['options'])) {
+                            $quiz['options'][] = $quiz['answer'];
+                        }
+
+                        \App\Models\Quiz::create([
+                            'question' => $quiz['question'],
+                            'type' => 'multiple_choice',
+                            'options' => $quiz['options'],
+                            'answers' => [$quiz['answer']],
+                            'file_id' => $file->id,
+                        ]);
+                    }
+
+                    return ['success' => true, 'message' => count($quizzes) . ' multiple choice quizzes generated'];
+                } else {
+                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
+                }
+            }
+
+            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => 'Error generating multiple choice quizzes: ' . $e->getMessage()];
+        }
+    }
+
+    private function generateEnumerationContent(File $file, int $count)
+    {
+        try {
+            set_time_limit(0);
+            $content = $file->content;
+
+            if (empty($content)) {
+                return ['success' => false, 'error' => 'File content is empty or not available.'];
+            }
+
+            $apiKey = config('services.gemini.api_key');
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+            $generationConfig = [
+                "response_mime_type" => "application/json",
+                "response_schema" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "enumeration_quizzes" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "answers" => [
+                                        "type" => "ARRAY",
+                                        "items" => ["type" => "STRING"],
+                                        "minItems" => 1,
+                                        "maxItems" => 10,
+                                        "nullable" => false,
+                                    ]
+                                ],
+                                "nullable" => false,
+                                "required" => ["question", "answers"],
+                            ],
+                            "minItems" => $count,
+                            "maxItems" => $count,
+                            "nullable" => false,
+                        ],
+                    ],
+                    "nullable" => false,
+                    "required" => ["enumeration_quizzes"],
+                ],
+            ];
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => "Generate enumeration quizzes using the following content:\n\nContent:\n" . $content
+                            ]
+                        ]
+                    ]
+                ],
+                "generationConfig" => $generationConfig,
+            ];
+
+            $response = Http::timeout(300)->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+                $parsedData = json_decode($text, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $quizzes = $parsedData['enumeration_quizzes'] ?? [];
+
+                    foreach ($quizzes as $quiz) {
+                        \App\Models\Quiz::create([
+                            'question' => $quiz['question'],
+                            'type' => 'enumeration',
+                            'options' => null,
+                            'answers' => $quiz['answers'],
+                            'file_id' => $file->id,
+                        ]);
+                    }
+
+                    return ['success' => true, 'message' => count($quizzes) . ' enumeration quizzes generated'];
+                } else {
+                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
+                }
+            }
+
+            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => 'Error generating enumeration quizzes: ' . $e->getMessage()];
+        }
+    }
+
+    private function generateTrueFalseContent(File $file, int $count)
+    {
+        try {
+            set_time_limit(0);
+            $content = $file->content;
+
+            if (empty($content)) {
+                return ['success' => false, 'error' => 'File content is empty or not available.'];
+            }
+
+            $apiKey = config('services.gemini.api_key');
+            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
+
+            $generationConfig = [
+                "response_mime_type" => "application/json",
+                "response_schema" => [
+                    "type" => "OBJECT",
+                    "properties" => [
+                        "true_false_quizzes" => [
+                            "type" => "ARRAY",
+                            "items" => [
+                                "type" => "OBJECT",
+                                "properties" => [
+                                    "question" => ["type" => "STRING"],
+                                    "answer" => ["type" => "STRING"]
+                                ],
+                                "nullable" => false,
+                                "required" => ["question", "answer"],
+                            ],
+                            "minItems" => $count,
+                            "maxItems" => $count,
+                            "nullable" => false,
+                        ],
+                    ],
+                    "nullable" => false,
+                    "required" => ["true_false_quizzes"],
+                ],
+            ];
+
+            $payload = [
+                'contents' => [
+                    [
+                        'parts' => [
+                            [
+                                'text' => "Generate true/false quizzes using the following content:\n\nContent:\n" . $content
+                            ]
+                        ]
+                    ]
+                ],
+                "generationConfig" => $generationConfig,
+            ];
+
+            $response = Http::timeout(300)->post($url, $payload);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
+
+                $parsedData = json_decode($text, true);
+
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $quizzes = $parsedData['true_false_quizzes'] ?? [];
+
+                    foreach ($quizzes as $quiz) {
+                        \App\Models\Quiz::create([
+                            'question' => $quiz['question'],
+                            'type' => 'true_false',
+                            'options' => null,
+                            'answers' => [$quiz['answer']],
+                            'file_id' => $file->id,
+                        ]);
+                    }
+
+                    return ['success' => true, 'message' => count($quizzes) . ' true/false quizzes generated'];
+                } else {
+                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
+                }
+            }
+
+            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => 'Error generating true/false quizzes: ' . $e->getMessage()];
+        }
     }
 
     private function extractText($file)
