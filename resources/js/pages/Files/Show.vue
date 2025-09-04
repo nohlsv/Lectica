@@ -25,6 +25,16 @@ const props = defineProps<Props>();
 const isStarred = ref(props.file.is_starred || false);
 const isStarring = ref(false);
 const isVerifying = ref(false);
+const showCollectionModal = ref(false);
+const userCollections = ref<Collection[]>([]);
+const selectedCollection = ref<number | null>(null);
+
+interface Collection {
+    id: number;
+    name: string;
+    file_count: number;
+    is_public: boolean;
+}
 
 const formattedFileSize = computed(() => {
     const size = props.fileInfo.size ? Number(props.fileInfo.size) : 0;
@@ -153,9 +163,48 @@ const submitGenerateRequest = async () => {
     });
 };
 
-const showFlashcards = ref(true)
+// Fetch user's collections for adding files
+const fetchUserCollections = async () => {
+    try {
+        const response = await fetch('/api/user/collections');
+        const data = await response.json();
+        userCollections.value = data;
+    } catch (error) {
+        console.error('Failed to fetch collections:', error);
+    }
+};
 
+const openCollectionModal = () => {
+    selectedCollection.value = null;
+    showCollectionModal.value = true;
+    fetchUserCollections();
+};
 
+const addToCollection = async () => {
+    if (!selectedCollection.value) return;
+
+    try {
+        await router.post(route('collections.add-file', selectedCollection.value), {
+            file_id: props.file.id
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showCollectionModal.value = false;
+                selectedCollection.value = null;
+                toast.success('File added to collection successfully!');
+            },
+            onError: (errors) => {
+                if (errors.file) {
+                    toast.error(errors.file);
+                } else {
+                    toast.error('Failed to add file to collection');
+                }
+            }
+        });
+    } catch (error) {
+        toast.error('Failed to add file to collection');
+    }
+};
 </script>
 
 <template>
@@ -203,58 +252,9 @@ const showFlashcards = ref(true)
                                     <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
                                     <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
                                 </div>
-                                <div class="flex justify-between" v-if="fileInfo.size">
-                                    <dt class="text-base text-[#fce085] pixel-outline"> File Size:</dt>
-                                    <dd class="text-right pixel-outline">{{ formattedFileSize }}</dd>
-                                </div>
-                                <!-- <div class="flex justify-between" v-if="fileInfo.lastModified">
-                                    <dt class="text-base text-[#fce085]">Last Modified:</dt>
-                                    <dd class="text-right">{{ fileInfo.lastModified }}</dd>
-                                </div>-->
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Verified:</dt>
-                                    <dd class="text-right pixel-outline">
-                                        <span
-                                            :class="file.verified ? 'text-green-500' : 'text-red-500'"
-                                            class="font-semibold"
-                                        >
-                                            {{ file.verified ? 'Yes' : 'No' }}
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Uploaded by:</dt>
-                                    <dd class="text-right pixel-outline">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
-                                </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Upload Date:</dt>
-                                    <dd class="text-right pixel-outline">{{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
-                                </div>
-                                <div class="pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline mb-2">Tags:</dt>
-                                    <dd class="flex flex-wrap gap-1">
-                                        <span
-                                            v-for="tag in file.tags"
-                                            :key="tag.id"
-                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-[#faa800] text-[#661500]"
-                                        >
-                                            {{ tag.name }}
-                                        </span>
-                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm">
-                                            No tags
-                                        </span>
-                                    </dd>
-                                </div>
-                            </dl>
-
-                           <div class="mt-4 border-t border-[#faa800] py-4 space-y-2">
-                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] pixel-outline mb-5">Study Materials</h3>
-
-                                <!-- Toggle Button -->
-                                <div class="flex justify-center mb-5 duration-300">
-                                <button
-                                    @click="showFlashcards = !showFlashcards"
-                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#993f27] duration-300 pixel-outline border-[#0c0a03] border-2"
+                                <div
+                                    class="gap-2 w-full border-t border-border pt-4 flex justify-center"
+                                    v-if="isOwner && file.verified"
                                 >
                                     <ArrowRightLeftIcon class="h-4 w-4 mr-2 pixel-outline-icon"/>
                                     {{ showFlashcards ? 'Switch to Quizzes' : 'Switch to Flashcards' }}
@@ -505,17 +505,90 @@ const showFlashcards = ref(true)
                                 </div>
                             </div>
 
-                            <!-- File Not Found -->
-                            <div v-if="!fileInfo.exists" class="flex items-center justify-center h-[200px] bg-accent/60  rounded-md">
-                                <div class="text-center">
-                                    <FileIcon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                                    <p>File content not available.</p>
-                                </div>
+                            <!-- Text Preview -->
+                            <div v-else-if="isTxt" class="max-h-[500px] overflow-auto rounded-md bg-accent/50 p-4">
+                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+
+                            <!-- Office File Preview -->
+                            <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-border rounded-md">
+                                <iframe
+                                    :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
+                                    width="100%"
+                                    height="100%"
+                                    frameborder="0"
+                                >
+                                    This is an embedded
+                                    <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
+                                    <a target="_blank" href="http://office.com/webapps">Office Online</a>.
+                                </iframe>
+                            </div>
+                        </div>
+
+                        <!-- Extracted Text Content -->
+                        <div v-if="!isPreviewable && file.content" class="mt-4">
+                            <h3 class="text-md font-medium mb-2">Extracted Text</h3>
+                            <div class="max-h-[400px] overflow-auto rounded-md bg-accent/50 p-4">
+                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+                        </div>
+
+                        <!-- File Not Found -->
+                        <div v-if="!fileInfo.exists" class="flex items-center justify-center h-[200px] bg-accent/20 rounded-md">
+                            <div class="text-center">
+                                <FileIcon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
+                                <p>File content not available.</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Add to Collection Modal -->
+            <Dialog v-model:open="showCollectionModal" onOpenChange="showCollectionModal = $event">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add File to Collection</DialogTitle>
+                    </DialogHeader>
+                    <div class="space-y-4">
+                        <p class="text-sm text-muted-foreground">
+                            Select a collection to add this file to. You can also create a new collection from your
+                            <Link href="/collections" class="text-primary underline"> collections page</Link>.
+                        </p>
+                        <div v-if="userCollections.length === 0" class="text-center py-10">
+                            <p class="text-sm text-muted-foreground">No collections found.</p>
+                        </div>
+                        <div v-else class="space-y-2">
+                            <div
+                                v-for="collection in userCollections"
+                                :key="collection.id"
+                                class="flex items-center justify-between p-3 rounded-md border cursor-pointer hover:bg-accent transition-colors"
+                                @click="selectedCollection = collection.id"
+                            >
+                                <div>
+                                    <p class="text-sm font-medium">{{ collection.name }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ collection.file_count }} file(s)</p>
+                                </div>
+                                <div v-if="selectedCollection === collection.id">
+                                    <CheckCircleIcon class="h-5 w-5 text-primary" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" @click="showCollectionModal = false">
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="primary"
+                            @click="addToCollection"
+                            :disabled="!selectedCollection"
+                        >
+                            Add to Collection
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     </AppLayout>
 </template>
