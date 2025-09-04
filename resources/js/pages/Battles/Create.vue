@@ -247,11 +247,11 @@ import { Head, Link, useForm } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 
 interface Monster {
-    id: string
+    id: number
     name: string
     hp: number
     attack: number
-    image: string
+    image_path: string
     difficulty: string
 }
 
@@ -307,6 +307,34 @@ watch(() => form.source_type, () => {
 })
 
 const submit = () => {
-    form.post(route('battles.store'))
+    console.log('Form submission started');
+
+    // Prepare form data based on source type
+    const formData = {
+        source_type: form.source_type,
+        monster_id: form.monster_id,
+    };
+
+    // Only include the relevant ID field based on source type
+    if (form.source_type === 'file') {
+        formData.file_id = form.file_id;
+    } else {
+        formData.collection_id = form.collection_id;
+    }
+
+    console.log('Form data:', formData);
+
+    form.transform((data) => formData).post(route('battles.store'), {
+        onStart: () => console.log('Form processing started'),
+        onSuccess: (response) => {
+            console.log('Form submission successful:', response);
+        },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        },
+        onFinish: () => {
+            console.log('Form processing finished');
+        }
+    });
 }
 </script>
