@@ -497,11 +497,18 @@ interface Collection {
 interface Game {
     id: number;
     player_one: Player;
+    player_two?: Player; // Missing - causes errors
     file?: File;
     collection?: Collection;
     monster?: Monster;
     game_mode: 'pve' | 'pvp';
     created_at: string;
+    status: string; // Missing - causes errors
+    player_one_hp: number; // Missing - causes errors
+    player_two_hp: number; // Missing - causes errors
+    player_one_score: number; // Missing - causes errors
+    player_two_score: number; // Missing - causes errors
+    monster_hp?: number; // Missing - causes errors
 }
 
 interface PaginatedGames {
