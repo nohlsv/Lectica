@@ -2,7 +2,7 @@
   <nav class="flex items-center justify-between border-t border-gray-200 px-4 sm:px-0" aria-label="Pagination">
     <div class="-mt-px flex w-0 flex-1">
       <Link
-        v-if="links.prev"
+        v-if="links?.prev"
         :href="links.prev"
         class="inline-flex items-center border-t-2 border-transparent pr-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
       >
@@ -34,7 +34,7 @@
     </div>
     <div class="-mt-px flex w-0 flex-1 justify-end">
       <Link
-        v-if="links.next"
+        v-if="links?.next"
         :href="links.next"
         class="inline-flex items-center border-t-2 border-transparent pl-1 pt-4 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700"
       >
@@ -66,13 +66,16 @@ interface PaginationLinks {
 }
 
 interface Props {
-  links: PaginationLinks
+  links?: PaginationLinks
 }
 
 const props = defineProps<Props>()
 
 const paginationLinks = computed(() => {
   // Filter out the first and last links as they're handled separately
+  if (!props.links || !props.links.links || !Array.isArray(props.links.links)) {
+    return []
+  }
   return props.links.links.filter((link, index) =>
     index !== 0 && index !== props.links.links.length - 1
   )
