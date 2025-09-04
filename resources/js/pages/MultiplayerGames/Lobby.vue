@@ -293,23 +293,37 @@
 
                         <!-- Monster Selection (PvE only) -->
                         <div v-if="form.game_mode === 'pve'" class="mb-6">
-                            <label class="mb-2 text-sm font-medium text-gray-700 dark:text-gray-300" for="monster_id">
-                                Select Monster
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Choose Your Monster Opponent
                             </label>
-                            <select
-                                v-model="form.monster_id"
-                                id="monster_id"
-                                class="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm shadow-sm focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                            >
-                                <option value="">-- Select a monster --</option>
-                                <option
+                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                <button
+                                    type="button"
                                     v-for="monster in props.monsters"
                                     :key="monster.id"
-                                    :value="monster.id"
+                                    @click="form.monster_id = monster.id"
+                                    :class="
+                                        form.monster_id === monster.id
+                                            ? 'border-indigo-500 ring-2 ring-indigo-500'
+                                            : 'border-gray-300 hover:border-indigo-300 dark:border-gray-600'
+                                    "
+                                    class="rounded-lg border p-4 text-left transition-colors"
                                 >
-                                    {{ monster.name }}
-                                </option>
-                            </select>
+                                    <div class="flex items-center">
+                                        <img
+                                            :src="monster.image_path || '/images/default-monster.png'"
+                                            :alt="monster.name"
+                                            class="mr-3 h-12 w-12 rounded-full object-cover"
+                                            @error="handleImageError"
+                                        />
+                                        <div>
+                                            <h3 class="font-medium">{{ monster.name }}</h3>
+                                            <p class="text-sm text-gray-500">HP: {{ monster.hp }}</p>
+                                            <p class="text-sm text-gray-500">Attack: {{ monster.attack }}</p>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Create Button -->
