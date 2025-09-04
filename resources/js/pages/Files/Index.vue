@@ -49,9 +49,20 @@ const columns = [
 
 const searchQuery = ref('');
 const selectedTags = ref<number[]>([]);
-const allTags = ref<Tag[]>([]);
 const showStarredOnly = ref(false);
 const showSameProgramOnly = ref(false);
+const showCollectionModal = ref(false);
+const selectedFileForCollection = ref<File | null>(null);
+const selectedCollection = ref<number | null>(null);
+const userCollections = ref<Collection[]>([]);
+const allTags = ref<Tag[]>([]);
+
+interface Collection {
+    id: number;
+    name: string;
+    file_count: number;
+    is_public: boolean;
+}
 
 const sortOptions = ref([
     { value: 'name', label: 'Name' },
@@ -103,6 +114,50 @@ const toggleStar = async (file: File) => {
         toast.error('Error toggling star', {
             description: 'An error occurred while toggling the star status. Please try again.',
         });
+    }
+};
+
+// Fetch user's collections for adding files
+const fetchUserCollections = async () => {
+    try {
+        const response = await axios.get('/api/user/collections');
+        userCollections.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch collections:', error);
+    }
+};
+
+const openCollectionModal = (file: File) => {
+    selectedFileForCollection.value = file;
+    selectedCollection.value = null;
+    showCollectionModal.value = true;
+    fetchUserCollections();
+};
+
+const addToCollection = async () => {
+    if (!selectedFileForCollection.value || !selectedCollection.value) return;
+
+    try {
+        await router.post(route('collections.add-file', selectedCollection.value), {
+            file_id: selectedFileForCollection.value.id
+        }, {
+            preserveScroll: true,
+            onSuccess: () => {
+                showCollectionModal.value = false;
+                selectedFileForCollection.value = null;
+                selectedCollection.value = null;
+                toast.success('File added to collection successfully!');
+            },
+            onError: (errors) => {
+                if (errors.file) {
+                    toast.error(errors.file);
+                } else {
+                    toast.error('Failed to add file to collection');
+                }
+            }
+        });
+    } catch (error) {
+        toast.error('Failed to add file to collection');
     }
 };
 </script>
@@ -205,10 +260,38 @@ const toggleStar = async (file: File) => {
                                 <StarIcon class="h-4 w-4" :fill="item.is_starred ? 'currentColor' : 'none'" />
                             </button>
                             <span>{{ item.star_count || 0 }}</span>
+                            <Button @click.prevent="openCollectionModal(item)" class="text-sm">
+                                Add to Collection
+                            </Button>
                         </div>
                     </template>
                 </DataTable>
             </div>
         </div>
+
+        <!-- Collection Modal -->
+        <Transition name="modal">
+            <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                <div class="w-full max-w-md rounded-lg bg-background p-6">
+                    <h2 class="text-lg font-semibold mb-4">Add File to Collection</h2>
+                    <div class="mb-4">
+                        <label for="collection" class="block text-sm font-medium mb-2">Select Collection</label>
+                        <select id="collection" v-model="selectedCollection" class="w-full rounded border bg-background px-3 py-2 text-sm">
+                            <option v-for="collection in userCollections" :key="collection.id" :value="collection.id">
+                                {{ collection.name }} ({{ collection.file_count }})
+                            </option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <Button @click="showCollectionModal = false" variant="outline" class="text-sm">
+                            Cancel
+                        </Button>
+                        <Button @click="addToCollection" class="text-sm">
+                            Add to Collection
+                        </Button>
+                    </div>
+                </div>
+            </div>
+        </Transition>
     </AppLayout>
 </template>
