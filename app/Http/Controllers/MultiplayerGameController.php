@@ -21,21 +21,8 @@ class MultiplayerGameController extends Controller
      */
     public function index()
     {
-        $games = MultiplayerGame::with(['file', 'playerOne', 'playerTwo'])
-            ->where(function($query) {
-                $query->where('player_one_id', Auth::id())
-                      ->orWhere('player_two_id', Auth::id());
-            })
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        return Inertia::render('MultiplayerGames/Index', [
-            'games' => $games->through(function ($game) {
-                $monster = Monster::find($game->monster_id);
-                $game->monster = $monster;
-                return $game;
-            })
-        ]);
+        // Redirect to the consolidated lobby page
+        return redirect()->route('multiplayer-games.lobby');
     }
 
     /**
@@ -248,11 +235,24 @@ class MultiplayerGameController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        $myGames = MultiplayerGame::with(['file', 'collection', 'playerOne', 'playerTwo'])
+            ->where(function($query) {
+                $query->where('player_one_id', Auth::id())
+                      ->orWhere('player_two_id', Auth::id());
+            })
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
         return Inertia::render('MultiplayerGames/Lobby', [
             'monsters' => $monsters,
             'files' => $files,
             'collections' => $collections,
             'waitingGames' => $waitingGames->through(function ($game) {
+                $monster = Monster::find($game->monster_id);
+                $game->monster = $monster;
+                return $game;
+            }),
+            'myGames' => $myGames->through(function ($game) {
                 $monster = Monster::find($game->monster_id);
                 $game->monster = $monster;
                 return $game;
