@@ -45,9 +45,10 @@
                                     <div class="flex items-center space-x-4">
                                         <img
                                             v-if="battle.monster?.image_path"
-                                            :src="battle.monster.image_path"
+                                            :src="`/images/monsters/${battle.monster.image_path}`"
                                             :alt="battle.monster.name"
                                             class="w-16 h-16 rounded-lg object-cover"
+                                            @error="$event.target.style.display = 'none'"
                                         />
                                         <div>
                                             <h3 class="text-lg font-semibold">
@@ -123,7 +124,7 @@
     </AppLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
 
