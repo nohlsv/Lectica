@@ -125,4 +125,39 @@ class File extends Model
     {
         return $query->where('verified', true);
     }
+
+    /**
+     * Get the collections that contain this file.
+     */
+    public function collections(): BelongsToMany
+    {
+        return $this->belongsToMany(Collection::class, 'collection_file')
+            ->withPivot('order')
+            ->withTimestamps()
+            ->orderBy('collection_file.order');
+    }
+
+    /**
+     * Get the battles that use this file.
+     */
+    public function battles(): HasMany
+    {
+        return $this->hasMany(Battle::class);
+    }
+
+    /**
+     * Get the multiplayer games that use this file.
+     */
+    public function multiplayerGames(): HasMany
+    {
+        return $this->hasMany(MultiplayerGame::class);
+    }
+
+    /**
+     * Check if this file is in a specific collection.
+     */
+    public function isInCollection(Collection $collection): bool
+    {
+        return $this->collections()->where('collection_id', $collection->id)->exists();
+    }
 }

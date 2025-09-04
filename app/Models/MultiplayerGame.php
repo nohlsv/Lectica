@@ -18,6 +18,7 @@ class MultiplayerGame extends Model
         'player_one_id',
         'player_two_id',
         'file_id',
+        'collection_id',
         'monster_id',
         'player_one_hp',
         'player_two_hp',
@@ -62,6 +63,14 @@ class MultiplayerGame extends Model
     public function file(): BelongsTo
     {
         return $this->belongsTo(File::class);
+    }
+
+    /**
+     * Get the collection used in the game.
+     */
+    public function collection(): BelongsTo
+    {
+        return $this->belongsTo(Collection::class);
     }
 
     /**
@@ -221,5 +230,43 @@ class MultiplayerGame extends Model
     public function scopeFinished($query)
     {
         return $query->whereIn('status', MultiplayerGameStatus::finished());
+    }
+
+    /**
+     * Get all quizzes available for this game (from file or collection).
+     */
+    public function getAvailableQuizzes()
+    {
+        if ($this->collection_id) {
+            // Get quizzes from all files in the collection
+            return Quiz::whereIn('file_id', $this->collection->files()->pluck('id'))->get();
+        } elseif ($this->file_id) {
+            // Get quizzes from the single file
+            return Quiz::where('file_id', $this->file_id)->get();
+        }
+
+        return collect([]);
+    }
+
+    /**
+     * Get the source name (file name or collection name).
+     */
+    public function getSourceName(): string
+    {
+        if ($this->collection_id) {
+            return $this->collection->name;
+        } elseif ($this->file_id) {
+            return $this->file->name;
+        }
+
+        return 'Unknown Source';
+    }
+
+    /**
+     * Get the total number of available questions.
+     */
+    public function getTotalAvailableQuestions(): int
+    {
+        return $this->getAvailableQuizzes()->count();
     }
 }

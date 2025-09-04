@@ -193,4 +193,37 @@ class User extends Authenticatable implements MustVerifyEmail
             default => 'green'
         };
     }
+
+    /**
+     * Get collections owned by this user.
+     */
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    /**
+     * Get collections favorited by this user.
+     */
+    public function favoritedCollections(): BelongsToMany
+    {
+        return $this->belongsToMany(Collection::class, 'collection_favorites')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get original collections created by this user (not copies).
+     */
+    public function originalCollections(): HasMany
+    {
+        return $this->hasMany(Collection::class)->where('is_original', true);
+    }
+
+    /**
+     * Get collections copied by this user.
+     */
+    public function copiedCollections(): HasMany
+    {
+        return $this->hasMany(Collection::class)->where('is_original', false);
+    }
 }
