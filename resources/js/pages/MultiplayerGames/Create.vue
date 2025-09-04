@@ -3,33 +3,36 @@
 
     <AppLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                Create Multiplayer Battle
-            </h2>
+            <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Create Multiplayer Battle</h2>
         </template>
 
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form @submit.prevent="submit">
                             <!-- Source Type Selection -->
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Choose Battle Source
-                                </label>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Battle Source </label>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <button
                                         type="button"
                                         @click="form.source_type = 'file'"
-                                        :class="form.source_type === 'file'
-                                            ? 'ring-2 ring-blue-500 border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-blue-300'"
-                                        class="p-4 border rounded-lg text-left transition-colors"
+                                        :class="
+                                            form.source_type === 'file'
+                                                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:bg-blue-900/20'
+                                                : 'border-gray-300 hover:border-blue-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
                                     >
                                         <div class="flex items-center">
-                                            <svg class="w-5 h-5 mr-3 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            <svg class="mr-3 h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                ></path>
                                             </svg>
                                             <div>
                                                 <h3 class="font-medium">Single File</h3>
@@ -41,14 +44,21 @@
                                     <button
                                         type="button"
                                         @click="form.source_type = 'collection'"
-                                        :class="form.source_type === 'collection'
-                                            ? 'ring-2 ring-purple-500 border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-purple-300'"
-                                        class="p-4 border rounded-lg text-left transition-colors"
+                                        :class="
+                                            form.source_type === 'collection'
+                                                ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-500 dark:bg-purple-900/20'
+                                                : 'border-gray-300 hover:border-purple-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
                                     >
                                         <div class="flex items-center">
-                                            <svg class="w-5 h-5 mr-3 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                            <svg class="mr-3 h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                                ></path>
                                             </svg>
                                             <div>
                                                 <h3 class="font-medium">Collection</h3>
@@ -61,21 +71,17 @@
 
                             <!-- File Selection -->
                             <div v-if="form.source_type === 'file'" class="mb-6">
-                                <label for="file_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="file_id" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Select Your Study File
                                 </label>
                                 <select
                                     id="file_id"
                                     v-model="form.file_id"
-                                    class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
                                     :required="form.source_type === 'file'"
                                 >
                                     <option value="">Choose a file...</option>
-                                    <option
-                                        v-for="file in files"
-                                        :key="file.id"
-                                        :value="file.id"
-                                    >
+                                    <option v-for="file in files" :key="file.id" :value="file.id">
                                         {{ file.title || file.name }} ({{ file.quizzes_count || 0 }} questions)
                                     </option>
                                 </select>
@@ -86,28 +92,27 @@
 
                             <!-- Collection Selection -->
                             <div v-if="form.source_type === 'collection'" class="mb-6">
-                                <label for="collection_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label for="collection_id" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Select Your Collection
                                 </label>
-                                <div v-if="collections.length === 0" class="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+                                <div
+                                    v-if="collections.length === 0"
+                                    class="rounded-md border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20"
+                                >
                                     <p class="text-sm text-yellow-700 dark:text-yellow-300">
                                         You don't have any collections with files yet.
-                                        <Link :href="route('collections.create')" class="underline font-medium">Create a collection</Link> first.
+                                        <Link :href="route('collections.create')" class="font-medium underline">Create a collection</Link> first.
                                     </p>
                                 </div>
                                 <select
                                     v-else
                                     id="collection_id"
                                     v-model="form.collection_id"
-                                    class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
                                     :required="form.source_type === 'collection'"
                                 >
                                     <option value="">Choose a collection...</option>
-                                    <option
-                                        v-for="collection in collections"
-                                        :key="collection.id"
-                                        :value="collection.id"
-                                    >
+                                    <option v-for="collection in collections" :key="collection.id" :value="collection.id">
                                         {{ collection.name }} ({{ collection.file_count }} files, {{ collection.total_questions }} questions)
                                     </option>
                                 </select>
@@ -118,26 +123,22 @@
 
                             <!-- Monster Selection -->
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Choose Your Opponent
-                                </label>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Your Opponent </label>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <button
                                         type="button"
                                         v-for="monster in monsters"
                                         :key="monster.id"
                                         @click="form.monster_id = monster.id"
-                                        :class="form.monster_id === monster.id
-                                            ? 'ring-2 ring-indigo-500 border-indigo-500'
-                                            : 'border-gray-300 dark:border-gray-600 hover:border-indigo-300'"
-                                        class="p-4 border rounded-lg text-left transition-colors"
+                                        :class="
+                                            form.monster_id === monster.id
+                                                ? 'border-indigo-500 ring-2 ring-indigo-500'
+                                                : 'border-gray-300 hover:border-indigo-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
                                     >
                                         <div class="flex items-center">
-                                            <img
-                                                :src="monster.image"
-                                                :alt="monster.name"
-                                                class="w-12 h-12 rounded-full mr-3"
-                                            >
+                                            <img :src="monster.image" :alt="monster.name" class="mr-3 h-12 w-12 rounded-full" />
                                             <div>
                                                 <h3 class="font-medium">{{ monster.name }}</h3>
                                                 <p class="text-sm text-gray-500">HP: {{ monster.hp }}</p>
@@ -152,11 +153,9 @@
                             </div>
 
                             <!-- Game Info -->
-                            <div class="mb-6 p-4 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
-                                <h3 class="text-lg font-medium text-purple-900 dark:text-purple-100 mb-2">
-                                    How Multiplayer Battles Work
-                                </h3>
-                                <ul class="text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                            <div class="mb-6 rounded-lg border border-purple-200 bg-purple-50 p-4 dark:border-purple-800 dark:bg-purple-900/20">
+                                <h3 class="mb-2 text-lg font-medium text-purple-900 dark:text-purple-100">How Multiplayer Battles Work</h3>
+                                <ul class="space-y-1 text-sm text-purple-700 dark:text-purple-300">
                                     <li>• You and another player take turns answering questions</li>
                                     <li>• Correct answers deal damage to the monster</li>
                                     <li>• Wrong answers cause the monster to damage the current player</li>
@@ -168,7 +167,7 @@
                             <div class="flex items-center justify-between">
                                 <Link
                                     :href="route('multiplayer-games.index')"
-                                    class="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+                                    class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                                 >
                                     ← Back to Games
                                 </Link>
@@ -176,11 +175,21 @@
                                 <button
                                     type="submit"
                                     :disabled="form.processing || !canSubmit"
-                                    class="inline-flex items-center px-4 py-2 bg-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-purple-700 focus:bg-purple-700 active:bg-purple-900 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition ease-in-out duration-150 disabled:opacity-50"
+                                    class="inline-flex items-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-purple-700 focus:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none active:bg-purple-900 disabled:opacity-50 dark:focus:ring-offset-gray-800"
                                 >
-                                    <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <svg
+                                        v-if="form.processing"
+                                        class="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        <path
+                                            class="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
                                     </svg>
                                     Create Game & Wait for Player
                                 </button>
@@ -194,57 +203,60 @@
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import { Head, Link, useForm } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, watch } from 'vue';
 
 interface Monster {
-    id: string
-    name: string
-    hp: number
-    attack: number
-    image: string
+    id: string;
+    name: string;
+    hp: number;
+    attack: number;
+    image: string;
 }
 
 interface File {
-    id: number
-    name: string
-    title?: string
-    quizzes_count?: number
+    id: number;
+    name: string;
+    title?: string;
+    quizzes_count?: number;
 }
 
 interface Collection {
-    id: number
-    name: string
-    file_count: number
-    total_questions: number
+    id: number;
+    name: string;
+    file_count: number;
+    total_questions: number;
 }
 
 const props = defineProps<{
-    monsters: Monster[]
-    files: File[]
-    collections: Collection[]
-}>()
+    monsters: Monster[];
+    files: File[];
+    collections: Collection[];
+}>();
 
 const form = useForm({
     source_type: 'file',
     file_id: '',
     collection_id: '',
-    monster_id: ''
-})
+    monster_id: '',
+});
 
 const canSubmit = computed(() => {
-    const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id
-    return hasSource && form.monster_id
-})
+    const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
+    return hasSource && form.monster_id;
+});
 
 // Reset file/collection when source type changes
-watch(() => form.source_type, () => {
-    form.file_id = ''
-    form.collection_id = ''
-})
+watch(
+    () => form.source_type,
+    () => {
+        form.file_id = '';
+        form.collection_id = '';
+    },
+);
 
 const submit = () => {
-    form.post(route('multiplayer-games.store'))
-}
+    form.post(route('multiplayer-games.store'));
+};
 </script>

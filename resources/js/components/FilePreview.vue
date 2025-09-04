@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { FileArchiveIcon, FileIcon, FilePresentationIcon, FileSpreadsheetIcon, FileTextIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
-import { FileIcon, FileTextIcon,FileArchiveIcon, FilePresentationIcon, FileSpreadsheetIcon } from 'lucide-vue-next';
 
 interface Props {
     filePath: string;
@@ -56,11 +56,11 @@ const isPreviewable = computed(() => {
 </script>
 
 <template>
-    <div class="file-preview rounded-md border border-border bg-background">
+    <div class="file-preview border-border bg-background rounded-md border">
         <!-- Preview not available message -->
         <div v-if="!isPreviewable" class="flex h-64 flex-col items-center justify-center gap-4 p-4 text-center">
-            <div class="rounded-full bg-accent p-4">
-                <FileIcon v-if="fileType === 'other'" class="h-6 w-6 text-foreground" />
+            <div class="bg-accent rounded-full p-4">
+                <FileIcon v-if="fileType === 'other'" class="text-foreground h-6 w-6" />
                 <FileTextIcon v-else-if="fileType === 'word'" class="h-6 w-6 text-blue-500" />
                 <FilePresentationIcon v-else-if="fileType === 'presentation'" class="h-6 w-6 text-red-500" />
                 <FileSpreadsheetIcon v-else-if="fileType === 'spreadsheet'" class="h-6 w-6 text-green-500" />
@@ -68,12 +68,12 @@ const isPreviewable = computed(() => {
             </div>
             <div>
                 <p class="text-foreground">Preview not available for this file type</p>
-                <p class="text-sm text-muted-foreground">{{ fileName }}</p>
+                <p class="text-muted-foreground text-sm">{{ fileName }}</p>
             </div>
             <a
                 :href="fileUrl"
                 download
-                class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
             >
                 Download to view
             </a>
@@ -81,26 +81,18 @@ const isPreviewable = computed(() => {
 
         <!-- Image preview -->
         <div v-else-if="fileType === 'image'" class="flex items-center justify-center p-4">
-            <img
-                :src="fileUrl"
-                :alt="fileName"
-                class="max-h-[600px] max-w-full rounded object-contain"
-            />
+            <img :src="fileUrl" :alt="fileName" class="max-h-[600px] max-w-full rounded object-contain" />
         </div>
 
         <!-- PDF preview -->
         <div v-else-if="fileType === 'pdf'" class="h-[600px] w-full">
-            <object
-                :data="fileUrl"
-                type="application/pdf"
-                class="h-full w-full rounded"
-            >
+            <object :data="fileUrl" type="application/pdf" class="h-full w-full rounded">
                 <div class="flex h-full flex-col items-center justify-center gap-4 p-4 text-center">
                     <p class="text-foreground">Unable to display PDF</p>
                     <a
                         :href="fileUrl"
                         target="_blank"
-                        class="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+                        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
                     >
                         Open PDF in new tab
                     </a>
@@ -110,11 +102,8 @@ const isPreviewable = computed(() => {
 
         <!-- Video preview -->
         <div v-else-if="fileType === 'video'" class="flex items-center justify-center p-4">
-            <video
-                controls
-                class="max-h-[600px] max-w-full rounded"
-            >
-                <source :src="fileUrl" :type="`video/${fileExtension}`">
+            <video controls class="max-h-[600px] max-w-full rounded">
+                <source :src="fileUrl" :type="`video/${fileExtension}`" />
                 Your browser does not support the video tag.
             </video>
         </div>
@@ -122,15 +111,15 @@ const isPreviewable = computed(() => {
         <!-- Audio preview -->
         <div v-else-if="fileType === 'audio'" class="flex items-center justify-center p-8">
             <audio controls class="w-full">
-                <source :src="fileUrl" :type="`audio/${fileExtension}`">
+                <source :src="fileUrl" :type="`audio/${fileExtension}`" />
                 Your browser does not support the audio element.
             </audio>
         </div>
 
         <!-- Text preview for small text files (could be enhanced with syntax highlighting) -->
         <div v-else-if="fileType === 'text'" class="p-4">
-            <div class="max-h-[600px] overflow-auto rounded border border-border bg-accent/50 p-4">
-                <p class="text-sm text-muted-foreground">Text preview is limited. For larger files, please download.</p>
+            <div class="border-border bg-accent/50 max-h-[600px] overflow-auto rounded border p-4">
+                <p class="text-muted-foreground text-sm">Text preview is limited. For larger files, please download.</p>
                 <iframe :src="fileUrl" class="mt-2 h-[500px] w-full border-0"></iframe>
             </div>
         </div>

@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Plus, ListChecks } from 'lucide-vue-next';
-import { router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
-import { type File , type Quiz } from '@/types';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type File, type Quiz } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ListChecks, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Props {
     file: File;
@@ -47,7 +46,18 @@ const isOwner = computed(() => {
     <Head title="Quizzes" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8 bg-gradient">
+        <div class="mx-auto max-w-7xl space-y-6 p-6 sm:px-6 lg:px-8">
+            <!-- Breadcrumbs -->
+            <div class="text-muted-foreground flex items-center text-sm">
+                <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
+                    <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
+                        {{ crumb.title }}
+                    </Link>
+                    <span v-else class="text-foreground font-medium">{{ crumb.title }}</span>
+
+                    <span v-if="index < breadcrumbs.length - 1" class="mx-2">/</span>
+                </div>
+            </div>
             <div class="flex justify-between">
                 <div class="flex flex-wrap space-x-2">
                     <Link :href="route('files.show', file.id)">
@@ -70,40 +80,34 @@ const isOwner = computed(() => {
                     </div>
                 </div>
             </div>
-            <div class="flex items-center justify-center">
-                <h2 class="text-lg text-center sm:text-xl md:text-2xl font-bold welcome-banner py-2 px-4 animate-soft-bounce pixel-outline">Quizzes for "{{ file.name }}"</h2>
-            </div>
-            <div v-if="quizzes.length === 0" class="text-center py-10">
+
+            <div v-if="quizzes.length === 0" class="py-10 text-center">
                 <p class="text-muted-foreground">No quizzes found for this file.</p>
                 <p class="text-muted-foreground mt-2">Create your first quiz to start testing your knowledge!</p>
             </div>
 
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card v-for="quiz in quizzes" :key="quiz.id" class="h-full overflow-hidden rounded-lg transition-all hover:bg-[#322017] bg-[#1C110E] border-[#0c0a03] border-2 text-[#F0EAD6] hover:scale-105 duration-300">
+            <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <Card v-for="quiz in quizzes" :key="quiz.id" class="overflow-hidden">
                     <CardHeader>
-                        <div class="flex justify-between items-start">
-                            <CardTitle class="line-clamp-2 pixel-outline">{{ quiz.question }}</CardTitle>
+                        <div class="flex items-start justify-between">
+                            <CardTitle class="line-clamp-2">{{ quiz.question }}</CardTitle>
                             <Badge>{{ quizTypes[quiz.type] }}</Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div v-if="quiz.type === 'multiple_choice' && quiz.options">
-                            <p class="text-sm text-muted-foreground mb-2 pixel-outline">Options:</p>
-                            <ul class="list-disc list-inside">
-                                <li v-for="(option, index) in quiz.options" :key="index" class="text-sm pixel-outline">
+                            <p class="text-muted-foreground mb-2 text-sm">Options:</p>
+                            <ul class="list-inside list-disc">
+                                <li v-for="(option, index) in quiz.options" :key="index" class="text-sm">
                                     {{ option }}
                                 </li>
                             </ul>
                         </div>
                         <div v-else-if="quiz.type === 'enumeration'">
-                            <p class="text-sm text-muted-foreground pixel-outline">
-                                {{ quiz.answers.length }} item(s) to enumerate
-                            </p>
+                            <p class="text-muted-foreground text-sm">{{ quiz.answers.length }} item(s) to enumerate</p>
                         </div>
                         <div v-else-if="quiz.type === 'true_false'">
-                            <p class="text-sm text-muted-foreground pixel-outline">
-                                Answer: {{ quiz.answers[0] === 'true' ? 'True' : 'False' }}
-                            </p>
+                            <p class="text-muted-foreground text-sm">Answer: {{ quiz.answers[0] === 'true' ? 'True' : 'False' }}</p>
                         </div>
                     </CardContent>
                     <CardFooter class="flex justify-between">
@@ -115,7 +119,16 @@ const isOwner = computed(() => {
                         </Link>
                         <Dialog>
                             <DialogTrigger>
-                                <Button class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline" variant="default" size="sm" @click="() => { quizToDelete = quiz.id; showDeleteModal = true; }">
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    @click="
+                                        () => {
+                                            quizToDelete = quiz.id;
+                                            showDeleteModal = true;
+                                        }
+                                    "
+                                >
                                     <Trash2 class="h-4 w-4" />
                                     <span class="ml-2 pixel-outline">Delete</span>
                                 </Button>
@@ -127,9 +140,7 @@ const isOwner = computed(() => {
                                 <p>Are you sure you want to delete this quiz? This action cannot be undone.</p>
                                 <DialogFooter>
                                     <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
-                                    <Button class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline" variant="default" @click="deleteQuiz">
-                                        Delete
-                                    </Button>
+                                    <Button variant="destructive" @click="deleteQuiz"> Delete </Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>

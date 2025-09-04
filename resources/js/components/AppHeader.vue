@@ -17,10 +17,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
-import {  FileIcon, ChartArea,  LayoutGrid, Menu, Search, TestTube2, FileChartLine, Sword, Swords, Target, FolderOpen  } from 'lucide-vue-next';
-import { computed } from 'vue';
 import { User } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
+import { ChartArea, FileChartLine, FileIcon, FolderOpen, LayoutGrid, Menu, Swords, Target } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -32,7 +32,6 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 
-
 interface Auth {
     user: User;
 }
@@ -41,9 +40,7 @@ const auth = computed<Auth>(() => page.props.auth as Auth);
 
 const isCurrentRoute = computed(() => (url: string) => page.url === url);
 
-const activeItemStyles = computed(
-    () => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:text-[#7eea7d]' : ''),
-);
+const activeItemStyles = computed(() => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:text-[#7eea7d]' : ''));
 
 const mainNavItems: NavItem[] = [
     {
@@ -89,11 +86,11 @@ const mainNavItems: NavItem[] = [
                   href: '/files/verify',
                   icon: FileIcon,
               },
-                {
-                    title: 'Statistics',
-                    href: '/statistics',
-                    icon: ChartArea,
-                },
+              {
+                  title: 'Statistics',
+                  href: '/statistics',
+                  icon: ChartArea,
+              },
           ]
         : []),
 ];
@@ -129,7 +126,7 @@ const getExperienceProgress = () => {
 
 <template>
     <div>
-        <div class="border-b border-sidebar-border/80 bg-[#4d0a02]">
+        <div class="border-sidebar-border/80 border-b">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
                 <div class="lg:hidden">
@@ -150,7 +147,7 @@ const getExperienceProgress = () => {
                                         v-for="item in mainNavItems"
                                         :key="item.title"
                                         :href="item.href"
-                                        class="flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium hover:bg-accent"
+                                        class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
                                         :class="activeItemStyles(item.href)"
                                     >
                                         <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
@@ -229,7 +226,9 @@ const getExperienceProgress = () => {
                     </div>
 
                     <!-- Level and XP Display -->
-                    <div class="hidden md:flex items-center space-x-3 px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <div
+                        class="hidden items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 md:flex dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20"
+                    >
                         <!-- Level Badge -->
                         <div class="flex items-center space-x-1">
                             <span class="text-xs font-medium text-blue-600 dark:text-blue-400">LVL</span>
@@ -239,13 +238,13 @@ const getExperienceProgress = () => {
                         <!-- XP Progress -->
                         <div class="flex items-center space-x-2">
                             <div class="flex flex-col">
-                                <div class="w-16 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                <div class="h-2 w-16 rounded-full bg-gray-200 dark:bg-gray-700">
                                     <div
-                                        class="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                                        class="h-2 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300"
                                         :style="{ width: `${getExperienceProgress()}%` }"
                                     ></div>
                                 </div>
-                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                                <div class="mt-0.5 text-xs text-gray-600 dark:text-gray-400">
                                     {{ auth.user.experience || 0 }}/{{ auth.user.experience_to_next_level || 100 }} XP
                                 </div>
                             </div>
@@ -257,12 +256,12 @@ const getExperienceProgress = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                class="relative size-10 w-auto rounded-full p-1 focus-within:ring-2 focus-within:ring-primary"
+                                class="focus-within:ring-primary relative size-10 w-auto rounded-full p-1 focus-within:ring-2"
                             >
                                 <Avatar class="size-8 overflow-hidden rounded-full">
                                     <AvatarImage v-if="auth.user.avatar" :src="auth.user.avatar" :alt="auth.user.last_name" />
                                     <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white">
-                                        {{ getInitials(auth.user?.first_name + " " + auth.user?.last_name) }}
+                                        {{ getInitials(auth.user?.first_name + ' ' + auth.user?.last_name) }}
                                     </AvatarFallback>
                                 </Avatar>
                             </Button>
@@ -275,7 +274,7 @@ const getExperienceProgress = () => {
             </div>
         </div>
 
-        <div v-if="props.breadcrumbs.length > 1" class="flex w-full border-b border-sidebar-border/70">
+        <div v-if="props.breadcrumbs.length > 1" class="border-sidebar-border/70 flex w-full border-b">
             <div class="mx-auto flex h-12 w-full items-center justify-start px-4 text-neutral-500 md:max-w-7xl">
                 <Breadcrumbs :breadcrumbs="breadcrumbs" />
             </div>

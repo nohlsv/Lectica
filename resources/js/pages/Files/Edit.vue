@@ -1,15 +1,12 @@
 <script setup lang="ts">
-import { Head, Link, useForm, router } from '@inertiajs/vue3';
+import TagInput from '@/components/TagInput.vue';
+import Button from '@/components/ui/button/Button.vue';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type Tag } from '@/types';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
-import TagInput from '@/components/TagInput.vue';
 import { ref } from 'vue';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import Button from '@/components/ui/button/Button.vue';
-import { DialogClose } from '@/components/ui/dialog'
-
-
 
 interface Props {
     file: File;
@@ -38,7 +35,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     name: props.file.name,
     description: props.file.description || '',
-    tags: props.file.tags as (any[] | undefined) || [],
+    tags: (props.file.tags as any[] | undefined) || [],
 });
 
 const submit = () => {
@@ -62,7 +59,7 @@ const deleteFile = () => {
     form.delete(`/files/${props.file.id}`, {
         onSuccess: () => {
             router.visit('/files');
-        }
+        },
     });
 };
 
@@ -87,19 +84,23 @@ const addToCollection = async () => {
     if (!selectedCollection.value) return;
 
     try {
-        await router.post(route('collections.add-file', selectedCollection.value), {
-            file_id: props.file.id
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                showCollectionModal.value = false;
-                selectedCollection.value = null;
-                // Add success notification here if needed
+        await router.post(
+            route('collections.add-file', selectedCollection.value),
+            {
+                file_id: props.file.id,
             },
-            onError: (errors) => {
-                console.error('Failed to add file to collection:', errors);
-            }
-        });
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showCollectionModal.value = false;
+                    selectedCollection.value = null;
+                    // Add success notification here if needed
+                },
+                onError: (errors) => {
+                    console.error('Failed to add file to collection:', errors);
+                },
+            },
+        );
     } catch (error) {
         console.error('Failed to add file to collection:', error);
     }
@@ -109,15 +110,9 @@ const addToCollection = async () => {
 <template>
     <Head title="Edit File" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-6 p-6 bg-gradient">
-           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full px-4 gap-4">
-                <!-- Back Button -->
-                <div class="sm:flex-1 sm:order-1">
-                    <Link
-                    :href="`/files/${file.id}`"
-                    class="inline-flex items-center gap-2 px-3 py-1 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
-                            hover:text-red-700 duration-300 font-bold"
-                    >
+        <div class="flex flex-col gap-6 p-6">
+            <div class="flex items-center gap-4">
+                <Link :href="`/files/${file.id}`" class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
                     <ArrowLeftIcon class="h-4 w-4" />
                     Back
                     </Link>
@@ -134,16 +129,15 @@ const addToCollection = async () => {
                 <div class="sm:flex-1 sm:order-3 hidden sm:block"></div>
             </div>
 
-
-            <div class="rounded-lg bg-container p-6 flex justify-center">
-                <form @submit.prevent="submit" class="space-y-4 max-w-md">
+            <div class="border-border rounded-lg border p-6">
+                <form @submit.prevent="submit" class="max-w-md space-y-4">
                     <div class="space-y-2">
-                        <label for="name" class="block text-sm font-medium text-[#fce085]">File Name</label>
+                        <label for="name" class="text-foreground block text-sm font-medium">File Name</label>
                         <input
                             type="text"
                             v-model="form.name"
                             id="name"
-                            class="w-full rounded-md border border-input bg-[#FFF8F2]/80 px-3 py-2 text-sm text-[#333333] ring-offset-background"
+                            class="border-input bg-background ring-offset-background w-full rounded-md border px-3 py-2 text-sm"
                         />
                         <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
                             {{ form.errors.name }}
@@ -152,12 +146,12 @@ const addToCollection = async () => {
 
                     <!-- File Description -->
                     <div class="space-y-2">
-                        <label for="description" class="block text-sm font-medium text-[#fce085]">Description</label>
+                        <label for="description" class="text-foreground block text-sm font-medium">Description</label>
                         <textarea
                             id="description"
                             v-model="form.description"
                             rows="3"
-                            class="w-full rounded-md border border-input bg-[#FFF8F2]/80 text-[#333333]  px-3 py-2 text-sm ring-offset-background resize-none"
+                            class="border-input bg-background ring-offset-background w-full resize-none rounded-md border px-3 py-2 text-sm"
                             placeholder="Enter a brief description of this file (optional)"
                         ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-xs text-red-500">
@@ -167,23 +161,50 @@ const addToCollection = async () => {
 
                     <!-- Tags -->
                     <div class="space-y-2">
-                        <label for="tags" class="block text-sm font-medium text-[#fce085]">Tags</label>
-                        <TagInput
-                            v-model="form.tags"
-                            :existing-tags="allTags"
-                        />
-                        <p class="text-xs text-muted-foreground">
+                        <label for="tags" class="text-foreground block text-sm font-medium">Tags</label>
+                        <TagInput v-model="form.tags" :existing-tags="allTags" />
+                        <p class="text-muted-foreground text-xs">
                             Add tags to categorize your file. You can create new tags or select existing ones.
                         </p>
                     </div>
 
+                    <div class="flex items-center justify-between gap-2">
+                        <div>
+                            <Dialog>
+                                <DialogTrigger as-child>
+                                    <button
+                                        type="button"
+                                        class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                        :disabled="form.processing"
+                                    >
+                                        Delete File
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent>
+                                    <DialogHeader>
+                                        <DialogTitle>Confirm Deletion</DialogTitle>
+                                    </DialogHeader>
+                                    <p>Are you sure you want to delete this file? This action cannot be undone.</p>
+                                    <DialogFooter>
+                                        <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
+                                        <Button variant="destructive" @click="deleteFile" :disabled="form.processing">
+                                            {{ form.processing ? 'Deleting...' : 'Delete' }}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+                        </div>
 
-                    <div class="flex items-center justify-between w-full px-4 sm:w-auto">
-                        <!-- Right-aligned Buttons -->
-                        <div class="flex items-center gap-2 ml-auto">
-                            <DialogTrigger as-child>
-                                <button
-                                class="inline-flex items-center justify-center rounded-md bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-foreground pixel-outline border-[#0c0a03] border-2 duration-300"
+                        <div>
+                            <Link
+                                :href="`/files/${file.id}`"
+                                class="border-border bg-background text-foreground hover:bg-accent inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium"
+                            >
+                                Cancel
+                            </Link>
+                            <button
+                                type="submit"
+                                class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
                                 :disabled="form.processing"
                                 >
                                 Delete File
@@ -221,40 +242,38 @@ const addToCollection = async () => {
 
         <!-- Add to Collection Modal -->
         <div v-if="showCollectionModal" class="fixed inset-0 z-50 overflow-y-auto">
-            <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-                <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" @click="showCollectionModal = false"></div>
-                <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                    <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100 mb-4">
-                            Add File to Collection
-                        </h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            <div class="flex min-h-screen items-end justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+                <div class="bg-opacity-75 fixed inset-0 bg-gray-500 transition-opacity" @click="showCollectionModal = false"></div>
+                <div
+                    class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle dark:bg-gray-800"
+                >
+                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 dark:bg-gray-800">
+                        <h3 class="mb-4 text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Add File to Collection</h3>
+                        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">
                             Select a collection to add this file to. You can also create a new collection from the
-                            <Link href="/collections/create" class="text-indigo-600 hover:text-indigo-500 underline">
-                                Collections page
-                            </Link>.
+                            <Link href="/collections/create" class="text-indigo-600 underline hover:text-indigo-500"> Collections page </Link>.
                         </p>
 
-                        <div v-if="userCollections.length === 0" class="text-center py-4">
+                        <div v-if="userCollections.length === 0" class="py-4 text-center">
                             <p class="text-sm text-gray-500 dark:text-gray-400">No collections found.</p>
-                            <Link
-                                href="/collections/create"
-                                class="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500"
-                            >
+                            <Link href="/collections/create" class="mt-2 inline-flex items-center text-sm text-indigo-600 hover:text-indigo-500">
                                 Create your first collection
                             </Link>
                         </div>
 
-                        <div v-else class="space-y-2 max-h-64 overflow-y-auto">
+                        <div v-else class="max-h-64 space-y-2 overflow-y-auto">
                             <div
                                 v-for="collection in userCollections"
                                 :key="collection.id"
-                                class="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-600 rounded-lg cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                class="flex cursor-pointer items-center justify-between rounded-lg border border-gray-200 p-3 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:hover:bg-gray-700"
                                 :class="{
-                                    'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-700': selectedCollection === collection.id,
-                                    'bg-white dark:bg-gray-800': selectedCollection !== collection.id
+                                    'border-blue-200 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20': selectedCollection === collection.id,
+                                    'bg-white dark:bg-gray-800': selectedCollection !== collection.id,
                                 }"
-                                @click="selectedCollection = collection.id; addToCollection()"
+                                @click="
+                                    selectedCollection = collection.id;
+                                    addToCollection();
+                                "
                             >
                                 <div>
                                     <p class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ collection.name }}</p>
@@ -265,7 +284,7 @@ const addToCollection = async () => {
                             </div>
                         </div>
                     </div>
-                    <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 dark:bg-gray-700">
                         <Button variant="outline" @click="showCollectionModal = false">Close</Button>
                     </div>
                 </div>

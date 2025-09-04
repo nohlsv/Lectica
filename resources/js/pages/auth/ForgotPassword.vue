@@ -45,9 +45,9 @@ const submit = () => {
                 </div>
             </form>
 
-            <div class="space-x-1 text-center text-sm text-muted-foreground tracking-wide relative -top-5">
-                <span class="text-primary mr-1.5">Or, return to</span>
-                <TextLink :href="route('login')" class="font-bold">Log In</TextLink>
+            <div class="text-muted-foreground space-x-1 text-center text-sm">
+                <span>Or, return to</span>
+                <TextLink :href="route('login')">log in</TextLink>
             </div>
         </div>
     </AuthLayout>
