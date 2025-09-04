@@ -18,7 +18,7 @@ interface File {
     is_starring?: boolean; // Added property
 }
 import { Head, Link, router } from '@inertiajs/vue3';
-import { EyeIcon, PencilIcon, StarIcon } from 'lucide-vue-next';
+import { EyeIcon, PencilIcon, StarIcon, PlusIcon } from 'lucide-vue-next';
 import { useDateFormat } from '@vueuse/core';
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
@@ -56,6 +56,9 @@ const selectedFileForCollection = ref<File | null>(null);
 const selectedCollection = ref<number | null>(null);
 const userCollections = ref<Collection[]>([]);
 const allTags = ref<Tag[]>([]);
+const showCreateNewCollection = ref(false);
+const newCollectionName = ref('');
+const isCreatingCollection = ref(false);
 
 interface Collection {
     id: number;
@@ -131,7 +134,31 @@ const openCollectionModal = (file: File) => {
     selectedFileForCollection.value = file;
     selectedCollection.value = null;
     showCollectionModal.value = true;
+    showCreateNewCollection.value = false;
+    newCollectionName.value = '';
     fetchUserCollections();
+};
+
+const createNewCollection = async () => {
+    if (!newCollectionName.value.trim()) return;
+
+    isCreatingCollection.value = true;
+    try {
+        const response = await axios.post('/api/collections', {
+            name: newCollectionName.value.trim(),
+            is_public: false
+        });
+
+        await fetchUserCollections();
+        selectedCollection.value = response.data.id;
+        showCreateNewCollection.value = false;
+        newCollectionName.value = '';
+        toast.success('Collection created successfully!');
+    } catch (error) {
+        toast.error('Failed to create collection');
+    } finally {
+        isCreatingCollection.value = false;
+    }
 };
 
 const addToCollection = async () => {
@@ -328,9 +355,13 @@ const addToCollection = async () => {
                                 <StarIcon class="h-4 w-4" :fill="item.is_starred ? 'currentColor' : 'none'" />
                             </button>
                             <span>{{ item.star_count || 0 }}</span>
-                            <Button @click.prevent="openCollectionModal(item)" class="text-sm">
-                                Add to Collection
-                            </Button>
+                            <button
+                                @click.prevent="openCollectionModal(item)"
+                                class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors"
+                                title="Add to Collection"
+                            >
+                                <PlusIcon class="h-4 w-4" />
+                            </button>
                         </div>
                     </template>
                 </DataTable>
@@ -342,21 +373,61 @@ const addToCollection = async () => {
             <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                 <div class="w-full max-w-md rounded-lg bg-background p-6">
                     <h2 class="text-lg font-semibold mb-4">Add File to Collection</h2>
-                    <div class="mb-4">
+
+                    <div v-if="!showCreateNewCollection" class="mb-4">
                         <label for="collection" class="block text-sm font-medium mb-2">Select Collection</label>
                         <select id="collection" v-model="selectedCollection" class="w-full rounded border bg-background px-3 py-2 text-sm">
+                            <option value="">Choose a collection...</option>
                             <option v-for="collection in userCollections" :key="collection.id" :value="collection.id">
-                                {{ collection.name }} ({{ collection.file_count }})
+                                {{ collection.name }} ({{ collection.file_count }} files)
                             </option>
                         </select>
+                        <p class="text-xs text-muted-foreground mt-1">
+                            Don't see the collection you want? Create a new one below.
+                        </p>
                     </div>
-                    <div class="flex justify-end gap-2">
-                        <Button @click="showCollectionModal = false" variant="outline" class="text-sm">
-                            Cancel
+
+                    <div v-if="showCreateNewCollection" class="mb-4">
+                        <label for="new-collection" class="block text-sm font-medium mb-2">New Collection Name</label>
+                        <Input
+                            id="new-collection"
+                            v-model="newCollectionName"
+                            placeholder="Enter collection name"
+                            class="w-full"
+                            @keydown.enter="createNewCollection"
+                        />
+                    </div>
+
+                    <div class="flex justify-between gap-2">
+                        <Button
+                            @click="showCreateNewCollection = !showCreateNewCollection"
+                            variant="ghost"
+                            class="text-sm"
+                        >
+                            {{ showCreateNewCollection ? 'Select Existing' : 'Create New' }}
                         </Button>
-                        <Button @click="addToCollection" class="text-sm">
-                            Add to Collection
-                        </Button>
+                        <div class="flex gap-2">
+                            <Button @click="showCollectionModal = false" variant="outline" class="text-sm">
+                                Cancel
+                            </Button>
+                            <Button
+                                v-if="!showCreateNewCollection"
+                                @click="addToCollection"
+                                :disabled="!selectedCollection"
+                                class="text-sm"
+                            >
+                                Add to Collection
+                            </Button>
+                            <Button
+                                v-else
+                                :disabled="isCreatingCollection || !newCollectionName.trim()"
+                                @click="createNewCollection"
+                                class="text-sm"
+                            >
+                                <span v-if="isCreatingCollection">Creating...</span>
+                                <span v-else>Create & Add</span>
+                            </Button>
+                        </div>
                     </div>
                 </div>
             </div>
