@@ -19,7 +19,7 @@ import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { ChartArea, FileChartLine, FileIcon, FolderOpen, LayoutGrid, Menu, Swords, Target } from 'lucide-vue-next';
+import { ChartArea, FileChartLine, FileIcon, FolderOpen, LayoutGrid, Menu, Swords, Target, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -72,6 +72,11 @@ const mainNavItems: NavItem[] = [
         title: 'Battles',
         href: '/battles',
         icon: Swords,
+    },
+    {
+        title: 'Multiplayer',
+        href: '/multiplayer-games',
+        icon: Users,
     },
     {
         title: 'History',
