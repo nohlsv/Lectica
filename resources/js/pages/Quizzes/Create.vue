@@ -1,23 +1,16 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import InputError from '@/components/InputError.vue';
-import { ref, watch } from 'vue';
-import { Plus, Trash2 } from 'lucide-vue-next';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type File } from '@/types';
-
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Plus, Trash2 } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
 interface Props {
     file: File;
@@ -32,10 +25,12 @@ const form = useForm({
     answers: [''],
 });
 
-const quizTypeOptions = ref(Object.entries(props.quizTypes).map(([value, label]) => ({
-    value,
-    label,
-})));
+const quizTypeOptions = ref(
+    Object.entries(props.quizTypes).map(([value, label]) => ({
+        value,
+        label,
+    })),
+);
 
 // Add a new option for multiple choice questions
 function addOption() {
@@ -62,18 +57,21 @@ function removeAnswer(index: number) {
 }
 
 // Watch for type changes and update form accordingly
-watch(() => form.type, (newType) => {
-    if (newType === 'multiple_choice') {
-        form.options = form.options.length < 2 ? ['', ''] : form.options;
-        form.answers = [''];
-    } else if (newType === 'enumeration') {
-        form.options = [];
-        form.answers = form.answers.length < 1 ? [''] : form.answers;
-    } else if (newType === 'true_false') {
-        form.options = [];
-        form.answers = ['true'];
-    }
-});
+watch(
+    () => form.type,
+    (newType) => {
+        if (newType === 'multiple_choice') {
+            form.options = form.options.length < 2 ? ['', ''] : form.options;
+            form.answers = [''];
+        } else if (newType === 'enumeration') {
+            form.options = [];
+            form.answers = form.answers.length < 1 ? [''] : form.answers;
+        } else if (newType === 'true_false') {
+            form.options = [];
+            form.answers = ['true'];
+        }
+    },
+);
 
 function submit() {
     form.post(route('files.quizzes.store', props.file.id), {
@@ -128,18 +126,12 @@ function submit() {
                             <Label>Options</Label>
                             <div v-for="(option, index) in form.options" :key="index" class="flex items-center space-x-2">
                                 <Input v-model="form.options[index]" :placeholder="`Option ${index + 1}`" required />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    @click="removeOption(index)"
-                                    :disabled="form.options.length <= 2"
-                                >
+                                <Button type="button" variant="outline" size="icon" @click="removeOption(index)" :disabled="form.options.length <= 2">
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
                             </div>
                             <Button type="button" variant="outline" @click="addOption" class="w-full">
-                                <Plus class="h-4 w-4 mr-2" />
+                                <Plus class="mr-2 h-4 w-4" />
                                 Add Option
                             </Button>
                             <InputError :message="form.errors.options" />
@@ -147,11 +139,7 @@ function submit() {
                             <div class="space-y-2">
                                 <Label>Correct Answer</Label>
                                 <RadioGroup v-model="form.answers[0]">
-                                    <div
-                                        v-for="(option, index) in form.options"
-                                        :key="index"
-                                        class="flex items-center space-x-2"
-                                    >
+                                    <div v-for="(option, index) in form.options" :key="index" class="flex items-center space-x-2">
                                         <RadioGroupItem :value="option" :id="`option-${index}`" />
                                         <Label :for="`option-${index}`">{{ option }}</Label>
                                     </div>
@@ -165,18 +153,12 @@ function submit() {
                             <Label>Correct Answers (Enter each answer separately)</Label>
                             <div v-for="(answer, index) in form.answers" :key="index" class="flex items-center space-x-2">
                                 <Input v-model="form.answers[index]" :placeholder="`Answer ${index + 1}`" required />
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="icon"
-                                    @click="removeAnswer(index)"
-                                    :disabled="form.answers.length <= 1"
-                                >
+                                <Button type="button" variant="outline" size="icon" @click="removeAnswer(index)" :disabled="form.answers.length <= 1">
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
                             </div>
                             <Button type="button" variant="outline" @click="addAnswer" class="w-full">
-                                <Plus class="h-4 w-4 mr-2" />
+                                <Plus class="mr-2 h-4 w-4" />
                                 Add Answer
                             </Button>
                             <InputError :message="form.errors.answers" />

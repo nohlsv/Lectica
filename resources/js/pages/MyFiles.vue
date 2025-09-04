@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileIcon, FolderIcon, StarIcon, PlusIcon } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
-import { Badge } from '@/components/ui/badge';
-import { type File, type Tag, type BreadcrumbItem } from '@/types';
-import { toast } from 'vue-sonner';
 import { Input } from '@/components/ui/input';
-import { router } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type BreadcrumbItem, type File, type Tag } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
+import { FileIcon, FolderIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface PageProps {
     files: {
@@ -34,7 +33,7 @@ const props = defineProps<PageProps>();
 const groupedFiles = computed(() => {
     const grouped: Record<string, File[]> = {};
 
-    props.files.data.forEach(file => {
+    props.files.data.forEach((file) => {
         const firstLetter = file.name.charAt(0).toUpperCase();
         if (!grouped[firstLetter]) {
             grouped[firstLetter] = [];
@@ -43,10 +42,12 @@ const groupedFiles = computed(() => {
     });
 
     // Sort groups alphabetically
-    return Object.keys(grouped).sort().reduce<Record<string, File[]>>((result, key) => {
-        result[key] = grouped[key];
-        return result;
-    }, {});
+    return Object.keys(grouped)
+        .sort()
+        .reduce<Record<string, File[]>>((result, key) => {
+            result[key] = grouped[key];
+            return result;
+        }, {});
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -96,7 +97,7 @@ const createNewCollection = async () => {
     try {
         const response = await axios.post('/api/collections', {
             name: newCollectionName.value.trim(),
-            is_public: false
+            is_public: false,
         });
 
         await fetchUserCollections();
@@ -115,24 +116,28 @@ const addToCollection = async () => {
     if (!selectedFileForCollection.value || !selectedCollection.value) return;
 
     try {
-        await router.post(route('collections.add-file', selectedCollection.value), {
-            file_id: selectedFileForCollection.value.id
-        }, {
-            preserveScroll: true,
-            onSuccess: () => {
-                showCollectionModal.value = false;
-                selectedFileForCollection.value = null;
-                selectedCollection.value = null;
-                toast.success('File added to collection successfully!');
+        await router.post(
+            route('collections.add-file', selectedCollection.value),
+            {
+                file_id: selectedFileForCollection.value.id,
             },
-            onError: (errors) => {
-                if (errors.file) {
-                    toast.error(errors.file);
-                } else {
-                    toast.error('Failed to add file to collection');
-                }
-            }
-        });
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    showCollectionModal.value = false;
+                    selectedFileForCollection.value = null;
+                    selectedCollection.value = null;
+                    toast.success('File added to collection successfully!');
+                },
+                onError: (errors) => {
+                    if (errors.file) {
+                        toast.error(errors.file);
+                    } else {
+                        toast.error('Failed to add file to collection');
+                    }
+                },
+            },
+        );
     } catch (error) {
         toast.error('Failed to add file to collection');
     }
@@ -145,34 +150,34 @@ const addToCollection = async () => {
     <AppLayout>
         <div class="container py-6">
             <!-- Breadcrumbs -->
-            <div class="mb-6 flex items-center text-sm text-muted-foreground">
+            <div class="text-muted-foreground mb-6 flex items-center text-sm">
                 <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
                     <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
                         {{ crumb.title }}
                     </Link>
-                    <span v-else class="font-medium text-foreground">{{ crumb.title }}</span>
+                    <span v-else class="text-foreground font-medium">{{ crumb.title }}</span>
 
                     <span v-if="index < breadcrumbs.length - 1" class="mx-2">/</span>
                 </div>
             </div>
 
-            <div class="flex items-center justify-between mb-6">
+            <div class="mb-6 flex items-center justify-between">
                 <h1 class="text-3xl font-bold">My Files</h1>
                 <Link :href="route('files.create')">
                     <Button>
-                        <PlusIcon class="h-4 w-4 mr-2" />
+                        <PlusIcon class="mr-2 h-4 w-4" />
                         Add New File
                     </Button>
                 </Link>
             </div>
 
             <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12">
-                <FolderIcon class="h-16 w-16 text-muted-foreground mb-4" />
-                <h2 class="text-xl font-semibold mb-2">No files found</h2>
+                <FolderIcon class="text-muted-foreground mb-4 h-16 w-16" />
+                <h2 class="mb-2 text-xl font-semibold">No files found</h2>
                 <p class="text-muted-foreground mb-6">You haven't uploaded any files yet.</p>
                 <Link :href="route('files.create')">
                     <Button>
-                        <PlusIcon class="h-4 w-4 mr-2" />
+                        <PlusIcon class="mr-2 h-4 w-4" />
                         Upload Your First File
                     </Button>
                 </Link>
@@ -180,23 +185,16 @@ const addToCollection = async () => {
 
             <div v-else class="space-y-6">
                 <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
-                    <h2 class="text-xl font-bold border-b pb-2">{{ letter }}</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        <div
-                            v-for="file in files"
-                            :key="file.id"
-                            class="relative group"
-                        >
-                            <Link
-                                :href="route('files.show', file.id)"
-                                class="no-underline block"
-                            >
+                    <h2 class="border-b pb-2 text-xl font-bold">{{ letter }}</h2>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+                        <div v-for="file in files" :key="file.id" class="group relative">
+                            <Link :href="route('files.show', file.id)" class="block no-underline">
                                 <Card class="h-full transition-all hover:shadow-md">
                                     <CardHeader class="pb-2">
-                                        <div class="flex justify-between items-start">
+                                        <div class="flex items-start justify-between">
                                             <div class="flex items-center">
-                                                <FileIcon class="h-5 w-5 mr-2 text-primary" />
-                                                <CardTitle class="text-lg truncate max-w-[200px]" :title="file.name">
+                                                <FileIcon class="text-primary mr-2 h-5 w-5" />
+                                                <CardTitle class="max-w-[200px] truncate text-lg" :title="file.name">
                                                     {{ file.name }}
                                                 </CardTitle>
                                             </div>
@@ -204,12 +202,12 @@ const addToCollection = async () => {
                                                 <StarIcon
                                                     :class="[
                                                         'h-5 w-5',
-                                                        file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'
+                                                        file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground',
                                                     ]"
                                                 />
                                                 <button
                                                     @click.stop.prevent="openCollectionModal(file)"
-                                                    class="inline-flex h-6 w-6 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors opacity-0 group-hover:opacity-100"
+                                                    class="border-border bg-background text-foreground hover:bg-accent inline-flex h-6 w-6 items-center justify-center rounded-md border opacity-0 transition-colors group-hover:opacity-100"
                                                     title="Add to Collection"
                                                 >
                                                     <PlusIcon class="h-3 w-3" />
@@ -226,14 +224,14 @@ const addToCollection = async () => {
                                                 v-for="tag in file.tags"
                                                 :key="tag.id"
                                                 variant="secondary"
-                                                class="text-xs truncate"
+                                                class="truncate text-xs"
                                                 :title="tag.name"
                                             >
                                                 {{ tag.name }}
                                             </Badge>
                                         </div>
                                     </CardContent>
-                                    <CardFooter class="flex justify-between text-xs text-muted-foreground">
+                                    <CardFooter class="text-muted-foreground flex justify-between text-xs">
                                         <span>Created: {{ new Date(file.created_at).toLocaleDateString() }}</span>
                                         <div class="flex items-center space-x-2">
                                             <div class="flex items-center">
@@ -253,7 +251,7 @@ const addToCollection = async () => {
             </div>
 
             <!-- Pagination -->
-            <div v-if="files.meta && files.meta.last_page > 1" class="flex justify-center mt-8">
+            <div v-if="files.meta && files.meta.last_page > 1" class="mt-8 flex justify-center">
                 <div class="flex space-x-1">
                     <Link
                         v-for="page in files.meta.links"
@@ -261,11 +259,9 @@ const addToCollection = async () => {
                         :href="page.url ? page.url : '#'"
                         v-text="page.label"
                         :class="[
-                            'px-3 py-1 rounded border',
-                            page.active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'hover:bg-muted',
-                            !page.url && 'opacity-50 cursor-not-allowed'
+                            'rounded border px-3 py-1',
+                            page.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                            !page.url && 'cursor-not-allowed opacity-50',
                         ]"
                     />
                 </div>
@@ -274,28 +270,25 @@ const addToCollection = async () => {
 
         <!-- Collection Modal -->
         <Transition name="modal">
-            <div
-                v-if="showCollectionModal"
-                class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
-            >
-                <div class="bg-white rounded-lg shadow-lg max-w-sm w-full p-6">
-                    <h2 class="text-xl font-semibold mb-4">Add to Collection</h2>
+            <div v-if="showCollectionModal" class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
+                    <h2 class="mb-4 text-xl font-semibold">Add to Collection</h2>
 
                     <!-- Existing Collections -->
                     <div v-if="userCollections.length > 0" class="mb-4">
-                        <p class="text-sm text-muted-foreground mb-2">Select an existing collection:</p>
+                        <p class="text-muted-foreground mb-2 text-sm">Select an existing collection:</p>
                         <div class="space-y-2">
                             <div
                                 v-for="collection in userCollections"
                                 :key="collection.id"
-                                class="flex items-center justify-between p-3 rounded-lg border cursor-pointer hover:bg-muted"
+                                class="hover:bg-muted flex cursor-pointer items-center justify-between rounded-lg border p-3"
                                 @click="selectedCollection = collection.id"
                             >
                                 <div class="flex items-center">
-                                    <FolderIcon class="h-5 w-5 mr-2 text-primary" />
+                                    <FolderIcon class="text-primary mr-2 h-5 w-5" />
                                     <span class="font-medium">{{ collection.name }}</span>
                                 </div>
-                                <span class="text-xs text-muted-foreground">
+                                <span class="text-muted-foreground text-xs">
                                     {{ collection.file_count }} file
                                     <span v-if="collection.file_count !== 1">s</span>
                                 </span>
@@ -305,45 +298,18 @@ const addToCollection = async () => {
 
                     <!-- New Collection -->
                     <div v-if="showCreateNewCollection" class="mb-4">
-                        <p class="text-sm text-muted-foreground mb-2">Create a new collection:</p>
-                        <Input
-                            v-model="newCollectionName"
-                            placeholder="Collection name"
-                            class="mb-2"
-                            :disabled="isCreatingCollection"
-                        />
-                        <Button
-                            @click="createNewCollection"
-                            :loading="isCreatingCollection"
-                            class="w-full"
-                        >
-                            Create Collection
-                        </Button>
+                        <p class="text-muted-foreground mb-2 text-sm">Create a new collection:</p>
+                        <Input v-model="newCollectionName" placeholder="Collection name" class="mb-2" :disabled="isCreatingCollection" />
+                        <Button @click="createNewCollection" :loading="isCreatingCollection" class="w-full"> Create Collection </Button>
                     </div>
 
                     <!-- Actions -->
                     <div class="flex justify-end space-x-2">
-                        <Button
-                            variant="outline"
-                            @click="showCollectionModal = false"
-                            class="flex-1"
-                        >
-                            Cancel
-                        </Button>
-                        <Button
-                            v-if="!showCreateNewCollection"
-                            @click="showCreateNewCollection = true"
-                            class="flex-1"
-                        >
+                        <Button variant="outline" @click="showCollectionModal = false" class="flex-1"> Cancel </Button>
+                        <Button v-if="!showCreateNewCollection" @click="showCreateNewCollection = true" class="flex-1">
                             Create New Collection
                         </Button>
-                        <Button
-                            v-else
-                            @click="addToCollection"
-                            class="flex-1"
-                        >
-                            Add to Collection
-                        </Button>
+                        <Button v-else @click="addToCollection" class="flex-1"> Add to Collection </Button>
                     </div>
                 </div>
             </div>

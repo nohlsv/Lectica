@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
-import { StarIcon, EyeIcon, PencilIcon } from 'lucide-vue-next';
 import { type File } from '@/types';
-import { computed, ref } from 'vue';
+import { Link, router } from '@inertiajs/vue3';
 import { useDateFormat } from '@vueuse/core';
+import { EyeIcon, PencilIcon, StarIcon } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Props {
     file: File;
@@ -11,7 +11,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-    showActions: true
+    showActions: true,
 });
 
 const isStarred = ref(props.file.is_starred || false);
@@ -28,17 +28,21 @@ const toggleStar = async () => {
     isStarring.value = true;
 
     try {
-        await router.post(route('files.star', { file: props.file.id }), {}, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                isStarred.value = !isStarred.value;
-                starCount.value = isStarred.value ? starCount.value + 1 : starCount.value - 1;
+        await router.post(
+            route('files.star', { file: props.file.id }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    isStarred.value = !isStarred.value;
+                    starCount.value = isStarred.value ? starCount.value + 1 : starCount.value - 1;
+                },
+                onFinish: () => {
+                    isStarring.value = false;
+                },
             },
-            onFinish: () => {
-                isStarring.value = false;
-            }
-        });
+        );
     } catch (error) {
         isStarring.value = false;
         console.error('Error toggling star', error);
@@ -47,15 +51,16 @@ const toggleStar = async () => {
 </script>
 
 <template>
-    <div class="flex flex-col rounded-lg border border-border overflow-hidden transition-shadow duration-200 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 ">
+    <div
+        class="border-border flex flex-col overflow-hidden rounded-lg border shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-shadow transition-transform duration-200 duration-500 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)]"
+    >
         <!-- File header -->
-        <div class="bg-accent/30 p-4 flex items-center justify-between border-b border-border">
-            <h3 class="font-medium text-foreground line-clamp-1 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
+        <div class="bg-accent/30 border-border flex items-center justify-between border-b p-4">
+            <h3 class="text-foreground line-clamp-1 font-medium [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
             <button
                 @click.prevent="toggleStar"
-                class="inline-flex items-center justify-center rounded-full p-1 hover:bg-accent transition-colors"
-                :class="{'text-amber-500': isStarred, 'text-muted-foreground': !isStarred}"
+                class="hover:bg-accent inline-flex items-center justify-center rounded-full p-1 transition-colors"
+                :class="{ 'text-amber-500': isStarred, 'text-muted-foreground': !isStarred }"
                 :disabled="isStarring"
             >
                 <StarIcon class="h-5 w-5" :fill="isStarred ? 'currentColor' : 'none'" />
@@ -63,17 +68,17 @@ const toggleStar = async () => {
         </div>
 
         <!-- File content -->
-        <div class="p-4 flex-1">
-            <p class="text-sm text-muted-foreground line-clamp-3 mb-3 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+        <div class="flex-1 p-4">
+            <p class="text-muted-foreground mb-3 line-clamp-3 text-sm [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                 {{ file.description ? file.description : file.content }}
             </p>
 
             <!-- Tags -->
-            <div v-if="file.tags && file.tags.length > 0" class="flex flex-wrap gap-1.5 mt-2">
+            <div v-if="file.tags && file.tags.length > 0" class="mt-2 flex flex-wrap gap-1.5">
                 <span
                     v-for="tag in file.tags"
                     :key="tag.id"
-                    class="inline-flex px-2 py-0.5 text-xs rounded-full bg-primary/10 text-primary [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
+                    class="bg-primary/10 text-primary inline-flex rounded-full px-2 py-0.5 text-xs [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
                 >
                     {{ tag.name }}
                 </span>
@@ -81,8 +86,8 @@ const toggleStar = async () => {
         </div>
 
         <!-- File footer -->
-        <div class="border-t border-border p-4 flex justify-between items-center">
-            <div class="flex items-center gap-1 text-xs text-muted-foreground [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+        <div class="border-border flex items-center justify-between border-t p-4">
+            <div class="text-muted-foreground flex items-center gap-1 text-xs [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                 <span>{{ formattedDate }}</span>
                 <span class="px-1.5">•</span>
                 <span class="flex items-center gap-0.5">
@@ -94,7 +99,7 @@ const toggleStar = async () => {
             <div v-if="showActions" class="flex items-center gap-2">
                 <Link
                     :href="`/files/${file.id}`"
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"
+                    class="border-border bg-background text-foreground hover:bg-accent inline-flex h-7 w-7 items-center justify-center rounded-md border"
                     title="View file details"
                 >
                     <EyeIcon class="h-3.5 w-3.5" />
@@ -102,12 +107,16 @@ const toggleStar = async () => {
                 <Link
                     v-if="file.can_edit"
                     :href="`/files/${file.id}/edit`"
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"
+                    class="border-border bg-background text-foreground hover:bg-accent inline-flex h-7 w-7 items-center justify-center rounded-md border"
                     title="Edit file"
                 >
                     <PencilIcon class="h-3.5 w-3.5" />
                 </Link>
-                <div v-else class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-muted-foreground opacity-40" title="Only the uploader can edit this file">
+                <div
+                    v-else
+                    class="border-border bg-background text-muted-foreground inline-flex h-7 w-7 items-center justify-center rounded-md border opacity-40"
+                    title="Only the uploader can edit this file"
+                >
                     <PencilIcon class="h-3.5 w-3.5" />
                 </div>
             </div>

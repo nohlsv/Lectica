@@ -3,8 +3,7 @@ import AppLayout from '@/layouts/app/AppHeaderLayout.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
-import { Toaster } from 'vue-sonner';
-import { toast } from 'vue-sonner';
+import { toast, Toaster } from 'vue-sonner';
 
 const page = usePage();
 
@@ -28,7 +27,6 @@ onMounted(() => {
         toast.info(page.props.message);
     }
 });
-
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];

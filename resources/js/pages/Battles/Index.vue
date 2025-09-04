@@ -3,33 +3,24 @@
 
     <AppLayout>
         <template #header>
-            <div class="flex justify-between items-center">
-                <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                    Battle History
-                </h2>
-                <Link
-                    :href="route('battles.create')"
-                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Battle History</h2>
+                <Link :href="route('battles.create')" class="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">
                     Start New Battle
                 </Link>
             </div>
         </template>
 
         <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
-                        <div v-if="battles.data.length === 0" class="text-center py-8">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                                No battles yet
-                            </h3>
-                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
-                                Start your first battle to test your knowledge!
-                            </p>
+                        <div v-if="battles.data.length === 0" class="py-8 text-center">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No battles yet</h3>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Start your first battle to test your knowledge!</p>
                             <Link
                                 :href="route('battles.create')"
-                                class="mt-4 inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700"
+                                class="mt-4 inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase hover:bg-blue-700"
                             >
                                 Start Battle
                             </Link>
@@ -39,7 +30,7 @@
                             <div
                                 v-for="battle in battles.data"
                                 :key="battle.id"
-                                class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 border border-gray-200 dark:border-gray-600"
+                                class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-600 dark:bg-gray-700"
                             >
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
@@ -47,27 +38,22 @@
                                             v-if="battle.monster?.image_path"
                                             :src="battle.monster.image_path"
                                             :alt="battle.monster.name"
-                                            class="w-16 h-16 rounded-lg object-cover"
+                                            class="h-16 w-16 rounded-lg object-cover"
                                             @error="$event.target.style.display = 'none'"
                                         />
                                         <div>
-                                            <h3 class="text-lg font-semibold">
-                                                vs {{ battle.monster?.name || 'Unknown Monster' }}
-                                            </h3>
+                                            <h3 class="text-lg font-semibold">vs {{ battle.monster?.name || 'Unknown Monster' }}</h3>
                                             <p class="text-sm text-gray-600 dark:text-gray-400">
                                                 File: {{ battle.file?.title || battle.file?.name }}
                                             </p>
-                                            <div class="flex space-x-2 mt-2">
-                                                <span
-                                                    :class="getStatusBadge(battle.status)"
-                                                    class="px-2 py-1 rounded-full text-xs font-medium"
-                                                >
+                                            <div class="mt-2 flex space-x-2">
+                                                <span :class="getStatusBadge(battle.status)" class="rounded-full px-2 py-1 text-xs font-medium">
                                                     {{ battle.status.charAt(0).toUpperCase() + battle.status.slice(1) }}
                                                 </span>
                                                 <span
                                                     v-if="battle.monster?.difficulty"
                                                     :class="getDifficultyBadge(battle.monster.difficulty).color"
-                                                    class="px-2 py-1 rounded-full text-xs font-medium"
+                                                    class="rounded-full px-2 py-1 text-xs font-medium"
                                                 >
                                                     {{ getDifficultyBadge(battle.monster.difficulty).text }}
                                                 </span>
@@ -83,16 +69,16 @@
                                                 <span class="text-red-600">👹 {{ battle.monster_hp }}</span>
                                             </div>
                                         </div>
-                                        <div class="text-xs text-gray-500 mt-1">
+                                        <div class="mt-1 text-xs text-gray-500">
                                             {{ battle.correct_answers }}/{{ battle.total_questions }} correct
                                         </div>
                                         <div class="mt-2">
                                             <Link
                                                 :href="route('battles.show', battle.id)"
-                                                :class="battle.status === 'active'
-                                                    ? 'bg-green-500 hover:bg-green-700'
-                                                    : 'bg-gray-500 hover:bg-gray-700'"
-                                                class="text-white font-bold py-1 px-3 rounded text-sm"
+                                                :class="
+                                                    battle.status === 'active' ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-700'
+                                                "
+                                                class="rounded px-3 py-1 text-sm font-bold text-white"
                                             >
                                                 {{ battle.status === 'active' ? 'Continue' : 'View' }}
                                             </Link>
@@ -108,10 +94,8 @@
                                     v-for="page in battles.last_page"
                                     :key="page"
                                     :href="route('battles.index', { page })"
-                                    :class="page === battles.current_page
-                                        ? 'bg-blue-500 text-white'
-                                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
-                                    class="px-3 py-2 rounded"
+                                    :class="page === battles.current_page ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'"
+                                    class="rounded px-3 py-2"
                                 >
                                     {{ page }}
                                 </Link>
@@ -125,12 +109,12 @@
 </template>
 
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue'
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link } from '@inertiajs/vue3';
 
 defineProps({
     battles: Object,
-})
+});
 
 const getStatusBadge = (status) => {
     const colors = {
@@ -138,10 +122,10 @@ const getStatusBadge = (status) => {
         won: 'bg-green-100 text-green-800',
         lost: 'bg-red-100 text-red-800',
         abandoned: 'bg-gray-100 text-gray-800',
-    }
+    };
 
-    return colors[status] || colors.abandoned
-}
+    return colors[status] || colors.abandoned;
+};
 
 const getDifficultyBadge = (difficulty) => {
     const levels = {
@@ -149,8 +133,8 @@ const getDifficultyBadge = (difficulty) => {
         2: { text: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
         3: { text: 'Hard', color: 'bg-red-100 text-red-800' },
         4: { text: 'Expert', color: 'bg-purple-100 text-purple-800' },
-    }
+    };
 
-    return levels[difficulty] || levels[1]
-}
+    return levels[difficulty] || levels[1];
+};
 </script>

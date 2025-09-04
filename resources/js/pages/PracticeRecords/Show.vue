@@ -1,14 +1,14 @@
 <template>
     <AppLayout>
-        <div class="p-6 space-y-6">
+        <div class="space-y-6 p-6">
             <h1 class="text-2xl font-bold">History Details</h1>
-            <div class="p-4 bg-muted rounded-lg shadow">
+            <div class="bg-muted rounded-lg p-4 shadow">
                 <h2 class="text-lg font-semibold">{{ record.file.name }}</h2>
                 <p>Type: {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</p>
                 <p>Score: {{ record.correct_answers }} / {{ record.total_questions }}</p>
                 <div v-if="decodedMistakes && decodedMistakes.length > 0" class="mt-4">
                     <h3 class="text-lg font-semibold">Mistakes</h3>
-                    <ul class="list-disc list-inside">
+                    <ul class="list-inside list-disc">
                         <li v-for="(mistake, index) in decodedMistakes" :key="index">
                             <strong>Question:</strong> {{ mistake.question }}<br />
                             <strong>Your Answer:</strong> {{ mistake.your_answer }}<br />
