@@ -188,6 +188,9 @@ class MultiplayerGame extends Model
     public function markAsFinished(): void
     {
         $this->update(['status' => MultiplayerGameStatus::FINISHED]);
+
+        // Broadcast the game update to notify all connected clients
+        broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_ended'));
     }
 
     /**

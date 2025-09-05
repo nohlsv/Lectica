@@ -450,10 +450,8 @@ class MultiplayerGameController extends Controller
         }
 
         // Broadcast game update via websockets
-        // If game ended, broadcast to ALL players, otherwise just to others
-        if ($gameEnded) {
-            broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_ended'));
-        } else {
+        // Only broadcast if game hasn't ended (markAsFinished already broadcasts for ended games)
+        if (!$gameEnded) {
             broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
         }
 
