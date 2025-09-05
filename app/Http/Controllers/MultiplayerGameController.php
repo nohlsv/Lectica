@@ -260,6 +260,9 @@ class MultiplayerGameController extends Controller
         // Start the game
         $multiplayerGame->startGame();
 
+        // Broadcast the game update to notify player one that player two has joined
+        broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
+
         return redirect()->route('multiplayer-games.show', $multiplayerGame)
             ->with('success', 'Successfully joined the game! The battle begins!');
     }
