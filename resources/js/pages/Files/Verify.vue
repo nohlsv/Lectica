@@ -43,18 +43,18 @@ const verifyFile = (fileId: number) => {
                 <div v-if="props.files.data.length === 0" class="text-center text-muted-foreground">
                     No unverified files available.
                 </div>
-                <div v-else class="space-y-4">
-                    <div v-for="file in props.files.data" :key="file.id" class="p-4 rounded-lg bg-[#8E2C38] border-[#0c0a03] border-2">
-                        <h2 class="text-xl font-semibold text-[#F5E3C8]">{{ file.name }}</h2>
-                        <p class="text-sm text-[#F5E3C8]/50">Uploaded by: {{ file.user.first_name }} {{ file.user.last_name }}</p>
-                        <p class="text-sm text-[#F5E3C8]/50">Description: {{ file.description || 'No description provided' }}</p>
+                <div v-else class="space-y-4 grid md:grid-cols-2 sm:grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                    <div v-for="file in props.files.data" :key="file.id" class="p-4 rounded-lg bg-[#8E2C38] border-[#0c0a03] border-2 h-full flex flex-col">
+                        <h2 class="text-xl md:text-2xl font-semibold text-[#fdf6ee] pixel-outline">{{ file.name }}</h2>
+                        <p class="text-sm lg:text-base text-[#fdf6ee]/50">Uploaded by: <span class="ml-1"> {{ file.user.first_name }} {{ file.user.last_name }}</span></p>
+                        <p class="text-sm lg:text-base text-[#fdf6ee]/50">Description: <span class="ml-1">{{ file.description || 'No description provided' }}</span></p>
                         <div class="flex flex-wrap gap-2 mt-2">
                             <span v-for="tag in file.tags" :key="tag.id" class="bg-accent text-foreground rounded-full px-2 py-1 text-xs">
                                 {{ tag.name }}
                             </span>
                         </div>
                         <div class="gap-2 flex items-center">
-                            <button class="mt-2 px-4 py-2 bg-[#6aa7d6] border-2 rounded-md text-[#fdf6ee] hover:bg-[#8cc9f2] border-border duration-300 pixel-outline flex items-center">
+                            <button class="mt-2 bg-[#6aa7d6] border-2 rounded-md text-[#fdf6ee] hover:bg-[#578ec3] border-[#0c0a03] duration-300 pixel-outline flex items-center cursor-pointer text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2">
                                 <Link :href="route('files.show', file.id)" target="_blank" class="flex items-center">
                                     <FileIcon class="w-4 h-4 mr-2 pixel-outline-icon" />
                                     <span>View File</span>
@@ -62,7 +62,7 @@ const verifyFile = (fileId: number) => {
                             </button>
                             <button
                                 @click="verifyFile(file.id)"
-                                class="mt-2 px-4 py-2 bg-[#5cae6e] text-[#fdf6ee] pixel-outline hover:bg-[#8be6a0] border-border duration-300 border-2 rounded-md flex items-center"
+                                class="mt-2 bg-[#5cae6e] text-[#fdf6ee] pixel-outline hover:bg-[#4a9159] border-[#0c0a03] duration-300 border-2 rounded-md flex items-center cursor-pointer text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2"
                             >
                                 <CheckCircleIcon class="w-4 h-4 mr-2 pixel-outline-icon" />
                                 <span>Verify</span>
@@ -70,6 +70,7 @@ const verifyFile = (fileId: number) => {
                         </div>
                     </div>
                 </div>
+                <!-- Pagination -->
                 <div class="flex justify-center mt-6">
                     <nav class="flex space-x-2">
                         <button
@@ -77,10 +78,10 @@ const verifyFile = (fileId: number) => {
                             :key="link.label"
                             :disabled="!link.url"
                             @click="link.url && router.get(link.url)"
-                            class="px-4 py-2 border rounded-md bg"
+                            class="text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2 border rounded-md bg"
                             :class="{
-                                'bg-[#B23A48] text-primary pixel-outline border-2 border-border': link.active,
-                                'bg-[#3B1A14] hover:bg-[#8E2C38] duration-300 text-muted-foreground pixel-outline border-2 border-border': !link.active,
+                                'bg-[#B23A48] text-primary pixel-outline border-2 border-[#0c0a03]': link.active,
+                                'bg-[#3B1A14] hover:bg-[#77252e] duration-300 text-muted-foreground pixel-outline border-2 border-[#0c0a03]': !link.active,
                             }"
                             v-html="link.label"
                         >
