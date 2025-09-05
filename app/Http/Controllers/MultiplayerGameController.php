@@ -419,11 +419,13 @@ class MultiplayerGameController extends Controller
 
         // Check win/lose conditions
         $multiplayerGame->refresh();
+        $gameEnded = false;
 
         if ($multiplayerGame->isPvp()) {
             // PVP win conditions
             if ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                 $multiplayerGame->markAsFinished();
+                $gameEnded = true;
             } else {
                 $multiplayerGame->switchTurn();
             }
@@ -432,12 +434,15 @@ class MultiplayerGameController extends Controller
             if ($multiplayerGame->monster_hp <= 0) {
                 // Both players win against the monster
                 $multiplayerGame->markAsFinished();
+                $gameEnded = true;
             } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
                 // Both players lost
                 $multiplayerGame->markAsFinished();
+                $gameEnded = true;
             } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                 // One player lost
                 $multiplayerGame->markAsFinished();
+                $gameEnded = true;
             } else {
                 // Game continues, switch turns
                 $multiplayerGame->switchTurn();
@@ -445,17 +450,25 @@ class MultiplayerGameController extends Controller
         }
 
         // Broadcast game update via websockets
-        broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
+        // If game ended, broadcast to ALL players, otherwise just to others
+        if ($gameEnded) {
+            broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_ended'));
+        } else {
+            broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
+        }
 
-        return response()->json([
-            'success' => true,
-            'game' => array_merge($multiplayerGame->fresh()->toArray(), [
-                'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
-                'playerOne' => $multiplayerGame->playerOne,
-                'playerTwo' => $multiplayerGame->playerTwo,
-            ]),
-            'damage_dealt' => $damageDealt,
-            'damage_received' => $damageReceived,
+        // Return back with game data in session flash for Inertia.js
+        return back()->with([
+            'gameUpdate' => [
+                'success' => true,
+                'game' => array_merge($multiplayerGame->fresh()->toArray(), [
+                    'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
+                    'playerOne' => $multiplayerGame->playerOne,
+                    'playerTwo' => $multiplayerGame->playerTwo,
+                ]),
+                'damage_dealt' => $damageDealt,
+                'damage_received' => $damageReceived,
+            ]
         ]);
     }
 

@@ -272,47 +272,61 @@ const submitAnswer = async () => {
     try {
         const isCorrect = checkAnswer(selectedAnswer.value, currentQuiz.value);
 
-        const response = await fetch(route('multiplayer-games.answer', props.game.id), {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+        // Use Inertia.js router for proper Laravel integration
+        router.post(route('multiplayer-games.answer', props.game.id), {
+            quiz_id: currentQuiz.value?.id,
+            answer: selectedAnswer.value,
+            is_correct: isCorrect,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: (page) => {
+                // Check for game update data in session flash
+                const gameUpdate = page.props.flash?.gameUpdate;
+
+                if (gameUpdate && gameUpdate.success) {
+                    showFeedback(isCorrect, gameUpdate.damage_dealt, gameUpdate.damage_received);
+
+                    // Update game state
+                    if (gameUpdate.game) {
+                        Object.assign(props.game, gameUpdate.game);
+                    }
+
+                    // Check if game is over
+                    if (props.game.status === 'finished') {
+                        gameOver.value = true;
+                    } else {
+                        // Move to next question
+                        currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
+                        resetForNextQuestion();
+                    }
+                } else {
+                    // If no gameUpdate, assume success and show basic feedback
+                    showFeedback(isCorrect, 10, 0);
+                    resetForNextQuestion();
+                }
             },
-            body: JSON.stringify({
-                quiz_id: currentQuiz.value.id,
-                answer: selectedAnswer.value,
-                is_correct: isCorrect,
-            }),
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            showFeedback(isCorrect, result.damage_dealt, result.damage_received);
-
-            // Update game state
-            Object.assign(props.game, result.game);
-
-            // Check if game is over
-            if (props.game.status === 'finished') {
-                gameOver.value = true;
-            } else {
-                // Move to next question
-                currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
-                resetForNextQuestion();
+            onError: (errors) => {
+                console.error('Validation errors:', errors);
+                const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
+                lastAction.value = { type: 'error', message: errorMessage };
+            },
+            onFinish: () => {
+                submitting.value = false;
             }
-        } else {
-            lastAction.value = { type: 'error', message: result.error || 'Failed to submit answer' };
-        }
+        });
     } catch (error) {
         console.error('Error submitting answer:', error);
         lastAction.value = { type: 'error', message: 'Network error. Please try again.' };
-    } finally {
         submitting.value = false;
     }
 };
 
 const checkAnswer = (userAnswer: string, quiz: Quiz): boolean => {
+    if (!quiz || !quiz.correct_answer || !userAnswer) {
+        return false;
+    }
+
     const correctAnswer = quiz.correct_answer.toLowerCase().trim();
     const userAnswerLower = userAnswer.toLowerCase().trim();
 
