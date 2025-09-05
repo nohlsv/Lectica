@@ -1,20 +1,27 @@
 <template>
     <AppLayout>
-        <div class="p-6 space-y-6">
-            <h1 class="text-2xl font-bold">History Details</h1>
-            <div class="p-4 bg-muted rounded-lg shadow">
-                <h2 class="text-lg font-semibold">{{ record.file.name }}</h2>
-                <p>Type: {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</p>
-                <p>Score: {{ record.correct_answers }} / {{ record.total_questions }}</p>
-                <div v-if="decodedMistakes && decodedMistakes.length > 0" class="mt-4">
-                    <h3 class="text-lg font-semibold">Mistakes</h3>
-                    <ul class="list-disc list-inside">
-                        <li v-for="(mistake, index) in decodedMistakes" :key="index">
-                            <strong>Question:</strong> {{ mistake.question }}<br />
-                            <strong>Your Answer:</strong> {{ mistake.your_answer }}<br />
-                            <strong>Correct Answer:</strong> {{ mistake.correct_answer }}
-                        </li>
-                    </ul>
+        <div class="p-6 space-y-4 bg-gradient min-h-screen">
+            <div class="flex justify-center items-center">
+                <h1 class="text-2xl font-bold welcome-banner animate-soft-bounce py-2 px-10 w-fit">History Details</h1>
+            </div>
+            <div class="bg-container p-6">
+                <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                    <h2 class="text-xl font-semibold">{{ record.file.name }}</h2>
+                    <p>Type: {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</p>
+                    <p>
+                        <span class="font-bold">Score:</span> {{ record.correct_answers }} / {{ record.total_questions }}
+                        ( <span :class="scoreColorClass">{{ formattedScorePercentage }}</span> )
+                    </p>
+                    <div v-if="decodedMistakes && decodedMistakes.length > 0" class="mt-4">
+                        <h3 class="text-lg font-semibold tracking-wide text-red-200">Mistakes:</h3>
+                        <ul class="">
+                            <li v-for="(mistake, index) in decodedMistakes" :key="index" class="mt-2">
+                                <p><span class="text-[#fb9e1b]">Question:</span> <span class="ml-1 font-extrabold">{{ mistake.question }}</span></p>
+                                <p class="ml-5"><span class="text-[#6aa7d6]">Your Answer:</span> <span class="ml-1 font-extrabold">{{ mistake.your_answer }}</span></p>
+                                <p class="ml-5"><span class="text-[#5cae6e]">Correct Answer:</span> <span class="ml-1 font-extralight">{{ mistake.correct_answer }}</span></p>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -47,4 +54,38 @@ const decodedMistakes = computed(() => {
         return [];
     }
 });
+
+const numericScorePercentage = computed<number | string>(() => {
+    if (props.record.total_questions === 0) {
+        return 'N/A';
+    }
+    const percentage = (props.record.correct_answers / props.record.total_questions) * 100;
+    return parseFloat(percentage.toFixed(0)); // Return as a number
+});
+
+const formattedScorePercentage = computed<string>(() => {
+    if (numericScorePercentage.value === 'N/A') {
+        return 'N/A';
+    }
+    return `${numericScorePercentage.value}%`;
+});
+
+const scoreColorClass = computed<string>(() => {
+    if (typeof numericScorePercentage.value !== 'number') {
+        return 'text-white'; // Default color for N/A or if no score
+    }
+
+    const percentage = numericScorePercentage.value;
+
+    if (percentage <= 20) return 'text-red-600';
+    if (percentage <= 30) return 'text-red-400';
+    if (percentage <= 40) return 'text-yellow-500';
+    if (percentage <= 50) return 'text-yellow-400';
+    if (percentage <= 60) return 'text-orange-500';
+    if (percentage <= 70) return 'text-orange-400';
+    if (percentage <= 80) return 'text-green-600';
+    if (percentage <= 90) return 'text-green-500';
+    return 'text-green-400'; // 91-100%
+});
+
 </script>

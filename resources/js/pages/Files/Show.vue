@@ -161,7 +161,7 @@ const showFlashcards = ref(true)
 <template>
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient">
+        <div class="bg-gradient p-6">
 
             <!-- First Container (Opening) -->
             <div class="flex flex-col justify-between gap-4">
@@ -170,11 +170,11 @@ const showFlashcards = ref(true)
                 <div class="flex items-start mt-3 ml-3">
                     <Link
                         href="/files"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
+                        class="inline-flex items-center gap-2 px-3 py-1 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
                              hover:text-red-700 duration-300 font-bold"
                     >
                         <ArrowLeftIcon class="h-5 w-5" />
-                        Back to Files
+                        Back
                     </Link>
                 </div>
 
@@ -185,6 +185,7 @@ const showFlashcards = ref(true)
                     <h1 class="text-2xl md:text-2xl font-extrabold text-center">File Details</h1>
                 </div>
             </div>
+
 
             <div class="bg-container ml-3 mr-3 mb-3 p-6">
                 <!-- Separator -->
@@ -254,7 +255,7 @@ const showFlashcards = ref(true)
                                 <div class="flex justify-center mb-5 duration-300">
                                 <button
                                     @click="showFlashcards = !showFlashcards"
-                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#D66A4A] duration-300 pixel-outline border-[#0c0a03] border-2"
+                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#993f27] duration-300 pixel-outline border-[#0c0a03] border-2"
                                 >
                                     <ArrowRightLeftIcon class="h-4 w-4 mr-2 pixel-outline-icon"/>
                                     {{ showFlashcards ? 'Switch to Quizzes' : 'Switch to Flashcards' }}
@@ -262,65 +263,62 @@ const showFlashcards = ref(true)
                                 </div>
 
                                 <!-- Toggleable Content -->
-                                <div class="relative min-h-[110px]">
-                                    <div v-if="showFlashcards" key="flashcards" class="absolute inset-0">
-                                        <!-- Flashcards Section -->
-                                        <div class="w-full py-2">
+                                <div class="flex flex-col">
+                                    <div class="w-full py-2">
+                                        <div v-if="showFlashcards" key="flashcards">
                                             <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                            <Link :href="route('files.flashcards.index', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
-                                                <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                View Flashcards
-                                                </Button>
-                                            </Link>
-                                            <Link :href="route('files.flashcards.practice', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
-                                                <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon " />
-                                                Practice
-                                                </Button>
-                                            </Link>
+                                                <Link :href="route('files.flashcards.index', file.id)">
+                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
+                                                        <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                        View Flashcards
+                                                    </Button>
+                                                </Link>
+                                                <Link :href="route('files.flashcards.practice', file.id)">
+                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
+                                                        <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                        Practice
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
-                                        </div>
-
-                                        <div v-else key="quizzes" class="absolute inset-0">
-                                        <!-- Quizzes Section -->
-                                        <div class="w-full py-2">
+                                        <div v-else key="quizzes">
                                             <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                            <Link :href="route('files.quizzes.index', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
-                                                <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                View Quizzes
-                                                </Button>
-                                            </Link>
-                                            <Link :href="route('files.quizzes.test', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
-                                                <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                Take Quiz
-                                                </Button>
-                                            </Link>
+                                                <Link :href="route('files.quizzes.index', file.id)">
+                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
+                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                        View Quizzes
+                                                    </Button>
+                                                </Link>
+                                                <Link :href="route('files.quizzes.test', file.id)">
+                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
+                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                        Take Quiz
+                                                    </Button>
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>
-                                    <p class="absolute bottom-2 left-2 text-white animate-soft-bounce pixel-outline text-sm align-content-center text-center ">Tip:  Get your files verified to generate flashcards and quizzes automatically!</p>
+                                    <div class="mt-3">
+                                        <p class="text-white animate-soft-bounce pixel-outline text-sm text-center">Tip: Get your files verified to generate flashcards and quizzes automatically!</p>
+                                    </div>
                                 </div>
 
-                                <!-- Generate flashcards and quiz butotn -->
+                                <!-- Generate flashcards and quiz button -->
                                 <div
-                                        class="gap-2 w-full flex justify-center"
+                                        class="flex justify-center"
                                         v-if="isOwner && file.verified"
                                     >
                                         <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
                                             <DialogTrigger asChild>
                                                <Button
-                                                    class="w-full sm:w-auto flex items-center justify-center text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-5 py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#ffd166] hover:to-[#ffe680] pixel-outline active:scale-95"
+                                                    class="sm:w-auto flex items-center justify-center text-sm sm:text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-3 sm:px-5 py-3 sm:py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#e6a03c] hover:to-[#e6b82c] pixel-outline active:scale-95"
                                                         >
-                                                <PencilIcon class="h-8 w-8 text-[#fdf6ee] pixel-outline pixel-outline-icon" />
-                                                    Generate Flashcards & Quizzes
+                                                <PencilIcon class="h-6 w-6 sm:h-8 sm:w-8 text-[#fdf6ee] pixel-outline pixel-outline-icon flex-shrink-0" />
+                                                    <span class="text-center leading-tight">Generate Flashcards & Quizzes</span>
                                                 </Button>
 
                                             </DialogTrigger>
-                                            <DialogContent class="bg-[#8E2C38] text-[#fbd178] border-8 border-[#0c0a03]">
+                                            <DialogContent class="bg-[#8E2C38] text-[#fbd178] border-[#0c0a03] max-w-[95vw] sm:max-w-md">
                                                 <DialogHeader>
                                                     <DialogTitle class="text-[#F5E3C8] text-xl pixel-outline">Generate Flashcards & Quizzes</DialogTitle>
                                                 </DialogHeader>
@@ -406,14 +404,14 @@ const showFlashcards = ref(true)
                     <div class="space-y-4 md:col-span-2">
                         <div class="p-4">
                                 <!-- Top buttons container-->
-                                <div class="flex flex-row justify-between items-center gap-3 px-4 py-3">
-                                    <h2 class="text-xl font-semibold justify-center flex text-left px-4 py-3  text-[#fce085]">File Preview</h2>
+                                <div class="flex flex-col md:flex-row justify-between items-center px-4 py-3">
+                                    <h2 class="text-xl font-semibold justify-center flex text-left pixel-outline text-[#fce085]">File Preview</h2>
 
-                                    <!-- Star button -->
-                                    <div class="flex flex-wrap items-center gap-3">
+                                    <!-- Buttons container -->
+                                    <div class="flex flex-wrap items-center gap-3 justify-center mt-3 md:mt-0">
                                         <button
                                             @click="toggleStar"
-                                            class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#f08a4b] border-2 border-[#0c0a03] duration-300 hover:scale-105 pixel-outline"
+                                            class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#ad5215] border-2 border-[#0c0a03] duration-300 hover:scale-105 pixel-outline"
                                             :class="{'text-yellow-300': isStarred, 'bg-[#6f4f3b]': !isStarred}"
                                             :disabled="isStarring"
                                         >
@@ -421,37 +419,35 @@ const showFlashcards = ref(true)
                                             {{ file.star_count || 0 }}
                                             {{ isStarred ? 'Starred' : 'Star' }}
                                         </button>
+
                                         <button
                                             v-if="!file.verified && canVerify"
                                             @click="verifyFile"
-                                            class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#8be6a0] border-[#0c0a03] duration-300 border-2"
+                                            class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#4a9159] border-[#0c0a03] duration-300 border-2"
                                             :disabled="isVerifying"
                                         >
                                             <CheckCircleIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
                                             {{ isVerifying ? 'Verifying...' : 'Verify' }}
                                         </button>
 
-
-                                    <!-- Edit and dl button -->
-
-                                        <Link
+                                        <a
                                             v-if="file.can_edit === true"
                                             :href="route('files.edit', { file: file.id })"
-                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#8cc9f2] border-[#0c0a03] duration-300 pixel-outline"
+                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#578ec3] border-[#0c0a03] duration-300 pixel-outline"
                                         >
                                             <PencilIcon class="h-4 w-4 pixel-outline-icon" />
                                             Edit
-                                        </Link>
+                                        </a>
                                         <a
                                             :href="route('files.download', { file: file.id })"
                                             download
-                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#f2aa86] border-[#0c0a03] duration-300 pixel-outline"
+                                            class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#b3744e] border-[#0c0a03] duration-300 pixel-outline"
                                         >
                                             <DownloadIcon class="h-4 w-4 pixel-outline-icon" />
                                             Download
                                         </a>
-                                        </div>
-                                 </div>
+                                    </div>
+                                </div>
 
                             <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
                                 <!-- PDF Preview -->

@@ -220,7 +220,7 @@ const submit = () => {
                     <div class="flex justify-end gap-2 pt-2">
                         <Link
                             href="/files"
-                            class="inline-flex items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-foreground hover:bg-accent pixel-outline broder-border border-2"
+                            class="inline-flex items-center justify-center rounded-md bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-foreground pixel-outline broder-border border-2 duration-300"
                         >
                             Cancel
                         </Link>
