@@ -58,7 +58,7 @@ class MultiplayerGameController extends Controller
         try {
             $request->validate([
                 'game_mode' => 'required|in:pve,pvp',
-                'monster_id' => 'required_if:game_mode,pve|numeric|exists:monsters,id',
+                'monster_id' => 'required_if:game_mode,pve|nullable|numeric|exists:monsters,id',
                 'source_type' => 'required|in:file,collection',
                 'file_id' => [
                     'required_if:source_type,file',
