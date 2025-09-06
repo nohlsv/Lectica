@@ -389,7 +389,7 @@ const showFlashcards = ref(true)
                                                     </div>
                                                 </div>
                                                 <DialogFooter>
-                                                    <Button :disabled="isGenerating" @click="submitGenerateRequest" class="border-[#0c0a03] bg-[#10B981] border-2 text-[#fdf6ee] pixel-outline tracking-wide hover:scale-110 duration-300 hover:bg-[#1fe1a2]">
+                                                    <Button :disabled="isGenerating" @click="submitGenerateRequest" class="border-[#0c0a03] bg-[#10B981] hover:bg-[#1fe1a2] border-2 text-[#fdf6ee] pixel-outline tracking-wide hover:scale-110 duration-300">
                                                         {{ isGenerating ? 'Generating...' : 'Generate' }}
                                                     </Button>
                                                 </DialogFooter>

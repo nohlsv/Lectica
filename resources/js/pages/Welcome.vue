@@ -55,7 +55,7 @@ const props = defineProps();
                  -->
 
                 <!-- Container for the text-->
-                 <div class=" rounded-2xl border-2 border-border bg-[#494242]/30 p-6 ">
+                 <div class=" rounded-2xl  p-6 ">
                     <div
                     class=" text-center"
                     >

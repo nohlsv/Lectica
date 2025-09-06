@@ -38,8 +38,8 @@ const submit = () => {
     <form @submit.prevent="submit" class="flex flex-col gap-6">
       <div class="grid gap-6">
         <!-- Email Field -->
-        <div class="grid gap-2">
-          <Label for="email">Email address</Label>
+        <div class="grid gap-2 pixel-outline tracking-wide">
+          <Label class="text-base" for="email">Email address</Label>
           <Input
             id="email"
             type="email"
@@ -49,13 +49,14 @@ const submit = () => {
             autocomplete="email"
             v-model="form.email"
             placeholder="youremail@bpsu.edu.ph"
+            class="py-4"
           />
           <InputError :message="form.errors.email" />
         </div>
 
         <!-- Password Field -->
-        <div class="grid gap-2">
-          <Label for="password">Password</Label>
+        <div class="grid gap-2 pixel-outline tracking-wide">
+          <Label class="text-base" for="password">Password</Label>
           <Input
             id="password"
             type="password"
@@ -64,14 +65,15 @@ const submit = () => {
             autocomplete="current-password"
             v-model="form.password"
             placeholder="Password"
+            class="py-4"
           />
           <InputError :message="form.errors.password" />
         </div>
 
         <!-- Remember me and Forgot password in one row -->
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between tracking-wide">
           <Label for="remember" class="flex items-center space-x-3">
-            <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
+            <Checkbox id="remember" v-model="form.remember" :tabindex="3" class="bg-primary border-2 border-input data-[state=checked]:text-black data-[state=checked]:scale-120 data-[state=checked]:border-input"/>
             <span>Remember me</span>
           </Label>
 
@@ -81,16 +83,16 @@ const submit = () => {
         </div>
 
         <!-- Submit Button -->
-        <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
+        <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing" variant="green">
           <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
           Log in
         </Button>
       </div>
 
       <!-- Register Link -->
-      <div class="text-center text-sm text-muted-foreground">
-        Don't have an account?
-        <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
+      <div class="text-center text-sm text-primary tracking-wide">
+        <span class="mr-1.5">Don't have an account?</span>
+        <TextLink :href="route('register')" :tabindex="5" class="font-bold">Sign up</TextLink>
       </div>
     </form>
   </AuthBase>

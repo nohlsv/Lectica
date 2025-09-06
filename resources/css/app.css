@@ -310,14 +310,6 @@
   100% { background-position: 100% 50%; }
 }
 
-.lectica-gradient {
-  background: linear-gradient(90deg, #FFD700, #FFB347, #CBA0FF, #FFF8DC, #FFD700);
-  background-size: 300% 100%;
-  background-clip: text;
-  color: transparent;
-  animation: flowColors 2s linear infinite;
-}
-
 .animate-flow {
   text-align: center;
   background-image: linear-gradient(
