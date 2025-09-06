@@ -85,7 +85,7 @@ const isStudent = computed(() => user.user_role === 'student');
     <div class="dark:bg-[#161615]">
         <Head title="Home" />
         <AppLayout :breadcrumbs="breadcrumbs">
-            <div class="flex h-full flex-1 flex-col gap-4 pt-4 px-4 pb-0 bg-[url(https://i.pinimg.com/originals/fd/40/a4/fd40a4b8b151c4e432106576187d03c9.gif)] bg-cover bg-center">
+            <div class="flex w-full flex-1 flex-col max-h-[300px] gap-4 pt-4 px-4 pb-0 bg-lectica">
                 <!--Welcome Section-->
                 <div class="mb-10 w-full min-h-[215px] rounded-xl
                         flex flex-col sm:flex-row justify-center items-center gap-6 p-6 text-center sm:text-left">
@@ -122,7 +122,7 @@ const isStudent = computed(() => user.user_role === 'student');
                     <h2 class="text-xl font-semibold mb-6 text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] wave">
                             <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span>
                             <span>t</span><span>i</span><span>o</span><span>n</span><span>s</span></h2>
-                    <div class="grid grid-cols-4 md:grid-cols-4 gap-4 text-center">
+                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4 text-center">
                         <Link
                             v-if="isFacultyOrAdmin"
                             href="/files/verify"
@@ -151,7 +151,8 @@ const isStudent = computed(() => user.user_role === 'student');
                             </div>
                             <span class="font-medium">View Statistics</span>
                         </Link>
-
+                    </div>
+                    <div class="grid grid-cols-4 md:grid-cols-4 gap-4 text-center">
                         <Link v-if="isStudent"
                             href="/files/create" class="flex flex-col items-center justify-center p-6 rounded-xl border border-border bg-card hover:bg-accent transition-colors opacity-70 hover:opacity-90 shadow-[4px_4px_0px_rgba(0,0,0,0.8)]">
                                 <div class="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-3">
@@ -244,12 +245,13 @@ const isStudent = computed(() => user.user_role === 'student');
                         </div>
                         <p class="text-muted-foreground">No recommendations available at the moment. Check back later!</p>
                     </div>
-                <!--Footer-->
+                
+                </div>
+            </div>
+            <!--Footer-->
                 <footer class="w-full mt-0 bg-yellow-800 border-4 border-black font-pixel text-white text-center p-2 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
                     <p class="text-lg">© 2025 <span class="px-2 py-1 bg-black text-yellow-300 border-2 border-white shadow-[2px_2px_0px_rgba(0,0,0,1)]">Lectica</span></p>
                 </footer>
-                </div>
-            </div>
         </AppLayout>
     </div>
 </template>

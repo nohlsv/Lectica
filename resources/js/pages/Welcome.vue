@@ -55,12 +55,14 @@ const props = defineProps();
                  -->
 
                 <!-- Container for the text-->
-                 <div class=" rounded-2xl  p-6 ">
-                    <div
-                    class=" text-center"
-                    >
-                    <div class="flex justify-center items-center logo-fall">
-                        <img src="/lectica-logo.gif" alt="Lectica Logo" class="md:h-60 md:w-60 h-40 w-40 mb-5 animate-soft-bounce"/>
+                <div
+                   class="flex-1 text-center"
+                >
+
+                    <div class="flex flex-col items-center justify-center mb-8">
+                        <img src="/logo-lectica.gif" alt="Lectica Logo" class="h-50 w-50 mb-4 object-contain" />
+                        <h1 class="text-3xl font-bold mb-2 text-primary dark:bg-gradient-to-r dark:from-[#fe1d41] dark:to-[#fe7c16] dark:bg-clip-text dark:text-transparent">Lectica</h1>
+                        <p class="text-4xl text-primary">Review, Repeat, Retain</p>
                     </div>
                         <div class="flex flex-col items-center justify-center mb-8">
                             <h1 class="text-6xl 2xl:text-6xl font-extrabold mb-2 animate-flow tracking-wide">Lectica</h1>

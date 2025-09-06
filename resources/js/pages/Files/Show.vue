@@ -282,18 +282,18 @@ const showFlashcards = ref(true)
                                         </div>
                                         <div v-else key="quizzes">
                                             <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                                <Link :href="route('files.quizzes.index', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
-                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        View Quizzes
-                                                    </Button>
-                                                </Link>
-                                                <Link :href="route('files.quizzes.test', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
-                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        Take Quiz
-                                                    </Button>
-                                                </Link>
+                                            <Link :href="route('files.quizzes.index', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
+                                                <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                View Quizzes
+                                                </Button>
+                                            </Link>
+                                            <Link :href="route('files.quizzes.test', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
+                                                <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                Practice
+                                                </Button>
+                                            </Link>
                                             </div>
                                         </div>
                                     </div>
