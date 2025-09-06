@@ -246,14 +246,15 @@
 
 
 .welcome-banner {
-  background-color: #851103;
-  border: 4px solid #f68500;
+  width: 100%;
+  background: linear-gradient(to right, #851103, #220401);
+  border: 2px solid #a05704;
   color: #fbd178;
   border-radius: 0.375rem;
 }
 
 .bg-gradient{
-    background: linear-gradient(to bottom, #161615, #800000);
+    background: linear-gradient(to bottom, #161615, #690202);
 
 }
 
@@ -263,8 +264,9 @@
         url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
   background-size: cover;
   background-position: center;
-  border: 8px solid #f68500;
+  border: 3px solid #a05704;
   border-radius: 6px;
+
 }
 
 .pixel-outline{
@@ -297,8 +299,69 @@ circle {
 }
 
 .bg-lectica{
-  background-image: url(/bg-lectica.gif);
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat
+    background-image: url(/bg-lectica.gif);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+@keyframes fallFromHeaven {
+  0% {
+    transform: translateY(-200px) scale(0.8);
+    opacity: 0;
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(20px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.logo-fall {
+  animation: fallFromHeaven 2.5s ease-out forwards;
+}
+
+@keyframes flowColors {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.lectica-gradient {
+  background: linear-gradient(90deg, #FFD700, #FFB347, #CBA0FF, #FFF8DC, #FFD700);
+  background-size: 300% 100%;
+  background-clip: text;
+  color: transparent;
+  animation: flowColors 2s linear infinite;
+}
+
+.animate-flow {
+  text-align: center;
+  background-image: linear-gradient(
+    to left,
+    #ff1640,
+    #e3532f,
+    #ff6114,
+    #ff6b0f,
+    #fcac24,
+    #ee9c0e,
+    #ff1640
+  );
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  color: transparent;
+  background-size: 200%;
+  animation: animate 3s linear infinite;
+}
+
+@keyframes animate {
+    from {
+        background-position: 200%;
+    }
+    to{
+        background-position: 0%;
+    }
 }

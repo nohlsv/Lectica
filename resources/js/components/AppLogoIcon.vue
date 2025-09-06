@@ -13,5 +13,5 @@ defineProps<Props>();
 </script>
 
 <template>
-    <img src="/favicon-32x32.png" alt="Lectica Logo" :class="className" v-bind="$attrs" />
+    <img class="pixel-outline-icon" src="/favicon-32x32.png" alt="Lectica Logo" :class="className" v-bind="$attrs" />
 </template>

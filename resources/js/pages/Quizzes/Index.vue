@@ -57,13 +57,13 @@ const isOwner = computed(() => {
                     <div class="flex flex-wrap space-x-2">
                         <Link v-if="isOwner" :href="route('files.quizzes.create', file.id)">
                             <Button class="bg-orange-500 text-[#fdf6ee] hover:bg-orange-600 border-blue-700 rounded-lg pixel-outline">
-                                <Plus class="mr-2 h-4 w-4" />
+                                <Plus class="mr-2 h-4 w-4 pixel-outline-icon" />
                                 Create Quiz
                             </Button>
                         </Link>
                         <Link :href="route('files.quizzes.test', file.id)">
                             <Button variant="default" class="bg-green-500 text-[#fdf6ee] hover:bg-green-600 border-blue-700 rounded-lg pixel-outline">
-                                <ListChecks class="mr-2 h-4 w-4" />
+                                <ListChecks class="mr-2 h-4 w-4 pixel-outline-icon" />
                                 Practice Quiz
                             </Button>
                         </Link>
@@ -109,14 +109,14 @@ const isOwner = computed(() => {
                     <CardFooter class="flex justify-between">
                         <Link :href="route('files.quizzes.edit', [file.id, quiz.id])">
                             <Button variant="default" size="sm" class="bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700">
-                                <Pencil class="h-4 w-4" />
+                                <Pencil class="h-4 w-4 pixel-outline-icon" />
                                 <span class="ml-2 pixel-outline">Edit</span>
                             </Button>
                         </Link>
                         <Dialog>
                             <DialogTrigger>
                                 <Button class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline" variant="default" size="sm" @click="() => { quizToDelete = quiz.id; showDeleteModal = true; }">
-                                    <Trash2 class="h-4 w-4" />
+                                    <Trash2 class="h-4 w-4 pixel-outline-icon" />
                                     <span class="ml-2 pixel-outline">Delete</span>
                                 </Button>
                             </DialogTrigger>

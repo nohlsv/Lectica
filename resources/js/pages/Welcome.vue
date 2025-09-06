@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
+
 
 const props = defineProps();
 </script>
@@ -22,14 +22,6 @@ const props = defineProps();
                 <!--</div>-->
 
                 <!-- Navigation on the right -->
-                <nav class="flex items-center gap-4">
-                    <Link
-                        v-if="$page.props.auth.user"
-                        :href="route('home')"
-                        class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"
-                    >
-                        Home
-                    </Link>
 <!--                    <template v-else>-->
 <!--                        <Link-->
 <!--                            :href="route('login')"-->
@@ -44,7 +36,6 @@ const props = defineProps();
 <!--                            Register-->
 <!--                        </Link>-->
 <!--                    </template>-->
-                </nav>
             </div>
         </header>
         <div class="duration-750 starting:opacity-0 flex w-full items-center justify-center opacity-100 transition-opacity lg:grow">
@@ -55,33 +46,45 @@ const props = defineProps();
                  -->
 
                 <!-- Container for the text-->
-                <div
-                   class="flex-1 text-center"
-                >
-
-                    <div class="flex flex-col items-center justify-center mb-8">
-                        <img src="/logo-lectica.gif" alt="Lectica Logo" class="h-50 w-50 mb-4 object-contain" />
-                        <h1 class="text-3xl font-bold mb-2 text-primary dark:bg-gradient-to-r dark:from-[#fe1d41] dark:to-[#fe7c16] dark:bg-clip-text dark:text-transparent">Lectica</h1>
-                        <p class="text-4xl text-primary">Review, Repeat, Retain</p>
+                 <div class=" rounded-2xl border-2 border-border bg-[#494242]/30 p-6 ">
+                    <div
+                    class=" text-center"
+                    >
+                    <nav class="flex items-center gap-4">
+                            <Link
+                        v-if="$page.props.auth.user"
+                        :href="route('home')"
+                        class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 pixel-outline"
+                    >
+                        Home
+                    </Link>
+                        </nav>
+                    <div class="flex justify-center items-center logo-fall">
+                        <img src="/lectica-logo.gif" alt="Lectica Logo" class="md:h-60 md:w-60 h-40 w-40 mb-5 animate-soft-bounce"/>
                     </div>
+                        <div class="flex flex-col items-center justify-center mb-8">
+                            <h1 class="text-6xl 2xl:text-6xl font-extrabold mb-2 animate-flow tracking-wide">Lectica</h1>
+                            <p class="text-3xl md:text-4xl text-[#FFB347] pixel-outline tracking-wide">Review, Repeat, Retain</p>
 
-                    <p class=" text-lg mb-6 text-[#706f6c] dark:text-[#bebdb8]">
-                        Your personal learning companion for efficient knowledge retention
-                    </p>
 
-                    <div v-if="!$page.props.auth.user" class="flex justify-center gap-4 mt-4">
-                        <Link
-                            :href="route('register')"
-                            class="inline-block rounded-md bg-primary px-6 py-2 text-sm font-medium text-[#FDFDFC] dark:bg-[#3aa035] dark:hover:bg-[#66b562]"
-                        >
-                            Get Started
-                        </Link>
-                        <Link
-                            :href="route('login')"
-                            class="inline-block rounded-md border border-[#FDFDFC] px-6 py-2 text-sm font-medium hover:bg-accent/70"
-                        >
-                            Log In
-                        </Link>
+                        <p class=" text-xl mt-3 text-[#FFF8DC] pixel-outline tracking-wide">
+                            Your personal learning companion for efficient knowledge retention
+                        </p>
+                        </div>
+                        <div v-if="!$page.props.auth.user" class="flex justify-center gap-4 mt-4 ">
+                            <Link
+                                :href="route('register')"
+                                class="inline-block rounded-lg px-4 py-1 md:px-6 md:py-2 text-base md:text-lg font-medium bg-[#ff1640] hover:bg-[#cc1232] hover:scale-110 duration-300 pixel-outline border-[#0c0a03] border-2"
+                            >
+                                Get Started
+                            </Link>
+                            <Link
+                                :href="route('login')"
+                                class="inline-block rounded-lg px-4 py-1 md:px-6 md:py-2 text-base md:text-lg font-medium bg-[#ff6910] hover:bg-[#cc560d] hover:scale-110 duration-300 pixel-outline border-[#0c0a03] border-2"
+                            >
+                                Log In
+                            </Link>
+                        </div>
                     </div>
                 </div>
             </main>

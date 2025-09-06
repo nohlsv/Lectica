@@ -58,7 +58,7 @@ const toggleStar = async () => {
                 :class="{'text-amber-500': isStarred, 'text-muted-foreground': !isStarred}"
                 :disabled="isStarring"
             >
-                <StarIcon class="h-5 w-5" :fill="isStarred ? 'currentColor' : 'none'" />
+                <StarIcon class="h-5 w-5 pixel-outline-icon" :fill="isStarred ? 'currentColor' : 'none'" />
             </button>
         </div>
 
@@ -91,7 +91,7 @@ const toggleStar = async () => {
                 </span>
             </div>
 
-            <div v-if="showActions" class="flex items-center gap-2">
+            <div v-if="showActions" class="flex items-center gap-1 ml-3">
                 <Link
                     :href="`/files/${file.id}`"
                     class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-background text-foreground hover:bg-accent"

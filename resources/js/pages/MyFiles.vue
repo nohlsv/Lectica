@@ -55,9 +55,9 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="My Files" />
 
     <AppLayout>
-        <div class="px-3 sm:px-6 py-6 bg-gradient">
+        <div class="py-6">
             <!-- Breadcrumbs -->
-            <div class="mb-6 flex items-center text-sm text-muted-foreground">
+            <div class="mb-6 flex items-center text-sm text-muted-foreground ml-3">
                 <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
                     <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
                         {{ crumb.title }}
@@ -68,32 +68,26 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
 
-            <div class="p-6 sm:p-6">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <h1 class="text-2xl font-bold welcome-banner animate-soft-bounce pixel-outline w-fit py-2 px-10">My Files</h1>
-                    <Link :href="route('files.create')">
-                        <Button class="bg-[#6B7A58] text-[#fdf6ee] hover:bg-[#7F8F6A] border-border border-2 text-base py-3 px-4 sm:px-6 md:px-10 pixel-outline tracking-wide">
-                            <PlusIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
-                            Add New File
-                        </Button>
-                    </Link>
+            <div class="bg-gradient p-6 space-y-4 min-h-screen">
+                <div class="flex flex-col justify-center items-center">
+                    <h1 class="text-3xl font-bold welcome-banner md:py-2 md:px-8 py-2 px-2 animate-soft-bounce text-center justify-center pixel-outline">My Files</h1>
                 </div>
 
                 <!-- If no files are uploaded -->
-                <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12 bg-container">
+                <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12 bg-container min-h-screen">
                     <FolderIcon class="h-16 w-16 text-muted-foreground mb-4" />
-                    <h2 class="text-xl font-semibold mb-2">No files found</h2>
+                    <h2 class="text-xl font-semibold mb-2 pixel-outline">No files found</h2>
                     <p class="text-muted-foreground mb-6">You haven't uploaded any files yet.</p>
                     <Link :href="route('files.create')">
-                        <Button class="bg-[#4ECDC4]">
-                            <PlusIcon class="h-4 w-4 mr-2" />
+                        <Button class="bg-[#10B981] hover:bg-[#0e9459] hover:scale-105 duration-300 text-prmary pixel-outline tracking-wide py-3 border-[#0c0a03] border-2">
+                            <PlusIcon class="h-4 w-4 mr-2 pixel-outline-icon" />
                             Upload Your First File
                         </Button>
                     </Link>
                 </div>
 
                 <!-- Main container -->
-                <div v-else class="bg-container space-y-6 p-6 w-full max-w-screen-xl mx-auto">
+                <div v-else class="bg-container space-y-6 p-6 min-h-screen">
                     <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
                         <h2 class="text-2xl font-extrabold border-b border-[#fb9e1b] pb-2 pixel-outline text-[#fce085]">{{ letter }}</h2>
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
@@ -103,13 +97,13 @@ const breadcrumbs: BreadcrumbItem[] = [
                                 :href="route('files.show', file.id)"
                                 class="no-underline"
                             >
-                                <Card class="h-full overflow-hidden rounded-lg transition-all hover:bg-[#322017] bg-[#1C110E] border-[#0c0a03] border-2 text-[#F0EAD6] hover:scale-105 duration-300">
+                                <Card class="h-full overflow-hidden rounded-lg transition-all bg-[#8E2C38] border-[#0c0a03] border-2 hover:scale-110 duration-300">
                                     <CardHeader class="pb-2">
                                         <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
                                             <div class="flex items-center gap-2 flex-wrap">
-                                                <FileIcon class="h-6 w-6 text-[#89643e]" />
+                                                <FileIcon class="h-6 w-6 text-[#fdf6ee] pixel-outline-icon" />
                                                 <CardTitle
-                                                class="text-base sm:text-lg truncate max-w-full sm:max-w-[260px] text-[#e0c28d]"
+                                                class="text-base sm:text-lg truncate max-w-full sm:max-w-[260px] text-[#fdf6ee]"
                                                 :title="file.name"
                                                 >
                                                 {{ file.name }}
@@ -124,21 +118,21 @@ const breadcrumbs: BreadcrumbItem[] = [
                                             </div>
                                     </CardHeader>
                                     <CardContent>
-                                        <CardDescription class="line-clamp-2 text-[#c8ba9a]">
+                                        <CardDescription class="line-clamp-2 text-[#fdf6ee]/75 pixel-outline tracking-wide">
                                             {{ file.description || 'No description provided' }}
                                         </CardDescription>
                                         <div class="mt-2 flex flex-wrap gap-1">
                                             <Badge
                                                 v-for="tag in file.tags"
                                                 :key="tag.id"
-                                                class="text-xs truncate bg-[#6B7A58] text-[#fdf6ee]"
+                                                class="text-xs truncate bg-[#faa800] text-[#661500] border-2 border-[#0c0a03]"
                                                 :title="tag.name"
                                             >
                                                 {{ tag.name }}
                                             </Badge>
                                         </div>
                                     </CardContent>
-                                    <CardFooter class="flex justify-between text-xs text-[#a89b85]">
+                                    <CardFooter class="flex justify-between text-xs text-[#fdf6ee]/75 pixel-outline tracking-wide">
                                         <span>Created: {{ new Date(file.created_at).toLocaleDateString() }}</span>
                                         <div class="flex items-center space-x-2">
                                             <div class="flex items-center">

@@ -113,12 +113,12 @@ const toggleStar = async (file: File) => {
         <div class="bg-gradient p-6 space-y-6">
             <div class="flex flex-col gap-4 p-4">
                 <div class="flex items-center justify-between">
-                    <div class="flex-grow flex items-center justify-center">
-                        <h1 class="text-xl font-semibold welcome-banner animate-soft-bounce py-2 px-10 pixel-outline">Files</h1>
-                    </div>
                     <Link href="/files/create" class="inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium  bg-[#6B7A58] text-[#fdf6ee] hover:bg-[#7F8F6A] border-border border-2 pixel-outline duration-300 tracking-wide">
                         Upload New File
                     </Link>
+                </div>
+                <div class="flex-grow flex items-center justify-center">
+                        <h1 class="text-xl text-center font-semibold welcome-banner animate-soft-bounce py-2 px-10 pixel-outline">Files</h1>
                 </div>
                 <div class="bg-container p-6">
                     <div class="flex flex-col gap-4">

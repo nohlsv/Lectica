@@ -113,7 +113,7 @@ const rightNavItems: NavItem[] = [
                     <Sheet>
                         <SheetTrigger :as-child="true">
                             <Button variant="ghost" size="icon" class="mr-2 h-9 w-9">
-                                <Menu class="h-5 w-5" />
+                                <Menu class="h-5 w-5 pixel-outline-icon" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" class="w-[300px] p-6">

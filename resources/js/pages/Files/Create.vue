@@ -118,7 +118,7 @@ const submit = () => {
         <div class="flex flex-col gap-6 p-6 bg-gradient">
             <!-- Header -->
             <div class="flex items-center justify-center gap-4 ">
-                <h1 class="text-2xl font-bold welcome-banner py-2 px-10 animate-soft-bounce pixel-outline">Upload New File</h1>
+                <h1 class="text-2xl text-center font-bold welcome-banner py-2 px-10 animate-soft-bounce pixel-outline">Upload New File</h1>
             </div>
 
             <!-- Form -->
@@ -126,9 +126,9 @@ const submit = () => {
                 <form @submit.prevent="submit" class="space-y-6 w-full max-w-xl">
                 <!-- File Upload -->
                     <div class="space-y-2">
-                        <label for="file" class="block text-sm font-medium text-[#fce085]">File</label>
+                        <label for="file" class="block text-sm font-medium text-[#fce085] pixel-outline">File</label>
                         <div
-                            class="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-[#6c6c6c] p-6 cursor-pointer hover:border-primary transition-colors"
+                            class="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-yellow-300 p-6 cursor-pointer hover:border-primary transition-colors"
                             :class="{ 'border-primary bg-primary/5': fileSelected }"
                             @click="fileInputRef?.click()"
                             @dragover="handleDragOver"
@@ -147,8 +147,8 @@ const submit = () => {
                                     <UploadIcon class="h-6 w-6 text-primary" />
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-sm font-medium">Click to upload or drag and drop</p>
-                                    <p class="text-xs text-muted-foreground mt-1">PDF, DOC, DOCX, PPTX, TXT, XLSX (Max 25MB)</p>
+                                    <p class="text-sm font-medium pixel-outline">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-muted-foreground mt-1 pixel-outline">PDF, DOC, DOCX, PPTX, TXT, XLSX (Max 25MB)</p>
                                 </div>
                             </div>
 
@@ -167,7 +167,7 @@ const submit = () => {
                             <Link
                                 v-if="(form.errors as any).duplicate_file_id"
                                 :href="`/files/${(form.errors as any).duplicate_file_id}`"
-                                class="ml-1 text-primary hover:underline font-medium"
+                                class="ml-1 text-primary hover:underline font-medium pixel-outline"
                             >
                                 View duplicate file
                             </Link>
@@ -176,12 +176,12 @@ const submit = () => {
 
                     <!-- File Name -->
                     <div class="space-y-2">
-                        <label for="name" class="block text-sm font-medium text-[#fce085]">File Name</label>
+                        <label for="name" class="block text-sm font-medium text-[#fce085] pixel-outline">File Name</label>
                         <input
                             type="text"
                             id="name"
                             v-model="form.name"
-                            class="w-full rounded-md border border-input bg-[#FFF8F2]/80 px-3 py-2 text-sm text-[#333333] ring-offset-background"
+                            class="w-full rounded-md border border-yellow-300 bg-transparent px-3 py-2 text-sm text-white ring-offset-background"
                             placeholder="Enter a name for your file"
                         />
                         <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
@@ -191,12 +191,12 @@ const submit = () => {
 
                     <!-- File Description -->
                     <div class="space-y-2">
-                        <label for="description" class="block text-sm font-medium text-[#fce085]">Description</label>
+                        <label for="description" class="block text-sm font-medium text-[#fce085] pixel-outline">Description</label>
                         <textarea
                             id="description"
                             v-model="form.description"
                             rows="3"
-                            class="w-full rounded-md border border-input bg-[#FFF8F2]/80 text-[#333333]  px-3 py-2 text-sm ring-offset-background resize-none"
+                            class="w-full rounded-md border border-yellow-300 bg-transparent text-white  px-3 py-2 text-sm ring-offset-background resize-none pixel-outline"
                             placeholder="Enter a brief description of this file (optional)"
                         ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-xs text-red-500">
@@ -206,12 +206,12 @@ const submit = () => {
 
                     <!-- Tags -->
                     <div class="space-y-2">
-                        <label for="tags" class="block text-sm font-medium text-[#fce085]">Tags</label>
+                        <label for="tags" class="block text-sm font-medium text-[#fce085] pixel-outline">Tags</label>
                         <TagInput
                             v-model="form.tags"
                             :existing-tags="allTags || []"
                         />
-                        <p class="text-xs text-muted-foreground">
+                        <p class="text-xs text-muted-foreground pixel-outline">
                             Add tags to categorize your file. You can create new tags or select existing ones.
                         </p>
                     </div>
@@ -220,7 +220,7 @@ const submit = () => {
                     <div class="flex justify-end gap-2 pt-2">
                         <Link
                             href="/files"
-                            class="inline-flex items-center justify-center rounded-md bg-red-500 px-4 py-2 text-sm font-medium text-foreground hover:bg-accent pixel-outline broder-border border-2"
+                            class="inline-flex items-center justify-center rounded-md bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-foreground pixel-outline broder-border border-2 duration-300"
                         >
                             Cancel
                         </Link>
