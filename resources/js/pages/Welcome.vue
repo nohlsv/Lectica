@@ -11,7 +11,7 @@ const props = defineProps();
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
     <!-- Overall background -->
-    <div class="flex min-h-screen w-full flex-col items-center justify-center bg-[url(https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/64c9ea21-82be-48a3-a6f5-6d1786a3fc7e/d849dwo-0cdfe0ca-4bbe-43d5-b8d4-6c58db906e1e.gif?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7InBhdGgiOiJcL2ZcLzY0YzllYTIxLTgyYmUtNDhhMy1hNmY1LTZkMTc4NmEzZmM3ZVwvZDg0OWR3by0wY2RmZTBjYS00YmJlLTQzZDUtYjhkNC02YzU4ZGI5MDZlMWUuZ2lmIn1dXSwiYXVkIjpbInVybjpzZXJ2aWNlOmZpbGUuZG93bmxvYWQiXX0.n3jDMgOwazieu5EgWAGyGW4kZSx12Xqbs3BMHPLp6o4)] bg-cover bg-center bg-[#FDFDFC] p-6 lg:p-8">
+    <div class="flex min-h-screen w-full flex-col items-center justify-center bg-lectica p-6 lg:p-8">
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="flex items-center justify-between">
 
@@ -60,7 +60,7 @@ const props = defineProps();
                 >
 
                     <div class="flex flex-col items-center justify-center mb-8">
-                        <img src="/android-chrome-512x512.png" alt="Lectica Logo" class="h-50 w-50 mb-4 object-contain" />
+                        <img src="/logo-lectica.gif" alt="Lectica Logo" class="h-50 w-50 mb-4 object-contain" />
                         <h1 class="text-3xl font-bold mb-2 text-primary dark:bg-gradient-to-r dark:from-[#fe1d41] dark:to-[#fe7c16] dark:bg-clip-text dark:text-transparent">Lectica</h1>
                         <p class="text-4xl text-primary">Review, Repeat, Retain</p>
                     </div>

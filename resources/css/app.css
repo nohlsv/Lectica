@@ -263,7 +263,7 @@
         url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
   background-size: cover;
   background-position: center;
-  border: 8px solid #680d00;
+  border: 8px solid #f68500;
   border-radius: 6px;
 }
 
@@ -287,3 +287,18 @@
   display: none;             /* Chrome, Safari */
 }
 
+.progress-glow {
+  filter: drop-shadow(0 0 1px rgb(15, 102, 34)) 
+          drop-shadow(0 0 2px rgb(15, 102, 34));
+}
+
+circle {
+  transition: stroke-dasharray 0.8s ease-in-out;
+}
+
+.bg-lectica{
+  background-image: url(/bg-lectica.gif);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat
+}

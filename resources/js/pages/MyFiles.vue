@@ -55,7 +55,7 @@ const breadcrumbs: BreadcrumbItem[] = [
     <Head title="My Files" />
 
     <AppLayout>
-        <div class="px-3 sm:px-6 py-6">
+        <div class="px-3 sm:px-6 py-6 bg-gradient">
             <!-- Breadcrumbs -->
             <div class="mb-6 flex items-center text-sm text-muted-foreground">
                 <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
@@ -68,9 +68,9 @@ const breadcrumbs: BreadcrumbItem[] = [
                 </div>
             </div>
 
-            <div class="bg-gradient p-6 sm:p-6">
+            <div class="p-6 sm:p-6">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-                    <h1 class="text-3xl font-bold welcome-banner py-2 px-10 animate-soft-bounce">My Files</h1>
+                    <h1 class="text-2xl font-bold welcome-banner animate-soft-bounce pixel-outline w-fit py-2 px-10">My Files</h1>
                     <Link :href="route('files.create')">
                         <Button class="bg-[#6B7A58] text-[#fdf6ee] hover:bg-[#7F8F6A] border-border border-2 text-base py-3 px-4 sm:px-6 md:px-10 pixel-outline tracking-wide">
                             <PlusIcon class="h-5 w-5 mr-2 pixel-outline-icon" />

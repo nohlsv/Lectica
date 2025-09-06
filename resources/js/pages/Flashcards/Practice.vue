@@ -133,8 +133,8 @@ function finishPractice() {
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <AppLayout :breadcrumbs="breadcrumbs">
         <div 
-          class="min-h-screen bg-no-repeat bg-cover bg-center"
-          style="background-image: url('https://wallpaperaccess.com/full/2122580.png'); image-rendering: pixelated;">
+          class="min-h-screen bg-no-repeat bg-cover bg-center bg-container"
+       >
 
             <!--Buttons Row (Top Left // Center)-->
             <div 
@@ -148,7 +148,7 @@ function finishPractice() {
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                         hover:bg-red-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
                         active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out">
+                        transition-all duration-150 ease-in-out pixel-outline">
                   Escape
                 </Button>
               </Link>
@@ -161,7 +161,7 @@ function finishPractice() {
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                         hover:bg-green-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
                         active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out">
+                        transition-all duration-150 ease-in-out pixel-outline">
                   <Shuffle class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Shuffle
                 </Button>
@@ -174,7 +174,7 @@ function finishPractice() {
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                         hover:bg-blue-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
                         active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out">
+                        transition-all duration-150 ease-in-out pixel-outline">
                   <RotateCcw class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Reset
                 </Button>
@@ -187,7 +187,7 @@ function finishPractice() {
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                         hover:bg-yellow-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
                         active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out">
+                        transition-all duration-150 ease-in-out pixel-outline">
                   <RotateCcw class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Restart
                 </Button>
@@ -196,17 +196,16 @@ function finishPractice() {
             <!--Main Content-->
             <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
             <!--Title Header-->
-            <div class="bg-transparent border-4 border-black rounded-xl px-6 py-4 
-                      shadow-[4px_4px_0px_rgba(0,0,0,0.4)] text-center mb-4">
+            <div class="welcome-banner px-6 py-4 animate-soft-bounce text-center mb-4">
               <h2 class="text-2xl font-pixel text-white tracking-wider 
-                        drop-shadow-[3px_3px_0px_rgba(0,0,0,1)]">
-                Practice Session
+                        pixel-outline">
+                Flashcard Practice
               </h2>
             </div>
             <!--No Flashcards Message-->
             <div v-if="cards.length === 0" class="text-center py-10">
-              <p class="text-muted-foreground">No flashcards available.</p>
-              <p class="text-muted-foreground mt-2">Create flashcards to start practicing.</p>
+              <p class="text-muted-foreground pixel-outline">No flashcards available.</p>
+              <p class="text-muted-foreground mt-2 pixel-outline">Create flashcards to start practicing.</p>
               <Link :href="route('files.flashcards.create', file.id)" class="mt-4 inline-block">
                 <Button>Create Flashcard</Button>
               </Link>
@@ -225,7 +224,7 @@ function finishPractice() {
                 </div>
                 <!--Flashcard Layout-->
                 <Card class="relative min-h-[320px] sm:min-h-[360px] md:min-h-[420px] w-full max-w-sm
-                          sm:max-w-md md:max-w-lg border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br 
+                          sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br 
                           from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] hover:scale-105 
                           hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 
                           font-pixel overflow-hidden mx-auto">
@@ -236,13 +235,13 @@ function finishPractice() {
                       :class="{ 'rotate-y-180': showAnswer }">
                       <!--Front (Question)-->
                       <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6 backface-hidden">
-                        <p class="text-sm sm:text-base md:text-lg font-pixel text-white text-center break-words leading-relaxed">
+                        <p class="text-sm sm:text-base md:text-lg lg:text-2xl font-pixel text-white text-center break-words leading-relaxed">
                           {{ (currentFlashcard as Flashcard).question }}
                         </p>
                       </div>
                       <!--Back (Answer)-->
                       <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6 backface-hidden rotate-y-180">
-                        <p class="text-sm sm:text-base md:text-lg font-pixel text-yellow-300 text-center px-2 sm:px-4 animate-soft-bounce">
+                        <p class="text-sm sm:text-base md:text-lg lg:text-xl font-pixel text-yellow-300 text-center px-2 sm:px-4 animate-soft-bounce">
                           {{ (currentFlashcard as Flashcard).answer }}
                         </p>
                       </div>
@@ -271,14 +270,12 @@ function finishPractice() {
                   </CardContent>
 
                   <!--Footer with navigation buttons-->
-                  <CardFooter class="flex justify-between px-4 py-3 bg-yellow-300 border-t-4 border-black">
+                  <CardFooter class="flex justify-between px-4 py-3 bg-yellow-500 border-t-4 border-black">
                     <!--Redirects to previous flashcard-->
                     <Button
                       @click="previous"
                       variant="default"
-                      class="border-4 border-black bg-gray-200 font-pixel 
-                          active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] 
-                          hover:translate-x-1 hover:translate-y-1 transition">
+                      class="bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 border-2 pixel-outline">
                       <ChevronLeft class="h-4 w-4 mr-2" />
                       Previous
                     </Button>
@@ -286,9 +283,7 @@ function finishPractice() {
                     <Button
                       @click="next"
                       variant="default"
-                      class="border-4 border-black bg-gray-200 font-pixel 
-                          active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] 
-                          hover:translate-x-1 hover:translate-y-1 transition">
+                      class="bg-orange-500 text-[#fdf6ee] hover:bg-orange-600 border-orange-700 border-2 pixel-outline">
                           Skip
                       <ChevronRight class="h-4 w-4 ml-2" />
                     </Button>
@@ -304,7 +299,7 @@ function finishPractice() {
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                         hover:bg-green-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
                         active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out">
+                        transition-all duration-150 ease-in-out pixel-outline">
                     Next Card
                     <ChevronRight class="h-4 w-4 ml-2" />
                   </Button>

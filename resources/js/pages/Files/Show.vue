@@ -296,7 +296,7 @@ const showFlashcards = ref(true)
                                             <Link :href="route('files.quizzes.test', file.id)">
                                                 <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
                                                 <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                Take Quiz
+                                                Practice
                                                 </Button>
                                             </Link>
                                             </div>
