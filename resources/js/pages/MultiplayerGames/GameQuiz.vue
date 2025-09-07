@@ -249,9 +249,10 @@ const answerSubmitted = ref(false);
 const submitting = ref(false);
 const gameOver = ref(false);
 const lastAction = ref<{ type: 'success' | 'error'; message: string } | null>(null);
+const currentQuestion = ref(props.currentQuestion);
 
 // Computed properties
-const currentQuiz = computed(() => props.currentQuestion);
+const currentQuiz = computed(() => currentQuestion.value);
 const isMyTurn = computed(() => {
     const isPlayerOne = props.game.currentUser.id === props.game.playerOne.id;
     return (isPlayerOne && props.game.current_turn === 1) || (!isPlayerOne && props.game.current_turn === 2);
@@ -435,6 +436,12 @@ onMounted(() => {
 
                 // Update game state from websocket
                 Object.assign(props.game, e.game);
+
+                // Update the current question if it's included in the websocket data
+                if (e.game.currentQuestion !== undefined) {
+                    currentQuestion.value = e.game.currentQuestion;
+                    console.log('Updated current question from websocket:', e.game.currentQuestion);
+                }
 
                 if (props.game.status === 'finished') {
                     gameOver.value = true;
