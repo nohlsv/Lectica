@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Facades\DB;
 
 class MultiplayerGame extends Model
 {
@@ -178,8 +179,23 @@ class MultiplayerGame extends Model
      */
     public function switchTurn(): void
     {
-        $this->current_turn = $this->current_turn === 1 ? 2 : 1;
-        $this->save();
+        // Use database locking to prevent race conditions
+        DB::transaction(function () {
+            $this->lockForUpdate();
+
+            // Additional validation before switching turns
+            if (!$this->isActive()) {
+                throw new \Exception('Cannot switch turns on inactive game');
+            }
+
+            if (!$this->player_two_id) {
+                throw new \Exception('Cannot switch turns without second player');
+            }
+
+            $this->current_turn = $this->current_turn === 1 ? 2 : 1;
+            $this->touch(); // Update the updated_at timestamp
+            $this->save();
+        });
     }
 
     /**
@@ -187,10 +203,17 @@ class MultiplayerGame extends Model
      */
     public function markAsFinished(): void
     {
-        $this->update(['status' => MultiplayerGameStatus::FINISHED]);
+        DB::transaction(function () {
+            $this->lockForUpdate();
 
-        // Broadcast the game update to notify all connected clients
-        broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_ended'));
+            // Only mark as finished if not already finished
+            if (!$this->isFinished()) {
+                $this->update(['status' => MultiplayerGameStatus::FINISHED]);
+
+                // Broadcast the game update to notify all connected clients
+                broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_ended'));
+            }
+        });
     }
 
     /**
@@ -198,7 +221,17 @@ class MultiplayerGame extends Model
      */
     public function markAsAbandoned(): void
     {
-        $this->update(['status' => MultiplayerGameStatus::ABANDONED]);
+        DB::transaction(function () {
+            $this->lockForUpdate();
+
+            // Only mark as abandoned if not already finished
+            if (!$this->isFinished()) {
+                $this->update(['status' => MultiplayerGameStatus::ABANDONED]);
+
+                // Broadcast the abandonment to notify remaining player
+                broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_abandoned'));
+            }
+        });
     }
 
     /**
@@ -206,10 +239,90 @@ class MultiplayerGame extends Model
      */
     public function startGame(): void
     {
-        $this->update([
-            'status' => MultiplayerGameStatus::ACTIVE,
-            'current_turn' => 1 // Player one starts
-        ]);
+        DB::transaction(function () {
+            $this->lockForUpdate();
+
+            // Validate that we can start the game
+            if (!$this->isWaiting()) {
+                throw new \Exception('Game is not in waiting state');
+            }
+
+            if (!$this->player_two_id) {
+                throw new \Exception('Cannot start game without second player');
+            }
+
+            $this->update([
+                'status' => MultiplayerGameStatus::ACTIVE,
+                'current_turn' => 1 // Player one starts
+            ]);
+        });
+    }
+
+    /**
+     * Check if the current turn is valid for the given player
+     */
+    public function isPlayerTurn(int $playerId): bool
+    {
+        if (!$this->isActive()) {
+            return false;
+        }
+
+        if ($this->player_one_id === $playerId && $this->current_turn === 1) {
+            return true;
+        }
+
+        if ($this->player_two_id === $playerId && $this->current_turn === 2) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get the waiting player (opponent) for a given player
+     */
+    public function getOpponent(int $playerId): ?User
+    {
+        if ($this->player_one_id === $playerId) {
+            return $this->playerTwo;
+        }
+
+        if ($this->player_two_id === $playerId) {
+            return $this->playerOne;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the game has been inactive for too long
+     */
+    public function isStale(int $minutesThreshold = 30): bool
+    {
+        if (!$this->isActive()) {
+            return false;
+        }
+
+        return $this->updated_at->diffInMinutes(now()) > $minutesThreshold;
+    }
+
+    /**
+     * Get game state summary for debugging
+     */
+    public function getStateDebugInfo(): array
+    {
+        return [
+            'id' => $this->id,
+            'status' => $this->status->value,
+            'current_turn' => $this->current_turn,
+            'player_one_id' => $this->player_one_id,
+            'player_two_id' => $this->player_two_id,
+            'player_one_hp' => $this->player_one_hp,
+            'player_two_hp' => $this->player_two_hp,
+            'monster_hp' => $this->monster_hp,
+            'last_updated' => $this->updated_at->toISOString(),
+            'minutes_since_update' => $this->updated_at->diffInMinutes(now()),
+        ];
     }
 
     /**

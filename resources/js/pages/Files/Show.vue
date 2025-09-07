@@ -423,20 +423,18 @@ const addToCollection = async () => {
                                                     <input type="checkbox" v-model="generateOptions.generate_flashcards" id="generate_flashcards" />
                                                     <label for="generate_flashcards" class="text-sm font-medium">Generate Flashcards</label>
                                                 </div>
-                                                <div v-if="generateOptions.generate_flashcards" class="flex items-center gap-2">
-                                                    <label for="flashcards_count" class="text-sm font-medium">Flashcards Count:</label>
-                                                    <Input
-                                                        type="number"
+                                                <div v-if="generateOptions.generate_flashcards" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="flashcards_count" class="text-sm font-medium">Flashcards Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.flashcards_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
                                                         id="flashcards_count"
                                                         v-model="generateOptions.flashcards_count"
                                                         min="1"
                                                         max="15"
-                                                        @input="
-                                                            generateOptions.flashcards_count = Math.min(
-                                                                Math.max(generateOptions.flashcards_count, 1),
-                                                                15,
-                                                            )
-                                                        "
+                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -449,20 +447,18 @@ const addToCollection = async () => {
                                                         >Generate Multiple Choice Quizzes</label
                                                     >
                                                 </div>
-                                                <div v-if="generateOptions.generate_multiple_choice_quizzes" class="flex items-center gap-2">
-                                                    <label for="multiple_choice_count" class="text-sm font-medium">Multiple Choice Count:</label>
-                                                    <Input
-                                                        type="number"
+                                                <div v-if="generateOptions.generate_multiple_choice_quizzes" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="multiple_choice_count" class="text-sm font-medium">Multiple Choice Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.multiple_choice_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
                                                         id="multiple_choice_count"
                                                         v-model="generateOptions.multiple_choice_count"
                                                         min="1"
                                                         max="15"
-                                                        @input="
-                                                            generateOptions.multiple_choice_count = Math.min(
-                                                                Math.max(generateOptions.multiple_choice_count, 1),
-                                                                15,
-                                                            )
-                                                        "
+                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -475,20 +471,18 @@ const addToCollection = async () => {
                                                         >Generate Enumeration Quizzes</label
                                                     >
                                                 </div>
-                                                <div v-if="generateOptions.generate_enumeration_quizzes" class="flex items-center gap-2">
-                                                    <label for="enumeration_count" class="text-sm font-medium">Enumeration Count:</label>
-                                                    <Input
-                                                        type="number"
+                                                <div v-if="generateOptions.generate_enumeration_quizzes" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="enumeration_count" class="text-sm font-medium">Enumeration Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.enumeration_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
                                                         id="enumeration_count"
                                                         v-model="generateOptions.enumeration_count"
                                                         min="1"
                                                         max="15"
-                                                        @input="
-                                                            generateOptions.enumeration_count = Math.min(
-                                                                Math.max(generateOptions.enumeration_count, 1),
-                                                                15,
-                                                            )
-                                                        "
+                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -501,20 +495,18 @@ const addToCollection = async () => {
                                                         >Generate True/False Quizzes</label
                                                     >
                                                 </div>
-                                                <div v-if="generateOptions.generate_true_false_quizzes" class="flex items-center gap-2">
-                                                    <label for="true_false_count" class="text-sm font-medium">True/False Count:</label>
-                                                    <Input
-                                                        type="number"
+                                                <div v-if="generateOptions.generate_true_false_quizzes" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="true_false_count" class="text-sm font-medium">True/False Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.true_false_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
                                                         id="true_false_count"
                                                         v-model="generateOptions.true_false_count"
                                                         min="1"
                                                         max="15"
-                                                        @input="
-                                                            generateOptions.true_false_count = Math.min(
-                                                                Math.max(generateOptions.true_false_count, 1),
-                                                                15,
-                                                            )
-                                                        "
+                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
                                                     />
                                                 </div>
                                             </div>

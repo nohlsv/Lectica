@@ -185,6 +185,21 @@ class MultiplayerGameController extends Controller
             abort(403, 'You are not part of this game.');
         }
 
+        // Handle JSON requests for sync checks
+        if (request()->wantsJson()) {
+            $monster = Monster::find($multiplayerGame->monster_id);
+
+            return response()->json([
+                'game' => array_merge($multiplayerGame->toArray(), [
+                    'monster' => $monster,
+                    'playerOne' => $multiplayerGame->playerOne,
+                    'playerTwo' => $multiplayerGame->playerTwo,
+                    'currentUser' => Auth::user(),
+                    'source_name' => $multiplayerGame->getSourceName()
+                ])
+            ]);
+        }
+
         $quizzes = $multiplayerGame->getAvailableQuizzes();
         $monster = Monster::find($multiplayerGame->monster_id);
 
@@ -321,44 +336,95 @@ class MultiplayerGameController extends Controller
             'is_correct' => 'required|boolean',
         ]);
 
-        // Check if user is part of this game
-        if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
-            abort(403, 'You are not part of this game.');
-        }
+        // Use database transaction to prevent race conditions
+        return DB::transaction(function () use ($request, $multiplayerGame) {
+            // Lock the game record to prevent concurrent access
+            $multiplayerGame = $multiplayerGame->lockForUpdate();
 
-        // Check if it's the user's turn
-        $isPlayerOne = $multiplayerGame->player_one_id === Auth::id();
-        $isPlayerTwo = $multiplayerGame->player_two_id === Auth::id();
-
-        if (($isPlayerOne && $multiplayerGame->current_turn !== 1) ||
-            ($isPlayerTwo && $multiplayerGame->current_turn !== 2)) {
-            return response()->json(['error' => 'It is not your turn.'], 400);
-        }
-
-        // Check if game is active
-        if (!$multiplayerGame->isActive()) {
-            return response()->json(['error' => 'Game is not active.'], 400);
-        }
-
-        // Update question statistics
-        if ($isPlayerOne) {
-            $multiplayerGame->increment('total_questions_p1');
-            if ($request->is_correct) {
-                $multiplayerGame->increment('correct_answers_p1');
+            // Check if user is part of this game
+            if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
+                abort(403, 'You are not part of this game.');
             }
-        } else {
-            $multiplayerGame->increment('total_questions_p2');
-            if ($request->is_correct) {
-                $multiplayerGame->increment('correct_answers_p2');
+
+            // Check if game is active
+            if (!$multiplayerGame->isActive()) {
+                return back()->withErrors(['game' => 'Game is not active.']);
             }
-        }
 
-        $damageDealt = 0;
-        $damageReceived = 0;
+            // Validate that both players are still present
+            if (!$multiplayerGame->player_two_id) {
+                return back()->withErrors(['game' => 'Waiting for second player.']);
+            }
 
+            // Check if it's the user's turn
+            $isPlayerOne = $multiplayerGame->player_one_id === Auth::id();
+            $isPlayerTwo = $multiplayerGame->player_two_id === Auth::id();
+
+            if (($isPlayerOne && $multiplayerGame->current_turn !== 1) ||
+                ($isPlayerTwo && $multiplayerGame->current_turn !== 2)) {
+                return back()->withErrors(['turn' => 'It is not your turn.']);
+            }
+
+            // Double-check the game hasn't ended while we were processing
+            if ($multiplayerGame->isFinished()) {
+                return back()->withErrors(['game' => 'Game has already ended.']);
+            }
+
+            // Update question statistics
+            if ($isPlayerOne) {
+                $multiplayerGame->increment('total_questions_p1');
+                if ($request->is_correct) {
+                    $multiplayerGame->increment('correct_answers_p1');
+                }
+            } else {
+                $multiplayerGame->increment('total_questions_p2');
+                if ($request->is_correct) {
+                    $multiplayerGame->increment('correct_answers_p2');
+                }
+            }
+
+            $damageDealt = 0;
+            $damageReceived = 0;
+
+            // Process damage based on game mode
+            $this->processDamage($multiplayerGame, $request->is_correct, $isPlayerOne, $damageDealt, $damageReceived);
+
+            // Check win/lose conditions and handle game end
+            $gameEnded = $this->checkGameEndConditions($multiplayerGame);
+
+            // Only switch turns if game hasn't ended
+            if (!$gameEnded) {
+                $multiplayerGame->switchTurn();
+
+                // Broadcast game update via websockets
+                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
+            }
+
+            // Return back with game data in session flash for Inertia.js
+            return back()->with([
+                'gameUpdate' => [
+                    'success' => true,
+                    'game' => array_merge($multiplayerGame->fresh()->toArray(), [
+                        'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
+                        'playerOne' => $multiplayerGame->playerOne,
+                        'playerTwo' => $multiplayerGame->playerTwo,
+                    ]),
+                    'damage_dealt' => $damageDealt,
+                    'damage_received' => $damageReceived,
+                    'game_ended' => $gameEnded,
+                ]
+            ]);
+        });
+    }
+
+    /**
+     * Process damage based on game mode and answer correctness
+     */
+    private function processDamage(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne, &$damageDealt, &$damageReceived)
+    {
         if ($multiplayerGame->isPvp()) {
             // PVP Mode: Player vs Player
-            if ($request->is_correct) {
+            if ($isCorrect) {
                 // Player deals damage to opponent
                 $damage = 15; // Base damage for correct answer in PVP
                 $damageDealt = $damage;
@@ -389,7 +455,7 @@ class MultiplayerGameController extends Controller
             // PVE Mode: Player vs Monster
             $monster = Monster::find($multiplayerGame->monster_id);
 
-            if ($request->is_correct) {
+            if ($isCorrect) {
                 // Player deals damage to monster
                 $damage = 10; // Base damage for correct answer
                 $damageDealt = $damage;
@@ -416,58 +482,40 @@ class MultiplayerGameController extends Controller
                 }
             }
         }
+    }
 
-        // Check win/lose conditions
+    /**
+     * Check win/lose conditions and end game if necessary
+     */
+    private function checkGameEndConditions(MultiplayerGame $multiplayerGame): bool
+    {
+        // Refresh to get latest HP values
         $multiplayerGame->refresh();
-        $gameEnded = false;
 
         if ($multiplayerGame->isPvp()) {
             // PVP win conditions
             if ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                 $multiplayerGame->markAsFinished();
-                $gameEnded = true;
-            } else {
-                $multiplayerGame->switchTurn();
+                return true;
             }
         } else {
             // PVE win conditions
             if ($multiplayerGame->monster_hp <= 0) {
                 // Both players win against the monster
                 $multiplayerGame->markAsFinished();
-                $gameEnded = true;
+                return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
                 // Both players lost
                 $multiplayerGame->markAsFinished();
-                $gameEnded = true;
+                return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                 // One player lost
                 $multiplayerGame->markAsFinished();
-                $gameEnded = true;
-            } else {
-                // Game continues, switch turns
-                $multiplayerGame->switchTurn();
+                return true;
             }
         }
 
-        // Broadcast game update via websockets
-        // Only broadcast if game hasn't ended (markAsFinished already broadcasts for ended games)
-        if (!$gameEnded) {
-            broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
-        }
-
-        // Return back with game data in session flash for Inertia.js
-        return back()->with([
-            'gameUpdate' => [
-                'success' => true,
-                'game' => array_merge($multiplayerGame->fresh()->toArray(), [
-                    'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
-                    'playerOne' => $multiplayerGame->playerOne,
-                    'playerTwo' => $multiplayerGame->playerTwo,
-                ]),
-                'damage_dealt' => $damageDealt,
-                'damage_received' => $damageReceived,
-            ]
-        ]);
+        return false;
     }
 
     /**
@@ -475,15 +523,56 @@ class MultiplayerGameController extends Controller
      */
     public function abandon(MultiplayerGame $multiplayerGame)
     {
-        // Check if user is part of this game
-        if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
-            abort(403, 'You are not part of this game.');
-        }
+        // Use transaction to ensure atomic abandonment
+        return DB::transaction(function () use ($multiplayerGame) {
+            // Lock the game to prevent race conditions
+            $multiplayerGame = $multiplayerGame->lockForUpdate();
 
-        $multiplayerGame->markAsAbandoned();
+            // Check if user is part of this game
+            if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
+                abort(403, 'You are not part of this game.');
+            }
 
-        return redirect()->route('multiplayer-games.index')
-            ->with('success', 'Game abandoned.');
+            // Check if game is already finished
+            if ($multiplayerGame->isFinished()) {
+                return redirect()->route('multiplayer-games.lobby')
+                    ->with('info', 'Game was already finished.');
+            }
+
+            // Mark as abandoned and broadcast to other player
+            $multiplayerGame->markAsAbandoned();
+
+            return redirect()->route('multiplayer-games.lobby')
+                ->with('success', 'Game abandoned.');
+        });
+    }
+
+    /**
+     * Handle player disconnection and timeout scenarios
+     */
+    public function handlePlayerTimeout(MultiplayerGame $multiplayerGame, int $playerId)
+    {
+        return DB::transaction(function () use ($multiplayerGame, $playerId) {
+            $multiplayerGame = $multiplayerGame->lockForUpdate();
+
+            // Only handle timeouts for active games
+            if (!$multiplayerGame->isActive()) {
+                return;
+            }
+
+            // Check if the player is part of this game
+            if ($multiplayerGame->player_one_id !== $playerId && $multiplayerGame->player_two_id !== $playerId) {
+                return;
+            }
+
+            // Mark the game as abandoned due to timeout
+            $multiplayerGame->update([
+                'status' => MultiplayerGameStatus::ABANDONED,
+                'abandoned_reason' => 'Player timeout'
+            ]);
+
+            // Broadcast the abandonment to remaining player
+            broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'player_timeout'));
+        });
     }
 }
-
