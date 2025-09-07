@@ -415,6 +415,7 @@ class MultiplayerGameController extends Controller
                         'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
                         'playerOne' => $multiplayerGame->playerOne,
                         'playerTwo' => $multiplayerGame->playerTwo,
+                        'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
                     ]),
                     'damage_dealt' => $damageDealt,
                     'damage_received' => $damageReceived,

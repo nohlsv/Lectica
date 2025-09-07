@@ -292,6 +292,12 @@ const submitAnswer = async () => {
                     // Update game state
                     if (gameUpdate.game) {
                         Object.assign(props.game, gameUpdate.game);
+
+                        // Update the current question if it's included in the game update
+                        if (gameUpdate.game.currentQuestion !== undefined) {
+                            currentQuestion.value = gameUpdate.game.currentQuestion;
+                            console.log('Updated current question from answer response:', gameUpdate.game.currentQuestion);
+                        }
                     }
 
                     // Check if game is over
