@@ -31,16 +31,25 @@ fi
 
 echo "Using web server user: $WEB_USER"
 
-# Set ownership
-echo "Setting ownership to $WEB_USER:$WEB_USER..."
+# Check current ownership
+echo ""
+echo "=== Current Ownership Issues ==="
+echo "Current owner of project root: $(stat -c '%U:%G' .)"
+echo "Current owner of app/: $(stat -c '%U:%G' app/ 2>/dev/null || echo 'Cannot read app/ directory')"
+echo "Current owner of storage/: $(stat -c '%U:%G' storage/ 2>/dev/null || echo 'Cannot read storage/ directory')"
+
+# Fix ownership for entire project (this is the key fix for your error)
+echo ""
+echo "=== Fixing Project Ownership ==="
+echo "Setting ownership of entire project to $WEB_USER:$WEB_USER..."
 chown -R $WEB_USER:$WEB_USER .
 
-# Set base permissions
+# Set base permissions for all files and directories
 echo "Setting base file permissions..."
 find . -type f -exec chmod 644 {} \;
 find . -type d -exec chmod 755 {} \;
 
-# Set special permissions for Laravel directories
+# Set special permissions for Laravel directories that need write access
 echo "Setting Laravel-specific permissions..."
 
 # Storage directory (needs to be writable)
@@ -70,17 +79,35 @@ chown -R $WEB_USER:$WEB_USER storage/framework/
 chown -R $WEB_USER:$WEB_USER storage/logs/
 chown -R $WEB_USER:$WEB_USER storage/app/
 
+# Ensure critical directories are readable by web server
+echo "Ensuring critical Laravel directories are accessible..."
+chmod 755 app/
+chmod 755 app/Providers/
+chmod 644 app/Providers/AppServiceProvider.php
+chmod 755 config/
+chmod 644 config/*.php
+chmod 755 routes/
+chmod 644 routes/*.php
+
 echo ""
 echo "=== Permission Summary ==="
 echo "Project root owner: $(stat -c '%U:%G' .)"
+echo "App directory owner: $(stat -c '%U:%G' app/)"
+echo "AppServiceProvider owner: $(stat -c '%U:%G' app/Providers/AppServiceProvider.php)"
 echo "Storage directory permissions: $(stat -c '%a' storage/)"
 echo "Storage directory owner: $(stat -c '%U:%G' storage/)"
 echo "Bootstrap cache permissions: $(stat -c '%a' bootstrap/cache/)"
 echo "Bootstrap cache owner: $(stat -c '%U:%G' bootstrap/cache/)"
 
 echo ""
-echo "=== Testing Write Permissions ==="
-# Test if we can write to storage
+echo "=== Testing File Access ==="
+# Test if critical files are readable
+if [ -r app/Providers/AppServiceProvider.php ]; then
+    echo "✓ app/Providers/AppServiceProvider.php is readable"
+else
+    echo "✗ app/Providers/AppServiceProvider.php is NOT readable"
+fi
+
 if [ -w storage/framework/views/ ]; then
     echo "✓ storage/framework/views/ is writable"
 else
@@ -99,9 +126,11 @@ echo "1. Clear Laravel caches:"
 echo "   php artisan config:clear"
 echo "   php artisan view:clear"
 echo "   php artisan cache:clear"
+echo "   php artisan route:clear"
 echo ""
 echo "2. If you still get permission errors, check:"
 echo "   - Your web server user with: ps aux | grep -E 'nginx|apache|httpd'"
 echo "   - SELinux status (if applicable): sestatus"
+echo "   - Make sure you ran this script as root/sudo"
 echo ""
 echo "Permission fix completed!"
