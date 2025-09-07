@@ -451,15 +451,29 @@ const getGameResult = (): string => {
     if (props.game.game_mode === 'pvp') {
         // PVP Mode: Accuracy-based results
         const isPlayerOne = props.game.currentUser.id === props.game.playerOne.id;
-        const myAccuracy = isPlayerOne ? props.game.player_one_accuracy : props.game.player_two_accuracy;
-        const opponentAccuracy = isPlayerOne ? props.game.player_two_accuracy : props.game.player_one_accuracy;
+        const myAccuracy = isPlayerOne ? (props.game.player_one_accuracy || 0) : (props.game.player_two_accuracy || 0);
+        const opponentAccuracy = isPlayerOne ? (props.game.player_two_accuracy || 0) : (props.game.player_one_accuracy || 0);
+
+        // Debug logging to see what values we're getting
+        console.log('Game result calculation:', {
+            isPlayerOne,
+            myAccuracy,
+            opponentAccuracy,
+            player_one_accuracy: props.game.player_one_accuracy,
+            player_two_accuracy: props.game.player_two_accuracy
+        });
 
         if (myAccuracy > opponentAccuracy) {
             return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
         } else if (myAccuracy < opponentAccuracy) {
             return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
         } else {
-            return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
+            // Handle tie case, including when both are 0%
+            if (myAccuracy === 0 && opponentAccuracy === 0) {
+                return `No answers recorded! 🤔 The game ended unexpectedly.`;
+            } else {
+                return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
+            }
         }
     } else {
         // PVE Mode: Original HP-based results
