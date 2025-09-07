@@ -215,7 +215,7 @@ interface Quiz {
     question: string;
     type: string;
     options?: string[];
-    correct_answer: string;
+    answers: string[]; // Changed from correct_answer: string to answers: string[]
 }
 
 interface Game {
@@ -350,19 +350,23 @@ const submitAnswer = async () => {
 };
 
 const checkAnswer = (userAnswer: string, quiz: Quiz): boolean => {
-    if (!quiz || !quiz.correct_answer || !userAnswer) {
+    if (!quiz || !quiz.answers || quiz.answers.length === 0 || !userAnswer) {
         return false;
     }
 
-    const correctAnswer = quiz.correct_answer.toLowerCase().trim();
     const userAnswerLower = userAnswer.toLowerCase().trim();
 
     if (quiz.type === 'multiple_choice' || quiz.type === 'true_false') {
+        // For these types, the first element in answers array is the correct answer
+        const correctAnswer = quiz.answers[0].toLowerCase().trim();
         return userAnswerLower === correctAnswer;
     } else if (quiz.type === 'enumeration') {
-        // For enumeration, check if user answer contains correct keywords
-        const correctKeywords = correctAnswer.split(',').map(k => k.trim().toLowerCase());
-        return correctKeywords.some(keyword => userAnswerLower.includes(keyword));
+        // For enumeration, check if user answer contains any of the correct answers
+        // Each answer in the array could be a valid response
+        return quiz.answers.some(correctAnswer => {
+            const correctLower = correctAnswer.toLowerCase().trim();
+            return userAnswerLower.includes(correctLower) || correctLower.includes(userAnswerLower);
+        });
     }
 
     return false;

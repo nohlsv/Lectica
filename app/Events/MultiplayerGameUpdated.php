@@ -21,12 +21,6 @@ class MultiplayerGameUpdated implements ShouldBroadcast
     public function __construct(MultiplayerGame $game, string $eventType = 'updated')
     {
         $this->game = $game->load(['playerOne', 'playerTwo', 'file', 'collection']);
-
-        // Add monster data if it's a PvE game
-        if ($this->game->isPve() && $this->game->monster_id) {
-            $this->game->monster = \App\Models\Monster::find($this->game->monster_id);
-        }
-
         $this->eventType = $eventType;
     }
 
@@ -37,8 +31,16 @@ class MultiplayerGameUpdated implements ShouldBroadcast
 
     public function broadcastWith()
     {
+        $gameData = $this->game->toArray();
+
+        // Add monster data if it's a PvE game without modifying the model instance
+        if ($this->game->isPve() && $this->game->monster_id) {
+            $monster = \App\Models\Monster::find($this->game->monster_id);
+            $gameData['monster'] = $monster ? $monster->toArray() : null;
+        }
+
         return [
-            'game' => $this->game,
+            'game' => $gameData,
             'event_type' => $this->eventType,
             'timestamp' => now()->toISOString(),
         ];
