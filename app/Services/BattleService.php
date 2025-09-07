@@ -24,9 +24,9 @@ class BattleService
         $file = File::findOrFail($fileId);
 
         // Check if user owns the file
-        if ($file->user_id !== Auth::id()) {
-            throw new \UnauthorizedAccessException('You can only battle with your own files.');
-        }
+//        if ($file->user_id !== Auth::id()) {
+//            throw new \UnauthorizedAccessException('You can only battle with your own files.');
+//        }
 
         // Check if file has quizzes
         if (!$file->hasQuizzes()) {

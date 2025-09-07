@@ -339,7 +339,7 @@ class MultiplayerGameController extends Controller
         // Use database transaction to prevent race conditions
         return DB::transaction(function () use ($request, $multiplayerGame) {
             // Lock the game record to prevent concurrent access
-            $multiplayerGame = $multiplayerGame->lockForUpdate();
+            $multiplayerGame = MultiplayerGame::where('id', $multiplayerGame->id)->lockForUpdate()->first();
 
             // Check if user is part of this game
             if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
