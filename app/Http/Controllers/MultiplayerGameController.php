@@ -280,8 +280,11 @@ class MultiplayerGameController extends Controller
         // Start the game
         $multiplayerGame->startGame();
 
-        // Broadcast the game update to notify player one that player two has joined
-        broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
+        // Broadcast the game start to both players
+        broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_started', [
+            'player_two_joined' => true,
+            'player_two_name' => Auth::user()->first_name,
+        ]));
 
         return redirect()->route('multiplayer-games.show', $multiplayerGame)
             ->with('success', 'Successfully joined the game! The battle begins!');
@@ -404,8 +407,21 @@ class MultiplayerGameController extends Controller
                 // Advance to the next question for both players
                 $multiplayerGame->advanceToNextQuestion();
 
-                // Broadcast game update via websockets
-                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
+                // Broadcast game update via websockets with detailed feedback
+                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'answer_submitted', [
+                    'player_id' => Auth::id(),
+                    'is_correct' => $request->is_correct,
+                    'damage_dealt' => $damageDealt,
+                    'damage_received' => $damageReceived,
+                    'answer_text' => $request->answer,
+                    'player_name' => Auth::user()->first_name,
+                ]))->toOthers();
+            } else {
+                // Broadcast game end with final results
+                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_ended', [
+                    'final_results' => $this->getFinalGameResults($multiplayerGame),
+                    'winner_id' => $this->getWinnerId($multiplayerGame),
+                ]))->toOthers();
             }
 
             // Return back to the same page instead of JSON response for Inertia compatibility
@@ -429,41 +445,23 @@ class MultiplayerGameController extends Controller
     }
 
     /**
-     * Process damage based on game mode and answer correctness
+     * Process scoring based on game mode and answer correctness
      */
     private function processDamage(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne, &$damageDealt, &$damageReceived)
     {
         if ($multiplayerGame->isPvp()) {
-            // PVP Mode: Player vs Player
+            // PVP Mode: Accuracy-based competition (no HP system)
+            $this->updateAccuracyStats($multiplayerGame, $isCorrect, $isPlayerOne);
+
+            // Set visual feedback values for frontend
             if ($isCorrect) {
-                // Player deals damage to opponent
-                $damage = 15; // Base damage for correct answer in PVP
-                $damageDealt = $damage;
-
-                if ($isPlayerOne) {
-                    $newOpponentHp = max(0, $multiplayerGame->player_two_hp - $damage);
-                    $multiplayerGame->update(['player_two_hp' => $newOpponentHp]);
-                    $multiplayerGame->increment('player_one_score', 10);
-                } else {
-                    $newOpponentHp = max(0, $multiplayerGame->player_one_hp - $damage);
-                    $multiplayerGame->update(['player_one_hp' => $newOpponentHp]);
-                    $multiplayerGame->increment('player_two_score', 10);
-                }
+                $damageDealt = 10; // Visual indicator for correct answer
+                $multiplayerGame->increment($isPlayerOne ? 'player_one_score' : 'player_two_score', 10);
             } else {
-                // Player takes damage for wrong answer
-                $damage = 5; // Self-damage for wrong answer in PVP
-                $damageReceived = $damage;
-
-                if ($isPlayerOne) {
-                    $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
-                    $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
-                } else {
-                    $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
-                    $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
-                }
+                $damageReceived = 5; // Visual indicator for wrong answer
             }
         } else {
-            // PVE Mode: Player vs Monster
+            // PVE Mode: Traditional HP-based system with monster
             $monster = Monster::find($multiplayerGame->monster_id);
 
             if ($isCorrect) {
@@ -496,21 +494,91 @@ class MultiplayerGameController extends Controller
     }
 
     /**
+     * Update accuracy statistics for PVP mode
+     */
+    private function updateAccuracyStats(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne)
+    {
+        // Refresh the model to get the latest question statistics
+        $multiplayerGame->refresh();
+
+        if ($isPlayerOne) {
+            // Update Player One stats using fresh data
+            $correctAnswers = $multiplayerGame->correct_answers_p1;
+            $totalQuestions = $multiplayerGame->total_questions_p1;
+            $accuracy = ($totalQuestions > 0) ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+
+            $currentStreak = $isCorrect ? ($multiplayerGame->player_one_streak ?? 0) + 1 : 0;
+            $maxStreak = max(($multiplayerGame->player_one_max_streak ?? 0), $currentStreak);
+
+            $multiplayerGame->update([
+                'player_one_accuracy' => $accuracy,
+                'player_one_streak' => $currentStreak,
+                'player_one_max_streak' => $maxStreak
+            ]);
+
+            \Log::info('Updated Player One accuracy stats', [
+                'correct_answers' => $correctAnswers,
+                'total_questions' => $totalQuestions,
+                'accuracy' => $accuracy,
+                'streak' => $currentStreak
+            ]);
+        } else {
+            // Update Player Two stats using fresh data
+            $correctAnswers = $multiplayerGame->correct_answers_p2;
+            $totalQuestions = $multiplayerGame->total_questions_p2;
+            $accuracy = ($totalQuestions > 0) ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+
+            $currentStreak = $isCorrect ? ($multiplayerGame->player_two_streak ?? 0) + 1 : 0;
+            $maxStreak = max(($multiplayerGame->player_two_max_streak ?? 0), $currentStreak);
+
+            $multiplayerGame->update([
+                'player_two_accuracy' => $accuracy,
+                'player_two_streak' => $currentStreak,
+                'player_two_max_streak' => $maxStreak
+            ]);
+
+            \Log::info('Updated Player Two accuracy stats', [
+                'correct_answers' => $correctAnswers,
+                'total_questions' => $totalQuestions,
+                'accuracy' => $accuracy,
+                'streak' => $currentStreak
+            ]);
+        }
+    }
+
+    /**
      * Check win/lose conditions and end game if necessary
      */
     private function checkGameEndConditions(MultiplayerGame $multiplayerGame): bool
     {
-        // Refresh to get latest HP values
+        // Refresh to get latest values
         $multiplayerGame->refresh();
 
         if ($multiplayerGame->isPvp()) {
-            // PVP win conditions
-            if ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
+            // PVP accuracy-based win conditions
+            $quizzes = $multiplayerGame->getAvailableQuizzes();
+            $totalQuestions = $quizzes->count();
+
+            // End game when both players have answered all questions
+            if ($multiplayerGame->total_questions_p1 >= $totalQuestions &&
+                $multiplayerGame->total_questions_p2 >= $totalQuestions) {
                 $multiplayerGame->markAsFinished();
                 return true;
             }
+
+            // Optional: End game early if one player has significantly higher accuracy
+            // and enough questions have been answered (at least 10 questions)
+            if ($multiplayerGame->total_questions_p1 >= 10 && $multiplayerGame->total_questions_p2 >= 10) {
+                $accuracyDiff = abs($multiplayerGame->player_one_accuracy - $multiplayerGame->player_two_accuracy);
+
+                // End early if accuracy difference is 30% or more
+                if ($accuracyDiff >= 30) {
+                    $multiplayerGame->markAsFinished();
+                    return true;
+                }
+            }
         } else {
-            // PVE win conditions
+            // PVE win conditions (unchanged)
             if ($multiplayerGame->monster_hp <= 0) {
                 // Both players win against the monster
                 $multiplayerGame->markAsFinished();
@@ -585,5 +653,50 @@ class MultiplayerGameController extends Controller
             // Broadcast the abandonment to remaining player
             broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'player_timeout'));
         });
+    }
+
+    /**
+     * Get final game results for broadcasting
+     */
+    private function getFinalGameResults(MultiplayerGame $multiplayerGame): array
+    {
+        if ($multiplayerGame->isPvp()) {
+            return [
+                'player_one' => [
+                    'name' => $multiplayerGame->playerOne->first_name,
+                    'accuracy' => $multiplayerGame->player_one_accuracy,
+                    'score' => $multiplayerGame->player_one_score,
+                    'max_streak' => $multiplayerGame->player_one_max_streak,
+                ],
+                'player_two' => [
+                    'name' => $multiplayerGame->playerTwo->first_name,
+                    'accuracy' => $multiplayerGame->player_two_accuracy,
+                    'score' => $multiplayerGame->player_two_score,
+                    'max_streak' => $multiplayerGame->player_two_max_streak,
+                ],
+            ];
+        } else {
+            return [
+                'monster_defeated' => $multiplayerGame->monster_hp <= 0,
+                'monster_hp' => $multiplayerGame->monster_hp,
+                'player_one_hp' => $multiplayerGame->player_one_hp,
+                'player_two_hp' => $multiplayerGame->player_two_hp,
+            ];
+        }
+    }
+
+    /**
+     * Get winner ID for PVP games
+     */
+    private function getWinnerId(MultiplayerGame $multiplayerGame): ?int
+    {
+        if ($multiplayerGame->isPvp()) {
+            if ($multiplayerGame->player_one_accuracy > $multiplayerGame->player_two_accuracy) {
+                return $multiplayerGame->player_one_id;
+            } elseif ($multiplayerGame->player_two_accuracy > $multiplayerGame->player_one_accuracy) {
+                return $multiplayerGame->player_two_id;
+            }
+        }
+        return null; // Tie or PVE mode
     }
 }

@@ -46,8 +46,17 @@
                                     {{ game.playerOne.first_name }} {{ game.playerOne.last_name }}
                                 </p>
                                 <div class="flex items-center space-x-2">
-                                    <span class="text-sm text-red-500">❤️ {{ game.player_one_hp }}</span>
-                                    <span class="text-sm text-yellow-500">⭐ {{ game.player_one_score }}</span>
+                                    <!-- PVP Mode: Show Accuracy and Streak -->
+                                    <template v-if="game.game_mode === 'pvp'">
+                                        <span class="text-sm text-blue-500">🎯 {{ game.player_one_accuracy || 0 }}%</span>
+                                        <span class="text-sm text-purple-500">🔥 {{ game.player_one_streak || 0 }}</span>
+                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_one_score }}</span>
+                                    </template>
+                                    <!-- PVE Mode: Show HP and Score -->
+                                    <template v-else>
+                                        <span class="text-sm text-red-500">❤️ {{ game.player_one_hp }}</span>
+                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_one_score }}</span>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -69,8 +78,17 @@
                                     {{ game.playerTwo.first_name }} {{ game.playerTwo.last_name }}
                                 </p>
                                 <div class="flex items-center justify-end space-x-2">
-                                    <span class="text-sm text-yellow-500">⭐ {{ game.player_two_score }}</span>
-                                    <span class="text-sm text-red-500">❤️ {{ game.player_two_hp }}</span>
+                                    <!-- PVP Mode: Show Accuracy and Streak -->
+                                    <template v-if="game.game_mode === 'pvp'">
+                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_two_score }}</span>
+                                        <span class="text-sm text-purple-500">🔥 {{ game.player_two_streak || 0 }}</span>
+                                        <span class="text-sm text-blue-500">🎯 {{ game.player_two_accuracy || 0 }}%</span>
+                                    </template>
+                                    <!-- PVE Mode: Show Score and HP -->
+                                    <template v-else>
+                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_two_score }}</span>
+                                        <span class="text-sm text-red-500">❤️ {{ game.player_two_hp }}</span>
+                                    </template>
                                 </div>
                             </div>
                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
@@ -200,6 +218,43 @@
                         </p>
                     </div>
                 </div>
+
+                <!-- Visual Feedback Animations -->
+                <div v-if="showOpponentAction" class="mt-4 rounded-lg p-4 bg-gray-100 dark:bg-gray-800">
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        {{ opponentFeedback?.name }}'s answer was <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{ opponentFeedback?.isCorrect ? 'correct' : 'wrong' }}</span>: "{{ opponentFeedback?.answer }}"
+                    </p>
+                </div>
+
+                <div v-if="accuracyAnimation" class="mt-4">
+                    <transition name="fade">
+                        <div v-if="accuracyAnimation.player === 'one'" class="text-center">
+                            <p class="text-sm text-blue-500">🎯 Player 1 accuracy: {{ game.player_one_accuracy }}%</p>
+                        </div>
+                        <div v-else-if="accuracyAnimation.player === 'two'" class="text-center">
+                            <p class="text-sm text-green-500">🎯 Player 2 accuracy: {{ game.player_two_accuracy }}%</p>
+                        </div>
+                    </transition>
+                </div>
+
+                <div v-if="streakAnimation" class="mt-4">
+                    <transition name="fade">
+                        <div v-if="streakAnimation.player === 'one'" class="text-center">
+                            <p class="text-sm text-purple-500">🔥 Player 1 streak: {{ streakAnimation.streak }}</p>
+                        </div>
+                        <div v-else-if="streakAnimation.player === 'two'" class="text-center">
+                            <p class="text-sm text-orange-500">🔥 Player 2 streak: {{ streakAnimation.streak }}</p>
+                        </div>
+                    </transition>
+                </div>
+
+                <div v-if="gameStartAnimation" class="mt-4 text-center">
+                    <p class="text-lg font-semibold text-green-600">The game has started! 🎉</p>
+                </div>
+
+                <div v-if="gameEndAnimation" class="mt-4 text-center">
+                    <p class="text-lg font-semibold text-red-600">The game has ended! ⏹️</p>
+                </div>
             </div>
         </div>
     </AppLayout>
@@ -208,7 +263,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 
 interface Quiz {
     id: number;
@@ -227,6 +282,13 @@ interface Game {
     player_two_hp: number;
     player_one_score: number;
     player_two_score: number;
+    // Add accuracy tracking fields
+    player_one_accuracy?: number;
+    player_two_accuracy?: number;
+    player_one_streak?: number;
+    player_two_streak?: number;
+    player_one_max_streak?: number;
+    player_two_max_streak?: number;
     monster_hp?: number;
     status: string;
     playerOne: any;
@@ -250,6 +312,14 @@ const submitting = ref(false);
 const gameOver = ref(false);
 const lastAction = ref<{ type: 'success' | 'error'; message: string } | null>(null);
 const currentQuestion = ref(props.currentQuestion);
+
+// Visual feedback state
+const showOpponentAction = ref(false);
+const opponentFeedback = ref<{ name: string; isCorrect: boolean; answer: string } | null>(null);
+const accuracyAnimation = ref<{ player: 'one' | 'two'; change: number } | null>(null);
+const streakAnimation = ref<{ player: 'one' | 'two'; streak: number } | null>(null);
+const gameStartAnimation = ref(false);
+const gameEndAnimation = ref(false);
 
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
@@ -338,16 +408,32 @@ const checkAnswer = (userAnswer: string, quiz: Quiz): boolean => {
 };
 
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
-    if (isCorrect) {
-        lastAction.value = {
-            type: 'success',
-            message: `Correct! You dealt ${damageDealt} damage!`
-        };
+    if (props.game.game_mode === 'pvp') {
+        // PVP Mode: Accuracy-focused feedback
+        if (isCorrect) {
+            lastAction.value = {
+                type: 'success',
+                message: `Correct! Your accuracy is improving! 🎯`
+            };
+        } else {
+            lastAction.value = {
+                type: 'error',
+                message: `Wrong answer. Your accuracy dropped slightly. 📉`
+            };
+        }
     } else {
-        lastAction.value = {
-            type: 'error',
-            message: `Wrong answer. You took ${damageReceived} damage.`
-        };
+        // PVE Mode: Original damage-based feedback
+        if (isCorrect) {
+            lastAction.value = {
+                type: 'success',
+                message: `Correct! You dealt ${damageDealt} damage!`
+            };
+        } else {
+            lastAction.value = {
+                type: 'error',
+                message: `Wrong answer. You took ${damageReceived} damage.`
+            };
+        }
     }
 
     // Clear feedback after 3 seconds
@@ -363,13 +449,20 @@ const resetForNextQuestion = () => {
 
 const getGameResult = (): string => {
     if (props.game.game_mode === 'pvp') {
+        // PVP Mode: Accuracy-based results
         const isPlayerOne = props.game.currentUser.id === props.game.playerOne.id;
-        if (isPlayerOne) {
-            return props.game.player_one_hp > 0 ? 'You won!' : 'You lost!';
+        const myAccuracy = isPlayerOne ? props.game.player_one_accuracy : props.game.player_two_accuracy;
+        const opponentAccuracy = isPlayerOne ? props.game.player_two_accuracy : props.game.player_one_accuracy;
+
+        if (myAccuracy > opponentAccuracy) {
+            return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
+        } else if (myAccuracy < opponentAccuracy) {
+            return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
         } else {
-            return props.game.player_two_hp > 0 ? 'You won!' : 'You lost!';
+            return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
         }
     } else {
+        // PVE Mode: Original HP-based results
         if (props.game.monster_hp <= 0) {
             return 'Victory! You defeated the monster together!';
         } else {
@@ -398,11 +491,69 @@ onMounted(() => {
             .listen('MultiplayerGameUpdated', (e: any) => {
                 console.log('Received game update:', e);
 
-                // Store previous turn state
+                // Store previous state for comparisons
                 const wasMyTurn = isMyTurn.value;
+                const previousPlayerOneAccuracy = props.game.player_one_accuracy;
+                const previousPlayerTwoAccuracy = props.game.player_two_accuracy;
+                const previousPlayerOneStreak = props.game.player_one_streak;
+                const previousPlayerTwoStreak = props.game.player_two_streak;
+
+                // Handle different event types
+                if (e.event_type === 'game_started') {
+                    gameStartAnimation.value = true;
+                    setTimeout(() => {
+                        gameStartAnimation.value = false;
+                    }, 3000);
+
+                    // Navigate to game screen when game starts
+                    setTimeout(() => {
+                        router.visit(route('multiplayer-games.show', props.game.id));
+                    }, 1500);
+                } else if (e.event_type === 'game_ended') {
+                    gameOver.value = true;
+                    gameEndAnimation.value = true;
+                    setTimeout(() => {
+                        gameEndAnimation.value = false;
+                    }, 4000);
+
+                    // Navigate to results screen when game ends
+                    setTimeout(() => {
+                        router.visit(route('multiplayer-games.show', props.game.id));
+                    }, 3000);
+                } else if (e.event_type === 'answer_submitted' && e.additional_data) {
+                    // Show opponent's action if it's not from current user
+                    if (e.additional_data.player_id !== props.game.currentUser.id) {
+                        showOpponentAction.value = true;
+                        opponentFeedback.value = {
+                            name: e.additional_data.player_name,
+                            isCorrect: e.additional_data.is_correct,
+                            answer: e.additional_data.answer_text,
+                        };
+
+                        setTimeout(() => {
+                            showOpponentAction.value = false;
+                        }, 4000);
+                    }
+                }
 
                 // Update game state from websocket
                 Object.assign(props.game, e.game);
+
+                // Handle status-based navigation as a fallback
+                if (props.game.status === 'active' && e.event_type === 'game_started') {
+                    // Game just started, refresh to game screen
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                } else if (props.game.status === 'finished') {
+                    gameOver.value = true;
+                    // If we're not already on the results screen, navigate there
+                    if (!window.location.pathname.includes('show')) {
+                        setTimeout(() => {
+                            router.visit(route('multiplayer-games.show', props.game.id));
+                        }, 2000);
+                    }
+                }
 
                 // Update the current question if it's included in the websocket data
                 if (e.game.currentQuestion !== undefined) {
@@ -410,14 +561,57 @@ onMounted(() => {
                     console.log('Updated current question from websocket:', e.game.currentQuestion);
                 }
 
-                // Update feedback with damage information if available
-                if (e.damage_dealt !== undefined || e.damage_received !== undefined) {
-                    const damageDealt = e.damage_dealt || 0;
-                    const damageReceived = e.damage_received || 0;
-                    const isCorrect = damageDealt > 0 || damageReceived === 0;
+                // Show accuracy animations if changed
+                if (props.game.player_one_accuracy !== previousPlayerOneAccuracy) {
+                    accuracyAnimation.value = {
+                        player: 'one',
+                        change: props.game.player_one_accuracy - (previousPlayerOneAccuracy || 0)
+                    };
+                    setTimeout(() => {
+                        accuracyAnimation.value = null;
+                    }, 2000);
+                }
+
+                if (props.game.player_two_accuracy !== previousPlayerTwoAccuracy) {
+                    accuracyAnimation.value = {
+                        player: 'two',
+                        change: props.game.player_two_accuracy - (previousPlayerTwoAccuracy || 0)
+                    };
+                    setTimeout(() => {
+                        accuracyAnimation.value = null;
+                    }, 2000);
+                }
+
+                // Show streak animations if changed
+                if (props.game.player_one_streak !== previousPlayerOneStreak) {
+                    streakAnimation.value = {
+                        player: 'one',
+                        streak: props.game.player_one_streak
+                    };
+                    setTimeout(() => {
+                        streakAnimation.value = null;
+                    }, 2000);
+                }
+
+                if (props.game.player_two_streak !== previousPlayerTwoStreak) {
+                    streakAnimation.value = {
+                        player: 'two',
+                        streak: props.game.player_two_streak
+                    };
+                    setTimeout(() => {
+                        streakAnimation.value = null;
+                    }, 2000);
+                }
+
+                // Handle damage feedback for current user's action
+                if (e.additional_data && e.additional_data.player_id === props.game.currentUser.id) {
+                    const damageDealt = e.additional_data.damage_dealt || 0;
+                    const damageReceived = e.additional_data.damage_received || 0;
+                    const isCorrect = e.additional_data.is_correct;
                     showFeedback(isCorrect, damageDealt, damageReceived);
                 }
 
+                // Check if game has finished
                 if (props.game.status === 'finished') {
                     gameOver.value = true;
                     return;
@@ -447,12 +641,13 @@ onMounted(() => {
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
     }
 });
-
-onUnmounted(() => {
-    if (echo) {
-        echo.stopListening('MultiplayerGameUpdated');
-        echo.stopListening('.whisper:answer-submitted');
-        console.log('WebSocket listeners cleaned up');
-    }
-});
 </script>
+
+<style>
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
+  opacity: 0;
+}
+</style>
