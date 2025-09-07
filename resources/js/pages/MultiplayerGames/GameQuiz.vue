@@ -298,20 +298,16 @@ const submitAnswer = async () => {
                         return;
                     }
 
-                    // Move to next question only if it's still our turn after the update
-                    // The backend will handle turn switching, so we wait for websocket update
-                    if (isMyTurn.value) {
-                        // Still our turn, move to next question
-                        currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
-                        resetForNextQuestion();
-                    } else {
-                        // Turn switched, wait for opponent
-                        resetForNextQuestion();
-                    }
+                    // Always move to next question after answering, regardless of whose turn it is next
+                    // The turn switching is handled by the backend and updated game state
+                    currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
+                    resetForNextQuestion();
                 } else {
                     // If no gameUpdate, there might be an error
                     console.warn('No game update received from server');
                     showFeedback(isCorrect, 10, 0);
+                    // Still move to next question to prevent getting stuck
+                    currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
                     resetForNextQuestion();
                 }
             },
