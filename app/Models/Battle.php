@@ -26,6 +26,7 @@ class Battle extends Model
     ];
 
     protected $casts = [
+        'monster_id' => 'integer',
         'player_hp' => 'integer',
         'monster_hp' => 'integer',
         'correct_answers' => 'integer',

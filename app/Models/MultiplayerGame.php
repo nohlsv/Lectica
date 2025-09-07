@@ -38,6 +38,7 @@ class MultiplayerGame extends Model
     protected $casts = [
         'player_one_hp' => 'integer',
         'player_two_hp' => 'integer',
+        'monster_id' => 'integer',
         'monster_hp' => 'integer',
         'player_one_score' => 'integer',
         'player_two_score' => 'integer',
