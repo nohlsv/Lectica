@@ -182,23 +182,19 @@ class MultiplayerGame extends Model
      */
     public function switchTurn(): void
     {
-        // Use database locking to prevent race conditions
-        DB::transaction(function () {
-            $this->lockForUpdate();
+        // Don't use nested transaction - work within existing transaction
+        // Additional validation before switching turns
+        if (!$this->isActive()) {
+            throw new \Exception('Cannot switch turns on inactive game');
+        }
 
-            // Additional validation before switching turns
-            if (!$this->isActive()) {
-                throw new \Exception('Cannot switch turns on inactive game');
-            }
+        if (!$this->player_two_id) {
+            throw new \Exception('Cannot switch turns without second player');
+        }
 
-            if (!$this->player_two_id) {
-                throw new \Exception('Cannot switch turns without second player');
-            }
-
-            $this->current_turn = $this->current_turn === 1 ? 2 : 1;
-            $this->touch(); // Update the updated_at timestamp
-            $this->save();
-        });
+        $this->current_turn = $this->current_turn === 1 ? 2 : 1;
+        $this->touch(); // Update the updated_at timestamp
+        $this->save();
     }
 
     /**
@@ -428,10 +424,13 @@ class MultiplayerGame extends Model
         $totalQuestions = $this->getTotalAvailableQuestions();
 
         if ($this->current_question_index < $totalQuestions - 1) {
-            $this->increment('current_question_index');
+            // Use direct assignment instead of increment() to avoid separate database operations
+            $this->current_question_index = $this->current_question_index + 1;
+            $this->save();
         } else {
             // Reset to beginning if we've reached the end
-            $this->update(['current_question_index' => 0]);
+            $this->current_question_index = 0;
+            $this->save();
         }
     }
 }

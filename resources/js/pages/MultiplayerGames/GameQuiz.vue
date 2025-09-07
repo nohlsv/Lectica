@@ -451,19 +451,19 @@ const resetForNextQuestion = () => {
 };
 
 const getGameResult = (): string => {
-    if (props.game.game_mode === 'pvp') {
+    if (gameState.value.game_mode === 'pvp') {
         // PVP Mode: Accuracy-based results
-        const isPlayerOne = props.game.currentUser.id === props.game.playerOne.id;
-        const myAccuracy = isPlayerOne ? (props.game.player_one_accuracy || 0) : (props.game.player_two_accuracy || 0);
-        const opponentAccuracy = isPlayerOne ? (props.game.player_two_accuracy || 0) : (props.game.player_one_accuracy || 0);
+        const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
+        const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy || 0) : (gameState.value.player_two_accuracy || 0);
+        const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy || 0) : (gameState.value.player_one_accuracy || 0);
 
         // Debug logging to see what values we're getting
         console.log('Game result calculation:', {
             isPlayerOne,
             myAccuracy,
             opponentAccuracy,
-            player_one_accuracy: props.game.player_one_accuracy,
-            player_two_accuracy: props.game.player_two_accuracy
+            player_one_accuracy: gameState.value.player_one_accuracy,
+            player_two_accuracy: gameState.value.player_two_accuracy
         });
 
         if (myAccuracy > opponentAccuracy) {
@@ -480,7 +480,7 @@ const getGameResult = (): string => {
         }
     } else {
         // PVE Mode: Original HP-based results
-        if (props.game.monster_hp <= 0) {
+        if (gameState.value.monster_hp <= 0) {
             return 'Victory! You defeated the monster together!';
         } else {
             return 'Defeat! The monster was too strong.';

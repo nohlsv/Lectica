@@ -344,8 +344,12 @@ class MultiplayerGameController extends Controller
             'is_correct' => 'required|boolean',
         ]);
 
+        // Variables to hold data for post-transaction broadcast
+        $broadcastData = null;
+        $gameEnded = false;
+
         // Use database transaction to prevent race conditions
-        return DB::transaction(function () use ($request, $multiplayerGame) {
+        DB::transaction(function () use ($request, $multiplayerGame, &$broadcastData, &$gameEnded) {
             // Lock the game record to prevent concurrent access
             $multiplayerGame = MultiplayerGame::where('id', $multiplayerGame->id)->lockForUpdate()->first();
 
@@ -394,8 +398,13 @@ class MultiplayerGameController extends Controller
             $damageDealt = 0;
             $damageReceived = 0;
 
-            // Process damage based on game mode
+            // Process damage based on game mode (but skip accuracy update for PVP)
             $this->processDamage($multiplayerGame, $request->is_correct, $isPlayerOne, $damageDealt, $damageReceived);
+
+            // Update accuracy stats AFTER counters are incremented (for PVP mode)
+            if ($multiplayerGame->isPvp()) {
+                $this->updateAccuracyStats($multiplayerGame, $request->is_correct, $isPlayerOne);
+            }
 
             // Check win/lose conditions and handle game end
             $gameEnded = $this->checkGameEndConditions($multiplayerGame);
@@ -403,46 +412,63 @@ class MultiplayerGameController extends Controller
             // Only switch turns if game hasn't ended
             if (!$gameEnded) {
                 $multiplayerGame->switchTurn();
-
                 // Advance to the next question for both players
                 $multiplayerGame->advanceToNextQuestion();
 
-                // Broadcast game update via websockets with detailed feedback
-                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'answer_submitted', [
-                    'player_id' => Auth::id(),
-                    'is_correct' => $request->is_correct,
-                    'damage_dealt' => $damageDealt,
-                    'damage_received' => $damageReceived,
-                    'answer_text' => $request->answer,
-                    'player_name' => Auth::user()->first_name,
-                ]))->toOthers();
-            } else {
-                // Broadcast game end with final results
-                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_ended', [
-                    'final_results' => $this->getFinalGameResults($multiplayerGame),
-                    'winner_id' => $this->getWinnerId($multiplayerGame),
-                ]))->toOthers();
-            }
-
-            // Return back to the same page instead of JSON response for Inertia compatibility
-            return back()->with([
-                'flash' => [
-                    'gameUpdate' => [
-                        'success' => true,
-                        'game' => array_merge($multiplayerGame->fresh()->toArray(), [
-                            'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
-                            'playerOne' => $multiplayerGame->playerOne,
-                            'playerTwo' => $multiplayerGame->playerTwo,
-                            'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
-                        ]),
+                // Prepare broadcast data for after transaction
+                $broadcastData = [
+                    'event_type' => 'answer_submitted',
+                    'additional_data' => [
+                        'player_id' => Auth::id(),
+                        'is_correct' => $request->is_correct,
                         'damage_dealt' => $damageDealt,
                         'damage_received' => $damageReceived,
-                        'game_ended' => $gameEnded,
+                        'answer_text' => $request->answer,
+                        'player_name' => Auth::user()->first_name,
                     ]
-                ]
-            ]);
+                ];
+            } else {
+                // Prepare game end broadcast data
+                $broadcastData = [
+                    'event_type' => 'game_ended',
+                    'additional_data' => [
+                        'final_results' => $this->getFinalGameResults($multiplayerGame),
+                        'winner_id' => $this->getWinnerId($multiplayerGame),
+                    ]
+                ];
+            }
         });
+
+        // Broadcast AFTER transaction is committed
+        if ($broadcastData) {
+            // Refresh the model to get the committed data
+            $freshGame = $multiplayerGame->fresh();
+            broadcast(new \App\Events\MultiplayerGameUpdated(
+                $freshGame,
+                $broadcastData['event_type'],
+                $broadcastData['additional_data']
+            ))->toOthers();
+        }
+
+        // Return back to the same page instead of JSON response for Inertia compatibility
+        return back()->with([
+            'flash' => [
+                'gameUpdate' => [
+                    'success' => true,
+                    'game' => array_merge($multiplayerGame->fresh()->toArray(), [
+                        'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
+                        'playerOne' => $multiplayerGame->playerOne,
+                        'playerTwo' => $multiplayerGame->playerTwo,
+                        'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
+                    ]),
+                    'damage_dealt' => $broadcastData['additional_data']['damage_dealt'] ?? 0,
+                    'damage_received' => $broadcastData['additional_data']['damage_received'] ?? 0,
+                    'game_ended' => $gameEnded,
+                ]
+            ]
+        ]);
     }
+
 
     /**
      * Process scoring based on game mode and answer correctness
@@ -451,7 +477,7 @@ class MultiplayerGameController extends Controller
     {
         if ($multiplayerGame->isPvp()) {
             // PVP Mode: Accuracy-based competition (no HP system)
-            $this->updateAccuracyStats($multiplayerGame, $isCorrect, $isPlayerOne);
+            // Note: updateAccuracyStats is now called after answer counters are updated in the main flow
 
             // Set visual feedback values for frontend
             if ($isCorrect) {
