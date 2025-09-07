@@ -274,24 +274,36 @@ const submitAnswer = async () => {
     try {
         const isCorrect = checkAnswer(selectedAnswer.value, currentQuiz.value);
 
-        // Use Laravel Echo to send the answer via WebSocket
-        if (window.Echo) {
-            // Send answer via WebSocket channel
-            window.Echo.private(`multiplayer-game.${props.game.id}`)
-                .whisper('answer-submitted', {
-                    quiz_id: currentQuiz.value?.id,
-                    answer: selectedAnswer.value,
-                    is_correct: isCorrect,
-                    player_id: props.game.currentUser.id
-                });
+        // Use Inertia router for reliable answer submission
+        router.post(route('multiplayer-games.answer', props.game.id), {
+            quiz_id: currentQuiz.value?.id,
+            answer: selectedAnswer.value,
+            is_correct: isCorrect,
+        }, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                console.log('Answer submitted successfully, WebSocket will update game state');
+                // Don't reset submission state here - let WebSocket handle it
+            },
+            onError: (errors) => {
+                console.error('Answer submission errors:', errors);
 
-            // Show immediate feedback
-            showFeedback(isCorrect, 0, 0); // Damage will be updated via WebSocket
+                // Handle specific error types
+                if (errors.turn) {
+                    lastAction.value = { type: 'error', message: 'It\'s not your turn! Please wait for your opponent.' };
+                } else if (errors.game) {
+                    lastAction.value = { type: 'error', message: errors.game };
+                } else {
+                    const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
+                    lastAction.value = { type: 'error', message: errorMessage };
+                }
 
-            console.log('Answer sent via WebSocket, waiting for game update...');
-        } else {
-            throw new Error('WebSocket connection not available');
-        }
+                // Reset submission state on error
+                answerSubmitted.value = false;
+                submitting.value = false;
+            }
+        });
     } catch (error) {
         console.error('Error submitting answer:', error);
         lastAction.value = { type: 'error', message: 'Failed to submit answer. Please try again.' };
@@ -421,16 +433,26 @@ onMounted(() => {
                 }
             })
             .listenForWhisper('answer-submitted', (e: any) => {
-                console.log('Answer whisper received:', e);
-                // This will be handled by the server and broadcast back as MultiplayerGameUpdated
+                console.log('Answer whisper received from opponent:', e);
+                // The server will process this and broadcast back as MultiplayerGameUpdated
             })
             .error((error: any) => {
                 console.error('WebSocket error:', error);
                 lastAction.value = { type: 'error', message: 'Connection lost. Trying to reconnect...' };
             });
+
+        console.log('WebSocket connection established for game:', props.game.id);
     } else {
         console.error('Laravel Echo not available');
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
+    }
+});
+
+onUnmounted(() => {
+    if (echo) {
+        echo.stopListening('MultiplayerGameUpdated');
+        echo.stopListening('.whisper:answer-submitted');
+        console.log('WebSocket listeners cleaned up');
     }
 });
 </script>
