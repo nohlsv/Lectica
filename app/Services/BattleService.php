@@ -14,7 +14,7 @@ class BattleService
     /**
      * Create a new battle for the authenticated user.
      */
-    public function createBattle(string $monsterId, int $fileId): Battle
+    public function createBattle(int $monsterId, int $fileId): Battle
     {
         $monster = Monster::find($monsterId);
         if (!$monster) {
