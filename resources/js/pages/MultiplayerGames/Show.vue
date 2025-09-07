@@ -307,29 +307,44 @@ const getGameResult = () => {
     }
 
     if (props.game.game_mode === 'pvp') {
-        // PvP mode
+        // PvP mode - accuracy-based results
         const isPlayerOne = currentUser.value.id === props.playerOne.id;
-        const playerWon = isPlayerOne
-            ? props.game.player_one_hp > 0 && props.game.player_two_hp <= 0
-            : props.game.player_two_hp > 0 && props.game.player_one_hp <= 0;
+        const myAccuracy = getAccuracy(
+            isPlayerOne ? props.game.correct_answers_p1 : props.game.correct_answers_p2,
+            isPlayerOne ? props.game.total_questions_p1 : props.game.total_questions_p2
+        );
+        const opponentAccuracy = getAccuracy(
+            isPlayerOne ? props.game.correct_answers_p2 : props.game.correct_answers_p1,
+            isPlayerOne ? props.game.total_questions_p2 : props.game.total_questions_p1
+        );
 
-        if (playerWon) {
+        const myAccuracyNum = parseFloat(myAccuracy);
+        const opponentAccuracyNum = parseFloat(opponentAccuracy);
+
+        if (myAccuracyNum > opponentAccuracyNum) {
             return {
                 type: 'victory',
                 title: 'Victory!',
-                description: 'You defeated your opponent!',
+                description: `You won with ${myAccuracy}% accuracy vs opponent's ${opponentAccuracy}%!`,
                 textColor: 'text-green-800 dark:text-green-300'
             };
-        } else {
+        } else if (myAccuracyNum < opponentAccuracyNum) {
             return {
                 type: 'defeat',
                 title: 'Defeat',
-                description: 'Your opponent was victorious.',
+                description: `Your opponent won with ${opponentAccuracy}% accuracy vs your ${myAccuracy}%.`,
                 textColor: 'text-red-800 dark:text-red-300'
+            };
+        } else {
+            return {
+                type: 'tie',
+                title: 'Tie!',
+                description: `Both players achieved ${myAccuracy}% accuracy.`,
+                textColor: 'text-gray-800 dark:text-gray-200'
             };
         }
     } else {
-        // PvE mode
+        // PvE mode - HP-based results
         if (props.game.monster_hp <= 0) {
             return {
                 type: 'victory',
