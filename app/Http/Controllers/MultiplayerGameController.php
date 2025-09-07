@@ -195,7 +195,8 @@ class MultiplayerGameController extends Controller
                     'playerOne' => $multiplayerGame->playerOne,
                     'playerTwo' => $multiplayerGame->playerTwo,
                     'currentUser' => Auth::user(),
-                    'source_name' => $multiplayerGame->getSourceName()
+                    'source_name' => $multiplayerGame->getSourceName(),
+                    'currentQuestion' => $multiplayerGame->getCurrentQuestion()
                 ])
             ]);
         }
@@ -407,20 +408,18 @@ class MultiplayerGameController extends Controller
                 broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
             }
 
-            // Return back with game data in session flash for Inertia.js
-            return back()->with([
-                'gameUpdate' => [
-                    'success' => true,
-                    'game' => array_merge($multiplayerGame->fresh()->toArray(), [
-                        'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
-                        'playerOne' => $multiplayerGame->playerOne,
-                        'playerTwo' => $multiplayerGame->playerTwo,
-                        'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
-                    ]),
-                    'damage_dealt' => $damageDealt,
-                    'damage_received' => $damageReceived,
-                    'game_ended' => $gameEnded,
-                ]
+            // Return JSON response with game data for better handling
+            return response()->json([
+                'success' => true,
+                'game' => array_merge($multiplayerGame->fresh()->toArray(), [
+                    'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
+                    'playerOne' => $multiplayerGame->playerOne,
+                    'playerTwo' => $multiplayerGame->playerTwo,
+                    'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
+                ]),
+                'damage_dealt' => $damageDealt,
+                'damage_received' => $damageReceived,
+                'game_ended' => $gameEnded,
             ]);
         });
     }
