@@ -17,11 +17,13 @@ class MultiplayerGameUpdated implements ShouldBroadcast
 
     public $game;
     public $eventType;
+    public $additionalData;
 
-    public function __construct(MultiplayerGame $game, string $eventType = 'updated')
+    public function __construct(MultiplayerGame $game, string $eventType = 'updated', array $additionalData = [])
     {
         $this->game = $game->load(['playerOne', 'playerTwo', 'file', 'collection']);
         $this->eventType = $eventType;
+        $this->additionalData = $additionalData;
     }
 
     public function broadcastOn()
@@ -46,6 +48,7 @@ class MultiplayerGameUpdated implements ShouldBroadcast
         return [
             'game' => $gameData,
             'event_type' => $this->eventType,
+            'additional_data' => $this->additionalData,
             'timestamp' => now()->toISOString(),
         ];
     }

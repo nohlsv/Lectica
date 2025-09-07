@@ -293,14 +293,36 @@ onMounted(() => {
     startWaitTimer();
 
     if (window.Echo) {
-        echo = window.Echo.channel(`multiplayer-game.${props.game.id}`)
+        echo = window.Echo.private(`multiplayer-game.${props.game.id}`)
             .listen('MultiplayerGameUpdated', (e: any) => {
-                // Check if player two has joined
+                console.log('WaitingRoom received game update:', e);
+
+                // Handle game started event
+                if (e.event_type === 'game_started') {
+                    console.log('Game started! Redirecting to game...');
+                    stopWaitTimer();
+
+                    // Show a brief message before redirecting
+                    setTimeout(() => {
+                        router.visit(route('multiplayer-games.show', props.game.id));
+                    }, 1000);
+                    return;
+                }
+
+                // Fallback: Check if player two has joined and game is active
                 if (e.game.player_two_id && e.game.status === 'active') {
-                    // Redirect to the actual game
+                    console.log('Player 2 joined! Redirecting to game...');
+                    stopWaitTimer();
                     router.visit(route('multiplayer-games.show', props.game.id));
                 }
+            })
+            .error((error: any) => {
+                console.error('WaitingRoom WebSocket error:', error);
             });
+
+        console.log('WaitingRoom WebSocket connection established for game:', props.game.id);
+    } else {
+        console.error('Laravel Echo not available in WaitingRoom');
     }
 });
 
