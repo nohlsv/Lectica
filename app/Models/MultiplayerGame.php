@@ -34,6 +34,14 @@ class MultiplayerGame extends Model
         'correct_answers_p2',
         'total_questions_p1',
         'total_questions_p2',
+        // Add accuracy and streak tracking fields
+        'player_one_accuracy',
+        'player_two_accuracy',
+        'player_one_streak',
+        'player_two_streak',
+        'player_one_max_streak',
+        'player_two_max_streak',
+        'winner_id'
     ];
 
     protected $casts = [
