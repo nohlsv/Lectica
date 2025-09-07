@@ -39,6 +39,10 @@ class MultiplayerGameUpdated implements ShouldBroadcast
             $gameData['monster'] = $monster ? $monster->toArray() : null;
         }
 
+        // Add the current question to the broadcast data
+        $currentQuestion = $this->game->getCurrentQuestion();
+        $gameData['currentQuestion'] = $currentQuestion ? $currentQuestion->toArray() : null;
+
         return [
             'game' => $gameData,
             'event_type' => $this->eventType,
