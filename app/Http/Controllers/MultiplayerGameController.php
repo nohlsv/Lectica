@@ -517,10 +517,20 @@ class MultiplayerGameController extends Controller
             ]);
 
             \Log::info('Updated Player One accuracy stats', [
+                'game_id' => $multiplayerGame->id,
                 'correct_answers' => $correctAnswers,
                 'total_questions' => $totalQuestions,
                 'accuracy' => $accuracy,
-                'streak' => $currentStreak
+                'streak' => $currentStreak,
+                'max_streak' => $maxStreak,
+                'database_updated' => true
+            ]);
+
+            // Verify the update by refreshing and checking
+            $multiplayerGame->refresh();
+            \Log::info('Player One accuracy after update', [
+                'player_one_accuracy' => $multiplayerGame->player_one_accuracy,
+                'player_one_streak' => $multiplayerGame->player_one_streak
             ]);
         } else {
             // Update Player Two stats using fresh data
@@ -538,10 +548,20 @@ class MultiplayerGameController extends Controller
             ]);
 
             \Log::info('Updated Player Two accuracy stats', [
+                'game_id' => $multiplayerGame->id,
                 'correct_answers' => $correctAnswers,
                 'total_questions' => $totalQuestions,
                 'accuracy' => $accuracy,
-                'streak' => $currentStreak
+                'streak' => $currentStreak,
+                'max_streak' => $maxStreak,
+                'database_updated' => true
+            ]);
+
+            // Verify the update by refreshing and checking
+            $multiplayerGame->refresh();
+            \Log::info('Player Two accuracy after update', [
+                'player_two_accuracy' => $multiplayerGame->player_two_accuracy,
+                'player_two_streak' => $multiplayerGame->player_two_streak
             ]);
         }
     }
