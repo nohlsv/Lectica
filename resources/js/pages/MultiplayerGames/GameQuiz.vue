@@ -293,23 +293,49 @@ const submitAnswer = async () => {
                     }
 
                     // Check if game is over
-                    if (props.game.status === 'finished') {
+                    if (props.game.status === 'finished' || gameUpdate.game_ended) {
                         gameOver.value = true;
-                    } else {
-                        // Move to next question
+                        return;
+                    }
+
+                    // Move to next question only if it's still our turn after the update
+                    // The backend will handle turn switching, so we wait for websocket update
+                    if (isMyTurn.value) {
+                        // Still our turn, move to next question
                         currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
+                        resetForNextQuestion();
+                    } else {
+                        // Turn switched, wait for opponent
                         resetForNextQuestion();
                     }
                 } else {
-                    // If no gameUpdate, assume success and show basic feedback
+                    // If no gameUpdate, there might be an error
+                    console.warn('No game update received from server');
                     showFeedback(isCorrect, 10, 0);
                     resetForNextQuestion();
                 }
             },
             onError: (errors) => {
-                console.error('Validation errors:', errors);
-                const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
-                lastAction.value = { type: 'error', message: errorMessage };
+                console.error('Answer submission errors:', errors);
+
+                // Handle specific error types
+                if (errors.turn) {
+                    lastAction.value = { type: 'error', message: 'It\'s not your turn! Please wait for your opponent.' };
+                    // Reset the form since it's not our turn
+                    resetForNextQuestion();
+                } else if (errors.game) {
+                    lastAction.value = { type: 'error', message: errors.game };
+                    // Game state issue, might need to refresh
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
+                    lastAction.value = { type: 'error', message: errorMessage };
+                }
+
+                // Reset submission state so user can try again
+                answerSubmitted.value = false;
             },
             onFinish: () => {
                 submitting.value = false;
@@ -319,6 +345,7 @@ const submitAnswer = async () => {
         console.error('Error submitting answer:', error);
         lastAction.value = { type: 'error', message: 'Network error. Please try again.' };
         submitting.value = false;
+        answerSubmitted.value = false;
     }
 };
 
@@ -400,19 +427,70 @@ onMounted(() => {
     if (window.Echo) {
         echo = window.Echo.channel(`multiplayer-game.${props.game.id}`)
             .listen('MultiplayerGameUpdated', (e: any) => {
+                console.log('Received game update:', e);
+
+                // Store previous turn state
+                const wasMyTurn = isMyTurn.value;
+
                 // Update game state from websocket
                 Object.assign(props.game, e.game);
 
                 if (props.game.status === 'finished') {
                     gameOver.value = true;
+                    return;
                 }
 
-                // Reset answer state when turn changes
-                if (!isMyTurn.value) {
+                // If it became my turn, reset for next question
+                if (!wasMyTurn && isMyTurn.value) {
                     resetForNextQuestion();
+                    console.log('It\'s now my turn, resetting for next question');
                 }
+
+                // If it's no longer my turn, only reset if we had submitted an answer
+                if (wasMyTurn && !isMyTurn.value && answerSubmitted.value) {
+                    console.log('Turn switched away from me after submitting answer');
+                    // Don't reset here - let the onSuccess callback handle it
+                }
+            })
+            .error((error: any) => {
+                console.error('WebSocket error:', error);
+                // Fallback: refresh the page if websocket fails
+                setTimeout(() => {
+                    window.location.reload();
+                }, 3000);
             });
     }
+
+    // Periodic check to ensure game state is synchronized
+    const syncInterval = setInterval(() => {
+        if (!gameOver.value && props.game.status !== 'finished') {
+            // Simple ping to check if we're still in sync
+            // This helps catch cases where websocket updates were missed
+            fetch(route('multiplayer-games.show', props.game.id), {
+                headers: {
+                    'Accept': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.game && data.game.current_turn !== props.game.current_turn) {
+                    console.log('Turn desync detected, updating game state');
+                    Object.assign(props.game, data.game);
+
+                    // Reset if it's now our turn and we weren't expecting it
+                    if (isMyTurn.value && answerSubmitted.value) {
+                        resetForNextQuestion();
+                    }
+                }
+            })
+            .catch(error => console.error('Sync check failed:', error));
+        }
+    }, 10000); // Check every 10 seconds
+
+    // Clean up interval on unmount
+    onUnmounted(() => {
+        clearInterval(syncInterval);
+    });
 });
 
 onUnmounted(() => {
