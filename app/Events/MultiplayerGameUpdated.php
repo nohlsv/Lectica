@@ -26,7 +26,7 @@ class MultiplayerGameUpdated implements ShouldBroadcast
 
     public function broadcastOn()
     {
-        return new Channel('multiplayer-game.' . $this->game->id);
+        return new PrivateChannel('multiplayer-game.' . $this->game->id);
     }
 
     public function broadcastWith()
