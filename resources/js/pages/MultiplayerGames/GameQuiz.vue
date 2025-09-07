@@ -5,18 +5,18 @@
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">
-                    {{ game.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${game.monster?.name || 'Monster'}` }}
+                    {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
                 </h2>
                 <div class="flex items-center space-x-4">
-                    <div v-if="game.game_mode === 'pve' && game.monster" class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20">
+                    <div v-if="gameState.game_mode === 'pve' && gameState.monster" class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20">
                         <img
-                            :src="game.monster.image_path || '/images/default-monster.png'"
-                            :alt="game.monster.name"
+                            :src="gameState.monster.image_path || '/images/default-monster.png'"
+                            :alt="gameState.monster.name"
                             class="h-6 w-6 rounded-full object-cover"
                             @error="handleImageError"
                         />
                         <span class="text-sm font-medium text-red-800 dark:text-red-300">
-                            {{ game.monster.name }}: {{ game.monster_hp }}❤️
+                            {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
                         </span>
                     </div>
                     <button
@@ -38,24 +38,24 @@
                         <div class="flex items-center space-x-3">
                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
                                 <span class="font-bold text-blue-800 dark:text-blue-300">
-                                    {{ game.playerOne.first_name.charAt(0) }}
+                                    {{ gameState.playerOne.first_name.charAt(0) }}
                                 </span>
                             </div>
                             <div>
                                 <p class="font-medium text-gray-900 dark:text-gray-100">
-                                    {{ game.playerOne.first_name }} {{ game.playerOne.last_name }}
+                                    {{ gameState.playerOne.first_name }} {{ gameState.playerOne.last_name }}
                                 </p>
                                 <div class="flex items-center space-x-2">
                                     <!-- PVP Mode: Show Accuracy and Streak -->
-                                    <template v-if="game.game_mode === 'pvp'">
-                                        <span class="text-sm text-blue-500">🎯 {{ game.player_one_accuracy || 0 }}%</span>
-                                        <span class="text-sm text-purple-500">🔥 {{ game.player_one_streak || 0 }}</span>
-                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_one_score }}</span>
+                                    <template v-if="gameState.game_mode === 'pvp'">
+                                        <span class="text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
+                                        <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
                                     <template v-else>
-                                        <span class="text-sm text-red-500">❤️ {{ game.player_one_hp }}</span>
-                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_one_score }}</span>
+                                        <span class="text-sm text-red-500">❤️ {{ gameState.player_one_hp }}</span>
+                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
                                     </template>
                                 </div>
                             </div>
@@ -75,25 +75,25 @@
                         <div class="flex items-center space-x-3">
                             <div>
                                 <p class="text-right font-medium text-gray-900 dark:text-gray-100">
-                                    {{ game.playerTwo.first_name }} {{ game.playerTwo.last_name }}
+                                    {{ gameState.playerTwo.first_name }} {{ gameState.playerTwo.last_name }}
                                 </p>
                                 <div class="flex items-center justify-end space-x-2">
                                     <!-- PVP Mode: Show Accuracy and Streak -->
-                                    <template v-if="game.game_mode === 'pvp'">
-                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_two_score }}</span>
-                                        <span class="text-sm text-purple-500">🔥 {{ game.player_two_streak || 0 }}</span>
-                                        <span class="text-sm text-blue-500">🎯 {{ game.player_two_accuracy || 0 }}%</span>
+                                    <template v-if="gameState.game_mode === 'pvp'">
+                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                        <span class="text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                        <span class="text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
                                     </template>
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
-                                        <span class="text-sm text-yellow-500">⭐ {{ game.player_two_score }}</span>
-                                        <span class="text-sm text-red-500">❤️ {{ game.player_two_hp }}</span>
+                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                        <span class="text-sm text-red-500">❤️ {{ gameState.player_two_hp }}</span>
                                     </template>
                                 </div>
                             </div>
                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
                                 <span class="font-bold text-green-800 dark:text-green-300">
-                                    {{ game.playerTwo.first_name.charAt(0) }}
+                                    {{ gameState.playerTwo.first_name.charAt(0) }}
                                 </span>
                             </div>
                         </div>
@@ -313,6 +313,9 @@ const gameOver = ref(false);
 const lastAction = ref<{ type: 'success' | 'error'; message: string } | null>(null);
 const currentQuestion = ref(props.currentQuestion);
 
+// Create reactive game state to ensure proper updates
+const gameState = ref({ ...props.game });
+
 // Visual feedback state
 const showOpponentAction = ref(false);
 const opponentFeedback = ref<{ name: string; isCorrect: boolean; answer: string } | null>(null);
@@ -324,8 +327,8 @@ const gameEndAnimation = ref(false);
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
 const isMyTurn = computed(() => {
-    const isPlayerOne = props.game.currentUser.id === props.game.playerOne.id;
-    return (isPlayerOne && props.game.current_turn === 1) || (!isPlayerOne && props.game.current_turn === 2);
+    const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
+    return (isPlayerOne && gameState.value.current_turn === 1) || (!isPlayerOne && gameState.value.current_turn === 2);
 });
 
 // Methods
@@ -550,16 +553,17 @@ onMounted(() => {
                     }
                 }
 
-                // Update game state from websocket
-                Object.assign(props.game, e.game);
+                // Update game state from websocket - use gameState instead of props.game
+                Object.assign(gameState.value, e.game);
+                Object.assign(props.game, e.game); // Keep props in sync too for animations
 
                 // Handle status-based navigation as a fallback
-                if (props.game.status === 'active' && e.event_type === 'game_started') {
+                if (gameState.value.status === 'active' && e.event_type === 'game_started') {
                     // Game just started, refresh to game screen
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
-                } else if (props.game.status === 'finished') {
+                } else if (gameState.value.status === 'finished') {
                     gameOver.value = true;
                     // If we're not already on the results screen, navigate there
                     if (!window.location.pathname.includes('show')) {
@@ -575,42 +579,42 @@ onMounted(() => {
                     console.log('Updated current question from websocket:', e.game.currentQuestion);
                 }
 
-                // Show accuracy animations if changed
-                if (props.game.player_one_accuracy !== previousPlayerOneAccuracy) {
+                // Show accuracy animations if changed (using the updated values)
+                if (gameState.value.player_one_accuracy !== previousPlayerOneAccuracy) {
                     accuracyAnimation.value = {
                         player: 'one',
-                        change: props.game.player_one_accuracy - (previousPlayerOneAccuracy || 0)
+                        change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0)
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
                     }, 2000);
                 }
 
-                if (props.game.player_two_accuracy !== previousPlayerTwoAccuracy) {
+                if (gameState.value.player_two_accuracy !== previousPlayerTwoAccuracy) {
                     accuracyAnimation.value = {
                         player: 'two',
-                        change: props.game.player_two_accuracy - (previousPlayerTwoAccuracy || 0)
+                        change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0)
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
                     }, 2000);
                 }
 
-                // Show streak animations if changed
-                if (props.game.player_one_streak !== previousPlayerOneStreak) {
+                // Show streak animations if changed (using the updated values)
+                if (gameState.value.player_one_streak !== previousPlayerOneStreak) {
                     streakAnimation.value = {
                         player: 'one',
-                        streak: props.game.player_one_streak
+                        streak: gameState.value.player_one_streak
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
                     }, 2000);
                 }
 
-                if (props.game.player_two_streak !== previousPlayerTwoStreak) {
+                if (gameState.value.player_two_streak !== previousPlayerTwoStreak) {
                     streakAnimation.value = {
                         player: 'two',
-                        streak: props.game.player_two_streak
+                        streak: gameState.value.player_two_streak
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
@@ -618,7 +622,7 @@ onMounted(() => {
                 }
 
                 // Handle damage feedback for current user's action
-                if (e.additional_data && e.additional_data.player_id === props.game.currentUser.id) {
+                if (e.additional_data && e.additional_data.player_id === gameState.value.currentUser.id) {
                     const damageDealt = e.additional_data.damage_dealt || 0;
                     const damageReceived = e.additional_data.damage_received || 0;
                     const isCorrect = e.additional_data.is_correct;
@@ -626,7 +630,7 @@ onMounted(() => {
                 }
 
                 // Check if game has finished
-                if (props.game.status === 'finished') {
+                if (gameState.value.status === 'finished') {
                     gameOver.value = true;
                     return;
                 }
