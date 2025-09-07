@@ -415,7 +415,10 @@ class MultiplayerGameController extends Controller
                 // Advance to the next question for both players
                 $multiplayerGame->advanceToNextQuestion();
 
-                // Prepare broadcast data for after transaction
+                // Refresh to get the latest accuracy and streak data for broadcast
+                $multiplayerGame->refresh();
+
+                // Prepare broadcast data for after transaction with fresh data
                 $broadcastData = [
                     'event_type' => 'answer_submitted',
                     'additional_data' => [
@@ -425,15 +428,33 @@ class MultiplayerGameController extends Controller
                         'damage_received' => $damageReceived,
                         'answer_text' => $request->answer,
                         'player_name' => Auth::user()->first_name,
+                        // Include current accuracy and streak data for both players
+                        'player_one_accuracy' => $multiplayerGame->player_one_accuracy ?? $multiplayerGame->getPlayerOneAccuracy(),
+                        'player_two_accuracy' => $multiplayerGame->player_two_accuracy ?? $multiplayerGame->getPlayerTwoAccuracy(),
+                        'player_one_streak' => $multiplayerGame->player_one_streak ?? 0,
+                        'player_two_streak' => $multiplayerGame->player_two_streak ?? 0,
+                        'player_one_max_streak' => $multiplayerGame->player_one_max_streak ?? 0,
+                        'player_two_max_streak' => $multiplayerGame->player_two_max_streak ?? 0,
                     ]
                 ];
             } else {
+                // Refresh to get the most current data before game end
+                $multiplayerGame->refresh();
+
+                // Calculate winner_id for broadcast
+                $winnerId = $this->calculateAndSetWinner($multiplayerGame);
+
                 // Prepare game end broadcast data
                 $broadcastData = [
                     'event_type' => 'game_ended',
                     'additional_data' => [
                         'final_results' => $this->getFinalGameResults($multiplayerGame),
-                        'winner_id' => $this->getWinnerId($multiplayerGame),
+                        'winner_id' => $winnerId, // Use the calculated winner_id
+                        // Include final accuracy and streak data
+                        'player_one_accuracy' => $multiplayerGame->player_one_accuracy ?? $multiplayerGame->getPlayerOneAccuracy(),
+                        'player_two_accuracy' => $multiplayerGame->player_two_accuracy ?? $multiplayerGame->getPlayerTwoAccuracy(),
+                        'player_one_streak' => $multiplayerGame->player_one_streak ?? 0,
+                        'player_two_streak' => $multiplayerGame->player_two_streak ?? 0,
                     ]
                 ];
             }
@@ -530,21 +551,10 @@ class MultiplayerGameController extends Controller
             'is_player_one' => $isPlayerOne
         ]);
 
-        // Log current state before refresh
-        \Log::info('Before refresh - Current model state', [
-            'player_one_accuracy' => $multiplayerGame->player_one_accuracy,
-            'player_one_streak' => $multiplayerGame->player_one_streak,
-            'player_two_accuracy' => $multiplayerGame->player_two_accuracy,
-            'player_two_streak' => $multiplayerGame->player_two_streak,
-            'correct_answers_p1' => $multiplayerGame->correct_answers_p1,
-            'correct_answers_p2' => $multiplayerGame->correct_answers_p2,
-            'total_questions_p1' => $multiplayerGame->total_questions_p1,
-            'total_questions_p2' => $multiplayerGame->total_questions_p2,
-        ]);
-
         // Refresh the model to get the latest question statistics
         $multiplayerGame->refresh();
 
+        // Log current state after refresh
         \Log::info('After refresh - Current model state', [
             'player_one_accuracy' => $multiplayerGame->player_one_accuracy,
             'player_one_streak' => $multiplayerGame->player_one_streak,
@@ -556,110 +566,116 @@ class MultiplayerGameController extends Controller
             'total_questions_p2' => $multiplayerGame->total_questions_p2,
         ]);
 
+        // Use separate update logic for each player to prevent data overwrites
         if ($isPlayerOne) {
-            // Update Player One stats using fresh data
-            $correctAnswers = $multiplayerGame->correct_answers_p1;
-            $totalQuestions = $multiplayerGame->total_questions_p1;
-            $accuracy = ($totalQuestions > 0) ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
-
-            $currentStreak = $isCorrect ? ($multiplayerGame->player_one_streak ?? 0) + 1 : 0;
-            $maxStreak = max(($multiplayerGame->player_one_max_streak ?? 0), $currentStreak);
-
-            \Log::info('Player One - Calculated values', [
-                'correct_answers' => $correctAnswers,
-                'total_questions' => $totalQuestions,
-                'accuracy' => $accuracy,
-                'current_streak' => $currentStreak,
-                'max_streak' => $maxStreak,
-                'is_correct' => $isCorrect,
-                'previous_streak' => $multiplayerGame->player_one_streak ?? 0
-            ]);
-
-            // Use updateQuietly to avoid triggering events that might interfere
-            $updateResult = $multiplayerGame->updateQuietly([
-                'player_one_accuracy' => $accuracy,
-                'player_one_streak' => $currentStreak,
-                'player_one_max_streak' => $maxStreak
-            ]);
-
-            \Log::info('Player One - Update result', [
-                'update_success' => $updateResult,
-                'attempted_values' => [
-                    'player_one_accuracy' => $accuracy,
-                    'player_one_streak' => $currentStreak,
-                    'player_one_max_streak' => $maxStreak
-                ]
-            ]);
-
-            // Check database directly after update
-            $freshData = \DB::table('multiplayer_games')->where('id', $multiplayerGame->id)->first();
-            \Log::info('Player One - Direct DB check after update', [
-                'db_player_one_accuracy' => $freshData->player_one_accuracy,
-                'db_player_one_streak' => $freshData->player_one_streak,
-                'db_player_one_max_streak' => $freshData->player_one_max_streak
-            ]);
-
-            // Verify the update by refreshing and checking
-            $multiplayerGame->refresh();
-            \Log::info('Player One - Model state after refresh', [
-                'player_one_accuracy' => $multiplayerGame->player_one_accuracy,
-                'player_one_streak' => $multiplayerGame->player_one_streak,
-                'player_one_max_streak' => $multiplayerGame->player_one_max_streak
-            ]);
-
+            $this->updatePlayerOneStats($multiplayerGame, $isCorrect);
         } else {
-            // Update Player Two stats using fresh data
-            $correctAnswers = $multiplayerGame->correct_answers_p2;
-            $totalQuestions = $multiplayerGame->total_questions_p2;
-            $accuracy = ($totalQuestions > 0) ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
-
-            $currentStreak = $isCorrect ? ($multiplayerGame->player_two_streak ?? 0) + 1 : 0;
-            $maxStreak = max(($multiplayerGame->player_two_max_streak ?? 0), $currentStreak);
-
-            \Log::info('Player Two - Calculated values', [
-                'correct_answers' => $correctAnswers,
-                'total_questions' => $totalQuestions,
-                'accuracy' => $accuracy,
-                'current_streak' => $currentStreak,
-                'max_streak' => $maxStreak,
-                'is_correct' => $isCorrect,
-                'previous_streak' => $multiplayerGame->player_two_streak ?? 0
-            ]);
-
-            // Use updateQuietly to avoid triggering events that might interfere
-            $updateResult = $multiplayerGame->updateQuietly([
-                'player_two_accuracy' => $accuracy,
-                'player_two_streak' => $currentStreak,
-                'player_two_max_streak' => $maxStreak
-            ]);
-
-            \Log::info('Player Two - Update result', [
-                'update_success' => $updateResult,
-                'attempted_values' => [
-                    'player_two_accuracy' => $accuracy,
-                    'player_two_streak' => $currentStreak,
-                    'player_two_max_streak' => $maxStreak
-                ]
-            ]);
-
-            // Check database directly after update
-            $freshData = \DB::table('multiplayer_games')->where('id', $multiplayerGame->id)->first();
-            \Log::info('Player Two - Direct DB check after update', [
-                'db_player_two_accuracy' => $freshData->player_two_accuracy,
-                'db_player_two_streak' => $freshData->player_two_streak,
-                'db_player_two_max_streak' => $freshData->player_two_max_streak
-            ]);
-
-            // Verify the update by refreshing and checking
-            $multiplayerGame->refresh();
-            \Log::info('Player Two - Model state after refresh', [
-                'player_two_accuracy' => $multiplayerGame->player_two_accuracy,
-                'player_two_streak' => $multiplayerGame->player_two_streak,
-                'player_two_max_streak' => $multiplayerGame->player_two_max_streak
-            ]);
+            $this->updatePlayerTwoStats($multiplayerGame, $isCorrect);
         }
 
         \Log::info('=== Completed updateAccuracyStats ===');
+    }
+
+    /**
+     * Update Player One statistics (isolated update)
+     */
+    private function updatePlayerOneStats(MultiplayerGame $multiplayerGame, bool $isCorrect)
+    {
+        // Get fresh data for Player One
+        $correctAnswers = $multiplayerGame->correct_answers_p1;
+        $totalQuestions = $multiplayerGame->total_questions_p1;
+        $accuracy = ($totalQuestions > 0) ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+
+        $currentStreak = $isCorrect ? ($multiplayerGame->player_one_streak ?? 0) + 1 : 0;
+        $maxStreak = max(($multiplayerGame->player_one_max_streak ?? 0), $currentStreak);
+
+        \Log::info('Player One - Calculated values', [
+            'correct_answers' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+            'accuracy' => $accuracy,
+            'current_streak' => $currentStreak,
+            'max_streak' => $maxStreak,
+            'is_correct' => $isCorrect,
+            'previous_streak' => $multiplayerGame->player_one_streak ?? 0
+        ]);
+
+        // Use direct DB update to avoid model conflicts
+        $updateResult = DB::table('multiplayer_games')
+            ->where('id', $multiplayerGame->id)
+            ->update([
+                'player_one_accuracy' => $accuracy,
+                'player_one_streak' => $currentStreak,
+                'player_one_max_streak' => $maxStreak,
+                'updated_at' => now()
+            ]);
+
+        \Log::info('Player One - Update result', [
+            'update_success' => $updateResult,
+            'attempted_values' => [
+                'player_one_accuracy' => $accuracy,
+                'player_one_streak' => $currentStreak,
+                'player_one_max_streak' => $maxStreak
+            ]
+        ]);
+
+        // Verify the update by checking database directly
+        $freshData = DB::table('multiplayer_games')->where('id', $multiplayerGame->id)->first();
+        \Log::info('Player One - Direct DB check after update', [
+            'db_player_one_accuracy' => $freshData->player_one_accuracy,
+            'db_player_one_streak' => $freshData->player_one_streak,
+            'db_player_one_max_streak' => $freshData->player_one_max_streak
+        ]);
+    }
+
+    /**
+     * Update Player Two statistics (isolated update)
+     */
+    private function updatePlayerTwoStats(MultiplayerGame $multiplayerGame, bool $isCorrect)
+    {
+        // Get fresh data for Player Two
+        $correctAnswers = $multiplayerGame->correct_answers_p2;
+        $totalQuestions = $multiplayerGame->total_questions_p2;
+        $accuracy = ($totalQuestions > 0) ? round(($correctAnswers / $totalQuestions) * 100, 2) : 0;
+
+        $currentStreak = $isCorrect ? ($multiplayerGame->player_two_streak ?? 0) + 1 : 0;
+        $maxStreak = max(($multiplayerGame->player_two_max_streak ?? 0), $currentStreak);
+
+        \Log::info('Player Two - Calculated values', [
+            'correct_answers' => $correctAnswers,
+            'total_questions' => $totalQuestions,
+            'accuracy' => $accuracy,
+            'current_streak' => $currentStreak,
+            'max_streak' => $maxStreak,
+            'is_correct' => $isCorrect,
+            'previous_streak' => $multiplayerGame->player_two_streak ?? 0
+        ]);
+
+        // Use direct DB update to avoid model conflicts
+        $updateResult = DB::table('multiplayer_games')
+            ->where('id', $multiplayerGame->id)
+            ->update([
+                'player_two_accuracy' => $accuracy,
+                'player_two_streak' => $currentStreak,
+                'player_two_max_streak' => $maxStreak,
+                'updated_at' => now()
+            ]);
+
+        \Log::info('Player Two - Update result', [
+            'update_success' => $updateResult,
+            'attempted_values' => [
+                'player_two_accuracy' => $accuracy,
+                'player_two_streak' => $currentStreak,
+                'player_two_max_streak' => $maxStreak
+            ]
+        ]);
+
+        // Verify the update by checking database directly
+        $freshData = DB::table('multiplayer_games')->where('id', $multiplayerGame->id)->first();
+        \Log::info('Player Two - Direct DB check after update', [
+            'db_player_two_accuracy' => $freshData->player_two_accuracy,
+            'db_player_two_streak' => $freshData->player_two_streak,
+            'db_player_two_max_streak' => $freshData->player_two_max_streak
+        ]);
     }
 
     /**
@@ -678,6 +694,9 @@ class MultiplayerGameController extends Controller
             // End game when both players have answered all questions
             if ($multiplayerGame->total_questions_p1 >= $totalQuestions &&
                 $multiplayerGame->total_questions_p2 >= $totalQuestions) {
+
+                // Calculate and set winner_id before marking as finished
+                $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                 $multiplayerGame->markAsFinished();
                 return true;
             }
@@ -689,6 +708,8 @@ class MultiplayerGameController extends Controller
 
                 // End early if accuracy difference is 30% or more
                 if ($accuracyDiff >= 30) {
+                    // Calculate and set winner_id before marking as finished
+                    $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                     $multiplayerGame->markAsFinished();
                     return true;
                 }
@@ -696,21 +717,72 @@ class MultiplayerGameController extends Controller
         } else {
             // PVE win conditions (unchanged)
             if ($multiplayerGame->monster_hp <= 0) {
-                // Both players win against the monster
+                // Both players win against the monster - no single winner in PVE
                 $multiplayerGame->markAsFinished();
                 return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
-                // Both players lost
+                // Both players lost - no winner
                 $multiplayerGame->markAsFinished();
                 return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
-                // One player lost
+                // One player lost - other player wins
+                if ($multiplayerGame->player_one_hp > 0) {
+                    $multiplayerGame->update(['winner_id' => $multiplayerGame->player_one_id]);
+                } else {
+                    $multiplayerGame->update(['winner_id' => $multiplayerGame->player_two_id]);
+                }
                 $multiplayerGame->markAsFinished();
                 return true;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Calculate winner and set winner_id for PVP games
+     */
+    private function calculateAndSetWinner(MultiplayerGame $multiplayerGame): ?int
+    {
+        if (!$multiplayerGame->isPvp()) {
+            return null;
+        }
+
+        // Refresh to ensure we have the latest accuracy data
+        $multiplayerGame->refresh();
+
+        // Calculate current accuracies from the fresh data
+        $playerOneAccuracy = $multiplayerGame->getPlayerOneAccuracy();
+        $playerTwoAccuracy = $multiplayerGame->getPlayerTwoAccuracy();
+
+        \Log::info('Calculating winner', [
+            'game_id' => $multiplayerGame->id,
+            'player_one_accuracy_calculated' => $playerOneAccuracy,
+            'player_two_accuracy_calculated' => $playerTwoAccuracy,
+            'player_one_accuracy_field' => $multiplayerGame->player_one_accuracy,
+            'player_two_accuracy_field' => $multiplayerGame->player_two_accuracy,
+            'correct_answers_p1' => $multiplayerGame->correct_answers_p1,
+            'total_questions_p1' => $multiplayerGame->total_questions_p1,
+            'correct_answers_p2' => $multiplayerGame->correct_answers_p2,
+            'total_questions_p2' => $multiplayerGame->total_questions_p2,
+        ]);
+
+        $winnerId = null;
+        if ($playerOneAccuracy > $playerTwoAccuracy) {
+            $winnerId = $multiplayerGame->player_one_id;
+        } elseif ($playerTwoAccuracy > $playerOneAccuracy) {
+            $winnerId = $multiplayerGame->player_two_id;
+        }
+        // If accuracies are equal, it's a tie (winnerId remains null)
+
+        \Log::info('Winner calculated', [
+            'game_id' => $multiplayerGame->id,
+            'winner_id' => $winnerId,
+            'player_one_accuracy' => $playerOneAccuracy,
+            'player_two_accuracy' => $playerTwoAccuracy
+        ]);
+
+        return $winnerId;
     }
 
     /**
@@ -776,27 +848,50 @@ class MultiplayerGameController extends Controller
      */
     private function getFinalGameResults(MultiplayerGame $multiplayerGame): array
     {
-        if ($multiplayerGame->isPvp()) {
+        // Force a fresh query to ensure we have the absolute latest data
+        $freshGame = MultiplayerGame::find($multiplayerGame->id);
+
+        if ($freshGame->isPvp()) {
+            // Calculate accuracies directly from the fresh data to ensure accuracy
+            $playerOneAccuracy = $freshGame->getPlayerOneAccuracy();
+            $playerTwoAccuracy = $freshGame->getPlayerTwoAccuracy();
+
+            \Log::info('Final game results calculation', [
+                'game_id' => $freshGame->id,
+                'player_one_accuracy_calculated' => $playerOneAccuracy,
+                'player_two_accuracy_calculated' => $playerTwoAccuracy,
+                'player_one_accuracy_field' => $freshGame->player_one_accuracy,
+                'player_two_accuracy_field' => $freshGame->player_two_accuracy,
+                'correct_answers_p1' => $freshGame->correct_answers_p1,
+                'total_questions_p1' => $freshGame->total_questions_p1,
+                'correct_answers_p2' => $freshGame->correct_answers_p2,
+                'total_questions_p2' => $freshGame->total_questions_p2,
+            ]);
+
             return [
                 'player_one' => [
-                    'name' => $multiplayerGame->playerOne->first_name,
-                    'accuracy' => $multiplayerGame->player_one_accuracy,
-                    'score' => $multiplayerGame->player_one_score,
-                    'max_streak' => $multiplayerGame->player_one_max_streak,
+                    'name' => $freshGame->playerOne->first_name,
+                    'accuracy' => $freshGame->player_one_accuracy ?? $playerOneAccuracy,
+                    'score' => $freshGame->player_one_score,
+                    'max_streak' => $freshGame->player_one_max_streak ?? 0,
+                    'correct_answers' => $freshGame->correct_answers_p1 ?? 0,
+                    'total_questions' => $freshGame->total_questions_p1 ?? 0,
                 ],
                 'player_two' => [
-                    'name' => $multiplayerGame->playerTwo->first_name,
-                    'accuracy' => $multiplayerGame->player_two_accuracy,
-                    'score' => $multiplayerGame->player_two_score,
-                    'max_streak' => $multiplayerGame->player_two_max_streak,
+                    'name' => $freshGame->playerTwo->first_name,
+                    'accuracy' => $freshGame->player_two_accuracy ?? $playerTwoAccuracy,
+                    'score' => $freshGame->player_two_score,
+                    'max_streak' => $freshGame->player_two_max_streak ?? 0,
+                    'correct_answers' => $freshGame->correct_answers_p2 ?? 0,
+                    'total_questions' => $freshGame->total_questions_p2 ?? 0,
                 ],
             ];
         } else {
             return [
-                'monster_defeated' => $multiplayerGame->monster_hp <= 0,
-                'monster_hp' => $multiplayerGame->monster_hp,
-                'player_one_hp' => $multiplayerGame->player_one_hp,
-                'player_two_hp' => $multiplayerGame->player_two_hp,
+                'monster_defeated' => $freshGame->monster_hp <= 0,
+                'monster_hp' => $freshGame->monster_hp,
+                'player_one_hp' => $freshGame->player_one_hp,
+                'player_two_hp' => $freshGame->player_two_hp,
             ];
         }
     }
