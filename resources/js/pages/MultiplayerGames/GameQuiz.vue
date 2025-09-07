@@ -222,6 +222,7 @@ interface Game {
     id: number;
     game_mode: 'pve' | 'pvp';
     current_turn: number;
+    current_question_index: number;
     player_one_hp: number;
     player_two_hp: number;
     player_one_score: number;
@@ -238,11 +239,11 @@ interface Game {
 const props = defineProps<{
     game: Game;
     quizzes: Quiz[];
+    currentQuestion: Quiz | null;
     quizTypes: Record<string, string>;
 }>();
 
 // Game state
-const currentQuizIndex = ref(0);
 const selectedAnswer = ref('');
 const answerSubmitted = ref(false);
 const submitting = ref(false);
@@ -250,7 +251,7 @@ const gameOver = ref(false);
 const lastAction = ref<{ type: 'success' | 'error'; message: string } | null>(null);
 
 // Computed properties
-const currentQuiz = computed(() => props.quizzes[currentQuizIndex.value] || null);
+const currentQuiz = computed(() => props.currentQuestion);
 const isMyTurn = computed(() => {
     const isPlayerOne = props.game.currentUser.id === props.game.playerOne.id;
     return (isPlayerOne && props.game.current_turn === 1) || (!isPlayerOne && props.game.current_turn === 2);
@@ -300,14 +301,14 @@ const submitAnswer = async () => {
 
                     // Always move to next question after answering, regardless of whose turn it is next
                     // The turn switching is handled by the backend and updated game state
-                    currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
+                    // currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
                     resetForNextQuestion();
                 } else {
                     // If no gameUpdate, there might be an error
                     console.warn('No game update received from server');
                     showFeedback(isCorrect, 10, 0);
                     // Still move to next question to prevent getting stuck
-                    currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
+                    // currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
                     resetForNextQuestion();
                 }
             },

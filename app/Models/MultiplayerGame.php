@@ -27,6 +27,7 @@ class MultiplayerGame extends Model
         'player_one_score',
         'player_two_score',
         'current_turn',
+        'current_question_index',
         'status',
         'game_mode', // Add game_mode to fillable
         'correct_answers_p1',
@@ -43,6 +44,7 @@ class MultiplayerGame extends Model
         'player_one_score' => 'integer',
         'player_two_score' => 'integer',
         'current_turn' => 'integer',
+        'current_question_index' => 'integer',
         'correct_answers_p1' => 'integer',
         'correct_answers_p2' => 'integer',
         'total_questions_p1' => 'integer',
@@ -402,5 +404,34 @@ class MultiplayerGame extends Model
     public function isPve(): bool
     {
         return $this->game_mode === 'pve';
+    }
+
+    /**
+     * Get the current question for both players.
+     */
+    public function getCurrentQuestion()
+    {
+        $quizzes = $this->getAvailableQuizzes();
+
+        if ($quizzes->isEmpty() || $this->current_question_index >= $quizzes->count()) {
+            return null;
+        }
+
+        return $quizzes->get($this->current_question_index);
+    }
+
+    /**
+     * Advance to the next question for both players.
+     */
+    public function advanceToNextQuestion(): void
+    {
+        $totalQuestions = $this->getTotalAvailableQuestions();
+
+        if ($this->current_question_index < $totalQuestions - 1) {
+            $this->increment('current_question_index');
+        } else {
+            // Reset to beginning if we've reached the end
+            $this->update(['current_question_index' => 0]);
+        }
     }
 }
