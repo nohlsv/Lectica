@@ -58,7 +58,7 @@ class MultiplayerGameController extends Controller
         try {
             $request->validate([
                 'game_mode' => 'required|in:pve,pvp',
-                'monster_id' => 'required_if:game_mode,pve|nullable|numeric|exists:monsters,id',
+                'monster_id' => 'required_if:game_mode,pve|nullable|integer|exists:monsters,id',
                 'source_type' => 'required|in:file,collection',
                 'file_id' => [
                     'required_if:source_type,file',
@@ -567,8 +567,8 @@ class MultiplayerGameController extends Controller
 
             // Mark the game as abandoned due to timeout
             $multiplayerGame->update([
-                'status' => MultiplayerGameStatus::ABANDONED,
-                'abandoned_reason' => 'Player timeout'
+                'status' => MultiplayerGameStatus::ABANDONED
+                // Removed abandoned_reason since it doesn't exist in database schema
             ]);
 
             // Broadcast the abandonment to remaining player
