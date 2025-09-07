@@ -274,82 +274,31 @@ const submitAnswer = async () => {
     try {
         const isCorrect = checkAnswer(selectedAnswer.value, currentQuiz.value);
 
-        // Use Inertia.js router for proper Laravel integration
-        router.post(route('multiplayer-games.answer', props.game.id), {
-            quiz_id: currentQuiz.value?.id,
-            answer: selectedAnswer.value,
-            is_correct: isCorrect,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: (page) => {
-                // Check for game update data in session flash
-                const gameUpdate = page.props.flash?.gameUpdate;
+        // Use Laravel Echo to send the answer via WebSocket
+        if (window.Echo) {
+            // Send answer via WebSocket channel
+            window.Echo.private(`multiplayer-game.${props.game.id}`)
+                .whisper('answer-submitted', {
+                    quiz_id: currentQuiz.value?.id,
+                    answer: selectedAnswer.value,
+                    is_correct: isCorrect,
+                    player_id: props.game.currentUser.id
+                });
 
-                if (gameUpdate && gameUpdate.success) {
-                    showFeedback(isCorrect, gameUpdate.damage_dealt, gameUpdate.damage_received);
+            // Show immediate feedback
+            showFeedback(isCorrect, 0, 0); // Damage will be updated via WebSocket
 
-                    // Update game state
-                    if (gameUpdate.game) {
-                        Object.assign(props.game, gameUpdate.game);
-
-                        // Update the current question if it's included in the game update
-                        if (gameUpdate.game.currentQuestion !== undefined) {
-                            currentQuestion.value = gameUpdate.game.currentQuestion;
-                            console.log('Updated current question from answer response:', gameUpdate.game.currentQuestion);
-                        }
-                    }
-
-                    // Check if game is over
-                    if (props.game.status === 'finished' || gameUpdate.game_ended) {
-                        gameOver.value = true;
-                        return;
-                    }
-
-                    // Always move to next question after answering, regardless of whose turn it is next
-                    // The turn switching is handled by the backend and updated game state
-                    // currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
-                    resetForNextQuestion();
-                } else {
-                    // If no gameUpdate, there might be an error
-                    console.warn('No game update received from server');
-                    showFeedback(isCorrect, 10, 0);
-                    // Still move to next question to prevent getting stuck
-                    // currentQuizIndex.value = (currentQuizIndex.value + 1) % props.quizzes.length;
-                    resetForNextQuestion();
-                }
-            },
-            onError: (errors) => {
-                console.error('Answer submission errors:', errors);
-
-                // Handle specific error types
-                if (errors.turn) {
-                    lastAction.value = { type: 'error', message: 'It\'s not your turn! Please wait for your opponent.' };
-                    // Reset the form since it's not our turn
-                    resetForNextQuestion();
-                } else if (errors.game) {
-                    lastAction.value = { type: 'error', message: errors.game };
-                    // Game state issue, might need to refresh
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 2000);
-                } else {
-                    const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
-                    lastAction.value = { type: 'error', message: errorMessage };
-                }
-
-                // Reset submission state so user can try again
-                answerSubmitted.value = false;
-            },
-            onFinish: () => {
-                submitting.value = false;
-            }
-        });
+            console.log('Answer sent via WebSocket, waiting for game update...');
+        } else {
+            throw new Error('WebSocket connection not available');
+        }
     } catch (error) {
         console.error('Error submitting answer:', error);
-        lastAction.value = { type: 'error', message: 'Network error. Please try again.' };
-        submitting.value = false;
+        lastAction.value = { type: 'error', message: 'Failed to submit answer. Please try again.' };
+
+        // Reset submission state so user can try again
         answerSubmitted.value = false;
+        submitting.value = false;
     }
 };
 
@@ -433,7 +382,7 @@ let echo: any;
 
 onMounted(() => {
     if (window.Echo) {
-        echo = window.Echo.channel(`multiplayer-game.${props.game.id}`)
+        echo = window.Echo.private(`multiplayer-game.${props.game.id}`)
             .listen('MultiplayerGameUpdated', (e: any) => {
                 console.log('Received game update:', e);
 
@@ -449,67 +398,39 @@ onMounted(() => {
                     console.log('Updated current question from websocket:', e.game.currentQuestion);
                 }
 
+                // Update feedback with damage information if available
+                if (e.damage_dealt !== undefined || e.damage_received !== undefined) {
+                    const damageDealt = e.damage_dealt || 0;
+                    const damageReceived = e.damage_received || 0;
+                    const isCorrect = damageDealt > 0 || damageReceived === 0;
+                    showFeedback(isCorrect, damageDealt, damageReceived);
+                }
+
                 if (props.game.status === 'finished') {
                     gameOver.value = true;
                     return;
                 }
+
+                // Reset submission state when we receive the update
+                submitting.value = false;
 
                 // If it became my turn, reset for next question
                 if (!wasMyTurn && isMyTurn.value) {
                     resetForNextQuestion();
                     console.log('It\'s now my turn, resetting for next question');
                 }
-
-                // If it's no longer my turn, only reset if we had submitted an answer
-                if (wasMyTurn && !isMyTurn.value && answerSubmitted.value) {
-                    console.log('Turn switched away from me after submitting answer');
-                    // Don't reset here - let the onSuccess callback handle it
-                }
+            })
+            .listenForWhisper('answer-submitted', (e: any) => {
+                console.log('Answer whisper received:', e);
+                // This will be handled by the server and broadcast back as MultiplayerGameUpdated
             })
             .error((error: any) => {
                 console.error('WebSocket error:', error);
-                // Fallback: refresh the page if websocket fails
-                setTimeout(() => {
-                    window.location.reload();
-                }, 3000);
+                lastAction.value = { type: 'error', message: 'Connection lost. Trying to reconnect...' };
             });
-    }
-
-    // Periodic check to ensure game state is synchronized
-    const syncInterval = setInterval(() => {
-        if (!gameOver.value && props.game.status !== 'finished') {
-            // Simple ping to check if we're still in sync
-            // This helps catch cases where websocket updates were missed
-            fetch(route('multiplayer-games.show', props.game.id), {
-                headers: {
-                    'Accept': 'application/json',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.game && data.game.current_turn !== props.game.current_turn) {
-                    console.log('Turn desync detected, updating game state');
-                    Object.assign(props.game, data.game);
-
-                    // Reset if it's now our turn and we weren't expecting it
-                    if (isMyTurn.value && answerSubmitted.value) {
-                        resetForNextQuestion();
-                    }
-                }
-            })
-            .catch(error => console.error('Sync check failed:', error));
-        }
-    }, 10000); // Check every 10 seconds
-
-    // Clean up interval on unmount
-    onUnmounted(() => {
-        clearInterval(syncInterval);
-    });
-});
-
-onUnmounted(() => {
-    if (echo) {
-        echo.stopListening('MultiplayerGameUpdated');
+    } else {
+        console.error('Laravel Echo not available');
+        lastAction.value = { type: 'error', message: 'Real-time connection not available' };
     }
 });
 </script>
