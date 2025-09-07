@@ -16,4 +16,7 @@ Route::middleware('auth')->group(function () {
             ->orderBy('name')
             ->get();
     });
+
+    // Add route for creating collections
+    Route::post('/collections', [CollectionController::class, 'store']);
 });

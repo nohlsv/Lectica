@@ -110,7 +110,7 @@ class CollectionController extends Controller
             'file_ids.*' => 'exists:files,id',
         ]);
 
-        DB::transaction(function () use ($request) {
+        $collection = DB::transaction(function () use ($request) {
             $collection = Collection::create([
                 'user_id' => Auth::id(),
                 'name' => $request->name,
@@ -134,8 +134,22 @@ class CollectionController extends Controller
 
                 $collection->updateCounts();
             }
+
+            return $collection;
         });
 
+        // Return JSON response for API requests
+        if ($request->expectsJson() || $request->is('api/*')) {
+            return response()->json([
+                'id' => $collection->id,
+                'name' => $collection->name,
+                'file_count' => $collection->file_count ?? 0,
+                'is_public' => $collection->is_public,
+                'message' => 'Collection created successfully!'
+            ], 201);
+        }
+
+        // Return redirect for web requests
         return redirect()->route('collections.index')
             ->with('success', 'Collection created successfully!');
     }
