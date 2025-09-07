@@ -211,6 +211,9 @@ class MultiplayerGameController extends Controller
 
         // If game is active and has quizzes, show the game interface
         if ($multiplayerGame->status === MultiplayerGameStatus::ACTIVE && $quizzes->count() > 0) {
+            // Get the current synchronized question
+            $currentQuestion = $multiplayerGame->getCurrentQuestion();
+
             return Inertia::render('MultiplayerGames/GameQuiz', [
                 'game' => array_merge($multiplayerGame->toArray(), [
                     'monster' => $monster,
@@ -220,6 +223,7 @@ class MultiplayerGameController extends Controller
                     'source_name' => $multiplayerGame->getSourceName()
                 ]),
                 'quizzes' => $quizzes,
+                'currentQuestion' => $currentQuestion,
                 'quizTypes' => $quizTypes,
             ]);
         }
@@ -395,6 +399,9 @@ class MultiplayerGameController extends Controller
             // Only switch turns if game hasn't ended
             if (!$gameEnded) {
                 $multiplayerGame->switchTurn();
+
+                // Advance to the next question for both players
+                $multiplayerGame->advanceToNextQuestion();
 
                 // Broadcast game update via websockets
                 broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
