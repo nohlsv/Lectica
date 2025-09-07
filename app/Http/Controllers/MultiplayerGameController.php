@@ -185,8 +185,8 @@ class MultiplayerGameController extends Controller
             abort(403, 'You are not part of this game.');
         }
 
-        // Handle JSON requests for sync checks
-        if (request()->wantsJson()) {
+        // Handle JSON requests for sync checks (but not Inertia requests)
+        if (request()->wantsJson() && !request()->header('X-Inertia')) {
             $monster = Monster::find($multiplayerGame->monster_id);
 
             return response()->json([
@@ -408,18 +408,22 @@ class MultiplayerGameController extends Controller
                 broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh()))->toOthers();
             }
 
-            // Return JSON response with game data for better handling
-            return response()->json([
-                'success' => true,
-                'game' => array_merge($multiplayerGame->fresh()->toArray(), [
-                    'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
-                    'playerOne' => $multiplayerGame->playerOne,
-                    'playerTwo' => $multiplayerGame->playerTwo,
-                    'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
-                ]),
-                'damage_dealt' => $damageDealt,
-                'damage_received' => $damageReceived,
-                'game_ended' => $gameEnded,
+            // Return back to the same page instead of JSON response for Inertia compatibility
+            return back()->with([
+                'flash' => [
+                    'gameUpdate' => [
+                        'success' => true,
+                        'game' => array_merge($multiplayerGame->fresh()->toArray(), [
+                            'monster' => $multiplayerGame->isPve() ? Monster::find($multiplayerGame->monster_id) : null,
+                            'playerOne' => $multiplayerGame->playerOne,
+                            'playerTwo' => $multiplayerGame->playerTwo,
+                            'currentQuestion' => $multiplayerGame->getCurrentQuestion(),
+                        ]),
+                        'damage_dealt' => $damageDealt,
+                        'damage_received' => $damageReceived,
+                        'game_ended' => $gameEnded,
+                    ]
+                ]
             ]);
         });
     }
