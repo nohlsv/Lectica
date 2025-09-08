@@ -130,7 +130,7 @@ const toggleStar = async (file: File) => {
 // Fetch user's collections for adding files
 const fetchUserCollections = async () => {
     try {
-        const response = await axios.get('/api/user/collections');
+        const response = await axios.get('/user/collections');
         userCollections.value = response.data;
     } catch (error) {
         console.error('Failed to fetch collections:', error);
@@ -151,7 +151,7 @@ const createNewCollection = async () => {
 
     isCreatingCollection.value = true;
     try {
-        const response = await axios.post('/api/collections', {
+        const response = await axios.post('/collections', {
             name: newCollectionName.value.trim(),
             is_public: false,
         });

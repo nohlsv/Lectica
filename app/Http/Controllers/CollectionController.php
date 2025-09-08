@@ -439,4 +439,12 @@ class CollectionController extends Controller
             ]
         ]);
     }
+
+    public function userCollections(Collection $collection) {
+        $collections = Collection::where('user_id', Auth::id())
+            ->select('id', 'name', 'file_count', 'is_public')
+            ->get();
+
+        return response()->json($collections);
+    }
 }

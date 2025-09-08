@@ -189,7 +189,7 @@ const submitGenerateRequest = async () => {
 // Fetch user's collections for adding files
 const fetchUserCollections = async () => {
     try {
-        const response = await fetch('/api/user/collections');
+        const response = await fetch('/user/collections');
         const data = await response.json();
         userCollections.value = data;
     } catch (error) {
@@ -210,7 +210,7 @@ const createNewCollection = async () => {
 
     isCreatingCollection.value = true;
     try {
-        const response = await axios.post('/api/collections', {
+        const response = await axios.post('/collections', {
             name: newCollectionName.value.trim(),
             is_public: false,
         });
