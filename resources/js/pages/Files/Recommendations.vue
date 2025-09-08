@@ -59,7 +59,7 @@ const formattedProgram = computed(() => {
 // Fetch user's collections for adding files
 const fetchUserCollections = async () => {
     try {
-        const response = await fetch('/api/user/collections');
+        const response = await fetch('/user/collections');
         const data = await response.json();
         userCollections.value = data;
     } catch (error) {

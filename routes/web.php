@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\CollectionController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -63,6 +64,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/api/monsters', [App\Http\Controllers\BattleController::class, 'getMonstersByDifficulty'])->name('api.monsters');
 
     // Collection routes - playlist-like file management system
+    Route::get('/user/collections', [App\Http\Controllers\CollectionController::class, 'userCollections'])->name('collections.user');
     Route::get('/collections', [App\Http\Controllers\CollectionController::class, 'index'])->name('collections.index');
     Route::get('/collections/create', [App\Http\Controllers\CollectionController::class, 'create'])->name('collections.create');
     Route::post('/collections', [App\Http\Controllers\CollectionController::class, 'store'])->name('collections.store');

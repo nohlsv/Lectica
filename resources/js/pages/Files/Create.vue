@@ -78,7 +78,7 @@ const formatFileSize = (bytes: number): string => {
 // Fetch user's collections
 const fetchUserCollections = async () => {
     try {
-        const response = await fetch('/api/user/collections');
+        const response = await fetch('/user/collections');
         const data = await response.json();
         userCollections.value = data;
     } catch (error) {
