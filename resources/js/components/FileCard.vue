@@ -51,26 +51,25 @@ const toggleStar = async () => {
 </script>
 
 <template>
-    <div
-        class="border-border flex flex-col overflow-hidden rounded-lg border shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-shadow transition-transform duration-200 duration-500 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)]"
-    >
+    <div class="flex flex-col border-4 border-black bg-black/75 p-4 font-pixelshadow-[6px_6px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-[4px_4px_0px_rgba(0,0,0,1)]
+            transition-transform duration-200">
         <!-- File header -->
-        <div class="bg-accent/30 border-border flex items-center justify-between border-b p-4">
-            <h3 class="text-foreground line-clamp-1 font-medium [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
+        <div class="bg-red-900/75 p-4 -mx-4 flex items-center justify-between border-b border-border">
+            <h3 class="font-medium text-foreground truncate max-w-[16rem] [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">{{ file.name }}</h3>
             <button
                 @click.prevent="toggleStar"
                 class="hover:bg-accent inline-flex items-center justify-center rounded-full p-1 transition-colors"
                 :class="{ 'text-amber-500': isStarred, 'text-muted-foreground': !isStarred }"
                 :disabled="isStarring"
             >
-                <StarIcon class="h-5 w-5" :fill="isStarred ? 'currentColor' : 'none'" />
+                <StarIcon class="h-5 w-5 pixel-outline-icon" :fill="isStarred ? 'currentColor' : 'none'" />
             </button>
         </div>
 
         <!-- File content -->
-        <div class="flex-1 p-4">
-            <p class="text-muted-foreground mb-3 line-clamp-3 text-sm [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                {{ file.description ? file.description : file.content }}
+        <div class="p-4 flex-1">
+            <p class="text-sm text-muted-foreground mb-3 break-words whitespace-normal text-justify [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                {{ file.description ? file.description : "No description provided." }}
             </p>
 
             <!-- Tags -->
@@ -96,7 +95,7 @@ const toggleStar = async () => {
                 </span>
             </div>
 
-            <div v-if="showActions" class="flex items-center gap-2">
+            <div v-if="showActions" class="flex items-center gap-1 ml-3">
                 <Link
                     :href="`/files/${file.id}`"
                     class="border-border bg-background text-foreground hover:bg-accent inline-flex h-7 w-7 items-center justify-center rounded-md border"

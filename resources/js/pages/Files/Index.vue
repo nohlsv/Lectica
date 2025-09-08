@@ -245,16 +245,8 @@ const addToCollection = async () => {
                         </Button>
                     </div>
                 </div>
-                <div class="flex flex-wrap gap-2">
-                    <Badge
-                        v-for="tag in allTags"
-                        :key="tag.id"
-                        :variant="selectedTags.includes(tag.id) ? 'default' : 'secondary'"
-                        @click="selectedTags.includes(tag.id) ? selectedTags.splice(selectedTags.indexOf(tag.id), 1) : selectedTags.push(tag.id)"
-                        class="cursor-pointer"
-                    >
-                        {{ tag.name }}
-                    </Badge>
+                <div class="flex-grow flex items-center justify-center">
+                        <h1 class="text-xl text-center font-semibold welcome-banner animate-soft-bounce py-2 px-10 pixel-outline">Files</h1>
                 </div>
             </div>
         </div>
@@ -315,8 +307,8 @@ const addToCollection = async () => {
                                 <PlusIcon class="h-4 w-4" />
                             </button>
                         </div>
-                    </template>
-                </DataTable>
+                    </div>
+                </div>
             </div>
         </div>
 

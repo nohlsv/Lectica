@@ -247,7 +247,6 @@ onMounted(() => {
                     <XIcon class="dark:color-[#2F2F2F] h-3 w-3" />
                 </button>
             </div>
-
             <!-- Input -->
             <input
                 id="tag-input"

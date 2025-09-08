@@ -131,14 +131,14 @@ const getExperienceProgress = () => {
 
 <template>
     <div>
-        <div class="border-sidebar-border/80 border-b">
+        <div class="border-b border-sidebar-border/80 bg-[#4d0a02]">
             <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
                 <!-- Mobile Menu -->
                 <div class="lg:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
                             <Button variant="ghost" size="icon" class="mr-2 h-9 w-9">
-                                <Menu class="h-5 w-5" />
+                                <Menu class="h-5 w-5 pixel-outline-icon" />
                             </Button>
                         </SheetTrigger>
                         <SheetContent side="left" class="w-[300px] p-6">
@@ -177,12 +177,12 @@ const getExperienceProgress = () => {
                     </Sheet>
                 </div>
 
-                <Link :href="route('home')" class="flex items-center gap-x-2">
+                <Link :href="route('home')" class="flex items-center gap-x-2 bg-[#4d0a02] ">
                     <AppLogo />
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="hidden h-full lg:flex lg:flex-1">
+                <div class="hidden h-full lg:flex lg:flex-1 text-[#fce3aa] pixel-outline">
                     <NavigationMenu class="ml-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch space-x-2">
                             <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">
@@ -196,7 +196,7 @@ const getExperienceProgress = () => {
                                 </Link>
                                 <div
                                     v-if="isCurrentRoute(item.href)"
-                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px bg-black dark:bg-[#7eea7d]"
+                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-[#fe9104]"
                                 ></div>
                             </NavigationMenuItem>
                         </NavigationMenuList>
