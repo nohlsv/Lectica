@@ -43,57 +43,79 @@ const isOwner = computed(() => {
 <template>
     <Head title="Flashcards" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8 bg-gradient">
-            <div class="flex justify-between items-center">
+        <div class="bg-gradient mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between">
                 <div class="flex flex-wrap space-x-2">
                     <Link :href="route('files.show', file.id)">
-                        <Button variant="default" class="inline-flex items-center gap-2 px-4 py-2 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
-                            hover:text-red-700 duration-300 font-bold pixel-outline mb-3">Back to File</Button>
+                        <Button
+                            variant="default"
+                            class="pixel-outline mb-3 inline-flex items-center gap-2 rounded-md border-2 border-[#f68500] bg-red-700 px-4 py-2 font-bold text-[#fce085] shadow-md duration-300 hover:bg-yellow-400 hover:text-red-700"
+                            >Back to File</Button
+                        >
                     </Link>
                     <div class="flex flex-wrap space-x-2">
-                    <Link v-if="isOwner" :href="route('files.flashcards.create', file.id)">
-                        <Button class="bg-orange-500 text-[#fdf6ee] hover:bg-orange-600 border-blue-700 rounded-lg pixel-outline">
-                            <Plus class="mr-2 h-4 w-4 pixel-outline-icon" />
-                            Create Flashcard
-                        </Button>
-                    </Link>
-                    <Link :href="route('files.flashcards.practice', file.id)">
-                        <Button variant="default" class="bg-green-500 text-[#fdf6ee] hover:bg-green-600 border-blue-700 rounded-lg pixel-outline">
-                            <BookOpen class="mr-2 h-4 w-4 pixel-outline-icon"/>
-                            Practice
-                        </Button>
-                    </Link>
+                        <Link v-if="isOwner" :href="route('files.flashcards.create', file.id)">
+                            <Button class="pixel-outline rounded-lg border-blue-700 bg-orange-500 text-[#fdf6ee] hover:bg-orange-600">
+                                <Plus class="pixel-outline-icon mr-2 h-4 w-4" />
+                                Create Flashcard
+                            </Button>
+                        </Link>
+                        <Link :href="route('files.flashcards.practice', file.id)">
+                            <Button variant="default" class="pixel-outline rounded-lg border-blue-700 bg-green-500 text-[#fdf6ee] hover:bg-green-600">
+                                <BookOpen class="pixel-outline-icon mr-2 h-4 w-4" />
+                                Practice
+                            </Button>
+                        </Link>
                     </div>
                 </div>
             </div>
             <div class="flex items-center justify-center">
-                <h2 class="text-lg text-center sm:text-xl md:text-2xl font-bold welcome-banner py-2 px-4 animate-soft-bounce pixel-outline">Flashcards for "{{ file.name }}"</h2>
+                <h2 class="welcome-banner animate-soft-bounce pixel-outline px-4 py-2 text-center text-lg font-bold sm:text-xl md:text-2xl">
+                    Flashcards for "{{ file.name }}"
+                </h2>
             </div>
-            <div v-if="!flashcards || flashcards.length === 0" class="text-center py-10">
+            <div v-if="!flashcards || flashcards.length === 0" class="py-10 text-center">
                 <p class="text-muted-foreground">No flashcards found for this file.</p>
                 <p class="text-muted-foreground mt-2">Create your first flashcard to start learning!</p>
             </div>
 
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Card v-for="flashcard in flashcards" :key="flashcard.id" class="h-full overflow-hidden rounded-lg transition-all hover:bg-[#322017] bg-[#1C110E] border-[#0c0a03] border-2 text-[#F0EAD6] hover:scale-105 duration-300">
+            <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3">
+                <Card
+                    v-for="flashcard in flashcards"
+                    :key="flashcard.id"
+                    class="h-full overflow-hidden rounded-lg border-2 border-[#0c0a03] bg-[#1C110E] text-[#F0EAD6] transition-all duration-300 hover:scale-105 hover:bg-[#322017]"
+                >
                     <CardHeader>
-                        <CardTitle class="line-clamp-2 pixel-outline">{{ flashcard.question }}</CardTitle>
+                        <CardTitle class="pixel-outline line-clamp-2">{{ flashcard.question }}</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div class="mt-2 text-sm text-muted-foreground line-clamp-3 pixel-outline">{{ flashcard.answer }}</div>
+                        <div class="text-muted-foreground pixel-outline mt-2 line-clamp-3 text-sm">{{ flashcard.answer }}</div>
                     </CardContent>
                     <CardFooter class="flex justify-between">
-                        <Link :href="route('files.flashcards.edit', [file.id, flashcard.id])" class="bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 rounded-lg">
+                        <Link
+                            :href="route('files.flashcards.edit', [file.id, flashcard.id])"
+                            class="rounded-lg border-blue-700 bg-blue-500 text-[#fdf6ee] hover:bg-blue-600"
+                        >
                             <Button variant="outline" size="sm">
-                                <Pencil class="h-4 w-4 pixel-outline-icon" />
-                                <span class="ml-2 pixel-outline">Edit</span>
+                                <Pencil class="pixel-outline-icon h-4 w-4" />
+                                <span class="pixel-outline ml-2">Edit</span>
                             </Button>
                         </Link>
                         <Dialog>
                             <DialogTrigger>
-                                <Button class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline" variant="default" size="sm" @click="() => { flashcardToDelete = flashcard.id; showDeleteModal = true; }">
-                                    <Trash2 class="h-4 w-4 pixel-outline-icon" />
-                                    <span class="ml-2 pixel-outline">Delete</span>
+                                <Button
+                                    class="pixel-outline rounded-lg border-red-700 bg-red-500 text-[#fdf6ee] hover:bg-red-600"
+                                    variant="default"
+                                    size="sm"
+                                    @click="
+                                        () => {
+                                            flashcardToDelete = flashcard.id;
+                                            showDeleteModal = true;
+                                        }
+                                    "
+                                >
+                                    <Trash2 class="pixel-outline-icon h-4 w-4" />
+                                    <span class="pixel-outline ml-2">Delete</span>
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
@@ -102,8 +124,12 @@ const isOwner = computed(() => {
                                 </DialogHeader>
                                 <p>Are you sure you want to delete this flashcard? This action cannot be undone.</p>
                                 <DialogFooter>
-                                    <Button variant="outline" @click="showDeleteModal=false">Cancel</Button>
-                                    <Button class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline" variant="default" @click="deleteFlashcard">
+                                    <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
+                                    <Button
+                                        class="pixel-outline rounded-lg border-red-700 bg-red-500 text-[#fdf6ee] hover:bg-red-600"
+                                        variant="default"
+                                        @click="deleteFlashcard"
+                                    >
                                         Delete
                                     </Button>
                                 </DialogFooter>

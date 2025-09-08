@@ -150,7 +150,7 @@ const addToCollection = async () => {
     <AppLayout>
         <div class="py-6">
             <!-- Breadcrumbs -->
-            <div class="mb-6 flex items-center text-sm text-muted-foreground ml-3">
+            <div class="text-muted-foreground mb-6 ml-3 flex items-center text-sm">
                 <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
                     <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
                         {{ crumb.title }}
@@ -223,14 +223,14 @@ const addToCollection = async () => {
                                             <Badge
                                                 v-for="tag in file.tags"
                                                 :key="tag.id"
-                                                class="text-xs truncate bg-[#faa800] text-[#661500] border-2 border-[#0c0a03]"
+                                                class="truncate border-2 border-[#0c0a03] bg-[#faa800] text-xs text-[#661500]"
                                                 :title="tag.name"
                                             >
                                                 {{ tag.name }}
                                             </Badge>
                                         </div>
                                     </CardContent>
-                                    <CardFooter class="flex justify-between text-xs text-[#fdf6ee]/75 pixel-outline tracking-wide">
+                                    <CardFooter class="pixel-outline flex justify-between text-xs tracking-wide text-[#fdf6ee]/75">
                                         <span>Created: {{ new Date(file.created_at).toLocaleDateString() }}</span>
                                         <div class="flex items-center space-x-2">
                                             <div class="flex items-center">
@@ -249,7 +249,7 @@ const addToCollection = async () => {
                 </div>
 
                 <!-- Pagination -->
-                <div v-if="files.meta && files.meta.last_page > 1" class="flex justify-center mt-8">
+                <div v-if="files.meta && files.meta.last_page > 1" class="mt-8 flex justify-center">
                     <div class="flex space-x-1">
                         <Link
                             v-for="page in files.meta.links"
@@ -257,11 +257,9 @@ const addToCollection = async () => {
                             :href="page.url ? page.url : '#'"
                             v-text="page.label"
                             :class="[
-                                'px-3 py-1 rounded border',
-                                page.active
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'hover:bg-muted',
-                                !page.url && 'opacity-50 cursor-not-allowed'
+                                'rounded border px-3 py-1',
+                                page.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                                !page.url && 'cursor-not-allowed opacity-50',
                             ]"
                         />
                     </div>

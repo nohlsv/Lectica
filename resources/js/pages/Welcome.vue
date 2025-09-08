@@ -10,7 +10,7 @@ const props = defineProps();
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
     </Head>
     <!-- Overall background -->
-    <div class="flex min-h-screen w-full flex-col items-center justify-center bg-lectica p-6 lg:p-8">
+    <div class="bg-lectica flex min-h-screen w-full flex-col items-center justify-center p-6 lg:p-8">
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="flex items-center justify-between">
                 <!-- Logo and Name on the left -->
@@ -29,41 +29,38 @@ const props = defineProps();
                  -->
 
                 <!-- Container for the text-->
-                 <div class=" rounded-2xl border-2 border-border bg-[#494242]/30 p-6 ">
-                    <div
-                    class=" text-center"
-                    >
-                    <nav class="flex items-center gap-4">
+                <div class="border-border rounded-2xl border-2 bg-[#494242]/30 p-6">
+                    <div class="text-center">
+                        <nav class="flex items-center gap-4">
                             <Link
-                        v-if="$page.props.auth.user"
-                        :href="route('home')"
-                        class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 pixel-outline"
-                    >
-                        Home
-                    </Link>
+                                v-if="$page.props.auth.user"
+                                :href="route('home')"
+                                class="pixel-outline inline-block rounded-sm border border-[#19140035] border-blue-700 bg-blue-500 px-5 py-1.5 text-[#fdf6ee] hover:bg-blue-600"
+                            >
+                                Home
+                            </Link>
                         </nav>
-                    <div class="flex justify-center items-center logo-fall">
-                        <img src="/lectica-logo.gif" alt="Lectica Logo" class="md:h-60 md:w-60 h-40 w-40 mb-5 animate-soft-bounce"/>
-                    </div>
-                        <div class="flex flex-col items-center justify-center mb-8">
-                            <h1 class="text-6xl 2xl:text-6xl font-extrabold mb-2 animate-flow tracking-wide">Lectica</h1>
-                            <p class="text-3xl md:text-4xl text-[#FFB347] pixel-outline tracking-wide">Review, Repeat, Retain</p>
-
-
-                        <p class=" text-xl mt-3 text-[#FFF8DC] pixel-outline tracking-wide">
-                            Your personal learning companion for efficient knowledge retention
-                        </p>
+                        <div class="logo-fall flex items-center justify-center">
+                            <img src="/lectica-logo.gif" alt="Lectica Logo" class="animate-soft-bounce mb-5 h-40 w-40 md:h-60 md:w-60" />
                         </div>
-                        <div v-if="!$page.props.auth.user" class="flex justify-center gap-4 mt-4 ">
+                        <div class="mb-8 flex flex-col items-center justify-center">
+                            <h1 class="animate-flow mb-2 text-6xl font-extrabold tracking-wide 2xl:text-6xl">Lectica</h1>
+                            <p class="pixel-outline text-3xl tracking-wide text-[#FFB347] md:text-4xl">Review, Repeat, Retain</p>
+
+                            <p class="pixel-outline mt-3 text-xl tracking-wide text-[#FFF8DC]">
+                                Your personal learning companion for efficient knowledge retention
+                            </p>
+                        </div>
+                        <div v-if="!$page.props.auth.user" class="mt-4 flex justify-center gap-4">
                             <Link
                                 :href="route('register')"
-                                class="inline-block rounded-lg px-4 py-1 md:px-6 md:py-2 text-base md:text-lg font-medium bg-[#ff1640] hover:bg-[#cc1232] hover:scale-110 duration-300 pixel-outline border-[#0c0a03] border-2"
+                                class="pixel-outline inline-block rounded-lg border-2 border-[#0c0a03] bg-[#ff1640] px-4 py-1 text-base font-medium duration-300 hover:scale-110 hover:bg-[#cc1232] md:px-6 md:py-2 md:text-lg"
                             >
                                 Get Started
                             </Link>
                             <Link
                                 :href="route('login')"
-                                class="inline-block rounded-lg px-4 py-1 md:px-6 md:py-2 text-base md:text-lg font-medium bg-[#ff6910] hover:bg-[#cc560d] hover:scale-110 duration-300 pixel-outline border-[#0c0a03] border-2"
+                                class="pixel-outline inline-block rounded-lg border-2 border-[#0c0a03] bg-[#ff6910] px-4 py-1 text-base font-medium duration-300 hover:scale-110 hover:bg-[#cc560d] md:px-6 md:py-2 md:text-lg"
                             >
                                 Log In
                             </Link>

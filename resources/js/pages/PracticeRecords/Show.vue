@@ -1,24 +1,32 @@
 <template>
     <AppLayout>
-        <div class="p-6 space-y-4 bg-gradient min-h-screen">
-            <div class="flex justify-center items-center">
-                <h1 class="text-2xl font-bold welcome-banner animate-soft-bounce py-2 px-10 w-fit">History Details</h1>
+        <div class="bg-gradient min-h-screen space-y-4 p-6">
+            <div class="flex items-center justify-center">
+                <h1 class="welcome-banner animate-soft-bounce w-fit px-10 py-2 text-2xl font-bold">History Details</h1>
             </div>
             <div class="bg-container p-6">
-                <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                <div class="pixel-outline rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4">
                     <h2 class="text-xl font-semibold">{{ record.file.name }}</h2>
                     <p>Type: {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</p>
                     <p>
-                        <span class="font-bold">Score:</span> {{ record.correct_answers }} / {{ record.total_questions }}
-                        ( <span :class="scoreColorClass">{{ formattedScorePercentage }}</span> )
+                        <span class="font-bold">Score:</span> {{ record.correct_answers }} / {{ record.total_questions }} (
+                        <span :class="scoreColorClass">{{ formattedScorePercentage }}</span> )
                     </p>
                     <div v-if="decodedMistakes && decodedMistakes.length > 0" class="mt-4">
                         <h3 class="text-lg font-semibold tracking-wide text-red-200">Mistakes:</h3>
                         <ul class="">
                             <li v-for="(mistake, index) in decodedMistakes" :key="index" class="mt-2">
-                                <p><span class="text-[#fb9e1b]">Question:</span> <span class="ml-1 font-extrabold">{{ mistake.question }}</span></p>
-                                <p class="ml-5"><span class="text-[#6aa7d6]">Your Answer:</span> <span class="ml-1 font-extrabold">{{ mistake.your_answer }}</span></p>
-                                <p class="ml-5"><span class="text-[#5cae6e]">Correct Answer:</span> <span class="ml-1 font-extralight">{{ mistake.correct_answer }}</span></p>
+                                <p>
+                                    <span class="text-[#fb9e1b]">Question:</span> <span class="ml-1 font-extrabold">{{ mistake.question }}</span>
+                                </p>
+                                <p class="ml-5">
+                                    <span class="text-[#6aa7d6]">Your Answer:</span>
+                                    <span class="ml-1 font-extrabold">{{ mistake.your_answer }}</span>
+                                </p>
+                                <p class="ml-5">
+                                    <span class="text-[#5cae6e]">Correct Answer:</span>
+                                    <span class="ml-1 font-extralight">{{ mistake.correct_answer }}</span>
+                                </p>
                             </li>
                         </ul>
                     </div>
@@ -87,5 +95,4 @@ const scoreColorClass = computed<string>(() => {
     if (percentage <= 90) return 'text-green-500';
     return 'text-green-400'; // 91-100%
 });
-
 </script>

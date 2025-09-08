@@ -8,7 +8,10 @@
                     {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
                 </h2>
                 <div class="flex items-center space-x-4">
-                    <div v-if="gameState.game_mode === 'pve' && gameState.monster" class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20">
+                    <div
+                        v-if="gameState.game_mode === 'pve' && gameState.monster"
+                        class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20"
+                    >
                         <img
                             :src="gameState.monster.image_path || '/images/default-monster.png'"
                             :alt="gameState.monster.name"
@@ -19,12 +22,7 @@
                             {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
                         </span>
                     </div>
-                    <button
-                        @click="abandonGame"
-                        class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700"
-                    >
-                        Abandon Game
-                    </button>
+                    <button @click="abandonGame" class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700">Abandon Game</button>
                 </div>
             </div>
         </template>
@@ -124,7 +122,7 @@
                                 selectedAnswer === option
                                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                                     : 'border-gray-300 hover:border-purple-300 dark:border-gray-600',
-                                answerSubmitted && 'opacity-75 cursor-not-allowed'
+                                answerSubmitted && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             {{ option }}
@@ -141,7 +139,7 @@
                                 selectedAnswer === 'True'
                                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                                     : 'border-gray-300 hover:border-green-300 dark:border-gray-600',
-                                answerSubmitted && 'opacity-75 cursor-not-allowed'
+                                answerSubmitted && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             True
@@ -154,7 +152,7 @@
                                 selectedAnswer === 'False'
                                     ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                                     : 'border-gray-300 hover:border-red-300 dark:border-gray-600',
-                                answerSubmitted && 'opacity-75 cursor-not-allowed'
+                                answerSubmitted && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             False
@@ -209,20 +207,31 @@
                 </div>
 
                 <!-- Last Action Feedback -->
-                <div v-if="lastAction" class="mt-4 rounded-lg p-4" :class="lastAction.type === 'success' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'">
+                <div
+                    v-if="lastAction"
+                    class="mt-4 rounded-lg p-4"
+                    :class="lastAction.type === 'success' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'"
+                >
                     <div class="flex items-center">
                         <div v-if="lastAction.type === 'success'" class="mr-3 h-5 w-5 text-green-400">✓</div>
                         <div v-else class="mr-3 h-5 w-5 text-red-400">✗</div>
-                        <p class="text-sm" :class="lastAction.type === 'success' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'">
+                        <p
+                            class="text-sm"
+                            :class="lastAction.type === 'success' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'"
+                        >
                             {{ lastAction.message }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Visual Feedback Animations -->
-                <div v-if="showOpponentAction" class="mt-4 rounded-lg p-4 bg-gray-100 dark:bg-gray-800">
+                <div v-if="showOpponentAction" class="mt-4 rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
                     <p class="text-sm text-gray-700 dark:text-gray-300">
-                        {{ opponentFeedback?.name }}'s answer was <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{ opponentFeedback?.isCorrect ? 'correct' : 'wrong' }}</span>: "{{ opponentFeedback?.answer }}"
+                        {{ opponentFeedback?.name }}'s answer was
+                        <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{
+                            opponentFeedback?.isCorrect ? 'correct' : 'wrong'
+                        }}</span
+                        >: "{{ opponentFeedback?.answer }}"
                     </p>
                 </div>
 
@@ -263,7 +272,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { computed, onMounted, ref } from 'vue';
 
 interface Quiz {
     id: number;
@@ -348,35 +357,39 @@ const submitAnswer = async () => {
         const isCorrect = checkAnswer(selectedAnswer.value, currentQuiz.value);
 
         // Use Inertia router for reliable answer submission
-        router.post(route('multiplayer-games.answer', props.game.id), {
-            quiz_id: currentQuiz.value?.id,
-            answer: selectedAnswer.value,
-            is_correct: isCorrect,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                console.log('Answer submitted successfully, WebSocket will update game state');
-                // Don't reset submission state here - let WebSocket handle it
+        router.post(
+            route('multiplayer-games.answer', props.game.id),
+            {
+                quiz_id: currentQuiz.value?.id,
+                answer: selectedAnswer.value,
+                is_correct: isCorrect,
             },
-            onError: (errors) => {
-                console.error('Answer submission errors:', errors);
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    console.log('Answer submitted successfully, WebSocket will update game state');
+                    // Don't reset submission state here - let WebSocket handle it
+                },
+                onError: (errors) => {
+                    console.error('Answer submission errors:', errors);
 
-                // Handle specific error types
-                if (errors.turn) {
-                    lastAction.value = { type: 'error', message: 'It\'s not your turn! Please wait for your opponent.' };
-                } else if (errors.game) {
-                    lastAction.value = { type: 'error', message: errors.game };
-                } else {
-                    const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
-                    lastAction.value = { type: 'error', message: errorMessage };
-                }
+                    // Handle specific error types
+                    if (errors.turn) {
+                        lastAction.value = { type: 'error', message: "It's not your turn! Please wait for your opponent." };
+                    } else if (errors.game) {
+                        lastAction.value = { type: 'error', message: errors.game };
+                    } else {
+                        const errorMessage = (Object.values(errors)[0] as string) || 'Failed to submit answer';
+                        lastAction.value = { type: 'error', message: errorMessage };
+                    }
 
-                // Reset submission state on error
-                answerSubmitted.value = false;
-                submitting.value = false;
-            }
-        });
+                    // Reset submission state on error
+                    answerSubmitted.value = false;
+                    submitting.value = false;
+                },
+            },
+        );
     } catch (error) {
         console.error('Error submitting answer:', error);
         lastAction.value = { type: 'error', message: 'Failed to submit answer. Please try again.' };
@@ -401,7 +414,7 @@ const checkAnswer = (userAnswer: string, quiz: Quiz): boolean => {
     } else if (quiz.type === 'enumeration') {
         // For enumeration, check if user answer contains any of the correct answers
         // Each answer in the array could be a valid response
-        return quiz.answers.some(correctAnswer => {
+        return quiz.answers.some((correctAnswer) => {
             const correctLower = correctAnswer.toLowerCase().trim();
             return userAnswerLower.includes(correctLower) || correctLower.includes(userAnswerLower);
         });
@@ -416,12 +429,12 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
         if (isCorrect) {
             lastAction.value = {
                 type: 'success',
-                message: `Correct! Your accuracy is improving! 🎯`
+                message: `Correct! Your accuracy is improving! 🎯`,
             };
         } else {
             lastAction.value = {
                 type: 'error',
-                message: `Wrong answer. Your accuracy dropped slightly. 📉`
+                message: `Wrong answer. Your accuracy dropped slightly. 📉`,
             };
         }
     } else {
@@ -429,12 +442,12 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
         if (isCorrect) {
             lastAction.value = {
                 type: 'success',
-                message: `Correct! You dealt ${damageDealt} damage!`
+                message: `Correct! You dealt ${damageDealt} damage!`,
             };
         } else {
             lastAction.value = {
                 type: 'error',
-                message: `Wrong answer. You took ${damageReceived} damage.`
+                message: `Wrong answer. You took ${damageReceived} damage.`,
             };
         }
     }
@@ -454,8 +467,8 @@ const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
         // PVP Mode: Accuracy-based results
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
-        const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy || 0) : (gameState.value.player_two_accuracy || 0);
-        const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy || 0) : (gameState.value.player_one_accuracy || 0);
+        const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy || 0 : gameState.value.player_two_accuracy || 0;
+        const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy || 0 : gameState.value.player_one_accuracy || 0;
 
         // Debug logging to see what values we're getting
         console.log('Game result calculation:', {
@@ -463,7 +476,7 @@ const getGameResult = (): string => {
             myAccuracy,
             opponentAccuracy,
             player_one_accuracy: gameState.value.player_one_accuracy,
-            player_two_accuracy: gameState.value.player_two_accuracy
+            player_two_accuracy: gameState.value.player_two_accuracy,
         });
 
         if (myAccuracy > opponentAccuracy) {
@@ -583,7 +596,7 @@ onMounted(() => {
                 if (gameState.value.player_one_accuracy !== previousPlayerOneAccuracy) {
                     accuracyAnimation.value = {
                         player: 'one',
-                        change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0)
+                        change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0),
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
@@ -593,7 +606,7 @@ onMounted(() => {
                 if (gameState.value.player_two_accuracy !== previousPlayerTwoAccuracy) {
                     accuracyAnimation.value = {
                         player: 'two',
-                        change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0)
+                        change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0),
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
@@ -604,7 +617,7 @@ onMounted(() => {
                 if (gameState.value.player_one_streak !== previousPlayerOneStreak) {
                     streakAnimation.value = {
                         player: 'one',
-                        streak: gameState.value.player_one_streak
+                        streak: gameState.value.player_one_streak,
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
@@ -614,7 +627,7 @@ onMounted(() => {
                 if (gameState.value.player_two_streak !== previousPlayerTwoStreak) {
                     streakAnimation.value = {
                         player: 'two',
-                        streak: gameState.value.player_two_streak
+                        streak: gameState.value.player_two_streak,
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
@@ -641,7 +654,7 @@ onMounted(() => {
                 // If it became my turn, reset for next question
                 if (!wasMyTurn && isMyTurn.value) {
                     resetForNextQuestion();
-                    console.log('It\'s now my turn, resetting for next question');
+                    console.log("It's now my turn, resetting for next question");
                 }
             })
             .listenForWhisper('answer-submitted', (e: any) => {
@@ -662,10 +675,11 @@ onMounted(() => {
 </script>
 
 <style>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
-  opacity: 0;
+    opacity: 0;
 }
 </style>

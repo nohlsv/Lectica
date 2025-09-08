@@ -38,57 +38,65 @@ const verifyFile = (fileId: number) => {
 <template>
     <Head title="Verify Files" />
     <AppLayout>
-        <div class="p-6 space-y-6 bg-gradient">
+        <div class="bg-gradient space-y-6 p-6">
             <div class="flex justify-center">
-                <h1 class="text-2xl font-bold welcome-banner animate-soft-bounce px-10 py-2 text-center w-fit pixel-outline">Verify Files</h1>
+                <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-10 py-2 text-center text-2xl font-bold">Verify Files</h1>
             </div>
-                <div class="bg-container p-6">
-                <div v-if="props.files.data.length === 0" class="text-center text-muted-foreground">
-                    No unverified files available.
-                </div>
-                <div v-else class="space-y-4 grid md:grid-cols-2 sm:grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-                    <div v-for="file in props.files.data" :key="file.id" class="p-4 rounded-lg bg-[#8E2C38] border-[#0c0a03] border-2 h-full flex flex-col">
-                        <h2 class="text-xl md:text-2xl font-semibold text-[#fdf6ee] pixel-outline">{{ file.name }}</h2>
-                        <p class="text-sm lg:text-base text-[#fdf6ee]/50">Uploaded by: <span class="ml-1"> {{ file.user.first_name }} {{ file.user.last_name }}</span></p>
-                        <p class="text-sm lg:text-base text-[#fdf6ee]/50">Description: <span class="ml-1">{{ file.description || 'No description provided' }}</span></p>
-                        <div class="flex flex-wrap gap-2 mt-2">
+            <div class="bg-container p-6">
+                <div v-if="props.files.data.length === 0" class="text-muted-foreground text-center">No unverified files available.</div>
+                <div v-else class="grid gap-4 space-y-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                    <div
+                        v-for="file in props.files.data"
+                        :key="file.id"
+                        class="flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4"
+                    >
+                        <h2 class="pixel-outline text-xl font-semibold text-[#fdf6ee] md:text-2xl">{{ file.name }}</h2>
+                        <p class="text-sm text-[#fdf6ee]/50 lg:text-base">
+                            Uploaded by: <span class="ml-1"> {{ file.user.first_name }} {{ file.user.last_name }}</span>
+                        </p>
+                        <p class="text-sm text-[#fdf6ee]/50 lg:text-base">
+                            Description: <span class="ml-1">{{ file.description || 'No description provided' }}</span>
+                        </p>
+                        <div class="mt-2 flex flex-wrap gap-2">
                             <span v-for="tag in file.tags" :key="tag.id" class="bg-accent text-foreground rounded-full px-2 py-1 text-xs">
                                 {{ tag.name }}
                             </span>
                         </div>
-                        <div class="gap-2 flex items-center">
-                            <button class="mt-2 bg-[#6aa7d6] border-2 rounded-md text-[#fdf6ee] hover:bg-[#578ec3] border-[#0c0a03] duration-300 pixel-outline flex items-center cursor-pointer text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2">
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="pixel-outline mt-2 flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#6aa7d6] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#578ec3] sm:px-4 sm:py-2 sm:text-base"
+                            >
                                 <Link :href="route('files.show', file.id)" target="_blank" class="flex items-center">
-                                    <FileIcon class="w-4 h-4 mr-2 pixel-outline-icon" />
+                                    <FileIcon class="pixel-outline-icon mr-2 h-4 w-4" />
                                     <span>View File</span>
                                 </Link>
                             </button>
                             <button
                                 @click="verifyFile(file.id)"
-                                class="mt-2 bg-[#5cae6e] text-[#fdf6ee] pixel-outline hover:bg-[#4a9159] border-[#0c0a03] duration-300 border-2 rounded-md flex items-center cursor-pointer text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2"
+                                class="pixel-outline mt-2 flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#5cae6e] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#4a9159] sm:px-4 sm:py-2 sm:text-base"
                             >
-                                <CheckCircleIcon class="w-4 h-4 mr-2 pixel-outline-icon" />
+                                <CheckCircleIcon class="pixel-outline-icon mr-2 h-4 w-4" />
                                 <span>Verify</span>
                             </button>
                         </div>
                     </div>
                 </div>
                 <!-- Pagination -->
-                <div class="flex justify-center mt-6">
+                <div class="mt-6 flex justify-center">
                     <nav class="flex space-x-2">
                         <button
                             v-for="link in props.files.links"
                             :key="link.label"
                             :disabled="!link.url"
                             @click="link.url && router.get(link.url)"
-                            class="text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2 border rounded-md bg"
+                            class="bg rounded-md border px-3 py-1.5 text-sm sm:px-4 sm:py-2 sm:text-base"
                             :class="{
-                                'bg-[#B23A48] text-primary pixel-outline border-2 border-[#0c0a03]': link.active,
-                                'bg-[#3B1A14] hover:bg-[#77252e] duration-300 text-muted-foreground pixel-outline border-2 border-[#0c0a03]': !link.active,
+                                'text-primary pixel-outline border-2 border-[#0c0a03] bg-[#B23A48]': link.active,
+                                'text-muted-foreground pixel-outline border-2 border-[#0c0a03] bg-[#3B1A14] duration-300 hover:bg-[#77252e]':
+                                    !link.active,
                             }"
                             v-html="link.label"
-                        >
-                        </button>
+                        ></button>
                     </nav>
                 </div>
             </div>

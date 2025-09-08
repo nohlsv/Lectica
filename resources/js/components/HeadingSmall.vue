@@ -15,4 +15,3 @@ defineProps<Props>();
         </p>
     </header>
 </template>
-
