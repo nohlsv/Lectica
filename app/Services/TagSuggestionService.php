@@ -110,25 +110,24 @@ class TagSuggestionService
     }
 
     /**
-     * Get tag suggestions based on search query with personalization
+     * Get search suggestions based on user query
      */
     public function getSearchSuggestions(User $user, string $query, int $limit = 10): Collection
     {
-        $query = trim($query);
-        if (empty($query)) {
+        if (empty(trim($query))) {
             return $this->getPersonalizedSuggestions($user, $limit);
         }
 
-        $limit = max(1, $limit); // Ensure positive limit
-
-        // First try to find matches in user's tags
-        $userMatches = Tag::searchByNameOrAlias($query)
+        // Search in user's tags first
+        $userTags = Tag::select('tags.*')
             ->join('file_tag', 'tags.id', '=', 'file_tag.tag_id')
             ->join('files', 'file_tag.file_id', '=', 'files.id')
             ->where('files.user_id', $user->id)
-            ->select('tags.*', DB::raw('COUNT(file_tag.tag_id) as usage_count'))
+            ->where(function ($q) use ($query) {
+                $q->where('tags.name', 'LIKE', "%{$query}%")
+                  ->orWhereJsonContains('tags.aliases', $query);
+            })
             ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
-            ->orderByDesc('usage_count')
             ->limit($limit)
             ->get()
             ->map(function ($tag) {
@@ -136,79 +135,68 @@ class TagSuggestionService
                 return $tag;
             });
 
-        // If we don't have enough user matches, search all tags
-        if ($userMatches->count() < $limit) {
-            $remainingLimit = $limit - $userMatches->count();
-            $excludeIds = $userMatches->pluck('id')->toArray();
+        // If we need more results, search globally
+        $remainingLimit = $limit - $userTags->count();
+        if ($remainingLimit > 0) {
+            $globalTags = Tag::where(function ($q) use ($query) {
+                $q->where('name', 'LIKE', "%{$query}%")
+                  ->orWhereJsonContains('aliases', $query);
+            })
+            ->whereNotIn('id', $userTags->pluck('id'))
+            ->limit($remainingLimit)
+            ->get()
+            ->map(function ($tag) {
+                $tag->suggestion_type = 'global_match';
+                return $tag;
+            });
 
-            $globalMatches = Tag::searchByNameOrAlias($query)
-                ->select('tags.*', DB::raw('COALESCE(COUNT(file_tag.tag_id), 0) as usage_count'))
-                ->leftJoin('file_tag', 'tags.id', '=', 'file_tag.tag_id')
-                ->whereNotIn('tags.id', $excludeIds)
-                ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
-                ->orderByDesc('usage_count')
-                ->limit($remainingLimit)
-                ->get()
-                ->map(function ($tag) {
-                    $tag->suggestion_type = 'global_match';
-                    return $tag;
-                });
-
-            $userMatches = $userMatches->merge($globalMatches);
+            $userTags = $userTags->merge($globalTags);
         }
 
-        return $userMatches->map(function ($tag) {
+        return $userTags->map(function ($tag) {
             return [
                 'id' => $tag->id,
                 'name' => $tag->name,
-                'aliases' => $tag->aliases ?? [],
+                'aliases' => $tag->aliases,
                 'suggestion_type' => $tag->suggestion_type,
                 'usage_count' => $tag->usage_count ?? 0,
-                'display_names' => $tag->getDisplayNames(),
             ];
         });
     }
 
     /**
-     * Get related tags based on tags commonly used together
+     * Get related tags based on selected tags
      */
     public function getRelatedTags(array $selectedTagIds, User $user, int $limit = 5): Collection
     {
-        if (empty($selectedTagIds) || !is_array($selectedTagIds)) {
-            return collect();
+        if (empty($selectedTagIds)) {
+            return collect([]);
         }
 
-        // Validate tag IDs are integers
-        $validTagIds = array_filter($selectedTagIds, function($id) {
-            return is_numeric($id) && $id > 0;
-        });
-
-        if (empty($validTagIds)) {
-            return collect();
-        }
-
-        $limit = max(1, $limit);
-
-        return Tag::select('tags.*', DB::raw('COUNT(DISTINCT files.id) as co_occurrence'))
+        // Find tags that are commonly used together with the selected tags
+        $relatedTags = Tag::select('tags.*', DB::raw('COUNT(DISTINCT files.id) as co_occurrence_count'))
             ->join('file_tag as ft1', 'tags.id', '=', 'ft1.tag_id')
             ->join('files', 'ft1.file_id', '=', 'files.id')
             ->join('file_tag as ft2', 'files.id', '=', 'ft2.file_id')
-            ->whereIn('ft2.tag_id', $validTagIds)
-            ->whereNotIn('tags.id', $validTagIds)
-            ->where('files.user_id', $user->id)
+            ->whereIn('ft2.tag_id', $selectedTagIds)
+            ->whereNotIn('tags.id', $selectedTagIds)
             ->groupBy('tags.id', 'tags.name', 'tags.aliases', 'tags.created_at', 'tags.updated_at')
-            ->having('co_occurrence', '>', 0)
-            ->orderByDesc('co_occurrence')
+            ->orderByDesc('co_occurrence_count')
             ->limit($limit)
             ->get()
             ->map(function ($tag) {
-                return [
-                    'id' => $tag->id,
-                    'name' => $tag->name,
-                    'aliases' => $tag->aliases ?? [],
-                    'suggestion_type' => 'related',
-                    'co_occurrence' => $tag->co_occurrence,
-                ];
+                $tag->suggestion_type = 'related';
+                return $tag;
             });
+
+        return $relatedTags->map(function ($tag) {
+            return [
+                'id' => $tag->id,
+                'name' => $tag->name,
+                'aliases' => $tag->aliases,
+                'suggestion_type' => 'related',
+                'co_occurrence_count' => $tag->co_occurrence_count ?? 0,
+            ];
+        });
     }
 }
