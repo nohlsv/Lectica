@@ -9,14 +9,9 @@ import { ref, computed, watch } from 'vue';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { type File, type Quiz } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
-import { CheckIcon, ChevronLeft, ChevronRight, RotateCcw, XIcon } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -304,7 +299,7 @@ watch(
                                     shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
                                     hover:bg-yellow-700 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
                                     active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                                    transition-all duration-150 ease-in-out pixel-outline bg-yellow-500" 
+                                    transition-all duration-150 ease-in-out pixel-outline bg-yellow-500"
                                     @click="shuffleQuizzes" v-if="!shuffled && !quizFinished">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2"><path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"></path><path d="m18 2 4 4-4 4"></path><path d="M2 6h1.9c1.5 0 2.9.8 3.7 2l.3.5"></path><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"></path><path d="m18 14 4 4-4 4"></path></svg>
                             Shuffle
@@ -323,7 +318,7 @@ watch(
             <div class="relative w-full min-h-screen overflow-hidden bg-cover bg-center flex flex-col"
                 style="background-image: url('/images/game-background.png');">
                 <!-- Question Box -->
-                <div class="absolute top-10 sm:top-10 left-4 right-4 
+                <div class="absolute top-10 sm:top-10 left-4 right-4
                         sm:left-1/6 sm:-translate-x-1/12
                         md:left-1/3 md:-translate-x-1/4
                         2xl:left-1/2 2xl:-translate-x-1/2
@@ -586,7 +581,7 @@ watch(
                                     v-else
                                     @click="next"
                                     variant="default"
-                                    >   
+                                    >
                                     {{ currentIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next Question' }}
                                     <ChevronRight v-if="currentIndex !== quizQuestions.length - 1" class="h-4 w-4 ml-2" />
                                 </Button>

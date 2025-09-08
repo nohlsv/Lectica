@@ -135,17 +135,17 @@ function finishPractice() {
     <Head title="Practice Flashcards" />
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <AppLayout :breadcrumbs="breadcrumbs">
-        <div 
+        <div
           class="min-h-screen bg-no-repeat bg-cover bg-center bg-container"
        >
 
             <!--Buttons Row (Top Left // Center)-->
-            <div 
+            <div
               class="flex flex-wrap justify-center sm:justify-start gap-3 mt-6 sm:mt-8 ml-4 sm:ml-6">
               <!--Back Button (Escape)-->
               <Link :href="route('files.flashcards.index', file.id)">
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
                         bg-red-500 border-4 border-red-700 text-white font-bold
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
@@ -156,8 +156,8 @@ function finishPractice() {
                 </Button>
               </Link>
                 <!--Shuffle Button-->
-                <Button 
-                  @click="shuffleCards" 
+                <Button
+                  @click="shuffleCards"
                   v-if="!shuffled"
                   class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
                         bg-green-500 border-4 border-green-700 text-white font-bold
@@ -169,8 +169,8 @@ function finishPractice() {
                     Shuffle
                 </Button>
                 <!--Reset Button (from shuffle)-->
-                <Button 
-                  @click="resetOrder" 
+                <Button
+                  @click="resetOrder"
                   v-else
                   class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
                         bg-blue-500 border-4 border-blue-700 text-white font-bold
@@ -200,7 +200,7 @@ function finishPractice() {
             <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
             <!--Title Header-->
             <div class="welcome-banner px-6 py-4 animate-soft-bounce text-center mb-4">
-              <h2 class="text-2xl font-pixel text-white tracking-wider 
+              <h2 class="text-2xl font-pixel text-white tracking-wider
                         pixel-outline">
                 Flashcard Practice
               </h2>
@@ -227,9 +227,9 @@ function finishPractice() {
                 </div>
                 <!--Flashcard Layout-->
                 <Card class="relative min-h-[320px] sm:min-h-[360px] md:min-h-[420px] w-full max-w-sm
-                          sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br 
-                          from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] hover:scale-105 
-                          hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 
+                          sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br
+                          from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] hover:scale-105
+                          hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500
                           font-pixel overflow-hidden mx-auto">
                   <CardContent class="flex flex-col items-center justify-between min-h-[320px] perspective p-6">
                     <!--Flip Flashcard-->
@@ -252,21 +252,21 @@ function finishPractice() {
                     <!--Middle Button (Flip Trigger)-->
                     <div
                       @click="toggleAnswer"
-                      class="relative mt-6 sm:mt-8 cursor-pointer group flex items-center justify-center 
-                          w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-black 
-                          bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)] 
+                      class="relative mt-6 sm:mt-8 cursor-pointer group flex items-center justify-center
+                          w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-black
+                          bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)]
                           hover:scale-110 transition-transform duration-300">
                       <!--Glow-->
                       <div
                         class="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white blur-xl opacity-20
-                            group-hover:animate-ping"> 
+                            group-hover:animate-ping">
                       </div>
                       <!--Show star when on question-->
-                      <span v-if="!showAnswer" 
+                      <span v-if="!showAnswer"
                         class="relative z-10 text-xl sm:text-2xl md:text-3xl animate-pulse">⭐
                       </span>
                       <!--Show moon when on answer-->
-                      <span v-else 
+                      <span v-else
                         class="relative z-10 text-xl sm:text-2xl md:text-3xl animate-pulse">🌙
                       </span>
                     </div>
@@ -292,11 +292,11 @@ function finishPractice() {
                     </Button>
                   </CardFooter>
                 </Card>
-                
+
                 <!--Next Card Button (after flipping)-->
                 <div v-if="showAnswer" class="flex justify-center">
-                  <Button 
-                    @click="next" 
+                  <Button
+                    @click="next"
                     :disabled="currentIndex === cards.length - 1"
                     class="bg-green-500 border-4 border-green-700 text-white font-bold
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
@@ -308,6 +308,8 @@ function finishPractice() {
                   </Button>
                 </div>
             </div>
+            </div>
+        </div>
         </AppLayout>
     </div>
 </template>

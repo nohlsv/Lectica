@@ -1,15 +1,12 @@
 <script setup lang="ts">
 import TagInput from '@/components/TagInput.vue';
 import Button from '@/components/ui/button/Button.vue';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import Button from '@/components/ui/button/Button.vue';
-import { DialogClose } from '@/components/ui/dialog'
 
 
 interface Props {
@@ -19,7 +16,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const showDeleteModal = ref(false)
 
 const breadcrumbs: BreadcrumbItem[] = [
     {

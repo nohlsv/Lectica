@@ -51,22 +51,6 @@ interface Collection {
     is_public: boolean;
 }
 
-const formattedFileSize = computed(() => {
-    const size = props.fileInfo.size ? Number(props.fileInfo.size) : 0;
-
-    if (isNaN(size) || size <= 0) {
-        return '0 B';
-    }
-    if (size < 1024) {
-        return size + ' B';
-    }
-    if (size < 1024 * 1024) {
-        return (size / 1024).toFixed(2) + ' KB';
-    }
-    return (size / (1024 * 1024)).toFixed(2) + ' MB';
-});
-
-
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Files',
@@ -261,124 +245,6 @@ const addToCollection = async () => {
 <template>
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient p-6">
-
-            <!-- First Container (Opening) -->
-            <div class="flex flex-col justify-between gap-4">
-
-                <!-- Back btn -->
-                <div class="flex items-start mt-3 ml-3">
-                    <Link
-                        href="/files"
-                        class="inline-flex items-center gap-2 px-3 py-1 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
-                             hover:text-red-700 duration-300 font-bold"
-                    >
-                        <ArrowLeftIcon class="h-5 w-5" />
-                        Back
-                    </Link>
-                </div>
-
-                <!-- File Detail part -->
-                <div class="rounded-xl px-10 py-2 text-3xl sm:text-3xl md:text-4xl font-extrabold welcome-banner
-                            shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce justify-center m-auto mb-3 pixel-outline"
-                            style="image-rendering: pixelated;">
-                    <h1 class="text-2xl md:text-2xl font-extrabold text-center">File Details</h1>
-                </div>
-            </div>
-
-
-            <div class="bg-container ml-3 mr-3 mb-3 p-6">
-                <!-- Separator -->
-                <div class="grid gap-6 md:grid-cols-3">
-                    <div class="space-y-4 md:col-span-1">
-
-                        <!-- File Information (1st Major Container)-->
-                        <div>
-                            <h2 class="text-2xl text-center font-semibold mb-3 text-[#fb9e1b] align-middle pixel-outline">{{file.name}}</h2>
-                            <!--<div v-if="file.description" class="mb-3 text-sm">
-                                <p class="text-muted-foreground">{{ file.description }}</p>
-                                </div>
-                            -->
-                            <dl class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
-                                    <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
-                                </div>
-                                <div class="flex justify-between" v-if="fileInfo.size">
-                                    <dt class="text-base text-[#fce085] pixel-outline"> File Size:</dt>
-                                    <dd class="text-right pixel-outline">{{ formattedFileSize }}</dd>
-                                </div>
-                                <!-- <div class="flex justify-between" v-if="fileInfo.lastModified">
-                                    <dt class="text-base text-[#fce085]">Last Modified:</dt>
-                                    <dd class="text-right">{{ fileInfo.lastModified }}</dd>
-                                </div>-->
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Verified:</dt>
-                                    <dd class="text-right pixel-outline">
-                                        <span
-                                            :class="file.verified ? 'text-green-500' : 'text-red-500'"
-                                            class="font-semibold"
-                                        >
-                                            {{ file.verified ? 'Yes' : 'No' }}
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Uploaded by:</dt>
-                                    <dd class="text-right pixel-outline">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
-                                </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Upload Date:</dt>
-                                    <dd class="text-right pixel-outline">{{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
-                                </div>
-                                <div class="pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline mb-2">Tags:</dt>
-                                    <dd class="flex flex-wrap gap-1">
-                                        <span
-                                            v-for="tag in file.tags"
-                                            :key="tag.id"
-                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-[#faa800] text-[#661500]"
-                                        >
-                                            {{ tag.name }}
-                                        </span>
-                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm">
-                                            No tags
-                                        </span>
-                                    </dd>
-                                </div>
-                            </dl>
-
-                           <div class="mt-4 border-t border-[#faa800] py-4 space-y-2">
-                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] pixel-outline mb-5">Study Materials</h3>
-
-                                <!-- Toggle Button -->
-                                <div class="flex justify-center mb-5 duration-300">
-                                <button
-                                    @click="showFlashcards = !showFlashcards"
-                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#993f27] duration-300 pixel-outline border-[#0c0a03] border-2"
-                                >
-                                    <ArrowRightLeftIcon class="h-4 w-4 mr-2 pixel-outline-icon"/>
-                                    {{ showFlashcards ? 'Switch to Quizzes' : 'Switch to Flashcards' }}
-                                </button>
-                                </div>
-
-                                <!-- Toggleable Content -->
-                                <div class="flex flex-col">
-                                    <div class="w-full py-2">
-                                        <div v-if="showFlashcards" key="flashcards">
-                                            <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                                <Link :href="route('files.flashcards.index', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
-                                                        <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        View Flashcards
-                                                    </Button>
-                                                </Link>
-                                                <Link :href="route('files.flashcards.practice', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
-                                                        <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        Practice
-                                                    </Button>
-                                                </Link>
         <div class="flex flex-col gap-6 p-6">
             <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
                 <div class="flex items-center gap-4">
@@ -644,125 +510,18 @@ const addToCollection = async () => {
                                                     />
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div v-else key="quizzes">
-                                            <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                                <Link :href="route('files.quizzes.index', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
-                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        View Quizzes
-                                                    </Button>
-                                                </Link>
-                                                <Link :href="route('files.quizzes.test', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
-                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        Practice
-                                                    </Button>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3">
-                                        <p class="text-white animate-soft-bounce pixel-outline text-sm text-center">Tip: Get your files verified to generate flashcards and quizzes automatically!</p>
-                                    </div>
-                                </div>
-
-                                <!-- Generate flashcards and quiz button -->
-                                <div
-                                        class="flex justify-center"
-                                        v-if="isOwner && file.verified"
-                                    >
-                                        <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
-                                            <DialogTrigger asChild>
-                                               <Button
-                                                    class="sm:w-auto flex items-center justify-center text-sm sm:text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-3 sm:px-5 py-3 sm:py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#e6a03c] hover:to-[#e6b82c] pixel-outline active:scale-95"
-                                                        >
-                                                <PencilIcon class="h-6 w-6 sm:h-8 sm:w-8 text-[#fdf6ee] pixel-outline pixel-outline-icon flex-shrink-0" />
-                                                    <span class="text-center leading-tight">Generate Flashcards & Quizzes</span>
+                                            <DialogFooter>
+                                                <Button :disabled="isGenerating" @click="submitGenerateRequest">
+                                                    {{ isGenerating ? 'Generating...' : 'Generate' }}
                                                 </Button>
-
-                                            </DialogTrigger>
-                                            <DialogContent class="bg-[#8E2C38] text-[#fbd178] border-[#0c0a03] max-w-[95vw] sm:max-w-md">
-                                                <DialogHeader>
-                                                    <DialogTitle class="text-[#F5E3C8] text-xl pixel-outline">Generate Flashcards & Quizzes</DialogTitle>
-                                                </DialogHeader>
-                                                <div class="space-y-4">
-                                                    <div class="flex items-center gap-2 ">
-                                                        <input type="checkbox" v-model="generateOptions.generate_flashcards" id="generate_flashcards" />
-                                                        <label for="generate_flashcards" class="text-sm font-medium">Generate Flashcards</label>
-                                                    </div>
-                                                    <div v-if="generateOptions.generate_flashcards" class="flex items-center gap-2 border-b mb-10 pb-2 border-[#fbd178]">
-                                                        <label for="flashcards_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">Flashcards Count:</label>
-                                                        <Input
-                                                            type="number"
-                                                            id="flashcards_count"
-                                                            v-model="generateOptions.flashcards_count"
-                                                            min="1"
-                                                            max="15"
-                                                            @input="generateOptions.flashcards_count = Math.min(Math.max(generateOptions.flashcards_count, 1), 15)"
-                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
-                                                        />
-                                                    </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="checkbox" v-model="generateOptions.generate_multiple_choice_quizzes" id="generate_multiple_choice_quizzes" />
-                                                        <label for="generate_multiple_choice_quizzes" class="text-sm font-medium">Generate Multiple Choice Quizzes</label>
-                                                    </div>
-                                                    <div v-if="generateOptions.generate_multiple_choice_quizzes" class="flex items-center gap-2">
-                                                        <label for="multiple_choice_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">Multiple Choice Count:</label>
-                                                        <Input
-                                                            type="number"
-                                                            id="multiple_choice_count"
-                                                            v-model="generateOptions.multiple_choice_count"
-                                                            min="1"
-                                                            max="15"
-                                                            @input="generateOptions.multiple_choice_count = Math.min(Math.max(generateOptions.multiple_choice_count, 1), 15)"
-                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
-                                                        />
-                                                    </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="checkbox" v-model="generateOptions.generate_enumeration_quizzes" id="generate_enumeration_quizzes" />
-                                                        <label for="generate_enumeration_quizzes" class="text-sm font-medium">Generate Enumeration Quizzes</label>
-                                                    </div>
-                                                    <div v-if="generateOptions.generate_enumeration_quizzes" class="flex items-center gap-2">
-                                                        <label for="enumeration_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">Enumeration Count:</label>
-                                                        <Input
-                                                            type="number"
-                                                            id="enumeration_count"
-                                                            v-model="generateOptions.enumeration_count"
-                                                            min="1"
-                                                            max="15"
-                                                            @input="generateOptions.enumeration_count = Math.min(Math.max(generateOptions.enumeration_count, 1), 15)"
-                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
-                                                        />
-                                                    </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <input type="checkbox" v-model="generateOptions.generate_true_false_quizzes" id="generate_true_false_quizzes" />
-                                                        <label for="generate_true_false_quizzes" class="text-sm font-medium">Generate True/False Quizzes</label>
-                                                    </div>
-                                                    <div v-if="generateOptions.generate_true_false_quizzes" class="flex items-center gap-2">
-                                                        <label for="true_false_count" class="text-sm font-medium pixel-outline text-[#F5E3C8]">True/False Count:</label>
-                                                        <Input
-                                                            type="number"
-                                                            id="true_false_count"
-                                                            v-model="generateOptions.true_false_count"
-                                                            min="1"
-                                                            max="15"
-                                                            @input="generateOptions.true_false_count = Math.min(Math.max(generateOptions.true_false_count, 1), 15)"
-                                                            class="!bg-[#FFF8F2]/80 !text-[#333333] !border-2 !border-[#0c0a03]"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <DialogFooter>
-                                                    <Button :disabled="isGenerating" @click="submitGenerateRequest" class="border-[#0c0a03] bg-[#10B981] border-2 text-[#fdf6ee] pixel-outline tracking-wide hover:scale-110 duration-300 hover:bg-[#1fe1a2]">
-                                                        {{ isGenerating ? 'Generating...' : 'Generate' }}
-                                                    </Button>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </div>
+                                            </DialogFooter>
+                                        </DialogContent>
+                                    </Dialog>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
                 <!-- File Preview -->
                 <div class="space-y-4 md:col-span-2">
@@ -782,71 +541,47 @@ const addToCollection = async () => {
                                             </a>
                                         </div>
                                     </div>
-                                </div>
-
-                            <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
-                                <!-- PDF Preview -->
-                                <div v-if="isPdf && fileInfo.url" class="w-full h-[500px] border-5 border-[#feaf00] rounded-md">
-                                    <object
-                                        :data="fileInfo.url"
-                                        type="application/pdf"
-                                        class="w-full h-full"
-                                    >
-                                        <div class="flex items-center justify-center h-full bg-accent/20 p-4 text-center">
-                                            <div>
-                                                <FileType2Icon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                                                <p>PDF preview not available in your browser.</p>
-                                                <a :href="fileInfo.url" target="_blank" class="text-primary underline mt-2 inline-block">
-                                                    Open PDF in new tab
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </object>
-                                </div>
-
-                                <!-- Image Preview -->
-                                <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
-                                    <img
-                                        :src="fileInfo.url"
-                                        :alt="file.name"
-                                        class="max-w-full max-h-[500px] object-contain rounded-md"
-                                    />
-                                </div>
-
-                                <!-- Text Preview -->
-                                <div v-else-if="isTxt" class="max-h-[500px] overflow-auto rounded-md bg-accent/50 p-4">
-                                    <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
-                                </div>
-
-                                <!-- Office File Preview -->
-                                <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-[#0c0a03] rounded-md">
-                                    <iframe
-                                        :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
-                                        width="100%"
-                                        height="100%"
-                                        frameborder="0"
-                                    >
-                                        This is an embedded
-                                        <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
-                                        <a target="_blank" href="http://office.com/webapps">Office Online</a>.
-                                    </iframe>
-                                </div>
+                                </object>
                             </div>
 
-                            <!-- Extracted Text Content -->
-                            <div v-if="!isPreviewable && file.content" class="mt-4">
-                                <h3 class="text-md font-medium mb-2 text-[#fce085]">Extracted Text</h3>
-                                <div class="max-h-[400px] overflow-auto rounded-md bg-accent/60 p-4">
-                                    <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
-                                </div>
+                            <!-- Image Preview -->
+                            <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
+                                <img :src="fileInfo.url" :alt="file.name" class="max-h-[500px] max-w-full rounded-md object-contain" />
                             </div>
 
-                            <!-- File Not Found -->
-                            <div v-if="!fileInfo.exists" class="flex items-center justify-center h-[200px] bg-accent/60  rounded-md">
-                                <div class="text-center">
-                                    <FileIcon class="h-10 w-10 mx-auto mb-2 text-muted-foreground" />
-                                    <p>File content not available.</p>
-                                </div>
+                            <!-- Text Preview -->
+                            <div v-else-if="isTxt" class="bg-accent/50 max-h-[500px] overflow-auto rounded-md p-4">
+                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+
+                            <!-- Office File Preview -->
+                            <div v-else-if="isOfficeFile && fileInfo.url" class="border-border h-[500px] w-full rounded-md border">
+                                <iframe
+                                    :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
+                                    width="100%"
+                                    height="100%"
+                                    frameborder="0"
+                                >
+                                    This is an embedded
+                                    <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
+                                    <a target="_blank" href="http://office.com/webapps">Office Online</a>.
+                                </iframe>
+                            </div>
+                        </div>
+
+                        <!-- Extracted Text Content -->
+                        <div v-if="!isPreviewable && file.content" class="mt-4">
+                            <h3 class="text-md mb-2 font-medium">Extracted Text</h3>
+                            <div class="bg-accent/50 max-h-[400px] overflow-auto rounded-md p-4">
+                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                            </div>
+                        </div>
+
+                        <!-- File Not Found -->
+                        <div v-if="!fileInfo.exists" class="bg-accent/20 flex h-[200px] items-center justify-center rounded-md">
+                            <div class="text-center">
+                                <FileIcon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
+                                <p>File content not available.</p>
                             </div>
                         </div>
                     </div>
