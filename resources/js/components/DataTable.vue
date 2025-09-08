@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { type PaginatedData } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import { type PaginatedData } from '@/types';
 
 export interface Column<T> {
     key: keyof T;
@@ -27,34 +27,20 @@ defineSlots<{
 
 <template>
     <div>
-        <table class="table-auto w-full">
+        <table class="w-full table-auto">
             <thead class="border-b">
                 <tr>
-                    <th
-                        v-for="column in columns"
-                        :key="column.key.toString()"
-                        class="text-left p-4 pb-4 border-r border-border last:border-r-0"
-                    >
+                    <th v-for="column in columns" :key="column.key.toString()" class="border-border border-r p-4 pb-4 text-left last:border-r-0">
                         {{ column.label }}
                     </th>
-                    <th v-if="$slots.actions" class="text-left p-4 pb-4">
-                        Actions
-                    </th>
+                    <th v-if="$slots.actions" class="p-4 pb-4 text-left">Actions</th>
                 </tr>
             </thead>
             <tbody v-if="hasData">
                 <tr v-for="(item, index) in data.data" :key="index" class="border-b">
-                    <td
-                        v-for="column in columns"
-                        :key="column.key.toString()"
-                        class="p-4 border-r border-border last:border-r-0"
-                    >
+                    <td v-for="column in columns" :key="column.key.toString()" class="border-border border-r p-4 last:border-r-0">
                         <!-- Check for a custom cell template, use it if available -->
-                        <slot
-                            v-if="$slots['cell-' + column.key.toString()]"
-                            :name="'cell-' + column.key.toString()"
-                            :item="item"
-                        ></slot>
+                        <slot v-if="$slots['cell-' + column.key.toString()]" :name="'cell-' + column.key.toString()" :item="item"></slot>
                         <!-- Default rendering if no custom template -->
                         <template v-else>{{ item[column.key] }}</template>
                     </td>
@@ -65,10 +51,7 @@ defineSlots<{
             </tbody>
             <tbody v-else>
                 <tr>
-                    <td
-                        :colspan="$slots.actions ? columns.length + 1 : columns.length"
-                        class="p-8 text-center text-muted-foreground"
-                    >
+                    <td :colspan="$slots.actions ? columns.length + 1 : columns.length" class="text-muted-foreground p-8 text-center">
                         No data available
                     </td>
                 </tr>
@@ -76,19 +59,16 @@ defineSlots<{
         </table>
 
         <!-- Pagination -->
-        <div
-            v-if="hasData"
-            class="mt-4 flex items-center justify-between border-t border-border px-4 py-3 sm:px-6"
-        >
+        <div v-if="hasData" class="border-border mt-4 flex items-center justify-between border-t px-4 py-3 sm:px-6">
             <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
                 <div>
-                    <p class="text-sm text-muted-foreground">
+                    <p class="text-muted-foreground text-sm">
                         Showing
-                        <span class="font-medium text-foreground">{{ data.from }}</span>
+                        <span class="text-foreground font-medium">{{ data.from }}</span>
                         to
-                        <span class="font-medium text-foreground">{{ data.to }}</span>
+                        <span class="text-foreground font-medium">{{ data.to }}</span>
                         of
-                        <span class="font-medium text-foreground">{{ data.total }}</span>
+                        <span class="text-foreground font-medium">{{ data.total }}</span>
                         results
                     </p>
                 </div>
@@ -100,11 +80,11 @@ defineSlots<{
                             :href="link.url ?? ''"
                             :class="[
                                 link.active
-                                    ? 'z-10 bg-primary text-primary-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring'
+                                    ? 'bg-primary text-primary-foreground focus-visible:outline-ring z-10 focus-visible:outline-2 focus-visible:outline-offset-2'
                                     : 'text-foreground hover:bg-accent focus:outline-offset-0',
-                                'relative inline-flex items-center px-4 py-2 text-sm font-semibold border border-border'
+                                'border-border relative inline-flex items-center border px-4 py-2 text-sm font-semibold',
                             ]"
-                        ><span v-html="link.label"></span>
+                            ><span v-html="link.label"></span>
                         </Link>
                     </nav>
                 </div>

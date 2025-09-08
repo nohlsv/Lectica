@@ -3,34 +3,86 @@
 
     <AppLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                Start New Battle
-            </h2>
+            <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Start New Battle</h2>
         </template>
 
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <form @submit.prevent="submit">
-                            <!-- File Selection -->
+                            <!-- Source Type Selection -->
                             <div class="mb-6">
-                                <label for="file_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Battle Source </label>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                    <button
+                                        type="button"
+                                        @click="form.source_type = 'file'"
+                                        :class="
+                                            form.source_type === 'file'
+                                                ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:bg-blue-900/20'
+                                                : 'border-gray-300 hover:border-blue-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
+                                    >
+                                        <div class="flex items-center">
+                                            <svg class="mr-3 h-5 w-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                ></path>
+                                            </svg>
+                                            <div>
+                                                <h3 class="font-medium">Single File</h3>
+                                                <p class="text-sm text-gray-500">Battle with one specific file</p>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        type="button"
+                                        @click="form.source_type = 'collection'"
+                                        :class="
+                                            form.source_type === 'collection'
+                                                ? 'border-purple-500 bg-purple-50 ring-2 ring-purple-500 dark:bg-purple-900/20'
+                                                : 'border-gray-300 hover:border-purple-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
+                                    >
+                                        <div class="flex items-center">
+                                            <svg class="mr-3 h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                                ></path>
+                                            </svg>
+                                            <div>
+                                                <h3 class="font-medium">Collection</h3>
+                                                <p class="text-sm text-gray-500">Battle with multiple files</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- File Selection (when source_type is 'file') -->
+                            <div v-if="form.source_type === 'file'" class="mb-6">
+                                <label for="file_id" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
                                     Select Your Study File
                                 </label>
                                 <select
                                     id="file_id"
                                     v-model="form.file_id"
-                                    class="w-full border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 focus:border-indigo-500 dark:focus:border-indigo-600 focus:ring-indigo-500 dark:focus:ring-indigo-600 rounded-md shadow-sm"
-                                    required
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
+                                    :required="form.source_type === 'file'"
                                 >
                                     <option value="">Choose a file...</option>
-                                    <option
-                                        v-for="file in files"
-                                        :key="file.id"
-                                        :value="file.id"
-                                    >
-                                        {{ file.title || file.name }}
+                                    <option v-for="file in files" :key="file.id" :value="file.id">
+                                        {{ file.title || file.name }} ({{ file.quizzes_count || 0 }} questions)
                                     </option>
                                 </select>
                                 <div v-if="form.errors.file_id" class="mt-2 text-sm text-red-600">
@@ -38,81 +90,144 @@
                                 </div>
                             </div>
 
+                            <!-- Collection Selection (when source_type is 'collection') -->
+                            <div v-if="form.source_type === 'collection'" class="mb-6">
+                                <label for="collection_id" class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    Select Your Collection
+                                </label>
+                                <div
+                                    v-if="collections.length === 0"
+                                    class="rounded-md border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-800 dark:bg-yellow-900/20"
+                                >
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                        You don't have any collections with files yet.
+                                        <Link :href="route('collections.create')" class="font-medium underline">Create a collection</Link> first.
+                                    </p>
+                                </div>
+                                <select
+                                    v-else
+                                    id="collection_id"
+                                    v-model="form.collection_id"
+                                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
+                                    :required="form.source_type === 'collection'"
+                                >
+                                    <option value="">Choose a collection...</option>
+                                    <option v-for="collection in collections" :key="collection.id" :value="collection.id">
+                                        {{ collection.name }} ({{ collection.file_count }} files, {{ collection.total_questions }} questions)
+                                    </option>
+                                </select>
+                                <div v-if="form.errors.collection_id" class="mt-2 text-sm text-red-600">
+                                    {{ form.errors.collection_id }}
+                                </div>
+                            </div>
+
                             <!-- Difficulty Selection -->
                             <div class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Choose Difficulty
-                                </label>
-                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Difficulty </label>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                     <button
                                         type="button"
                                         @click="selectedDifficulty = 'easy'"
-                                        :class="selectedDifficulty === 'easy'
-                                            ? 'ring-2 ring-green-500 border-green-500'
-                                            : 'border-gray-300 dark:border-gray-600'"
-                                        class="p-4 border rounded-lg text-center hover:border-green-500 transition-colors bg-white dark:bg-gray-700"
+                                        :class="
+                                            selectedDifficulty === 'easy'
+                                                ? 'border-green-500 bg-green-50 ring-2 ring-green-500 dark:bg-green-900/20'
+                                                : 'border-gray-300 hover:border-green-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-center transition-colors"
                                     >
-                                        <div class="text-green-600 text-2xl mb-2">🟢</div>
-                                        <div class="font-semibold text-green-600">Easy</div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400">For beginners</div>
+                                        <div class="mb-2 text-green-500">
+                                            <svg class="mx-auto h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                ></path>
+                                            </svg>
+                                        </div>
+                                        <h3 class="font-medium">Easy</h3>
+                                        <p class="text-sm text-gray-500">Lower HP monsters</p>
                                     </button>
+
                                     <button
                                         type="button"
                                         @click="selectedDifficulty = 'medium'"
-                                        :class="selectedDifficulty === 'medium'
-                                            ? 'ring-2 ring-yellow-500 border-yellow-500'
-                                            : 'border-gray-300 dark:border-gray-600'"
-                                        class="p-4 border rounded-lg text-center hover:border-yellow-500 transition-colors bg-white dark:bg-gray-700"
+                                        :class="
+                                            selectedDifficulty === 'medium'
+                                                ? 'border-yellow-500 bg-yellow-50 ring-2 ring-yellow-500 dark:bg-yellow-900/20'
+                                                : 'border-gray-300 hover:border-yellow-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-center transition-colors"
                                     >
-                                        <div class="text-yellow-600 text-2xl mb-2">🟡</div>
-                                        <div class="font-semibold text-yellow-600">Medium</div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400">Intermediate challenge</div>
+                                        <div class="mb-2 text-yellow-500">
+                                            <svg class="mx-auto h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.464 0L4.35 16.5c-.77.833.192 2.5 1.732 2.5z"
+                                                ></path>
+                                            </svg>
+                                        </div>
+                                        <h3 class="font-medium">Medium</h3>
+                                        <p class="text-sm text-gray-500">Balanced challenge</p>
                                     </button>
+
                                     <button
                                         type="button"
                                         @click="selectedDifficulty = 'hard'"
-                                        :class="selectedDifficulty === 'hard'
-                                            ? 'ring-2 ring-red-500 border-red-500'
-                                            : 'border-gray-300 dark:border-gray-600'"
-                                        class="p-4 border rounded-lg text-center hover:border-red-500 transition-colors bg-white dark:bg-gray-700"
+                                        :class="
+                                            selectedDifficulty === 'hard'
+                                                ? 'border-red-500 bg-red-50 ring-2 ring-red-500 dark:bg-red-900/20'
+                                                : 'border-gray-300 hover:border-red-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-center transition-colors"
                                     >
-                                        <div class="text-red-600 text-2xl mb-2">🔴</div>
-                                        <div class="font-semibold text-red-600">Hard</div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400">Expert level</div>
+                                        <div class="mb-2 text-red-500">
+                                            <svg class="mx-auto h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                                                ></path>
+                                            </svg>
+                                        </div>
+                                        <h3 class="font-medium">Hard</h3>
+                                        <p class="text-sm text-gray-500">High HP monsters</p>
                                     </button>
                                 </div>
                             </div>
 
                             <!-- Monster Selection -->
                             <div v-if="availableMonsters.length > 0" class="mb-6">
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Choose Your Opponent
-                                </label>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Your Opponent </label>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                     <button
                                         type="button"
                                         v-for="monster in availableMonsters"
                                         :key="monster.id"
                                         @click="form.monster_id = monster.id"
-                                        :class="form.monster_id === monster.id
-                                            ? 'ring-2 ring-blue-500 border-blue-500'
-                                            : 'border-gray-300 dark:border-gray-600'"
-                                        class="p-4 border rounded-lg text-center hover:border-blue-500 transition-colors bg-white dark:bg-gray-700"
+                                        :class="
+                                            form.monster_id === monster.id
+                                                ? 'border-indigo-500 ring-2 ring-indigo-500'
+                                                : 'border-gray-300 hover:border-indigo-300 dark:border-gray-600'
+                                        "
+                                        class="rounded-lg border p-4 text-left transition-colors"
                                     >
-                                        <img
-                                            v-if="monster.image_path"
-                                            :src="monster.image_path"
-                                            :alt="monster.name"
-                                            class="w-16 h-16 mx-auto mb-2 rounded-lg object-cover"
-                                        />
-                                        <div class="font-semibold text-gray-900 dark:text-gray-100">
-                                            {{ monster.name }}
-                                        </div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                            HP: {{ monster.hp }} | ATK: {{ monster.attack }} | DEF: {{ monster.defense }}
-                                        </div>
-                                        <div v-if="monster.description" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                            {{ monster.description }}
+                                        <div class="flex items-center">
+                                            <img
+                                                v-if="monster.image_path"
+                                                :src="monster.image_path"
+                                                :alt="monster.name"
+                                                class="mr-3 h-12 w-12 rounded-full"
+                                                @error="$event.target.style.display = 'none'"
+                                            />
+                                            <div>
+                                                <h3 class="font-medium">{{ monster.name }}</h3>
+                                                <p class="text-sm text-gray-500">HP: {{ monster.hp }}</p>
+                                                <p class="text-sm text-gray-500">Attack: {{ monster.attack }}</p>
+                                            </div>
                                         </div>
                                     </button>
                                 </div>
@@ -121,21 +236,35 @@
                                 </div>
                             </div>
 
-                            <!-- Action Buttons -->
+                            <!-- Submit Button -->
                             <div class="flex items-center justify-between">
                                 <Link
                                     :href="route('battles.index')"
-                                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"
+                                    class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
                                 >
-                                    Cancel
+                                    ← Back to Battles
                                 </Link>
+
                                 <button
                                     type="submit"
-                                    :disabled="form.processing || !form.file_id || !form.monster_id"
-                                    class="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-400 text-white font-bold py-2 px-4 rounded"
+                                    :disabled="form.processing || !canSubmit"
+                                    class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-indigo-700 focus:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none active:bg-indigo-900 disabled:opacity-50 dark:focus:ring-offset-gray-800"
                                 >
-                                    <span v-if="form.processing">Starting Battle...</span>
-                                    <span v-else>Start Battle!</span>
+                                    <svg
+                                        v-if="form.processing"
+                                        class="mr-3 -ml-1 h-5 w-5 animate-spin text-white"
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                    >
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path
+                                            class="opacity-75"
+                                            fill="currentColor"
+                                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                        ></path>
+                                    </svg>
+                                    Start Battle
                                 </button>
                             </div>
                         </form>
@@ -147,48 +276,100 @@
 </template>
 
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue'
-import { ref, watch } from 'vue'
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { computed, ref, watch } from 'vue';
 
-const props = defineProps({
-    monsters: Array,
-    files: Array,
-})
+interface Monster {
+    id: number;
+    name: string;
+    hp: number;
+    attack: number;
+    image_path: string;
+    difficulty: string;
+}
+
+interface File {
+    id: number;
+    name: string;
+    title?: string;
+    quizzes_count?: number;
+}
+
+interface Collection {
+    id: number;
+    name: string;
+    file_count: number;
+    total_questions: number;
+}
+
+const props = defineProps<{
+    monsters: Monster[];
+    files: File[];
+    collections: Collection[];
+}>();
+
+const selectedDifficulty = ref('easy');
 
 const form = useForm({
+    source_type: 'file',
     file_id: '',
+    collection_id: '',
     monster_id: '',
-})
+});
 
-const selectedDifficulty = ref('easy')
-const availableMonsters = ref([])
+const availableMonsters = computed(() => {
+    return props.monsters.filter((monster) => monster.difficulty === selectedDifficulty.value);
+});
 
-// Get monsters by difficulty from the config
-const getMonstersByDifficulty = (difficulty) => {
-    return props.monsters.filter(monster => {
-        // Handle both string and numeric difficulty values
-        if (typeof monster.difficulty === 'string') {
-            return monster.difficulty === difficulty
-        }
+const canSubmit = computed(() => {
+    const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
+    return hasSource && form.monster_id && selectedDifficulty.value;
+});
 
-        // Legacy numeric difficulty mapping
-        if (difficulty === 'easy') return monster.difficulty === 1
-        if (difficulty === 'medium') return monster.difficulty === 2 || monster.difficulty === 3
-        if (difficulty === 'hard') return monster.difficulty === 4
-        return false
-    })
-}
+// Reset monster selection when difficulty changes
+watch(selectedDifficulty, () => {
+    form.monster_id = '';
+});
 
-// Watch for difficulty changes
-watch(selectedDifficulty, (newDifficulty) => {
-    availableMonsters.value = getMonstersByDifficulty(newDifficulty)
-    form.monster_id = '' // Reset monster selection when difficulty changes
-}, { immediate: true })
+// Reset file/collection when source type changes
+watch(
+    () => form.source_type,
+    () => {
+        form.file_id = '';
+        form.collection_id = '';
+    },
+);
 
 const submit = () => {
-    // Ensure monster_id is a string
-    form.monster_id = String(form.monster_id)
-    form.post(route('battles.store'))
-}
+    console.log('Form submission started');
+
+    // Prepare form data based on source type
+    const formData = {
+        source_type: form.source_type,
+        monster_id: form.monster_id,
+    };
+
+    // Only include the relevant ID field based on source type
+    if (form.source_type === 'file') {
+        formData.file_id = form.file_id;
+    } else {
+        formData.collection_id = form.collection_id;
+    }
+
+    console.log('Form data:', formData);
+
+    form.transform((data) => formData).post(route('battles.store'), {
+        onStart: () => console.log('Form processing started'),
+        onSuccess: (response) => {
+            console.log('Form submission successful:', response);
+        },
+        onError: (errors) => {
+            console.error('Form submission errors:', errors);
+        },
+        onFinish: () => {
+            console.log('Form processing finished');
+        },
+    });
+};
 </script>

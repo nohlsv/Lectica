@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
 import { type File } from '@/types';
-import { ref } from 'vue';
-import { toast } from 'vue-sonner';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { CheckCircleIcon, FileIcon } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
 
 interface Props {
     files: {
@@ -20,15 +19,19 @@ interface Props {
 const props = defineProps<Props>();
 
 const verifyFile = (fileId: number) => {
-    router.patch(route('files.verify.update', fileId), {}, {
-        onSuccess: () => {
-            toast.success('File verified successfully!');
-            router.reload(); // Refresh the file list after verification
+    router.patch(
+        route('files.verify.update', fileId),
+        {},
+        {
+            onSuccess: () => {
+                toast.success('File verified successfully!');
+                router.reload(); // Refresh the file list after verification
+            },
+            onError: () => {
+                toast.error('Failed to verify the file. Please try again.');
+            },
         },
-        onError: () => {
-            toast.error('Failed to verify the file. Please try again.');
-        },
-    });
+    );
 };
 </script>
 
@@ -92,4 +95,3 @@ const verifyFile = (fileId: number) => {
         </div>
     </AppLayout>
 </template>
-

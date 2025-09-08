@@ -9,9 +9,14 @@ import { ref, computed, watch } from 'vue';
 import { Progress } from '@/components/ui/progress';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { type File , type Quiz } from '@/types';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type File, type Quiz } from '@/types';
+import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
+import { CheckIcon, ChevronLeft, ChevronRight, RotateCcw, XIcon } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -69,8 +74,7 @@ const isCurrentAnswerCorrect = computed(() => {
         const requiredAnswers = [...quiz.answers];
 
         userAnswer.forEach((answer: string) => {
-            if (answer && requiredAnswers.some(reqAns =>
-                reqAns.toLowerCase() === answer.toLowerCase())) {
+            if (answer && requiredAnswers.some((reqAns) => reqAns.toLowerCase() === answer.toLowerCase())) {
                 correctCount++;
             }
         });
@@ -100,12 +104,10 @@ const score = computed(() => {
 
             // Check if user has provided all required answers
             const userAnswersLowerCase = (userAnswer as string[]).map((ans: string) => ans.toLowerCase());
-            const requiredAnswersLowerCase = requiredAnswers.map(ans => ans.toLowerCase());
+            const requiredAnswersLowerCase = requiredAnswers.map((ans) => ans.toLowerCase());
 
             // Check if user has all the required answers
-            const missingAnswers = requiredAnswersLowerCase.filter(
-                reqAns => !userAnswersLowerCase.includes(reqAns)
-            );
+            const missingAnswers = requiredAnswersLowerCase.filter((reqAns) => !userAnswersLowerCase.includes(reqAns));
 
             if (missingAnswers.length === 0) {
                 correctCount++;
@@ -212,10 +214,8 @@ function isAnswerCorrect(quiz: Quiz, userAnswer: any) {
     } else if (quiz.type === 'enumeration') {
         const requiredAnswers = [...quiz.answers];
         const userAnswersLowerCase = (userAnswer as string[]).map((ans: string) => ans.toLowerCase());
-        const requiredAnswersLowerCase = requiredAnswers.map(ans => ans.toLowerCase());
-        const missingAnswers = requiredAnswersLowerCase.filter(
-            reqAns => !userAnswersLowerCase.includes(reqAns)
-        );
+        const requiredAnswersLowerCase = requiredAnswers.map((ans) => ans.toLowerCase());
+        const missingAnswers = requiredAnswersLowerCase.filter((reqAns) => !userAnswersLowerCase.includes(reqAns));
         return missingAnswers.length === 0;
     }
     return false;
@@ -239,40 +239,47 @@ function finishQuiz() {
         })
         .filter(Boolean);
 
-    axios.post(route('practice-records.store'), {
-        file_id: props.file.id,
-        type: 'quiz',
-        correct_answers: score.value.correct,
-        total_questions: score.value.total,
-        mistakes,
-    }).then(() => {
-        toast.success('Quiz results saved successfully!');
-    }).catch(() => {
-        toast.error('Failed to save quiz results.');
-    });
+    axios
+        .post(route('practice-records.store'), {
+            file_id: props.file.id,
+            type: 'quiz',
+            correct_answers: score.value.correct,
+            total_questions: score.value.total,
+            mistakes,
+        })
+        .then(() => {
+            toast.success('Quiz results saved successfully!');
+        })
+        .catch(() => {
+            toast.error('Failed to save quiz results.');
+        });
 }
 
 // Add or remove enumeration answer fields as needed
-watch(() => currentQuiz.value, (newQuiz) => {
-    if (newQuiz && newQuiz.type === 'enumeration') {
-        const index = currentIndex.value;
-        const answersCount = newQuiz.answers.length;
+watch(
+    () => currentQuiz.value,
+    (newQuiz) => {
+        if (newQuiz && newQuiz.type === 'enumeration') {
+            const index = currentIndex.value;
+            const answersCount = newQuiz.answers.length;
 
-        // Initialize if not already
-        if (!userAnswers.value[index] || !Array.isArray(userAnswers.value[index])) {
-            userAnswers.value[index] = Array(answersCount).fill('');
-        }
-
-        // Adjust the array length if needed
-        if (userAnswers.value[index].length < answersCount) {
-            while (userAnswers.value[index].length < answersCount) {
-                userAnswers.value[index].push('');
+            // Initialize if not already
+            if (!userAnswers.value[index] || !Array.isArray(userAnswers.value[index])) {
+                userAnswers.value[index] = Array(answersCount).fill('');
             }
-        } else if (userAnswers.value[index].length > answersCount) {
-            userAnswers.value[index] = userAnswers.value[index].slice(0, answersCount);
+
+            // Adjust the array length if needed
+            if (userAnswers.value[index].length < answersCount) {
+                while (userAnswers.value[index].length < answersCount) {
+                    userAnswers.value[index].push('');
+                }
+            } else if (userAnswers.value[index].length > answersCount) {
+                userAnswers.value[index] = userAnswers.value[index].slice(0, answersCount);
+            }
         }
-    }
-}, { immediate: true });
+    },
+    { immediate: true },
+);
 </script>
 
 <template>

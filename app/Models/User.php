@@ -28,6 +28,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'program_id',
         'year_of_study',
         'user_role',
+        'level',
+        'experience',
+        'experience_to_next_level',
     ];
 
     /**
@@ -50,6 +53,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'level' => 'integer',
+            'experience' => 'integer',
+            'experience_to_next_level' => 'integer',
         ];
     }
 
@@ -92,5 +98,132 @@ class User extends Authenticatable implements MustVerifyEmail
     public function isAdmin(): bool
     {
         return $this->is_admin === true;
+    }
+
+    /**
+     * Get the battles for this user.
+     */
+    public function battles(): HasMany
+    {
+        return $this->hasMany(Battle::class);
+    }
+
+    /**
+     * Get the quests assigned to this user.
+     */
+    public function quests(): BelongsToMany
+    {
+        return $this->belongsToMany(Quest::class, 'user_quests')
+                    ->withPivot(['progress', 'target', 'is_completed', 'completed_at', 'assigned_date'])
+                    ->withTimestamps();
+    }
+
+    /**
+     * Get active (incomplete) quests for this user.
+     */
+    public function activeQuests(): BelongsToMany
+    {
+        return $this->quests()->wherePivot('is_completed', false);
+    }
+
+    /**
+     * Get completed quests for this user.
+     */
+    public function completedQuests(): BelongsToMany
+    {
+        return $this->quests()->wherePivot('is_completed', true);
+    }
+
+    /**
+     * Get today's quests for this user.
+     */
+    public function todaysQuests(): BelongsToMany
+    {
+        return $this->quests()->wherePivot('assigned_date', today());
+    }
+
+    /**
+     * Add experience and handle level ups.
+     */
+    public function addExperience(int $amount): void
+    {
+        $this->experience += $amount;
+
+        while ($this->experience >= $this->experience_to_next_level) {
+            $this->levelUp();
+        }
+
+        $this->save();
+    }
+
+    /**
+     * Level up the user.
+     */
+    private function levelUp(): void
+    {
+        $this->experience -= $this->experience_to_next_level;
+        $this->level++;
+
+        // Calculate XP needed for next level (increases by 20% each level)
+        $this->experience_to_next_level = (int) round($this->experience_to_next_level * 1.2);
+    }
+
+    /**
+     * Get experience progress percentage for current level.
+     */
+    public function getExperienceProgress(): float
+    {
+        if ($this->experience_to_next_level == 0) {
+            return 100;
+        }
+
+        return round(($this->experience / $this->experience_to_next_level) * 100, 1);
+    }
+
+    /**
+     * Get the user's level badge color.
+     */
+    public function getLevelBadgeColor(): string
+    {
+        return match(true) {
+            $this->level >= 50 => 'purple',
+            $this->level >= 25 => 'red',
+            $this->level >= 10 => 'yellow',
+            $this->level >= 5 => 'blue',
+            default => 'green'
+        };
+    }
+
+    /**
+     * Get collections owned by this user.
+     */
+    public function collections(): HasMany
+    {
+        return $this->hasMany(Collection::class);
+    }
+
+    /**
+     * Get collections favorited by this user.
+     */
+    public function favoritedCollections(): BelongsToMany
+    {
+        return $this->belongsToMany(Collection::class, 'collection_favorites')
+            ->withTimestamps();
+    }
+
+    /**
+     * Get original collections created by this user (not copies).
+     */
+    public function originalCollections(): HasMany
+    {
+        return $this->hasMany(Collection::class)->where('is_original', true);
+    }
+
+    /**
+     * Get collections copied by this user.
+     */
+    public function copiedCollections(): HasMany
+    {
+        return $this->hasMany(Collection::class)->where('is_original', false);
     }
 }

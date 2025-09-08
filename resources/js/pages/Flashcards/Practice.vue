@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ref, computed } from 'vue';
-import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from 'lucide-vue-next';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { type File, type Flashcard } from '@/types';
+import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
+import { ChevronLeft, ChevronRight, RotateCcw, Shuffle } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
 const showAnswer = ref(false);
@@ -90,19 +90,22 @@ function recordAnswer(index: number, answer: string) {
 }
 
 function storePracticeRecord(correctAnswers: number, totalQuestions: number, mistakes: any[]) {
-    axios.post(route('practice-records.store'), {
-        file_id: props.file.id,
-        type: 'flashcard',
-        correct_answers: correctAnswers,
-        total_questions: totalQuestions,
-        mistakes,
-    }).then(() => {
-        toast.success('Practice record saved successfully!');
-    }).catch((error) => {
-        toast.error('Failed to save practice record.', {
-            description: error.response?.data.message || 'An error occurred.',
+    axios
+        .post(route('practice-records.store'), {
+            file_id: props.file.id,
+            type: 'flashcard',
+            correct_answers: correctAnswers,
+            total_questions: totalQuestions,
+            mistakes,
+        })
+        .then(() => {
+            toast.success('Practice record saved successfully!');
+        })
+        .catch((error) => {
+            toast.error('Failed to save practice record.', {
+                description: error.response?.data.message || 'An error occurred.',
+            });
         });
-    });
 }
 
 function finishPractice() {
@@ -129,7 +132,7 @@ function finishPractice() {
 
 <!-- Flashcard Template -->
 <template>
-  <Head title="Practice Flashcards" />
+    <Head title="Practice Flashcards" />
     <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
       <AppLayout :breadcrumbs="breadcrumbs">
         <div 
@@ -279,7 +282,7 @@ function finishPractice() {
                       <ChevronLeft class="h-4 w-4 mr-2" />
                       Previous
                     </Button>
-                    <!--Skips to next flashcard-->
+                    <!--Reset Button (from shuffle)-->
                     <Button
                       @click="next"
                       variant="default"
@@ -305,8 +308,6 @@ function finishPractice() {
                   </Button>
                 </div>
             </div>
-        </div>
-    </div>
-  </AppLayout>
+        </AppLayout>
     </div>
 </template>

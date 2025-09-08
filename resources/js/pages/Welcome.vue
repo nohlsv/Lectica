@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 
-
 const props = defineProps();
 </script>
 
@@ -14,33 +13,17 @@ const props = defineProps();
     <div class="flex min-h-screen w-full flex-col items-center justify-center bg-lectica p-6 lg:p-8">
         <header class="mb-6 w-full max-w-[335px] text-sm lg:max-w-4xl">
             <div class="flex items-center justify-between">
-
                 <!-- Logo and Name on the left -->
                 <!--<div class="flex items-center gap-2">-->
-                    <!--<AppLogoIcon className="h-10 w-10" />-->
-                    <!--<span class="text-xl font-bold">Lectica</span>-->
+                <!--<AppLogoIcon className="h-10 w-10" />-->
+                <!--<span class="text-xl font-bold">Lectica</span>-->
                 <!--</div>-->
 
                 <!-- Navigation on the right -->
-<!--                    <template v-else>-->
-<!--                        <Link-->
-<!--                            :href="route('login')"-->
-<!--                            class="inline-block rounded-sm border border-transparent px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#19140035] dark:text-[#EDEDEC] dark:hover:border-[#3E3E3A]"-->
-<!--                        >-->
-<!--                            Log in-->
-<!--                        </Link>-->
-<!--                        <Link-->
-<!--                            :href="route('register')"-->
-<!--                            class="inline-block rounded-sm border border-[#19140035] px-5 py-1.5 text-sm leading-normal text-[#1b1b18] hover:border-[#1915014a] dark:border-[#3E3E3A] dark:text-[#EDEDEC] dark:hover:border-[#62605b]"-->
-<!--                        >-->
-<!--                            Register-->
-<!--                        </Link>-->
-<!--                    </template>-->
             </div>
         </header>
-        <div class="duration-750 starting:opacity-0 flex w-full items-center justify-center opacity-100 transition-opacity lg:grow">
+        <div class="flex w-full items-center justify-center opacity-100 transition-opacity duration-750 lg:grow starting:opacity-0">
             <main class="flex items-center justify-center">
-
                 <!-- fallback for the border in the middle
                  class="flex-1 rounded-bl-lg rounded-br-lg bg-white p-6 pb-12 text-center text-[13px] leading-[20px] shadow-[inset_0px_0px_0px_1px_rgba(26,26,0,0.16)] dark:bg-[#161615] dark:text-[#EDEDEC] dark:shadow-[inset_0px_0px_0px_1px_#fffaed2d] lg:rounded-br-none lg:rounded-tl-lg lg:p-20
                  -->

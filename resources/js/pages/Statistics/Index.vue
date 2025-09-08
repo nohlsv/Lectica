@@ -1,17 +1,8 @@
 <script setup lang="ts">
-import { onMounted, nextTick } from 'vue';
-import {
-    Chart,
-    BarController,
-    BarElement,
-    CategoryScale,
-    LinearScale,
-    PieController,
-    ArcElement,
-    ChartTypeRegistry
-} from 'chart.js';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import { ArcElement, BarController, BarElement, CategoryScale, Chart, ChartTypeRegistry, LinearScale, PieController } from 'chart.js';
+import { nextTick, onMounted } from 'vue';
 
 // Register required Chart.js components
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, PieController, ArcElement);
@@ -44,16 +35,23 @@ const renderChart = (id: string, type: keyof ChartTypeRegistry, data: any, optio
 onMounted(async () => {
     await nextTick(); // Ensure DOM is fully rendered before accessing canvas elements
 
-    renderChart('filesPerProgramChart', 'bar', {
-        labels: props.statistics.most_files_per_program.map((p) => p.name),
-        datasets: [{
-            label: 'Files per Program',
-            data: props.statistics.most_files_per_program.map((p) => p.files_count),
-            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-            borderColor: 'rgba(75, 192, 192, 1)',
-            borderWidth: 1,
-        }],
-    }, { responsive: true });
+    renderChart(
+        'filesPerProgramChart',
+        'bar',
+        {
+            labels: props.statistics.most_files_per_program.map((p) => p.name),
+            datasets: [
+                {
+                    label: 'Files per Program',
+                    data: props.statistics.most_files_per_program.map((p) => p.files_count),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                },
+            ],
+        },
+        { responsive: true },
+    );
 
     // renderChart('tagsUsageChart', 'pie', {
     //     labels: props.statistics.most_used_tags.map((t) => t.name),

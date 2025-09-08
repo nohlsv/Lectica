@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\BattleStatus;
 use App\Models\Battle;
-use App\Monster;
+use App\Models\Monster;
 use App\Models\File;
 use App\Models\Quiz;
+use App\Models\Collection;
+use App\Services\BattleService;
+use App\Services\QuestService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -13,22 +17,23 @@ use Illuminate\Support\Facades\DB;
 
 class BattleController extends Controller
 {
+    public function __construct(
+        private BattleService $battleService,
+        private QuestService $questService
+    ) {}
+
     /**
      * Display a listing of battles.
      */
     public function index()
     {
-        $battles = Battle::with(['file', 'user'])
+        $battles = Battle::with(['file', 'user', 'monster'])
             ->where('user_id', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         return Inertia::render('Battles/Index', [
-            'battles' => $battles->through(function ($battle) {
-                $monster = Monster::find($battle->monster_id);
-                $battle->monster = $monster;
-                return $battle;
-            })
+            'battles' => $battles
         ]);
     }
 
@@ -39,10 +44,15 @@ class BattleController extends Controller
     {
         $monsters = Monster::all();
         $files = File::where('user_id', Auth::id())->get();
+        $collections = Collection::where('user_id', Auth::id())
+            ->with(['files'])
+            ->where('file_count', '>', 0)
+            ->get();
 
         return Inertia::render('Battles/Create', [
             'monsters' => $monsters,
-            'files' => $files
+            'files' => $files,
+            'collections' => $collections
         ]);
     }
 
@@ -52,8 +62,10 @@ class BattleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'monster_id' => 'required|string',
-            'file_id' => 'required|exists:files,id',
+            'monster_id' => 'required|integer|exists:monsters,id',
+            'source_type' => 'required|in:file,collection',
+            'file_id' => 'required_if:source_type,file|exists:files,id',
+            'collection_id' => 'required_if:source_type,collection|exists:collections,id',
         ]);
 
         $monster = Monster::find($request->monster_id);
@@ -61,25 +73,43 @@ class BattleController extends Controller
             return back()->withErrors(['monster_id' => 'Invalid monster selected.']);
         }
 
-        $file = File::findOrFail($request->file_id);
+        $file = null;
+        $collection = null;
+        $quizCount = 0;
 
-        // Check if user owns the file
-        if ($file->user_id !== Auth::id()) {
-            abort(403, 'You can only battle with your own files.');
-        }
+        if ($request->source_type === 'file') {
+            $file = File::findOrFail($request->file_id);
 
-        // Check if file has quizzes
-        $quizCount = Quiz::where('file_id', $file->id)->count();
-        if ($quizCount === 0) {
-            return back()->withErrors(['file_id' => 'This file has no quizzes. Please generate quizzes first.']);
+            // Check if user owns the file
+            if ($file->user_id !== Auth::id()) {
+                abort(403, 'You can only battle with your own files.');
+            }
+
+            $quizCount = Quiz::where('file_id', $file->id)->count();
+            if ($quizCount === 0) {
+                return back()->withErrors(['file_id' => 'This file has no quizzes. Please generate quizzes first.']);
+            }
+        } else {
+            $collection = Collection::findOrFail($request->collection_id);
+
+            // Check if user owns the collection
+            if ($collection->user_id !== Auth::id()) {
+                abort(403, 'You can only battle with your own collections.');
+            }
+
+            $quizCount = $collection->getTotalQuizzesCount();
+            if ($quizCount === 0) {
+                return back()->withErrors(['collection_id' => 'This collection has no quizzes. Please add files with quizzes first.']);
+            }
         }
 
         $battle = Battle::create([
             'user_id' => Auth::id(),
             'monster_id' => $request->monster_id,
-            'file_id' => $file->id,
+            'file_id' => $file?->id,
+            'collection_id' => $collection?->id,
             'status' => 'active',
-            'player_hp' => 100, // Default player HP
+            'player_hp' => 100,
             'monster_hp' => $monster->hp,
             'correct_answers' => 0,
             'total_questions' => 0
@@ -99,9 +129,10 @@ class BattleController extends Controller
             abort(403, 'You can only view your own battles.');
         }
 
-        $file = File::find($battle->file_id);
-        $quizzes = Quiz::where('file_id', $file->id)->get();
-        $monster = Monster::find($battle->monster_id);
+        // Load the battle with its relationships
+        $battle->load(['monster', 'file', 'collection']);
+
+        $quizzes = $battle->getAvailableQuizzes();
 
         $quizTypes = [
             'multiple_choice' => 'Multiple Choice',
@@ -110,13 +141,14 @@ class BattleController extends Controller
         ];
 
         // If battle is active and has quizzes, show the battle interface
-        if ($battle->status === 'active' && $quizzes->count() > 0) {
+        if ($battle->status === BattleStatus::ACTIVE && $quizzes->count() > 0) {
             return Inertia::render('Battles/BattleQuiz', [
                 'battle' => array_merge($battle->toArray(), [
-                    'monster' => $monster,
-                    'user' => Auth::user()
+                    'monster' => $battle->monster,
+                    'user' => Auth::user(),
+                    'source_name' => $battle->getSourceName()
                 ]),
-                'file' => $file,
+                'file' => $battle->file ?: $battle->collection,
                 'quizzes' => $quizzes,
                 'quizTypes' => $quizTypes,
             ]);
@@ -125,8 +157,8 @@ class BattleController extends Controller
         // Otherwise show the battle results/summary
         return Inertia::render('Battles/Show', [
             'battle' => $battle,
-            'monster' => $monster,
-            'file' => $file,
+            'monster' => $battle->monster,
+            'file' => $battle->file ?: $battle->collection,
             'quizTypes' => $quizTypes,
         ]);
     }
@@ -226,6 +258,8 @@ class BattleController extends Controller
             abort(403, 'You can only complete your own battles.');
         }
 
+        $user = Auth::user();
+
         // Update battle with final results
         $battle->update([
             'player_hp' => $request->player_hp,
@@ -235,7 +269,21 @@ class BattleController extends Controller
             'status' => $request->status === 'victory' ? 'won' : 'lost',
         ]);
 
-        return response()->json(['success' => true]);
+        // Award XP based on battle performance
+        $baseXP = $request->status === 'victory' ? 50 : 25; // Victory gives more XP
+        $accuracyBonus = round(($request->correct_answers / max(1, $request->total_questions)) * 20); // Up to 20 bonus XP for accuracy
+        $totalXP = $baseXP + $accuracyBonus;
+
+        $user->addExperience($totalXP);
+
+        // Update quest progress for completing a battle
+        $this->questService->checkQuestCompletion($user, 'battle');
+
+        return response()->json([
+            'success' => true,
+            'xp_gained' => $totalXP,
+            'new_level' => $user->level
+        ]);
     }
 
     /**
@@ -283,16 +331,11 @@ class BattleController extends Controller
             : 0;
 
         // Get recent battles
-        $recentBattles = Battle::with(['file'])
+        $recentBattles = Battle::with(['file', 'monster'])
             ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->limit(5)
-            ->get()
-            ->map(function ($battle) {
-                $monster = Monster::find($battle->monster_id);
-                $battle->monster = $monster;
-                return $battle;
-            });
+            ->get();
 
         return Inertia::render('Battles/Stats', [
             'stats' => $stats,

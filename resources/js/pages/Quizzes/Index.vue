@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Pencil, Trash2, Plus, ListChecks } from 'lucide-vue-next';
-import { router } from '@inertiajs/vue3';
-import { computed, ref } from 'vue';
-import { type File , type Quiz } from '@/types';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type File, type Quiz } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ListChecks, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Props {
     file: File;
@@ -48,6 +47,17 @@ const isOwner = computed(() => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8 bg-gradient">
+            <!-- Breadcrumbs -->
+            <div class="text-muted-foreground flex items-center text-sm">
+                <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
+                    <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
+                        {{ crumb.title }}
+                    </Link>
+                    <span v-else class="text-foreground font-medium">{{ crumb.title }}</span>
+
+                    <span v-if="index < breadcrumbs.length - 1" class="mx-2">/</span>
+                </div>
+            </div>
             <div class="flex justify-between">
                 <div class="flex flex-wrap space-x-2">
                     <Link :href="route('files.show', file.id)">

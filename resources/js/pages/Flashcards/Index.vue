@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Pencil, Trash2, Plus, BookOpen } from 'lucide-vue-next';
-import { router } from '@inertiajs/vue3';
-import { type File, type Flashcard } from '@/types';
-import { computed, ref } from 'vue';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type File, type Flashcard } from '@/types';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { BookOpen, Pencil, Plus, Trash2 } from 'lucide-vue-next';
+import { computed, ref } from 'vue';
 
 interface Props {
     file: File;

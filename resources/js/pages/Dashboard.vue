@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import FileCard from '@/components/FileCard.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import FileCard from '@/components/FileCard.vue';
-import { TrendingUpIcon, UsersIcon, TagsIcon, GraduationCapIcon} from 'lucide-vue-next';
+import { GraduationCapIcon, TagsIcon, TrendingUpIcon, UsersIcon } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { reactive } from "vue";
 
@@ -45,7 +45,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 // Check if there are any recommendations across all categories
 const hasAnyRecommendations = computed(() => {
-    return Object.values(props.recommendations).some(files => files && files.length > 0);
+    return Object.values(props.recommendations).some((files) => files && files.length > 0);
 });
 
 // Map recommendation categories to icons and titles
@@ -54,26 +54,26 @@ const recommendationCategories = [
         key: 'trending',
         title: 'Trending Files',
         icon: TrendingUpIcon,
-        description: 'Popular files with the most stars this week'
+        description: 'Popular files with the most stars this week',
     },
     {
         key: 'program',
         title: 'Files From Your Program',
         icon: GraduationCapIcon,
-        description: 'Files shared by students in your program'
+        description: 'Files shared by students in your program',
     },
     {
         key: 'collaborative',
         title: 'You Might Like These',
         icon: UsersIcon,
-        description: 'Based on files you\'ve starred'
+        description: "Based on files you've starred",
     },
     {
         key: 'contentBased',
         title: 'Similar Content',
         icon: TagsIcon,
-        description: 'Files with similar tags to ones you\'ve viewed'
-    }
+        description: "Files with similar tags to ones you've viewed",
+    },
 ];
 
 // Adjust quick actions and information based on user role
@@ -87,8 +87,9 @@ const isStudent = computed(() => user.user_role === 'student');
         <AppLayout :breadcrumbs="breadcrumbs">
             <div class="flex w-full flex-1 flex-col max-h-[300px] gap-4 pt-4 px-4 pb-0 bg-lectica">
                 <!--Welcome Section-->
-                <div class="mb-10 w-full min-h-[215px] rounded-xl
-                        flex flex-col sm:flex-row justify-center items-center gap-6 p-6 text-center sm:text-left">
+                <div
+                    class="mb-10 flex min-h-[215px] w-full flex-col items-center justify-center gap-6 rounded-xl p-6 text-center sm:flex-row sm:text-left"
+                >
                     <!--Avatar-->
                     <div class="relative flex flex-col items-center gap-2">
                         <img src="https://cdn130.picsart.com/248878984010212.png"
@@ -100,14 +101,21 @@ const isStudent = computed(() => user.user_role === 'student');
                     </div>
                     <!--Greeting-->
                     <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold text-white
-                                [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">Welcome to Lectica,</h1>
-                    <!--Name-->
-                        <div class="flex justify-center sm:justify-start items-center gap-2">
-                            <p class="bg-black text-yellow-300 px-4 py-2 text-2xl sm:text-3xl md:text-4xl font-extrabold font-pixel
-                                    border-2 border-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce inline-block">
-                                    {{ user.first_name }} {{ user.last_name }}</p>
-                            <p class="text-4xl sm:text-5xl md:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">!</p>
+                        <h1 class="text-2xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-3xl">
+                            Welcome to Lectica,
+                        </h1>
+                        <!--Name-->
+                        <div class="flex items-center justify-center gap-2 sm:justify-start">
+                            <p
+                                class="font-pixel animate-soft-bounce inline-block border-2 border-white bg-black px-4 py-2 text-2xl font-extrabold text-yellow-300 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-3xl md:text-4xl"
+                            >
+                                {{ user.first_name }} {{ user.last_name }}
+                            </p>
+                            <p
+                                class="text-4xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-5xl md:text-6xl"
+                            >
+                                !
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -135,7 +143,7 @@ const isStudent = computed(() => user.user_role === 'student');
                             </div>
                         <span class="font-medium">Verify Files</span>
                         </Link>
-
+                    </div>
                         <Link
                             v-if="isFacultyOrAdmin"
                             href="/statistics"
@@ -198,7 +206,6 @@ const isStudent = computed(() => user.user_role === 'student');
                             <span class="font-medium">Game Lobby</span>
                         </Link>
                     </div>
-                </div>
 
                 <!-- Recommendations Section -->
                 <div class="mb-10 relative">
@@ -231,19 +238,30 @@ const isStudent = computed(() => user.user_role === 'student');
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Message when no recommendations are available -->
-                    <div v-if="!hasAnyRecommendations" class="flex flex-col items-center justify-center p-8 text-center">
-                        <div class="rounded-full bg-muted p-3 mb-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-muted-foreground h-6 w-6">
-                                <path d="M8 17l4 4 4-4"></path>
-                                <path d="M12 12v9"></path>
-                                <path d="M20 8h-7"></path>
-                                <path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"></path>
-                            </svg>
+                        <!-- Message when no recommendations are available -->
+                        <div v-if="!hasAnyRecommendations" class="flex flex-col items-center justify-center p-8 text-center">
+                            <div class="bg-muted mb-3 rounded-full p-3">
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    width="24"
+                                    height="24"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    stroke-width="2"
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="text-muted-foreground h-6 w-6"
+                                >
+                                    <path d="M8 17l4 4 4-4"></path>
+                                    <path d="M12 12v9"></path>
+                                    <path d="M20 8h-7"></path>
+                                    <path d="M18 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8"></path>
+                                </svg>
+                            </div>
+                            <p class="text-muted-foreground">No recommendations available at the moment. Check back later!</p>
                         </div>
-                        <p class="text-muted-foreground">No recommendations available at the moment. Check back later!</p>
                     </div>
                 
                 </div>

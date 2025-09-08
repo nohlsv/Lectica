@@ -1,22 +1,16 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import InputError from '@/components/InputError.vue';
-import { ref, watch } from 'vue';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { type File, type Quiz } from '@/types';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Plus, Trash2 } from 'lucide-vue-next';
-import { type File , type Quiz } from '@/types';
+import { ref, watch } from 'vue';
 
 interface Props {
     file: File;
@@ -33,10 +27,12 @@ const form = useForm({
     answers: props.quiz.answers || [],
 });
 
-const quizTypeOptions = ref(Object.entries(props.quizTypes).map(([value, label]) => ({
-    value,
-    label,
-})));
+const quizTypeOptions = ref(
+    Object.entries(props.quizTypes).map(([value, label]) => ({
+        value,
+        label,
+    })),
+);
 
 // Ensure options is an array with at least 2 items for multiple choice
 if (props.quiz.type === 'multiple_choice' && (!form.options || form.options.length < 2)) {
@@ -71,21 +67,24 @@ function removeAnswer(index: number) {
 }
 
 // Watch for type changes and update form accordingly
-watch(() => form.type, (newType) => {
-    if (newType === 'multiple_choice') {
-        form.options = form.options.length < 2 ? ['', ''] : form.options;
-        form.answers = form.answers.length ? [form.answers[0]] : [''];
-    } else if (newType === 'enumeration') {
-        form.options = [];
-        form.answers = form.answers.length < 1 ? [''] : form.answers;
-    } else if (newType === 'true_false') {
-        form.options = [];
-        form.answers = form.answers.length ? [form.answers[0]] : ['true'];
-        if (!['true', 'false'].includes(form.answers[0])) {
-            form.answers = ['true'];
+watch(
+    () => form.type,
+    (newType) => {
+        if (newType === 'multiple_choice') {
+            form.options = form.options.length < 2 ? ['', ''] : form.options;
+            form.answers = form.answers.length ? [form.answers[0]] : [''];
+        } else if (newType === 'enumeration') {
+            form.options = [];
+            form.answers = form.answers.length < 1 ? [''] : form.answers;
+        } else if (newType === 'true_false') {
+            form.options = [];
+            form.answers = form.answers.length ? [form.answers[0]] : ['true'];
+            if (!['true', 'false'].includes(form.answers[0])) {
+                form.answers = ['true'];
+            }
         }
-    }
-});
+    },
+);
 
 function submit() {
     form.put(route('files.quizzes.update', [props.file.id, props.quiz.id]));
