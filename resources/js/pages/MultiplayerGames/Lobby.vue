@@ -652,6 +652,7 @@ const form = useForm({
     collection_id: null,
     monster_id: null,
     game_mode: 'pve',
+    pvp_mode: 'accuracy', // 'accuracy' or 'hp'
 });
 
 // Game joining state
@@ -660,9 +661,10 @@ const joiningGameId = ref<number | null>(null);
 // Form validation
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
-    // For PVP mode, monster is not required; for PVE mode, monster is required
     const hasRequiredMonster = form.game_mode === 'pvp' || (form.game_mode === 'pve' && form.monster_id);
-    return hasSource && hasRequiredMonster;
+    // PvP mode must have pvp_mode selected
+    const hasPvpMode = form.game_mode !== 'pvp' || !!form.pvp_mode;
+    return hasSource && hasRequiredMonster && hasPvpMode;
 });
 
 // Reset file/collection when source type changes
