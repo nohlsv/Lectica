@@ -28,8 +28,15 @@ class PracticeRecordController extends Controller
 	{
 		$this->authorize('view', $practiceRecord);
 
+		// Fetch all previous records for the same file and user, ordered by creation date
+		$progressRecords = PracticeRecord::where('file_id', $practiceRecord->file_id)
+			->where('user_id', $practiceRecord->user_id)
+			->orderBy('created_at')
+			->get(['id', 'created_at', 'correct_answers', 'total_questions']);
+
 		return Inertia::render('PracticeRecords/Show', [
 			'record' => $practiceRecord->load('file'),
+			'progressRecords' => $progressRecords,
 		]);
 	}
 
