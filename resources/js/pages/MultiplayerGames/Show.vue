@@ -91,6 +91,12 @@
                                     {{ getStatusLabel() }}
                                 </span>
                             </div>
+                            <div v-if="game.game_mode === 'pvp'" class="flex justify-between">
+                                <span class="text-gray-600 dark:text-gray-400">PvP Win Condition:</span>
+                                <span class="font-medium text-gray-900 dark:text-gray-100">
+                                    {{ game.pvp_mode === 'hp' ? 'Most HP Wins' : 'Most Accurate Wins' }}
+                                </span>
+                            </div>
                         </div>
                     </div>
 
@@ -297,6 +303,7 @@ interface Game {
     total_questions_p2?: number;
     created_at: string;
     updated_at: string;
+    pvp_mode?: string; // <-- Add pvp_mode
 }
 
 const props = defineProps<{
@@ -323,41 +330,68 @@ const getGameResult = () => {
     }
 
     if (props.game.game_mode === 'pvp') {
-        // PvP mode - accuracy-based results
+        // PvP mode - use pvp_mode
         const isPlayerOne = currentUser.value.id === props.playerOne.id;
-        const myAccuracy = getAccuracy(
-            isPlayerOne ? props.game.correct_answers_p1 : props.game.correct_answers_p2,
-            isPlayerOne ? props.game.total_questions_p1 : props.game.total_questions_p2,
-        );
-        const opponentAccuracy = getAccuracy(
-            isPlayerOne ? props.game.correct_answers_p2 : props.game.correct_answers_p1,
-            isPlayerOne ? props.game.total_questions_p2 : props.game.total_questions_p1,
-        );
-
-        const myAccuracyNum = parseFloat(myAccuracy);
-        const opponentAccuracyNum = parseFloat(opponentAccuracy);
-
-        if (myAccuracyNum > opponentAccuracyNum) {
-            return {
-                type: 'victory',
-                title: 'Victory!',
-                description: `You won with ${myAccuracy}% accuracy vs opponent's ${opponentAccuracy}%!`,
-                textColor: 'text-green-800 dark:text-green-300',
-            };
-        } else if (myAccuracyNum < opponentAccuracyNum) {
-            return {
-                type: 'defeat',
-                title: 'Defeat',
-                description: `Your opponent won with ${opponentAccuracy}% accuracy vs your ${myAccuracy}%.`,
-                textColor: 'text-red-800 dark:text-red-300',
-            };
+        if (props.game.pvp_mode === 'hp') {
+            // HP-based PvP result
+            const myHp = isPlayerOne ? props.game.player_one_hp : props.game.player_two_hp;
+            const opponentHp = isPlayerOne ? props.game.player_two_hp : props.game.player_one_hp;
+            if (myHp > opponentHp) {
+                return {
+                    type: 'victory',
+                    title: 'Victory!',
+                    description: `You won with ${myHp} HP vs opponent's ${opponentHp} HP!`,
+                    textColor: 'text-green-800 dark:text-green-300',
+                };
+            } else if (myHp < opponentHp) {
+                return {
+                    type: 'defeat',
+                    title: 'Defeat',
+                    description: `Your opponent won with ${opponentHp} HP vs your ${myHp} HP.`,
+                    textColor: 'text-red-800 dark:text-red-300',
+                };
+            } else {
+                return {
+                    type: 'tie',
+                    title: 'Tie!',
+                    description: `Both players finished with ${myHp} HP.`,
+                    textColor: 'text-gray-800 dark:text-gray-200',
+                };
+            }
         } else {
-            return {
-                type: 'tie',
-                title: 'Tie!',
-                description: `Both players achieved ${myAccuracy}% accuracy.`,
-                textColor: 'text-gray-800 dark:text-gray-200',
-            };
+            // Default to accuracy-based PvP result
+            const myAccuracy = getAccuracy(
+                isPlayerOne ? props.game.correct_answers_p1 : props.game.correct_answers_p2,
+                isPlayerOne ? props.game.total_questions_p1 : props.game.total_questions_p2,
+            );
+            const opponentAccuracy = getAccuracy(
+                isPlayerOne ? props.game.correct_answers_p2 : props.game.correct_answers_p1,
+                isPlayerOne ? props.game.total_questions_p2 : props.game.total_questions_p1,
+            );
+            const myAccuracyNum = parseFloat(myAccuracy);
+            const opponentAccuracyNum = parseFloat(opponentAccuracy);
+            if (myAccuracyNum > opponentAccuracyNum) {
+                return {
+                    type: 'victory',
+                    title: 'Victory!',
+                    description: `You won with ${myAccuracy}% accuracy vs opponent's ${opponentAccuracy}%!`,
+                    textColor: 'text-green-800 dark:text-green-300',
+                };
+            } else if (myAccuracyNum < opponentAccuracyNum) {
+                return {
+                    type: 'defeat',
+                    title: 'Defeat',
+                    description: `Your opponent won with ${opponentAccuracy}% accuracy vs your ${myAccuracy}%.`,
+                    textColor: 'text-red-800 dark:text-red-300',
+                };
+            } else {
+                return {
+                    type: 'tie',
+                    title: 'Tie!',
+                    description: `Both players achieved ${myAccuracy}% accuracy.`,
+                    textColor: 'text-gray-800 dark:text-gray-200',
+                };
+            }
         }
     } else {
         // PvE mode - HP-based results
