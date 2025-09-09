@@ -98,6 +98,30 @@
                                 </div>
                             </div>
 
+                            <!-- PvP Win Condition Toggle -->
+                            <div v-if="form.game_mode === 'pvp'" class="mb-6">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">PvP Win Condition</label>
+                                <div class="flex space-x-4">
+                                    <button
+                                        type="button"
+                                        @click="form.pvp_mode = 'accuracy'"
+                                        :class="form.pvp_mode === 'accuracy' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                        class="rounded-md px-4 py-2 text-sm font-medium"
+                                    >
+                                        Most Accurate Wins
+                                    </button>
+                                    <button
+                                        type="button"
+                                        @click="form.pvp_mode = 'hp'"
+                                        :class="form.pvp_mode === 'hp' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                        class="rounded-md px-4 py-2 text-sm font-medium"
+                                    >
+                                        Most HP Wins
+                                    </button>
+                                </div>
+                                <p class="mt-2 text-xs text-gray-500">Choose how the winner is determined in PvP mode.</p>
+                            </div>
+
                             <!-- Source Type Selection -->
                             <div class="mb-6">
                                 <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Battle Source </label>
@@ -356,13 +380,15 @@ const form = useForm({
     collection_id: '',
     monster_id: '',
     game_mode: 'pve',
+    pvp_mode: 'accuracy', // Add PvP mode field
 });
 
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
-    // For PVP mode, monster is not required; for PVE mode, monster is required
     const hasRequiredMonster = form.game_mode === 'pvp' || (form.game_mode === 'pve' && form.monster_id);
-    return hasSource && hasRequiredMonster;
+    // PvP mode must have pvp_mode selected
+    const hasPvpMode = form.game_mode !== 'pvp' || !!form.pvp_mode;
+    return hasSource && hasRequiredMonster && hasPvpMode;
 });
 
 // Reset file/collection when source type changes

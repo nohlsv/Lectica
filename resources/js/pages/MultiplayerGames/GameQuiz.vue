@@ -170,12 +170,12 @@
                     <!-- Enumeration -->
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
                         <p class="font-bold text-purple-700 mb-2">Please provide {{ currentQuiz.answers.length }} answers:</p>
-                        <div v-for="(ans, idx) in currentQuiz.answers" :key="idx" class="mb-2">
+                        <div v-for="idx in currentQuiz.answers.length" :key="idx" class="mb-2">
                             <input
                                 type="text"
-                                :placeholder="`Answer ${idx + 1}`"
-                                v-model="selectedAnswer[idx]"
-                                @input="updateEnumerationAnswer(idx, selectedAnswer[idx])"
+                                :placeholder="`Answer ${idx}`"
+                                v-model="selectedAnswer[idx - 1]"
+                                @input="updateEnumerationAnswer(idx - 1, selectedAnswer[idx - 1])"
                                 :disabled="answerSubmitted || timedOut"
                                 class="w-full rounded-lg border border-gray-300 p-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             />
@@ -385,9 +385,10 @@ function updateEnumerationAnswer(idx: number, val: string) {
 }
 
 const submitAnswer = async () => {
+    if (!currentQuiz.value) return;
     if (
-        (currentQuiz.value?.type === 'enumeration' && Array.isArray(selectedAnswer.value) && selectedAnswer.value.every((a) => !a)) ||
-        (!selectedAnswer.value && currentQuiz.value?.type !== 'enumeration') ||
+        (currentQuiz.value.type === 'enumeration' && Array.isArray(selectedAnswer.value) && selectedAnswer.value.every((a) => !a)) ||
+        (!selectedAnswer.value && currentQuiz.value.type !== 'enumeration') ||
         submitting.value ||
         timedOut.value
     ) return;
@@ -570,12 +571,11 @@ onUnmounted(() => {
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
-        // PVP Mode: Accuracy-based results
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
         const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy || 0 : gameState.value.player_two_accuracy || 0;
         const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy || 0 : gameState.value.player_one_accuracy || 0;
-
-        // Debug logging to see what values we're getting
+            const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy ?? 0) : (gameState.value.player_two_accuracy ?? 0);
+            const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy ?? 0) : (gameState.value.player_one_accuracy ?? 0);
         console.log('Game result calculation:', {
             isPlayerOne,
             myAccuracy,
@@ -588,8 +588,8 @@ const getGameResult = (): string => {
             return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
         } else if (myAccuracy < opponentAccuracy) {
             return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
-        } else {
-            // Handle tie case, including when both are 0%
+            const myHP = isPlayerOne ? (gameState.value.player_one_hp ?? 0) : (gameState.value.player_two_hp ?? 0);
+            const opponentHP = isPlayerOne ? (gameState.value.player_two_hp ?? 0) : (gameState.value.player_one_hp ?? 0);
             if (myAccuracy === 0 && opponentAccuracy === 0) {
                 return `No answers recorded! 🤔 The game ended unexpectedly.`;
             } else {
@@ -599,8 +599,7 @@ const getGameResult = (): string => {
     } else {
         // PVE Mode: Original HP-based results
         if (gameState.value.monster_hp <= 0) {
-            return 'Victory! You defeated the monster together!';
-        } else {
+        if ((gameState.value.monster_hp ?? 0) <= 0) {
             return 'Defeat! The monster was too strong.';
         }
     }
@@ -700,20 +699,20 @@ onMounted(() => {
                 // Show accuracy animations if changed (using the updated values)
                 if (gameState.value.player_one_accuracy !== previousPlayerOneAccuracy) {
                     accuracyAnimation.value = {
-                        player: 'one',
+                if ((gameState.value.player_one_accuracy ?? 0) !== (previousPlayerOneAccuracy ?? 0)) {
                         change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0),
                     };
-                    setTimeout(() => {
+                        change: (gameState.value.player_one_accuracy ?? 0) - (previousPlayerOneAccuracy ?? 0),
                         accuracyAnimation.value = null;
                     }, 2000);
                 }
 
                 if (gameState.value.player_two_accuracy !== previousPlayerTwoAccuracy) {
                     accuracyAnimation.value = {
-                        player: 'two',
+                if ((gameState.value.player_two_accuracy ?? 0) !== (previousPlayerTwoAccuracy ?? 0)) {
                         change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0),
                     };
-                    setTimeout(() => {
+                        change: (gameState.value.player_two_accuracy ?? 0) - (previousPlayerTwoAccuracy ?? 0),
                         accuracyAnimation.value = null;
                     }, 2000);
                 }
@@ -721,20 +720,20 @@ onMounted(() => {
                 // Show streak animations if changed (using the updated values)
                 if (gameState.value.player_one_streak !== previousPlayerOneStreak) {
                     streakAnimation.value = {
-                        player: 'one',
+                if ((gameState.value.player_one_streak ?? 0) !== (previousPlayerOneStreak ?? 0)) {
                         streak: gameState.value.player_one_streak,
                     };
-                    setTimeout(() => {
+                        streak: gameState.value.player_one_streak ?? 0,
                         streakAnimation.value = null;
                     }, 2000);
                 }
 
                 if (gameState.value.player_two_streak !== previousPlayerTwoStreak) {
                     streakAnimation.value = {
-                        player: 'two',
+                if ((gameState.value.player_two_streak ?? 0) !== (previousPlayerTwoStreak ?? 0)) {
                         streak: gameState.value.player_two_streak,
                     };
-                    setTimeout(() => {
+                        streak: gameState.value.player_two_streak ?? 0,
                         streakAnimation.value = null;
                     }, 2000);
                 }

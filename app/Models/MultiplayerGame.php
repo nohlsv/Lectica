@@ -41,7 +41,8 @@ class MultiplayerGame extends Model
         'player_two_streak',
         'player_one_max_streak',
         'player_two_max_streak',
-        'winner_id'
+        'winner_id',
+        'pvp_mode' // Add pvp_mode to fillable
     ];
 
     protected $casts = [
