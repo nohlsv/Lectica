@@ -110,6 +110,14 @@
                         </h3>
                     </div>
 
+                    <!-- Timer Constraint -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <span class="text-sm font-semibold text-purple-600">
+                            Time left: {{ timer }}s
+                        </span>
+                        <span v-if="timer === 0" class="text-sm text-red-500">Time's up!</span>
+                    </div>
+
                     <!-- Multiple Choice -->
                     <div v-if="currentQuiz.type === 'multiple_choice'" class="space-y-3">
                         <button
@@ -272,7 +280,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch, onUnmounted } from 'vue';
 
 interface Quiz {
     id: number;
@@ -333,11 +341,25 @@ const streakAnimation = ref<{ player: 'one' | 'two'; streak: number } | null>(nu
 const gameStartAnimation = ref(false);
 const gameEndAnimation = ref(false);
 
+// Timer constraint
+const TIMER_DURATION = 30; // seconds per question
+const timer = ref(TIMER_DURATION);
+let timerInterval: number | undefined;
+
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
 const isMyTurn = computed(() => {
     const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
     return (isPlayerOne && gameState.value.current_turn === 1) || (!isPlayerOne && gameState.value.current_turn === 2);
+});
+
+// Watch for turn changes to start/reset timer
+watch(isMyTurn, (newVal) => {
+    if (newVal) {
+        startTimer();
+    } else {
+        stopTimer();
+    }
 });
 
 // Methods
@@ -458,10 +480,53 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     }, 3000);
 };
 
+const startTimer = () => {
+    timer.value = TIMER_DURATION;
+    stopTimer();
+    timerInterval = window.setInterval(() => {
+        if (timer.value > 0) {
+            timer.value--;
+        }
+        if (timer.value === 0) {
+            stopTimer();
+            handleTimeout();
+        }
+    }, 1000);
+};
+
+const stopTimer = () => {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = undefined;
+    }
+};
+
+const handleTimeout = () => {
+    if (!answerSubmitted.value && isMyTurn.value) {
+        // If no answer selected, submit empty or skip
+        if (!selectedAnswer.value) {
+            // Optionally, you can auto-submit a "skip" or empty answer
+            selectedAnswer.value = '';
+        }
+        submitAnswer();
+        lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
+    }
+};
+
 const resetForNextQuestion = () => {
     selectedAnswer.value = '';
     answerSubmitted.value = false;
+    timer.value = TIMER_DURATION;
+    stopTimer();
+    if (isMyTurn.value) {
+        startTimer();
+    }
 };
+
+// Clean up timer on unmount
+onUnmounted(() => {
+    stopTimer();
+});
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
