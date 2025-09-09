@@ -571,30 +571,34 @@ onUnmounted(() => {
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
-        // PVP Mode: Accuracy-based results
+        // Use pvp_mode to determine win condition
+        const pvpMode = gameState.value.pvp_mode;
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
-        const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy || 0 : gameState.value.player_two_accuracy || 0;
-        const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy || 0 : gameState.value.player_one_accuracy || 0;
-
-        // Debug logging to see what values we're getting
-        console.log('Game result calculation:', {
-            isPlayerOne,
-            myAccuracy,
-            opponentAccuracy,
-            player_one_accuracy: gameState.value.player_one_accuracy,
-            player_two_accuracy: gameState.value.player_two_accuracy,
-        });
-
-        if (myAccuracy > opponentAccuracy) {
-            return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
-        } else if (myAccuracy < opponentAccuracy) {
-            return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
-        } else {
-            // Handle tie case, including when both are 0%
-            if (myAccuracy === 0 && opponentAccuracy === 0) {
-                return `No answers recorded! 🤔 The game ended unexpectedly.`;
+        if (pvpMode === 'hp') {
+            // HP-based PvP result
+            const myHp = isPlayerOne ? gameState.value.player_one_hp : gameState.value.player_two_hp;
+            const opponentHp = isPlayerOne ? gameState.value.player_two_hp : gameState.value.player_one_hp;
+            if (myHp > opponentHp) {
+                return `Victory! 🏆 Your HP: ${myHp} vs Opponent: ${opponentHp}`;
+            } else if (myHp < opponentHp) {
+                return `Defeat! 💔 Your HP: ${myHp} vs Opponent: ${opponentHp}`;
             } else {
-                return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
+                return `Tie! 🤝 Both players have ${myHp} HP`;
+            }
+        } else {
+            // Default to accuracy-based PvP result
+            const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy || 0 : gameState.value.player_two_accuracy || 0;
+            const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy || 0 : gameState.value.player_one_accuracy || 0;
+            if (myAccuracy > opponentAccuracy) {
+                return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
+            } else if (myAccuracy < opponentAccuracy) {
+                return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
+            } else {
+                if (myAccuracy === 0 && opponentAccuracy === 0) {
+                    return `No answers recorded! 🤔 The game ended unexpectedly.`;
+                } else {
+                    return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
+                }
             }
         }
     } else {
