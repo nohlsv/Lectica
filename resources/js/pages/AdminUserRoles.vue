@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue';
 import axios from 'axios';
 import { Head } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
+import { toast } from 'vue-sonner';
 
 interface User {
     id: number;
@@ -35,8 +36,10 @@ async function updateRole(user: User, newRole: 'student' | 'faculty') {
     try {
         await axios.patch(`/api/users/${user.id}/role`, { role: newRole });
         user.user_role = newRole;
+        toast.info('User role updated successfully.');
     } catch (e) {
         error.value = 'Failed to update role.';
+        toast.error('Failed to update user role.');
     } finally {
         updating.value = null;
     }
@@ -72,7 +75,7 @@ onMounted(fetchUsers);
                         </select>
                     </td>
                     <td class="p-2 border">
-                        <button @click="updateRole(user, user.user_role)" :disabled="updating === user.id" class="bg-blue-500 text-white px-3 py-1 rounded">
+                        <button @click="updateRole(user, user.user_role)" :disabled="updating === user.id" class="bg-blue-500 hover:bg-blue-300 text-white px-3 py-1 rounded">
                             Update
                         </button>
                     </td>
