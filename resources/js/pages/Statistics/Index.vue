@@ -67,62 +67,66 @@ onMounted(async () => {
 <template>
     <Head title="Usage and Statistics" />
     <AppLayout>
-        <div class="space-y-6 p-6">
-            <h1 class="text-2xl font-bold">Usage and Statistics</h1>
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Total Users</h2>
-                    <p class="text-3xl font-bold">{{ statistics.total_users }}</p>
+        <div class="p-6 space-y-4 bg-gradient">
+                <div class="flex justify-center items-center">
+                <h1 class="text-2xl text-center font-bold welcome-banner py-2 px-10 w-fit pixel-outline animate-soft-bounce">Usage and Statistics</h1>
                 </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Total Files</h2>
-                    <p class="text-3xl font-bold">{{ statistics.total_files }}</p>
+                <div class="p-6 bg-container min-h-screen">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Total Users</h2>
+                        <p class="text-3xl font-bold">{{ statistics.total_users }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Total Files</h2>
+                        <p class="text-3xl font-bold">{{ statistics.total_files }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Total Quizzes</h2>
+                        <p class="text-3xl font-bold">{{ statistics.total_quizzes }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Total Flashcards</h2>
+                        <p class="text-3xl font-bold">{{ statistics.total_flashcards }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Total Tags</h2>
+                        <p class="text-3xl font-bold">{{ statistics.total_tags }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Total Programs</h2>
+                        <p class="text-3xl font-bold">{{ statistics.total_programs }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Most Active User</h2>
+                        <p class="text-xl">{{ statistics.most_active_user.last_name }}, {{ statistics.most_active_user.first_name }}</p>
+                        <p>{{ statistics.most_active_user.files_count }} files</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Average Files per User</h2>
+                        <p class="text-2xl">{{ statistics.average_files_per_user }}</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">User with Most Stars</h2>
+                        <p class="text-xl">{{ statistics.user_with_most_stars.last_name }}, {{ statistics.user_with_most_stars.first_name }}</p>
+                        <p>{{ statistics.user_with_most_stars.files_sum_stars }} stars</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Most Quizzes by User</h2>
+                        <p class="text-xl">{{ statistics.most_quizzes_by_user.last_name }}, {{ statistics.most_quizzes_by_user.first_name }}</p>
+                        <p>{{ statistics.most_quizzes_by_user.quizzes_count }} quizzes</p>
+                    </div>
+                    <div class="p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg">
+                        <h2 class="text-lg font-semibold">Average Flashcards per Quiz</h2>
+                        <p class="text-2xl">{{ statistics.average_flashcards_per_quiz }}</p>
+                    </div>
                 </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Total Quizzes</h2>
-                    <p class="text-3xl font-bold">{{ statistics.total_quizzes }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Total Flashcards</h2>
-                    <p class="text-3xl font-bold">{{ statistics.total_flashcards }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Total Tags</h2>
-                    <p class="text-3xl font-bold">{{ statistics.total_tags }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Total Programs</h2>
-                    <p class="text-3xl font-bold">{{ statistics.total_programs }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Most Active User</h2>
-                    <p class="text-xl">{{ statistics.most_active_user.last_name }}, {{ statistics.most_active_user.first_name }}</p>
-                    <p>{{ statistics.most_active_user.files_count }} files</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Average Files per User</h2>
-                    <p class="text-2xl">{{ statistics.average_files_per_user }}</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">User with Most Stars</h2>
-                    <p class="text-xl">{{ statistics.user_with_most_stars.last_name }}, {{ statistics.user_with_most_stars.first_name }}</p>
-                    <p>{{ statistics.user_with_most_stars.files_sum_stars }} stars</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Most Quizzes by User</h2>
-                    <p class="text-xl">{{ statistics.most_quizzes_by_user.last_name }}, {{ statistics.most_quizzes_by_user.first_name }}</p>
-                    <p>{{ statistics.most_quizzes_by_user.quizzes_count }} quizzes</p>
-                </div>
-                <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
-                    <h2 class="text-lg font-semibold">Average Flashcards per Quiz</h2>
-                    <p class="text-2xl">{{ statistics.average_flashcards_per_quiz }}</p>
-                </div>
-            </div>
 
-            <div class="mt-6">
-                <h2 class="text-xl font-bold">Files per Program</h2>
-                <div class="mx-auto w-full max-w-md">
-                    <canvas id="filesPerProgramChart"></canvas>
+                <div class="mt-6">
+                    <h2 class="text-xl font-bold pixel-outline">Files per Program</h2>
+                    <div class="w-full max-w-md mx-auto">
+                        <canvas id="filesPerProgramChart"></canvas>
+                    </div>
                 </div>
 
                 <!-- <div class="mt-6">
@@ -145,29 +149,17 @@ onMounted(async () => {
                     </div>
                 </div>
 
-            <div class="mt-6">
-                <h2 class="text-xl font-bold">Flashcards per Tag</h2>
-                <div class="flex flex-wrap gap-2">
-                    <span
-                        v-for="tag in statistics.total_flashcards_per_tag"
-                        :key="tag.name"
-                        class="bg-primary/10 text-primary inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
-                    >
-                        {{ tag.name }}: {{ tag.flashcards_count }} flashcards
-                    </span>
-                </div>
-            </div>
-
-            <div class="mt-6">
-                <h2 class="text-xl font-bold">Quizzes per Tag</h2>
-                <div class="flex flex-wrap gap-2">
-                    <span
-                        v-for="tag in statistics.total_quizzes_per_tag"
-                        :key="tag.name"
-                        class="bg-primary/10 text-primary inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
-                    >
-                        {{ tag.name }}: {{ tag.quizzes_count }} quizzes
-                    </span>
+                <div class="mt-6">
+                    <h2 class="text-xl font-bold pixel-outline">Quizzes per Tag</h2>
+                    <div class="flex flex-wrap gap-2">
+                        <span
+                            v-for="tag in statistics.total_quizzes_per_tag"
+                            :key="tag.name"
+                            class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline"
+                        >
+                            {{ tag.name }}: {{ tag.quizzes_count }} quizzes
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

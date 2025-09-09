@@ -133,17 +133,17 @@ const submit = () => {
         <div class="flex flex-col gap-6 p-6 bg-gradient">
             <!-- Header -->
             <div class="flex items-center justify-center gap-4 ">
-                <h1 class="text-2xl font-bold welcome-banner py-2 px-10 animate-soft-bounce pixel-outline">Upload New File</h1>
+                <h1 class="text-2xl text-center font-bold welcome-banner py-2 px-10 animate-soft-bounce pixel-outline">Upload New File</h1>
             </div>
 
             <!-- Form -->
-            <div class="border-border flex w-full justify-center self-center rounded-lg border p-6 dark:border-[#6c6c6c] dark:bg-[#222222]">
-                <form @submit.prevent="submit" class="w-full max-w-xl space-y-6">
-                    <!-- File Upload -->
+            <div class="flex justify-center p-6 self-center w-full bg-container border-[#680d00] border-8 rounded-md">
+                <form @submit.prevent="submit" class="space-y-6 w-full max-w-xl">
+                <!-- File Upload -->
                     <div class="space-y-2">
-                        <label for="file" class="text-foreground block text-sm font-medium">File</label>
+                        <label for="file" class="block text-sm font-medium text-[#fce085] pixel-outline">File</label>
                         <div
-                            class="hover:border-primary flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-[#6c6c6c] p-6 transition-colors"
+                            class="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-yellow-300 p-6 cursor-pointer hover:border-primary transition-colors"
                             :class="{ 'border-primary bg-primary/5': fileSelected }"
                             @click="fileInputRef?.click()"
                             @dragover="handleDragOver"
@@ -156,8 +156,8 @@ const submit = () => {
                                     <UploadIcon class="text-primary h-6 w-6" />
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-sm font-medium">Click to upload or drag and drop</p>
-                                    <p class="text-muted-foreground mt-1 text-xs">PDF, DOC, DOCX, PPTX, TXT, XLSX (Max 25MB)</p>
+                                    <p class="text-sm font-medium pixel-outline">Click to upload or drag and drop</p>
+                                    <p class="text-xs text-muted-foreground mt-1 pixel-outline">PDF, DOC, DOCX, PPTX, TXT, XLSX (Max 25MB)</p>
                                 </div>
                             </div>
 
@@ -176,7 +176,7 @@ const submit = () => {
                             <Link
                                 v-if="(form.errors as any).duplicate_file_id"
                                 :href="`/files/${(form.errors as any).duplicate_file_id}`"
-                                class="text-primary ml-1 font-medium hover:underline"
+                                class="ml-1 text-primary hover:underline font-medium pixel-outline"
                             >
                                 View duplicate file
                             </Link>
@@ -185,12 +185,12 @@ const submit = () => {
 
                     <!-- File Name -->
                     <div class="space-y-2">
-                        <label for="name" class="text-foreground block text-sm font-medium">File Name</label>
+                        <label for="name" class="block text-sm font-medium text-[#fce085] pixel-outline">File Name</label>
                         <input
                             type="text"
                             id="name"
                             v-model="form.name"
-                            class="border-input ring-offset-background w-full rounded-md border px-3 py-2 text-sm dark:bg-[#d9d9d9] dark:text-[#2F2F2F]"
+                            class="w-full rounded-md border border-yellow-300 bg-transparent px-3 py-2 text-sm text-white ring-offset-background"
                             placeholder="Enter a name for your file"
                         />
                         <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
@@ -200,12 +200,12 @@ const submit = () => {
 
                     <!-- File Description -->
                     <div class="space-y-2">
-                        <label for="description" class="text-foreground block text-sm font-medium">Description</label>
+                        <label for="description" class="block text-sm font-medium text-[#fce085] pixel-outline">Description</label>
                         <textarea
                             id="description"
                             v-model="form.description"
                             rows="3"
-                            class="border-input ring-offset-background w-full resize-none rounded-md border px-3 py-2 text-sm dark:bg-[#d9d9d9] dark:text-[#2F2F2F]"
+                            class="w-full rounded-md border border-yellow-300 bg-transparent text-white  px-3 py-2 text-sm ring-offset-background resize-none pixel-outline"
                             placeholder="Enter a brief description of this file (optional)"
                         ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-xs text-red-500">
@@ -215,9 +215,12 @@ const submit = () => {
 
                     <!-- Tags -->
                     <div class="space-y-2">
-                        <label for="tags" class="text-foreground block text-sm font-medium">Tags</label>
-                        <TagInput v-model="form.tags" :existing-tags="allTags || []" />
-                        <p class="text-muted-foreground text-xs">
+                        <label for="tags" class="block text-sm font-medium text-[#fce085] pixel-outline">Tags</label>
+                        <TagInput
+                            v-model="form.tags"
+                            :existing-tags="allTags || []"
+                        />
+                        <p class="text-xs text-muted-foreground pixel-outline">
                             Add tags to categorize your file. You can create new tags or select existing ones.
                         </p>
                     </div>
@@ -254,13 +257,13 @@ const submit = () => {
                     <div class="flex justify-end gap-2 pt-2">
                         <Link
                             href="/files"
-                            class="border-border text-foreground hover:bg-accent inline-flex items-center justify-center rounded-md border bg-red-500/90 px-4 py-2 text-sm font-medium"
+                            class="inline-flex items-center justify-center rounded-md bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-foreground pixel-outline broder-border border-2 duration-300"
                         >
                             Cancel
                         </Link>
                         <button
                             type="submit"
-                            class="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#3aa035] px-4 py-2 text-sm font-medium hover:bg-[#3aa035]/90 disabled:cursor-not-allowed disabled:opacity-50"
+                            class="inline-flex items-center justify-center gap-1.5 rounded-md bg-[#3aa035] px-4 py-2 text-sm font-medium hover:bg-[#3aa035]/90 disabled:opacity-50 disabled:cursor-not-allowed border-border border-2 pixel-outline"
                             :disabled="form.processing || !form.file"
                         >
                             <UploadIcon v-if="!form.processing" class="h-4 w-4 pixel-outline-icon" />

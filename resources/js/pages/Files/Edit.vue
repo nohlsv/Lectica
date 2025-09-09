@@ -7,6 +7,10 @@ import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import Button from '@/components/ui/button/Button.vue';
+import { DialogClose } from '@/components/ui/dialog'
+
 
 interface Props {
     file: File;
@@ -110,9 +114,15 @@ const addToCollection = async () => {
 <template>
     <Head title="Edit File" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-6 p-6">
-            <div class="flex items-center gap-4">
-                <Link :href="`/files/${file.id}`" class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+        <div class="flex flex-col gap-6 p-6 bg-gradient">
+           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full px-4 gap-4">
+                <!-- Back Button -->
+                <div class="sm:flex-1 sm:order-1">
+                    <Link
+                    :href="`/files/${file.id}`"
+                    class="inline-flex items-center gap-2 px-3 py-1 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
+                            hover:text-red-700 duration-300 font-bold"
+                    >
                     <ArrowLeftIcon class="h-4 w-4" />
                     Back
                     </Link>
@@ -129,15 +139,16 @@ const addToCollection = async () => {
                 <div class="sm:flex-1 sm:order-3 hidden sm:block"></div>
             </div>
 
-            <div class="border-border rounded-lg border p-6">
-                <form @submit.prevent="submit" class="max-w-md space-y-4">
+
+            <div class="rounded-lg bg-container p-6 flex justify-center">
+                <form @submit.prevent="submit" class="space-y-4 max-w-md">
                     <div class="space-y-2">
-                        <label for="name" class="text-foreground block text-sm font-medium">File Name</label>
+                        <label for="name" class="block text-sm font-medium text-[#fce085]">File Name</label>
                         <input
                             type="text"
                             v-model="form.name"
                             id="name"
-                            class="border-input bg-background ring-offset-background w-full rounded-md border px-3 py-2 text-sm"
+                            class="w-full rounded-md border border-input bg-[#FFF8F2]/80 px-3 py-2 text-sm text-[#333333] ring-offset-background"
                         />
                         <p v-if="form.errors.name" class="mt-1 text-xs text-red-500">
                             {{ form.errors.name }}
@@ -146,12 +157,12 @@ const addToCollection = async () => {
 
                     <!-- File Description -->
                     <div class="space-y-2">
-                        <label for="description" class="text-foreground block text-sm font-medium">Description</label>
+                        <label for="description" class="block text-sm font-medium text-[#fce085]">Description</label>
                         <textarea
                             id="description"
                             v-model="form.description"
                             rows="3"
-                            class="border-input bg-background ring-offset-background w-full resize-none rounded-md border px-3 py-2 text-sm"
+                            class="w-full rounded-md border border-input bg-[#FFF8F2]/80 text-[#333333]  px-3 py-2 text-sm ring-offset-background resize-none"
                             placeholder="Enter a brief description of this file (optional)"
                         ></textarea>
                         <p v-if="form.errors.description" class="mt-1 text-xs text-red-500">
@@ -161,50 +172,25 @@ const addToCollection = async () => {
 
                     <!-- Tags -->
                     <div class="space-y-2">
-                        <label for="tags" class="text-foreground block text-sm font-medium">Tags</label>
-                        <TagInput v-model="form.tags" :existing-tags="allTags" />
-                        <p class="text-muted-foreground text-xs">
+                        <label for="tags" class="block text-sm font-medium text-[#fce085]">Tags</label>
+                        <TagInput
+                            v-model="form.tags"
+                            :existing-tags="allTags"
+                        />
+                        <p class="text-xs text-muted-foreground">
                             Add tags to categorize your file. You can create new tags or select existing ones.
                         </p>
                     </div>
 
-                    <div class="flex items-center justify-between gap-2">
-                        <div>
+                    <div class="flex items-center justify-between w-full px-4 sm:w-auto">
+                        <!-- Right-aligned Buttons -->
+                        <div class="flex items-center gap-2 ml-auto">
+                            <!-- Delete Button with Dialog -->
                             <Dialog>
-                                <DialogTrigger as-child>
-                                    <button
-                                        type="button"
-                                        class="inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
-                                        :disabled="form.processing"
-                                    >
-                                        Delete File
-                                    </button>
-                                </DialogTrigger>
-                                <DialogContent>
-                                    <DialogHeader>
-                                        <DialogTitle>Confirm Deletion</DialogTitle>
-                                    </DialogHeader>
-                                    <p>Are you sure you want to delete this file? This action cannot be undone.</p>
-                                    <DialogFooter>
-                                        <Button variant="outline" @click="showDeleteModal = false">Cancel</Button>
-                                        <Button variant="destructive" @click="deleteFile" :disabled="form.processing">
-                                            {{ form.processing ? 'Deleting...' : 'Delete' }}
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-
-                        <div>
-                            <Link
-                                :href="`/files/${file.id}`"
-                                class="border-border bg-background text-foreground hover:bg-accent inline-flex items-center justify-center rounded-md border px-4 py-2 text-sm font-medium"
-                            >
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
+                            <DialogTrigger as-child>
+                                <button
+                                type="button"
+                                class="inline-flex items-center justify-center rounded-md bg-red-500 hover:bg-red-600 px-4 py-2 text-sm font-medium text-foreground pixel-outline border-[#0c0a03] border-2 duration-300"
                                 :disabled="form.processing"
                                 >
                                 Delete File

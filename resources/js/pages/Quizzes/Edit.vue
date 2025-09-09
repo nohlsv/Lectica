@@ -97,12 +97,12 @@ function submit() {
     <AppLayout>
         <div class="mx-full space-y-6 p-6 sm:px-6 lg:px-8 bg-gradient">
             <div class="flex justify-between">
-                <h2 class="text-md sm:text-xl md:text-2xl font-bold welcome-banner py-2 px-2 sm:px-4 animate-soft-bounce pixel-outline">Edit Quiz</h2>
                 <Link :href="route('files.quizzes.index', file.id)">
                     <Button class="inline-flex items-center gap-2 px-4 py-2 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
-                            hover:text-red-700 duration-300 font-bold pixel-outline mb-3" variant="default">Back to Quizzes</Button>
+                            hover:text-red-700 duration-300 font-bold pixel-outline" variant="default">Back to Quizzes</Button>
                 </Link>
             </div>
+            <h2 class="text-md text-center sm:text-xl md:text-2xl font-bold welcome-banner py-2 px-2 sm:px-4 animate-soft-bounce pixel-outline">Edit Quiz</h2>
 
             <Card class="flex justify-center p-6 self-center w-full bg-container border-[#680d00] border-8 rounded-md">
                 <CardHeader>
@@ -135,13 +135,20 @@ function submit() {
                         <div v-if="form.type === 'multiple_choice'" class="space-y-4">
                             <Label>Options</Label>
                             <div v-for="(option, index) in form.options" :key="index" class="flex items-center space-x-2">
-                                <Input v-model="form.options[index]" :placeholder="`Option ${index + 1}`" required />
-                                <Button type="button" variant="outline" size="icon" @click="removeOption(index)" :disabled="form.options.length <= 2">
-                                    <Trash2 class="h-4 w-4" />
+                                <Input class="pixel-outline border-yellow-300" v-model="form.options[index]" :placeholder="`Option ${index + 1}`" required />
+                                <Button
+                                    type="button"
+                                    variant="default"
+                                    class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline"
+                                    size="icon"
+                                    @click="removeOption(index)"
+                                    :disabled="form.options.length <= 2"
+                                >
+                                    <Trash2 class="h-4 w-4 pixel-outline-icon" />
                                 </Button>
                             </div>
-                            <Button type="button" variant="outline" @click="addOption" class="w-full">
-                                <Plus class="mr-2 h-4 w-4" />
+                            <Button type="button" variant="default" @click="addOption" class="w-auto bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 pixel-outline">
+                                <Plus class="h-4 w-4 mr-2 pixel-outline-icon" />
                                 Add Option
                             </Button>
                             <InputError :message="form.errors.options" />
@@ -149,8 +156,12 @@ function submit() {
                             <div class="space-y-2">
                                 <Label class="pixel-outline">Correct Answer</Label>
                                 <RadioGroup v-model="form.answers[0]">
-                                    <div v-for="(option, index) in form.options" :key="index" class="flex items-center space-x-2">
-                                        <RadioGroupItem :value="option" :id="`option-${index}`" />
+                                    <div
+                                        v-for="(option, index) in form.options"
+                                        :key="index"
+                                        class="flex items-center space-x-2 pixel-outline"
+                                    >
+                                        <RadioGroupItem class="border-yellow-300":value="option" :id="`option-${index}`" />
                                         <Label :for="`option-${index}`">{{ option }}</Label>
                                     </div>
                                 </RadioGroup>
@@ -162,13 +173,20 @@ function submit() {
                         <div v-if="form.type === 'enumeration'" class="space-y-4">
                             <Label class="pixel-outline">Correct Answers (Enter each answer separately)</Label>
                             <div v-for="(answer, index) in form.answers" :key="index" class="flex items-center space-x-2">
-                                <Input v-model="form.answers[index]" :placeholder="`Answer ${index + 1}`" required />
-                                <Button type="button" variant="outline" size="icon" @click="removeAnswer(index)" :disabled="form.answers.length <= 1">
-                                    <Trash2 class="h-4 w-4" />
+                                <Input class="pixel-outline border-yellow-300" v-model="form.answers[index]" :placeholder="`Answer ${index + 1}`" required />
+                                <Button
+                                    type="button"
+                                    variant="default"
+                                    class="bg-red-500 text-[#fdf6ee] hover:bg-red-600 border-red-700 rounded-lg pixel-outline"
+                                    size="icon"
+                                    @click="removeAnswer(index)"
+                                    :disabled="form.answers.length <= 1"
+                                >
+                                    <Trash2 class="h-4 w-4 pixel-outline-icon" />
                                 </Button>
                             </div>
-                            <Button type="button" variant="outline" @click="addAnswer" class="w-full">
-                                <Plus class="mr-2 h-4 w-4" />
+                            <Button type="button" variant="default" @click="addAnswer" class="w-auto bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 pixel-outline">
+                                <Plus class="h-4 w-4 mr-2 pixel-outline-icon" />
                                 Add Answer
                             </Button>
                             <InputError :message="form.errors.answers" />

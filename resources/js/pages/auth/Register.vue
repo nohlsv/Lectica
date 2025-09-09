@@ -44,8 +44,7 @@ const submit = () => {
 </script>
 
 <template>
-    <div class="bg-lectica min-h-full">
-    <AuthBase title="Create an account" description="Enter your details below to create your account">
+    <AuthBase title="Create an account" description="Enter your details below to create your account" class="bg-lectica min-h-screen">
         <Head title="Register" />
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">

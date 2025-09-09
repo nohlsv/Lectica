@@ -33,12 +33,12 @@ function submit() {
     <AppLayout>
         <div class="mx-full space-y-6 p-6 sm:px-6 lg:px-8 bg-gradient">
             <div class="flex justify-between">
-                <h2 class="text-md sm:text-xl md:text-2xl font-bold welcome-banner py-2 px-2 sm:px-4 animate-soft-bounce pixel-outline">Create Flashcard</h2>
                 <Link :href="route('files.flashcards.index', file.id)">
                     <Button class="inline-flex items-center gap-2 px-2 py-2 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400
-                            hover:text-red-700 duration-300 font-bold pixel-outline mb-3" variant="default">Back to Flashcards</Button>
+                            hover:text-red-700 duration-300 font-bold pixel-outline" variant="default">Back to Flashcards</Button>
                 </Link>
             </div>
+            <h2 class="text-md text-center sm:text-xl md:text-2xl font-bold welcome-banner py-2 px-2 sm:px-4 animate-soft-bounce pixel-outline">Create Flashcard</h2>
 
             <Card class="flex justify-center p-6 self-center w-full bg-container border-[#680d00] border-8 rounded-md">
                 <CardHeader>
