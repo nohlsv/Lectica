@@ -116,6 +116,22 @@ onMounted(() => {
         if (!ctx) return;
         const labels = props.progressRecords.map((r) => new Date(r.created_at).toLocaleDateString());
         const data = props.progressRecords.map((r) => (r.total_questions > 0 ? Math.round((r.correct_answers / r.total_questions) * 100) : 0));
+        // Chart.js plugin for outlined text
+        const outlinedTextPlugin = {
+            id: 'outlinedText',
+            beforeDraw: (chart) => {
+                const ctx = chart.ctx;
+                ctx.save();
+                ctx.shadowColor = '#0c0a03';
+                ctx.shadowBlur = 4;
+            },
+            afterDraw: (chart) => {
+                const ctx = chart.ctx;
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                ctx.restore();
+            }
+        };
         new Chart(ctx, {
             type: 'line',
             data: {
@@ -134,22 +150,50 @@ onMounted(() => {
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { display: false },
+                    legend: {
+                        display: false,
+                        labels: {
+                            color: '#fff',
+                            font: {
+                                weight: 'bold',
+                                size: 14,
+                            },
+                        },
+                    },
                     title: {
                         display: false,
+                    },
+                    tooltip: {
+                        enabled: true,
+                        backgroundColor: '#0c0a03',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: '#fff',
+                        borderWidth: 1,
                     },
                 },
                 scales: {
                     y: {
                         min: 0,
                         max: 100,
-                        title: { display: true, text: 'Score (%)' },
+                        title: { display: true, text: 'Score (%)', color: '#fff', font: { weight: 'bold', size: 14 } },
+                        ticks: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 12 },
+                        },
+                        grid: { color: 'rgba(255,255,255,0.2)' },
                     },
                     x: {
-                        title: { display: true, text: 'Date' },
+                        title: { display: true, text: 'Date', color: '#fff', font: { weight: 'bold', size: 14 } },
+                        ticks: {
+                            color: '#fff',
+                            font: { weight: 'bold', size: 12 },
+                        },
+                        grid: { color: 'rgba(255,255,255,0.2)' },
                     },
                 },
             },
+            plugins: [outlinedTextPlugin],
         });
     }
 });

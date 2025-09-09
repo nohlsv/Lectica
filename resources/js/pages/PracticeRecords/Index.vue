@@ -12,14 +12,14 @@
                         :key="group.file.id"
                         class="pixel-outline flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4 shadow"
                     >
-                        <h2 class="text-lg font-semibold cursor-pointer" @click="toggleGroup(group.file.id)">{{ group.file.name }}</h2>
+                        <h2 class="text-lg font-semibold cursor-pointer text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]" @click="toggleGroup(group.file.id)">{{ group.file.name }}</h2>
                         <div v-if="expandedGroups[group.file.id]" class="mt-2">
                             <div v-for="attempt in group.attempts" :key="attempt.id" class="mb-2">
                                 <div class="flex items-center justify-between">
                                     <span>
-                                        <span class="font-bold">{{ attempt.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</span>
-                                        <span class="ml-2">Score: {{ attempt.correct_answers }} / {{ attempt.total_questions }}</span>
-                                        <span class="ml-2 text-xs text-gray-200">{{ formatDate(attempt.created_at) }}</span>
+                                        <span class="font-bold text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">{{ attempt.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</span>
+                                        <span class="ml-2 text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">Score: {{ attempt.correct_answers }} / {{ attempt.total_questions }}</span>
+                                        <span class="ml-2 text-xs text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">{{ formatDate(attempt.created_at) }}</span>
                                     </span>
                                     <Link :href="route('practice-records.show', attempt.id)" class="text-primary pixel-outline ml-2 rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-base tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]">
                                         View Details
@@ -30,7 +30,7 @@
                                 <canvas :ref="setChartRef(group.file.id)" class="w-full h-32"></canvas>
                             </div>
                         </div>
-                        <div v-else class="text-xs text-gray-300 mt-2">Click to show attempts</div>
+                        <div v-else class="text-xs text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03] mt-2">Click to show attempts</div>
                     </div>
                 </div>
             </div>
@@ -97,6 +97,22 @@ function renderChart(fileId: number) {
     }
     const labels = group.attempts.map(a => new Date(a.created_at).toLocaleDateString());
     const data = group.attempts.map(a => a.total_questions > 0 ? Math.round((a.correct_answers / a.total_questions) * 100) : 0);
+    // Chart.js plugin for outlined text
+    const outlinedTextPlugin = {
+        id: 'outlinedText',
+        beforeDraw: (chart) => {
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.shadowColor = '#0c0a03';
+            ctx.shadowBlur = 4;
+        },
+        afterDraw: (chart) => {
+            const ctx = chart.ctx;
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+    };
     chartInstances.value[fileId] = new Chart(ctx, {
         type: 'line',
         data: {
@@ -113,14 +129,50 @@ function renderChart(fileId: number) {
         options: {
             responsive: true,
             plugins: {
-                legend: { display: false },
-                title: { display: false },
+                legend: {
+                    display: false,
+                    labels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14,
+                        },
+                    },
+                },
+                title: {
+                    display: false,
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: '#0c0a03',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#fff',
+                    borderWidth: 1,
+                },
             },
             scales: {
-                y: { min: 0, max: 100, title: { display: true, text: 'Score (%)' } },
-                x: { title: { display: true, text: 'Date' } },
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: { display: true, text: 'Score (%)', color: '#fff', font: { weight: 'bold', size: 14 } },
+                    ticks: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                    },
+                    grid: { color: 'rgba(255,255,255,0.2)' },
+                },
+                x: {
+                    title: { display: true, text: 'Date', color: '#fff', font: { weight: 'bold', size: 14 } },
+                    ticks: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                    },
+                    grid: { color: 'rgba(255,255,255,0.2)' },
+                },
             },
         },
+        plugins: [outlinedTextPlugin],
     });
 }
 function formatDate(dateStr: string) {
