@@ -395,15 +395,20 @@ const submitAnswer = async () => {
     submitting.value = true;
     answerSubmitted.value = true;
 
+    // Prepare answer for submission: always a string
+    let answerToSubmit: string;
+    if (currentQuiz.value?.type === 'enumeration' && Array.isArray(selectedAnswer.value)) {
+        answerToSubmit = selectedAnswer.value.join(', ');
+    }
+
     try {
         const isCorrect = checkAnswer(selectedAnswer.value, currentQuiz.value);
 
-        // Use Inertia router for reliable answer submission
         router.post(
             route('multiplayer-games.answer', props.game.id),
             {
                 quiz_id: currentQuiz.value?.id,
-                answer: selectedAnswer.value,
+                answer: answerToSubmit,
                 is_correct: isCorrect,
             },
             {
@@ -519,10 +524,13 @@ const stopTimer = () => {
 const handleTimeout = () => {
     if (!answerSubmitted.value && isMyTurn.value) {
         timedOut.value = true;
-        // If no answer selected, submit empty or skip
+        // Ensure selectedAnswer is set to an empty value appropriate for the quiz type
         if (!selectedAnswer.value) {
-            // Optionally, you can auto-submit a "skip" or empty answer
-            selectedAnswer.value = '';
+            if (currentQuiz.value?.type === 'enumeration') {
+                selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+            } else {
+                selectedAnswer.value = '';
+            }
         }
         submitAnswer();
         lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
