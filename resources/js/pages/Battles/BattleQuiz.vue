@@ -89,9 +89,22 @@ const battleResult = computed(() => {
     return null;
 });
 
+// Sound effects
+const correctSfx = new Audio('/sfx/correct.wav');
+const incorrectSfx = new Audio('/sfx/incorrect.wav');
+
 function checkAnswer() {
     showFeedback.value = true;
     totalAnswered.value++;
+
+    // Play sound effect
+    if (isCurrentAnswerCorrect.value) {
+        correctSfx.currentTime = 0;
+        correctSfx.play();
+    } else {
+        incorrectSfx.currentTime = 0;
+        incorrectSfx.play();
+    }
 
     // Process battle mechanics
     if (isCurrentAnswerCorrect.value) {

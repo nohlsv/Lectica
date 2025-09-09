@@ -483,7 +483,20 @@ const checkAnswer = (userAnswer: string | string[], quiz: Quiz): boolean => {
     return false;
 };
 
+// Sound effects
+const correctSfx = new Audio('/sfx/correct.wav');
+const incorrectSfx = new Audio('/sfx/incorrect.wav');
+
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
+    // Play sound effect
+    if (isCorrect) {
+        correctSfx.currentTime = 0;
+        correctSfx.play();
+    } else {
+        incorrectSfx.currentTime = 0;
+        incorrectSfx.play();
+    }
+
     if (props.game.game_mode === 'pvp') {
         // PVP Mode: Accuracy-focused feedback
         if (isCorrect) {
@@ -682,6 +695,14 @@ onMounted(() => {
                             isCorrect: e.additional_data.is_correct,
                             answer: e.additional_data.answer_text,
                         };
+
+                        if (opponentFeedback.value.isCorrect) {
+                            correctSfx.currentTime = 0;
+                            correctSfx.play();
+                        } else {
+                            incorrectSfx.currentTime = 0;
+                            incorrectSfx.play();
+                        }
 
                         setTimeout(() => {
                             showOpponentAction.value = false;
