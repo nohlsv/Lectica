@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import axios from 'axios';
+import { Head } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 interface User {
     id: number;
@@ -44,6 +46,8 @@ onMounted(fetchUsers);
 </script>
 
 <template>
+    <Head title="Admin - User Roles" />
+    <AppLayout>
     <div class="p-6 max-w-2xl mx-auto">
         <h1 class="text-2xl font-bold mb-4">User Role Management</h1>
         <div v-if="loading">Loading users...</div>
@@ -77,5 +81,6 @@ onMounted(fetchUsers);
         </table>
         <div v-if="!loading && !users.length" class="text-gray-500">No users found.</div>
     </div>
+    </AppLayout>
 </template>
 
