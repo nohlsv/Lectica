@@ -255,8 +255,8 @@
                         {{ opponentFeedback?.name }}'s answer was
                         <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{
                             opponentFeedback?.isCorrect ? 'correct' : 'wrong'
-                        }}</span
-                        >: "{{ opponentFeedback?.answer }}"
+                        }}</span>
+<!--                        : "{{ opponentFeedback?.answer }}"-->
                     </p>
                 </div>
 
