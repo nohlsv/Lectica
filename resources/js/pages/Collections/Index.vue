@@ -254,7 +254,7 @@
                                 >
                                     View Details →
                                 </Link>
-                                <div v-if="collection.can_edit" class="flex space-x-2">
+                                <div v-if="collection.can_edit && collection.is_original" class="flex space-x-2">
                                     <Link
                                         :href="route('collections.edit', collection.id)"
                                         class="text-sm text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
