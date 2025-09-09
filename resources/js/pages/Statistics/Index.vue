@@ -52,6 +52,7 @@ interface Statistics {
     storage_per_program: Array<{ name: string; storage_mb: number }>;
     quizzes_per_program: Array<{ name: string; quizzes_count: number }>;
     flashcards_per_program: Array<{ name: string; flashcards_count: number }>;
+    access_logs: Array<{ user: string; route: string; method: string; accessed_at: string }>; // New field for access logs
 }
 
 const props = defineProps<{ statistics: Statistics }>();
@@ -399,6 +400,29 @@ onMounted(async () => {
                             <li>Average File Size: <span class="font-bold">{{ statistics.average_file_size_kb }} KB</span></li>
                         </ul>
                     </div>
+                </div>
+
+                <!-- Access Logs Section -->
+                <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 shadow flex flex-col mt-8">
+                    <h2 class="text-lg font-semibold mb-2">Recent Access Logs</h2>
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="px-2 py-1 text-left">User</th>
+                                <th class="px-2 py-1 text-left">Route</th>
+                                <th class="px-2 py-1 text-left">Method</th>
+                                <th class="px-2 py-1 text-left">Accessed At</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="(log, idx) in statistics.access_logs" :key="idx" class="border-b border-gray-800">
+                                <td class="px-2 py-1">{{ log.user }}</td>
+                                <td class="px-2 py-1">{{ log.route }}</td>
+                                <td class="px-2 py-1">{{ log.method }}</td>
+                                <td class="px-2 py-1">{{ new Date(log.accessed_at).toLocaleString() }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

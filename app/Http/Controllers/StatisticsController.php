@@ -8,6 +8,7 @@ use App\Models\Quiz;
 use App\Models\Flashcard;
 use App\Models\Tag; // Import Tag model
 use App\Models\Program; // Import Program model
+use App\Models\AccessLog;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -179,6 +180,19 @@ class StatisticsController extends Controller
 				})
 				->sortByDesc('flashcards_count')
 				->values(),
+			// Add access logs
+			'access_logs' => AccessLog::with('user')
+				->orderBy('accessed_at', 'desc')
+				->take(10)
+				->get()
+				->map(function ($log) {
+					return [
+						'user' => $log->user ? ($log->user->first_name . ' ' . $log->user->last_name) : 'Guest',
+						'route' => $log->route,
+						'method' => $log->method,
+						'accessed_at' => $log->accessed_at,
+					];
+				}),
 		];
 
 		return Inertia::render('Statistics/Index', [
