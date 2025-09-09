@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\LeaderboardController;
+use App\Http\Controllers\UserController;
 
 Route::middleware('auth')->get('/user', function (Request $request) {
     return $request->user();
@@ -32,3 +33,8 @@ Route::middleware('auth')->get('/user', function (Request $request) {
 
 Route::get('/leaderboard/general', [LeaderboardController::class, 'general']);
 Route::get('/leaderboard/multiplayer', [LeaderboardController::class, 'multiplayer']);
+
+//Route::middleware(['auth:sanctum'])->group(function () {
+    Route::get('/users', [UserController::class, 'index']);
+    Route::patch('/users/{user}/role', [UserController::class, 'updateRole']);
+//});
