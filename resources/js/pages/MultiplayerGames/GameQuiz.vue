@@ -44,11 +44,18 @@
                                     {{ gameState.playerOne.first_name }} {{ gameState.playerOne.last_name }}
                                 </p>
                                 <div class="flex items-center space-x-2">
-                                    <!-- PVP Mode: Show Accuracy and Streak -->
+                                    <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
-                                        <span class="text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
-                                        <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        <template v-if="gameState.pvp_mode === 'hp'">
+                                            <span class="text-sm text-red-500">❤️ {{ gameState.player_one_hp }}</span>
+                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
+                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        </template>
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
                                     <template v-else>
@@ -76,11 +83,17 @@
                                     {{ gameState.playerTwo.first_name }} {{ gameState.playerTwo.last_name }}
                                 </p>
                                 <div class="flex items-center justify-end space-x-2">
-                                    <!-- PVP Mode: Show Accuracy and Streak -->
+                                    <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
-                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                        <span class="text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
-                                        <span class="text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                        <template v-if="gameState.pvp_mode === 'hp'">
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="text-sm text-red-500">❤️ {{ gameState.player_two_hp }}</span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                        </template>
                                     </template>
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
@@ -337,9 +350,6 @@ const currentQuestion = ref(props.currentQuestion);
 // Create reactive game state to ensure proper updates
 const gameState = ref({ ...props.game });
 
-// Helper: get PvP mode
-const getPvpMode = () => gameState.value.pvp_mode || 'accuracy';
-
 // Visual feedback state
 const showOpponentAction = ref(false);
 const opponentFeedback = ref<{ name: string; isCorrect: boolean; answer: string } | null>(null);
@@ -574,7 +584,8 @@ onUnmounted(() => {
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
-        const pvpMode = getPvpMode();
+        // Use pvp_mode to determine win condition
+        const pvpMode = gameState.value.pvp_mode ?? 'accuracy';
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
         if (pvpMode === 'hp') {
             // HP-based PvP result
@@ -588,7 +599,7 @@ const getGameResult = (): string => {
                 return `Tie! 🤝 Both players have ${myHp} HP`;
             }
         } else {
-            // Accuracy-based PvP result
+            // Default to accuracy-based PvP result
             const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy ?? 0 : gameState.value.player_two_accuracy ?? 0;
             const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy ?? 0 : gameState.value.player_one_accuracy ?? 0;
             if (myAccuracy > opponentAccuracy) {
@@ -628,6 +639,7 @@ const handleImageError = (event: Event) => {
 let echo: any;
 
 onMounted(() => {
+    console.log('DEBUG: gameState.value.pvp_mode =', gameState.value.pvp_mode);
     if (window.Echo) {
         echo = window.Echo.private(`multiplayer-game.${props.game.id}`)
             .listen('MultiplayerGameUpdated', (e: any) => {
