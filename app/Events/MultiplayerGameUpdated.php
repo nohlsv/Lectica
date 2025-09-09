@@ -45,6 +45,9 @@ class MultiplayerGameUpdated implements ShouldBroadcast
         $currentQuestion = $this->game->getCurrentQuestion();
         $gameData['currentQuestion'] = $currentQuestion ? $currentQuestion->toArray() : null;
 
+        // Ensure pvp_mode is always present in the broadcast data
+        $gameData['pvp_mode'] = $this->game->pvp_mode ?? 'accuracy';
+
         return [
             'game' => $gameData,
             'event_type' => $this->eventType,

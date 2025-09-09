@@ -94,7 +94,11 @@ class MultiplayerGameService
                 }
 
                 // Broadcast the game update to all players
-                broadcast(new MultiplayerGameUpdated($multiplayerGame->fresh()));
+                $freshGame = $multiplayerGame->fresh();
+                // Ensure pvp_mode is present in the event
+                broadcast(new MultiplayerGameUpdated($freshGame, 'updated', [
+                    'pvp_mode' => $freshGame->pvp_mode ?? 'accuracy',
+                ]));
 
                 Log::info('Answer processed for game ' . $gameId . ' by player ' . $playerId);
                 return true;

@@ -337,6 +337,9 @@ const currentQuestion = ref(props.currentQuestion);
 // Create reactive game state to ensure proper updates
 const gameState = ref({ ...props.game });
 
+// Helper: get PvP mode
+const getPvpMode = () => gameState.value.pvp_mode || 'accuracy';
+
 // Visual feedback state
 const showOpponentAction = ref(false);
 const opponentFeedback = ref<{ name: string; isCorrect: boolean; answer: string } | null>(null);
@@ -571,8 +574,7 @@ onUnmounted(() => {
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
-        // Use pvp_mode to determine win condition
-        const pvpMode = gameState.value.pvp_mode ?? 'accuracy';
+        const pvpMode = getPvpMode();
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
         if (pvpMode === 'hp') {
             // HP-based PvP result
@@ -586,7 +588,7 @@ const getGameResult = (): string => {
                 return `Tie! 🤝 Both players have ${myHp} HP`;
             }
         } else {
-            // Default to accuracy-based PvP result
+            // Accuracy-based PvP result
             const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy ?? 0 : gameState.value.player_two_accuracy ?? 0;
             const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy ?? 0 : gameState.value.player_one_accuracy ?? 0;
             if (myAccuracy > opponentAccuracy) {

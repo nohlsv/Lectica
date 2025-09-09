@@ -251,6 +251,7 @@ class MultiplayerGameController extends Controller
             'playerTwo' => $multiplayerGame->playerTwo,
             'source_name' => $multiplayerGame->getSourceName(),
             'quizTypes' => $quizTypes,
+            'pvp_mode' => $multiplayerGame->pvp_mode ?? 'accuracy', // Ensure pvp_mode is present
         ]);
     }
 
