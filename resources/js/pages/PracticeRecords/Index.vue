@@ -26,6 +26,9 @@
                                     </Link>
                                 </div>
                             </div>
+                            <div v-if="group.attempts.length > 1" class="mt-4">
+                                <canvas :ref="setChartRef(group.file.id)" class="w-full h-32"></canvas>
+                            </div>
                         </div>
                         <div v-else class="text-xs text-gray-300 mt-2">Click to show attempts</div>
                     </div>
@@ -36,9 +39,10 @@
 </template>
 
 <script setup lang="ts">
+import { ref, nextTick } from 'vue';
+import Chart from 'chart.js/auto';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { ref } from 'vue';
 
 interface Attempt {
     id: number;
@@ -60,9 +64,64 @@ interface Props {
 }
 const props = defineProps<Props>();
 const expandedGroups = ref<{ [key: number]: boolean }>({});
+const chartRefs = ref<{ [key: number]: HTMLCanvasElement | null }>({});
+const chartInstances = ref<{ [key: number]: Chart | null }>({});
 
+function setChartRef(fileId: number) {
+    // Only set the ref, do not render chart here to avoid recursive updates
+    return (el: HTMLCanvasElement | null) => {
+        chartRefs.value[fileId] = el;
+    };
+}
 function toggleGroup(fileId: number) {
     expandedGroups.value[fileId] = !expandedGroups.value[fileId];
+    if (expandedGroups.value[fileId]) {
+        // Wait for DOM update, then render chart
+        nextTick(() => renderChart(fileId));
+    } else {
+        if (chartInstances.value[fileId]) {
+            chartInstances.value[fileId].destroy();
+            chartInstances.value[fileId] = null;
+        }
+    }
+}
+function renderChart(fileId: number) {
+    const group = props.groupedRecords.find(g => g.file.id === fileId);
+    if (!group || group.attempts.length < 2) return;
+    const canvas = chartRefs.value[fileId];
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    if (chartInstances.value[fileId]) {
+        chartInstances.value[fileId].destroy();
+    }
+    const labels = group.attempts.map(a => new Date(a.created_at).toLocaleDateString());
+    const data = group.attempts.map(a => a.total_questions > 0 ? Math.round((a.correct_answers / a.total_questions) * 100) : 0);
+    chartInstances.value[fileId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Score (%)',
+                data,
+                fill: false,
+                borderColor: '#fb9e1b',
+                backgroundColor: '#fb9e1b',
+                tension: 0.2,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                title: { display: false },
+            },
+            scales: {
+                y: { min: 0, max: 100, title: { display: true, text: 'Score (%)' } },
+                x: { title: { display: true, text: 'Date' } },
+            },
+        },
+    });
 }
 function formatDate(dateStr: string) {
     const date = new Date(dateStr);
