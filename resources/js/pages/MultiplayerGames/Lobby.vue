@@ -206,6 +206,31 @@
                     <div class="p-6">
                         <h3 class="mb-4 text-lg font-medium text-gray-900 dark:text-gray-100">Create a New Multiplayer Game</h3>
 
+                        <!-- General Error Display -->
+                        <div
+                            v-if="form.errors.general || Object.keys(form.errors).length > 0"
+                            class="mb-6 rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
+                        >
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200">There were errors with your submission</h3>
+                                    <div class="mt-2 text-sm text-red-700 dark:text-red-300">
+                                        <ul class="list-inside list-disc space-y-1">
+                                            <li v-if="form.errors.general">{{ form.errors.general }}</li>
+                                            <li v-for="(error, field) in form.errors" :key="field" v-if="field !== 'general'">
+                                                <strong>{{ field }}:</strong> {{ error }}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Game Mode Selection -->
                         <div class="mb-6">
                             <span class="block text-sm font-medium text-gray-700 dark:text-gray-300">Game Mode</span>
@@ -233,6 +258,30 @@
                                     PvP
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- PvP Win Condition Toggle -->
+                        <div v-if="form.game_mode === 'pvp'" class="mb-6">
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">PvP Win Condition</label>
+                            <div class="flex space-x-4">
+                                <button
+                                    type="button"
+                                    @click="form.pvp_mode = 'accuracy'"
+                                    :class="form.pvp_mode === 'accuracy' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="rounded-md px-4 py-2 text-sm font-medium"
+                                >
+                                    Most Accurate Wins
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="form.pvp_mode = 'hp'"
+                                    :class="form.pvp_mode === 'hp' ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700'"
+                                    class="rounded-md px-4 py-2 text-sm font-medium"
+                                >
+                                    Most HP Wins
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">Choose how the winner is determined in PvP mode.</p>
                         </div>
 
                         <!-- Source Selection -->
@@ -327,6 +376,38 @@
                                     </div>
                                 </button>
                             </div>
+                        </div>
+
+                        <!-- Game Info -->
+                        <div
+                            class="mb-6 rounded-lg border p-4"
+                            :class="form.game_mode === 'pve'
+                                ? 'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20'
+                                : 'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20'"
+                        >
+                            <h3
+                                class="mb-2 text-lg font-medium"
+                                :class="form.game_mode === 'pve' ? 'text-green-900 dark:text-green-100' : 'text-red-900 dark:text-red-100'"
+                            >
+                                {{ form.game_mode === 'pve' ? 'How PvE (Co-op) Battles Work' : 'How PvP (Versus) Battles Work' }}
+                            </h3>
+                            <ul
+                                class="space-y-1 text-sm"
+                                :class="form.game_mode === 'pve' ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'"
+                            >
+                                <template v-if="form.game_mode === 'pve'">
+                                    <li>• You and another player take turns answering questions</li>
+                                    <li>• Correct answers deal damage to the monster</li>
+                                    <li>• Wrong answers cause the monster to damage the current player</li>
+                                    <li>• Work together to defeat the monster before it defeats you both!</li>
+                                </template>
+                                <template v-else>
+                                    <li>• You and another player take turns answering questions</li>
+                                    <li>• Correct answers deal damage to your opponent</li>
+                                    <li>• Wrong answers cause damage to yourself</li>
+                                    <li>• Be the last player standing to win!</li>
+                                </template>
+                            </ul>
                         </div>
 
                         <!-- Create Button -->
