@@ -124,13 +124,13 @@
                             v-for="(option, index) in currentQuiz.options"
                             :key="index"
                             @click="selectAnswer(option)"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             :class="[
                                 'w-full rounded-lg border p-3 text-left transition-colors',
                                 selectedAnswer === option
                                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                                     : 'border-gray-300 hover:border-purple-300 dark:border-gray-600',
-                                answerSubmitted && 'cursor-not-allowed opacity-75',
+                                (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             {{ option }}
@@ -141,26 +141,26 @@
                     <div v-else-if="currentQuiz.type === 'true_false'" class="flex space-x-4">
                         <button
                             @click="selectAnswer('True')"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'True'
                                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                                     : 'border-gray-300 hover:border-green-300 dark:border-gray-600',
-                                answerSubmitted && 'cursor-not-allowed opacity-75',
+                                (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             True
                         </button>
                         <button
                             @click="selectAnswer('False')"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'False'
                                     ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                                     : 'border-gray-300 hover:border-red-300 dark:border-gray-600',
-                                answerSubmitted && 'cursor-not-allowed opacity-75',
+                                (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             False
@@ -171,7 +171,7 @@
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
                         <textarea
                             v-model="selectedAnswer"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             placeholder="Enter your answer..."
                             class="w-full rounded-lg border border-gray-300 p-3 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             rows="3"
@@ -182,7 +182,7 @@
                     <div class="mt-4 flex justify-end">
                         <button
                             @click="submitAnswer"
-                            :disabled="!selectedAnswer || answerSubmitted || submitting"
+                            :disabled="!selectedAnswer || answerSubmitted || submitting || timedOut"
                             class="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50"
                         >
                             <span v-if="submitting" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
@@ -345,6 +345,7 @@ const gameEndAnimation = ref(false);
 const TIMER_DURATION = 30; // seconds per question
 const timer = ref(TIMER_DURATION);
 let timerInterval: number | undefined;
+const timedOut = ref(false);
 
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
@@ -364,13 +365,13 @@ watch(isMyTurn, (newVal) => {
 
 // Methods
 const selectAnswer = (answer: string) => {
-    if (!answerSubmitted.value) {
+    if (!answerSubmitted.value && !timedOut.value) {
         selectedAnswer.value = answer;
     }
 };
 
 const submitAnswer = async () => {
-    if (!selectedAnswer.value || submitting.value) return;
+    if (!selectedAnswer.value || submitting.value || timedOut.value) return;
 
     submitting.value = true;
     answerSubmitted.value = true;
@@ -482,6 +483,7 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
 
 const startTimer = () => {
     timer.value = TIMER_DURATION;
+    timedOut.value = false;
     stopTimer();
     timerInterval = window.setInterval(() => {
         timer.value = Math.max(timer.value - 1, 0);
@@ -501,8 +503,8 @@ const stopTimer = () => {
 
 const handleTimeout = () => {
     if (!answerSubmitted.value && isMyTurn.value) {
+        timedOut.value = true;
         // If no answer selected, submit empty or skip
-        console.log("Time's up! Auto-submitting answer.");
         if (!selectedAnswer.value) {
             // Optionally, you can auto-submit a "skip" or empty answer
             selectedAnswer.value = '';
@@ -515,6 +517,7 @@ const handleTimeout = () => {
 const resetForNextQuestion = () => {
     selectedAnswer.value = '';
     answerSubmitted.value = false;
+    timedOut.value = false;
     timer.value = TIMER_DURATION;
     stopTimer();
     if (isMyTurn.value) {
