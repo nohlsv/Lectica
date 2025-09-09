@@ -13,14 +13,32 @@ class PracticeRecordController extends Controller
 	use AuthorizesRequests;
 	public function index(): Response
 	{
-		$records = PracticeRecord::with(['file', 'user'])
-			->where('user_id', auth()->id())
-			->latest()
-			->paginate(10)
-			->withQueryString(); // Ensure query string is preserved
+		$userId = auth()->id();
+		// Get all practice records for the user, grouped by file (quiz)
+		$records = PracticeRecord::with(['file'])
+			->where('user_id', $userId)
+			->orderByDesc('created_at')
+			->get();
+
+		// Group records by file_id
+		$grouped = $records->groupBy('file_id')->map(function ($group) {
+			return [
+				'file' => $group->first()->file,
+				'attempts' => $group->map(function ($record) {
+					return [
+						'id' => $record->id,
+						'type' => $record->type,
+						'correct_answers' => $record->correct_answers,
+						'total_questions' => $record->total_questions,
+						'created_at' => $record->created_at,
+						'mistakes' => $record->mistakes,
+					];
+				}),
+			];
+		})->values();
 
 		return Inertia::render('PracticeRecords/Index', [
-			'records' => $records,
+			'groupedRecords' => $grouped,
 		]);
 	}
 
