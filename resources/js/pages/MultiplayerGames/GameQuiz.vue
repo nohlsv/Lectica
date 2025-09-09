@@ -397,8 +397,12 @@ const submitAnswer = async () => {
 
     // Prepare answer for submission: always a string
     let answerToSubmit: string;
-    if (currentQuiz.value?.type === 'enumeration' && Array.isArray(selectedAnswer.value)) {
-        answerToSubmit = selectedAnswer.value.join(', ');
+    if (currentQuiz.value?.type === 'enumeration') {
+        // Always treat as string[]
+        answerToSubmit = (selectedAnswer.value as string[]).join(', ');
+    } else {
+        // Always treat as string
+        answerToSubmit = selectedAnswer.value as string;
     }
 
     try {
@@ -525,12 +529,10 @@ const handleTimeout = () => {
     if (!answerSubmitted.value && isMyTurn.value) {
         timedOut.value = true;
         // Ensure selectedAnswer is set to an empty value appropriate for the quiz type
-        if (!selectedAnswer.value) {
-            if (currentQuiz.value?.type === 'enumeration') {
-                selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
-            } else {
-                selectedAnswer.value = '';
-            }
+        if (currentQuiz.value?.type === 'enumeration') {
+            selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+        } else {
+            selectedAnswer.value = '';
         }
         submitAnswer();
         lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
