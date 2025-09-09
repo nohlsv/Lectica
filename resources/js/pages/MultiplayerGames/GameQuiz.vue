@@ -169,13 +169,17 @@
 
                     <!-- Enumeration -->
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
-                        <textarea
-                            v-model="selectedAnswer"
-                            :disabled="answerSubmitted || timedOut"
-                            placeholder="Enter your answer..."
-                            class="w-full rounded-lg border border-gray-300 p-3 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                            rows="3"
-                        ></textarea>
+                        <p class="font-bold text-purple-700 mb-2">Please provide {{ currentQuiz.answers.length }} answers:</p>
+                        <div v-for="(ans, idx) in currentQuiz.answers" :key="idx" class="mb-2">
+                            <input
+                                type="text"
+                                :placeholder="`Answer ${idx + 1}`"
+                                v-model="selectedAnswer[idx]"
+                                @input="updateEnumerationAnswer(idx, selectedAnswer[idx])"
+                                :disabled="answerSubmitted || timedOut"
+                                class="w-full rounded-lg border border-gray-300 p-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                            />
+                        </div>
                     </div>
 
                     <!-- Submit Button -->
@@ -323,7 +327,7 @@ const props = defineProps<{
 }>();
 
 // Game state
-const selectedAnswer = ref('');
+const selectedAnswer = ref<string | string[]>('');
 const answerSubmitted = ref(false);
 const submitting = ref(false);
 const gameOver = ref(false);
@@ -366,12 +370,27 @@ watch(isMyTurn, (newVal) => {
 // Methods
 const selectAnswer = (answer: string) => {
     if (!answerSubmitted.value && !timedOut.value) {
-        selectedAnswer.value = answer;
+        if (currentQuiz.value?.type === 'enumeration') {
+            // Do nothing, handled by input fields
+        } else {
+            selectedAnswer.value = answer;
+        }
     }
 };
 
+function updateEnumerationAnswer(idx: number, val: string) {
+    if (!answerSubmitted.value && !timedOut.value && Array.isArray(selectedAnswer.value)) {
+        selectedAnswer.value[idx] = val;
+    }
+}
+
 const submitAnswer = async () => {
-    if (!selectedAnswer.value || submitting.value || timedOut.value) return;
+    if (
+        (currentQuiz.value?.type === 'enumeration' && Array.isArray(selectedAnswer.value) && selectedAnswer.value.every((a) => !a)) ||
+        (!selectedAnswer.value && currentQuiz.value?.type !== 'enumeration') ||
+        submitting.value ||
+        timedOut.value
+    ) return;
 
     submitting.value = true;
     answerSubmitted.value = true;
@@ -423,26 +442,22 @@ const submitAnswer = async () => {
     }
 };
 
-const checkAnswer = (userAnswer: string, quiz: Quiz): boolean => {
+const checkAnswer = (userAnswer: string | string[], quiz: Quiz): boolean => {
     if (!quiz || !quiz.answers || quiz.answers.length === 0 || !userAnswer) {
         return false;
     }
 
-    const userAnswerLower = userAnswer.toLowerCase().trim();
-
     if (quiz.type === 'multiple_choice' || quiz.type === 'true_false') {
-        // For these types, the first element in answers array is the correct answer
+        const userAnswerLower = (userAnswer as string).toLowerCase().trim();
         const correctAnswer = quiz.answers[0].toLowerCase().trim();
         return userAnswerLower === correctAnswer;
     } else if (quiz.type === 'enumeration') {
-        // For enumeration, check if user answer contains any of the correct answers
-        // Each answer in the array could be a valid response
-        return quiz.answers.some((correctAnswer) => {
-            const correctLower = correctAnswer.toLowerCase().trim();
-            return userAnswerLower.includes(correctLower) || correctLower.includes(userAnswerLower);
-        });
+        // Check if all required answers are provided correctly (case insensitive)
+        const requiredAnswers = quiz.answers.map((ans) => ans.toLowerCase().trim());
+        const userAnswersLower = (userAnswer as string[]).map((ans) => ans.toLowerCase().trim());
+        // All required answers must be present
+        return requiredAnswers.every((reqAns) => userAnswersLower.includes(reqAns));
     }
-
     return false;
 };
 
@@ -515,7 +530,11 @@ const handleTimeout = () => {
 };
 
 const resetForNextQuestion = () => {
-    selectedAnswer.value = '';
+    if (currentQuiz.value?.type === 'enumeration') {
+        selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+    } else {
+        selectedAnswer.value = '';
+    }
     answerSubmitted.value = false;
     timedOut.value = false;
     timer.value = TIMER_DURATION;
@@ -524,6 +543,15 @@ const resetForNextQuestion = () => {
         startTimer();
     }
 };
+
+// Watch for question change to reset enumeration fields
+watch(currentQuiz, (newQuiz) => {
+    if (newQuiz && newQuiz.type === 'enumeration') {
+        if (!Array.isArray(selectedAnswer.value) || selectedAnswer.value.length !== newQuiz.answers.length) {
+            selectedAnswer.value = Array(newQuiz.answers.length).fill('');
+        }
+    }
+});
 
 // Clean up timer on unmount
 onUnmounted(() => {
