@@ -119,10 +119,70 @@ class StatisticsController extends Controller
 
 			'total_storage_used_mb' => round(File::sum('size') / 1024 / 1024, 2),
 			'average_file_size_kb' => round(File::avg('size') / 1024, 2),
+            // Fix for SQLite: extract file extensions in PHP
+            'files_by_type' => collect(File::all('name'))
+                ->map(function ($file) {
+                    $ext = strtolower(pathinfo($file->name, PATHINFO_EXTENSION));
+                    return $ext ?: 'none';
+                })
+                ->countBy()
+                ->map(function ($count, $extension) {
+                    return ['extension' => $extension, 'count' => $count];
+                })
+                ->sortByDesc('count')
+                ->values(),
+			'files_created_per_month' => File::selectRaw("strftime('%Y-%m', created_at) as month, COUNT(*) as count")
+				->where('created_at', '>=', now()->subMonths(12))
+				->groupBy('month')
+				->orderBy('month')
+				->get(),
+			'storage_per_program' => Program::with(['users.files'])
+				->get()
+				->map(function ($program) {
+					$program->storage_mb = round($program->users->sum(function ($user) {
+						return $user->files->sum('size');
+					}) / 1024 / 1024, 2);
+					return [
+						'name' => $program->name,
+						'storage_mb' => $program->storage_mb,
+					];
+				})
+				->sortByDesc('storage_mb')
+				->values(),
+			'quizzes_per_program' => Program::with(['users.files.quizzes'])
+				->get()
+				->map(function ($program) {
+					$program->quizzes_count = $program->users->sum(function ($user) {
+						return $user->files->sum(function ($file) {
+							return $file->quizzes->count();
+						});
+					});
+					return [
+						'name' => $program->name,
+						'quizzes_count' => $program->quizzes_count,
+					];
+				})
+				->sortByDesc('quizzes_count')
+				->values(),
+			'flashcards_per_program' => Program::with(['users.files.flashcards'])
+				->get()
+				->map(function ($program) {
+					$program->flashcards_count = $program->users->sum(function ($user) {
+						return $user->files->sum(function ($file) {
+							return $file->flashcards->count();
+						});
+					});
+					return [
+						'name' => $program->name,
+						'flashcards_count' => $program->flashcards_count,
+					];
+				})
+				->sortByDesc('flashcards_count')
+				->values(),
 		];
 
 		return Inertia::render('Statistics/Index', [
-			'statistics' => $statistics,
+			'statistics' => $statistics
 		]);
 	}
 }

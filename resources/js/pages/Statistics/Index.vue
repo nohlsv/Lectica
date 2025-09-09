@@ -47,6 +47,11 @@ interface Statistics {
     most_popular_program: { id: number; name: string; files_count: number };
     total_storage_used_mb: number;
     average_file_size_kb: number;
+    files_by_type: Array<{ extension: string; count: number }>;
+    files_created_per_month: Array<{ month: string; count: number }>;
+    storage_per_program: Array<{ name: string; storage_mb: number }>;
+    quizzes_per_program: Array<{ name: string; quizzes_count: number }>;
+    flashcards_per_program: Array<{ name: string; flashcards_count: number }>;
 }
 
 const props = defineProps<{ statistics: Statistics }>();
@@ -76,15 +81,92 @@ onMounted(async () => {
         },
         { responsive: true },
     );
-
-    // renderChart('tagsUsageChart', 'pie', {
-    //     labels: props.statistics.most_used_tags.map((t) => t.name),
-    //     datasets: [{
-    //         label: 'Tag Usage',
-    //         data: props.statistics.most_used_tags.map((t) => t.files_count),
-    //         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
-    //     }],
-    // }, { responsive: true });
+    renderChart(
+        'filesByTypeChart',
+        'bar',
+        {
+            labels: props.statistics.files_by_type.map((t) => t.extension || 'none'),
+            datasets: [
+                {
+                    label: 'Files by Type',
+                    data: props.statistics.files_by_type.map((t) => t.count),
+                    backgroundColor: 'rgba(142, 44, 56, 0.2)',
+                    borderColor: 'rgba(142, 44, 56, 1)',
+                    borderWidth: 1,
+                },
+            ],
+        },
+        { responsive: true },
+    );
+    renderChart(
+        'filesCreatedPerMonthChart',
+        'line',
+        {
+            labels: props.statistics.files_created_per_month.map((m) => m.month),
+            datasets: [
+                {
+                    label: 'Files Created Per Month',
+                    data: props.statistics.files_created_per_month.map((m) => m.count),
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                },
+            ],
+        },
+        { responsive: true },
+    );
+    renderChart(
+        'storagePerProgramChart',
+        'bar',
+        {
+            labels: props.statistics.storage_per_program.map((p) => p.name),
+            datasets: [
+                {
+                    label: 'Storage Usage Per Program (MB)',
+                    data: props.statistics.storage_per_program.map((p) => p.storage_mb),
+                    backgroundColor: 'rgba(44, 142, 56, 0.2)',
+                    borderColor: 'rgba(44, 142, 56, 1)',
+                    borderWidth: 1,
+                },
+            ],
+        },
+        { responsive: true },
+    );
+    renderChart(
+        'quizzesPerProgramChart',
+        'bar',
+        {
+            labels: props.statistics.quizzes_per_program.map((p) => p.name),
+            datasets: [
+                {
+                    label: 'Quizzes Per Program',
+                    data: props.statistics.quizzes_per_program.map((p) => p.quizzes_count),
+                    backgroundColor: 'rgba(44, 56, 142, 0.2)',
+                    borderColor: 'rgba(44, 56, 142, 1)',
+                    borderWidth: 1,
+                },
+            ],
+        },
+        { responsive: true },
+    );
+    renderChart(
+        'flashcardsPerProgramChart',
+        'bar',
+        {
+            labels: props.statistics.flashcards_per_program.map((p) => p.name),
+            datasets: [
+                {
+                    label: 'Flashcards Per Program',
+                    data: props.statistics.flashcards_per_program.map((p) => p.flashcards_count),
+                    backgroundColor: 'rgba(142, 142, 44, 0.2)',
+                    borderColor: 'rgba(142, 142, 44, 1)',
+                    borderWidth: 1,
+                },
+            ],
+        },
+        { responsive: true },
+    );
 });
 </script>
 
@@ -98,30 +180,31 @@ onMounted(async () => {
             </div>
             <div class="mx-auto max-w-7xl px-6">
                 <!-- Top stats cards -->
+                <!-- Card and chart containers: update for reddish background -->
                 <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-6 mb-8">
-                    <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 flex flex-col items-center shadow-md">
-                        <h2 class="text-lg font-semibold mb-2">Users</h2>
-                        <p class="text-4xl font-extrabold">{{ statistics.total_users }}</p>
+                    <div class="rounded-xl border-2 border-[#8E2C38] bg-[#2c0a0e] p-6 flex flex-col items-center shadow-lg">
+                        <h2 class="text-lg font-semibold mb-2 text-[#ffb3b3]">Users</h2>
+                        <p class="text-4xl font-extrabold text-[#ffb3b3]">{{ statistics.total_users }}</p>
                     </div>
-                    <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 flex flex-col items-center shadow-md">
-                        <h2 class="text-lg font-semibold mb-2">Files</h2>
-                        <p class="text-4xl font-extrabold">{{ statistics.total_files }}</p>
+                    <div class="rounded-xl border-2 border-[#8E2C38] bg-[#2c0a0e] p-6 flex flex-col items-center shadow-lg">
+                        <h2 class="text-lg font-semibold mb-2 text-[#ffb3b3]">Files</h2>
+                        <p class="text-4xl font-extrabold text-[#ffb3b3]">{{ statistics.total_files }}</p>
                     </div>
-                    <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 flex flex-col items-center shadow-md">
-                        <h2 class="text-lg font-semibold mb-2">Quizzes</h2>
-                        <p class="text-4xl font-extrabold">{{ statistics.total_quizzes }}</p>
+                    <div class="rounded-xl border-2 border-[#8E2C38] bg-[#2c0a0e] p-6 flex flex-col items-center shadow-lg">
+                        <h2 class="text-lg font-semibold mb-2 text-[#ffb3b3]">Quizzes</h2>
+                        <p class="text-4xl font-extrabold text-[#ffb3b3]">{{ statistics.total_quizzes }}</p>
                     </div>
-                    <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 flex flex-col items-center shadow-md">
-                        <h2 class="text-lg font-semibold mb-2">Flashcards</h2>
-                        <p class="text-4xl font-extrabold">{{ statistics.total_flashcards }}</p>
+                    <div class="rounded-xl border-2 border-[#8E2C38] bg-[#2c0a0e] p-6 flex flex-col items-center shadow-lg">
+                        <h2 class="text-lg font-semibold mb-2 text-[#ffb3b3]">Flashcards</h2>
+                        <p class="text-4xl font-extrabold text-[#ffb3b3]">{{ statistics.total_flashcards }}</p>
                     </div>
-                    <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 flex flex-col items-center shadow-md">
-                        <h2 class="text-lg font-semibold mb-2">Tags</h2>
-                        <p class="text-4xl font-extrabold">{{ statistics.total_tags }}</p>
+                    <div class="rounded-xl border-2 border-[#8E2C38] bg-[#2c0a0e] p-6 flex flex-col items-center shadow-lg">
+                        <h2 class="text-lg font-semibold mb-2 text-[#ffb3b3]">Tags</h2>
+                        <p class="text-4xl font-extrabold text-[#ffb3b3]">{{ statistics.total_tags }}</p>
                     </div>
-                    <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 flex flex-col items-center shadow-md">
-                        <h2 class="text-lg font-semibold mb-2">Programs</h2>
-                        <p class="text-4xl font-extrabold">{{ statistics.total_programs }}</p>
+                    <div class="rounded-xl border-2 border-[#8E2C38] bg-[#2c0a0e] p-6 flex flex-col items-center shadow-lg">
+                        <h2 class="text-lg font-semibold mb-2 text-[#ffb3b3]">Programs</h2>
+                        <p class="text-4xl font-extrabold text-[#ffb3b3]">{{ statistics.total_programs }}</p>
                     </div>
                 </div>
 
@@ -145,10 +228,35 @@ onMounted(async () => {
                 </div>
 
                 <!-- Charts section -->
+                <!-- Chart containers -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                    <div class="bg-[#8E2C38] rounded-xl shadow p-6 flex flex-col items-center">
-                        <h2 class="pixel-outline text-xl font-bold mb-4">Files per Program</h2>
+                    <div class="bg-[#2c0a0e] rounded-xl shadow-lg p-6 flex flex-col items-center border-2 border-[#8E2C38]">
+                        <h2 class="text-xl font-bold mb-4 text-[#ffb3b3]">Files per Program</h2>
                         <canvas id="filesPerProgramChart" class="w-full max-w-md"></canvas>
+                    </div>
+                    <div class="bg-[#2c0a0e] rounded-xl shadow-lg p-6 flex flex-col items-center border-2 border-[#8E2C38]">
+                        <h2 class="text-xl font-bold mb-4 text-[#ffb3b3]">Files by Type</h2>
+                        <canvas id="filesByTypeChart" class="w-full max-w-md"></canvas>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-[#2c0a0e] rounded-xl shadow-lg p-6 flex flex-col items-center border-2 border-[#8E2C38]">
+                        <h2 class="text-xl font-bold mb-4 text-[#ffb3b3]">Files Created Per Month</h2>
+                        <canvas id="filesCreatedPerMonthChart" class="w-full max-w-md"></canvas>
+                    </div>
+                    <div class="bg-[#2c0a0e] rounded-xl shadow-lg p-6 flex flex-col items-center border-2 border-[#8E2C38]">
+                        <h2 class="text-xl font-bold mb-4 text-[#ffb3b3]">Storage Usage Per Program</h2>
+                        <canvas id="storagePerProgramChart" class="w-full max-w-md"></canvas>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <div class="bg-[#2c0a0e] rounded-xl shadow-lg p-6 flex flex-col items-center border-2 border-[#8E2C38]">
+                        <h2 class="text-xl font-bold mb-4 text-[#ffb3b3]">Quizzes Per Program</h2>
+                        <canvas id="quizzesPerProgramChart" class="w-full max-w-md"></canvas>
+                    </div>
+                    <div class="bg-[#2c0a0e] rounded-xl shadow-lg p-6 flex flex-col items-center border-2 border-[#8E2C38]">
+                        <h2 class="text-xl font-bold mb-4 text-[#ffb3b3]">Flashcards Per Program</h2>
+                        <canvas id="flashcardsPerProgramChart" class="w-full max-w-md"></canvas>
                     </div>
                 </div>
 
