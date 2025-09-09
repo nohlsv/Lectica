@@ -775,6 +775,11 @@ class MultiplayerGameController extends Controller
         }
         // If accuracies are equal, it's a tie (winnerId remains null)
 
+        // Set winner_id in the database if there is a winner
+        if ($winnerId !== null) {
+            $multiplayerGame->update(['winner_id' => $winnerId]);
+        }
+
         \Log::info('Winner calculated', [
             'game_id' => $multiplayerGame->id,
             'winner_id' => $winnerId,

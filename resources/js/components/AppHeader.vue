@@ -83,6 +83,11 @@ const mainNavItems: NavItem[] = [
         href: '/history',
         icon: FileChartLine,
     },
+    {
+        title: 'Leaderboards',
+        href: '/leaderboards',
+        icon: ChartArea,
+    },
     // Add faculty/admin pages conditionally
     ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'
         ? [

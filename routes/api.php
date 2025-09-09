@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\LeaderboardController;
 
 Route::middleware('auth')->get('/user', function (Request $request) {
     return $request->user();
@@ -28,3 +29,6 @@ Route::middleware('auth')->get('/user', function (Request $request) {
 //    // Create a new collection (for API)
 //    Route::post('collections', [CollectionController::class, 'store']);
 //});
+
+Route::get('/leaderboard/general', [LeaderboardController::class, 'general']);
+Route::get('/leaderboard/multiplayer', [LeaderboardController::class, 'multiplayer']);

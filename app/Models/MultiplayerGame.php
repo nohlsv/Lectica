@@ -156,22 +156,6 @@ class MultiplayerGame extends Model
     }
 
     /**
-     * Check if player one won the game.
-     */
-    public function isPlayerOneWinner(): bool
-    {
-        return $this->isFinished() && $this->player_one_hp > 0 && ($this->player_two_hp <= 0 || $this->monster_hp <= 0);
-    }
-
-    /**
-     * Check if player two won the game.
-     */
-    public function isPlayerTwoWinner(): bool
-    {
-        return $this->isFinished() && $this->player_two_hp > 0 && ($this->player_one_hp <= 0 || $this->monster_hp <= 0);
-    }
-
-    /**
      * Get the current player whose turn it is.
      */
     public function getCurrentPlayer(): ?User

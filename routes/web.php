@@ -105,6 +105,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
     Route::get('/statistics', [App\Http\Controllers\StatisticsController::class, 'index'])->name('statistics.index');
+    Route::get('/leaderboards', function () {
+        return Inertia::render('Leaderboards');
+    })->name('leaderboards');
 });
 
 require __DIR__ . '/settings.php';
