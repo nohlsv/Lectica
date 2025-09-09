@@ -484,10 +484,8 @@ const startTimer = () => {
     timer.value = TIMER_DURATION;
     stopTimer();
     timerInterval = window.setInterval(() => {
-        if (timer.value > 0) {
-            timer.value--;
-        }
-        if (timer.value === 0) {
+        timer.value = Math.max(timer.value - 1, 0);
+        if (timer.value <= 0) {
             stopTimer();
             handleTimeout();
         }
@@ -504,6 +502,7 @@ const stopTimer = () => {
 const handleTimeout = () => {
     if (!answerSubmitted.value && isMyTurn.value) {
         // If no answer selected, submit empty or skip
+        console.log("Time's up! Auto-submitting answer.");
         if (!selectedAnswer.value) {
             // Optionally, you can auto-submit a "skip" or empty answer
             selectedAnswer.value = '';
@@ -735,6 +734,11 @@ onMounted(() => {
     } else {
         console.error('Laravel Echo not available');
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
+    }
+
+    // Start timer immediately if it's my turn on mount (host first question)
+    if (isMyTurn.value) {
+        startTimer();
     }
 });
 </script>
