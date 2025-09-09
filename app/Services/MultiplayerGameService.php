@@ -115,32 +115,39 @@ class MultiplayerGameService
     private function processDamage(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne, &$damageDealt, &$damageReceived)
     {
         if ($multiplayerGame->isPvp()) {
-            // PVP Mode: Player vs Player
-            if ($isCorrect) {
-                // Player deals damage to opponent
-                $damage = 15; // Base damage for correct answer in PVP
-                $damageDealt = $damage;
-
-                if ($isPlayerOne) {
-                    $newOpponentHp = max(0, $multiplayerGame->player_two_hp - $damage);
-                    $multiplayerGame->update(['player_two_hp' => $newOpponentHp]);
-                    $multiplayerGame->increment('player_one_score', 10);
+            // Check PvP mode
+            if ($multiplayerGame->pvp_mode === 'hp') {
+                // HP-based PvP: deal damage to opponent, self-damage for wrong answer
+                if ($isCorrect) {
+                    $damage = 15; // Base damage for correct answer in PvP HP mode
+                    $damageDealt = $damage;
+                    if ($isPlayerOne) {
+                        $newOpponentHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                        $multiplayerGame->update(['player_two_hp' => $newOpponentHp]);
+                        $multiplayerGame->increment('player_one_score', 10);
+                    } else {
+                        $newOpponentHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                        $multiplayerGame->update(['player_one_hp' => $newOpponentHp]);
+                        $multiplayerGame->increment('player_two_score', 10);
+                    }
                 } else {
-                    $newOpponentHp = max(0, $multiplayerGame->player_one_hp - $damage);
-                    $multiplayerGame->update(['player_one_hp' => $newOpponentHp]);
-                    $multiplayerGame->increment('player_two_score', 10);
+                    $damage = 5; // Self-damage for wrong answer in PvP HP mode
+                    $damageReceived = $damage;
+                    if ($isPlayerOne) {
+                        $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                        $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
+                    } else {
+                        $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                        $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
+                    }
                 }
             } else {
-                // Player takes damage for wrong answer
-                $damage = 5; // Self-damage for wrong answer in PVP
-                $damageReceived = $damage;
-
-                if ($isPlayerOne) {
-                    $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
-                    $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
+                // Accuracy-based PvP: only affect score and accuracy, not HP
+                if ($isCorrect) {
+                    $damageDealt = 10; // Visual indicator for correct answer
+                    $multiplayerGame->increment($isPlayerOne ? 'player_one_score' : 'player_two_score', 10);
                 } else {
-                    $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
-                    $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
+                    $damageReceived = 5; // Visual indicator for wrong answer
                 }
             }
         } else {
