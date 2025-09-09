@@ -303,7 +303,6 @@ interface Game {
     player_two_hp: number;
     player_one_score: number;
     player_two_score: number;
-    // Add accuracy tracking fields
     player_one_accuracy?: number;
     player_two_accuracy?: number;
     player_one_streak?: number;
@@ -317,6 +316,7 @@ interface Game {
     currentUser: any;
     monster?: any;
     source_name: string;
+    pvp_mode?: string; // <-- Add pvp_mode to type
 }
 
 const props = defineProps<{
@@ -572,12 +572,12 @@ onUnmounted(() => {
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
         // Use pvp_mode to determine win condition
-        const pvpMode = gameState.value.pvp_mode;
+        const pvpMode = gameState.value.pvp_mode ?? 'accuracy';
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
         if (pvpMode === 'hp') {
             // HP-based PvP result
-            const myHp = isPlayerOne ? gameState.value.player_one_hp : gameState.value.player_two_hp;
-            const opponentHp = isPlayerOne ? gameState.value.player_two_hp : gameState.value.player_one_hp;
+            const myHp = isPlayerOne ? gameState.value.player_one_hp ?? 0 : gameState.value.player_two_hp ?? 0;
+            const opponentHp = isPlayerOne ? gameState.value.player_two_hp ?? 0 : gameState.value.player_one_hp ?? 0;
             if (myHp > opponentHp) {
                 return `Victory! 🏆 Your HP: ${myHp} vs Opponent: ${opponentHp}`;
             } else if (myHp < opponentHp) {
@@ -587,8 +587,8 @@ const getGameResult = (): string => {
             }
         } else {
             // Default to accuracy-based PvP result
-            const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy || 0 : gameState.value.player_two_accuracy || 0;
-            const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy || 0 : gameState.value.player_one_accuracy || 0;
+            const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy ?? 0 : gameState.value.player_two_accuracy ?? 0;
+            const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy ?? 0 : gameState.value.player_one_accuracy ?? 0;
             if (myAccuracy > opponentAccuracy) {
                 return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
             } else if (myAccuracy < opponentAccuracy) {
@@ -603,7 +603,7 @@ const getGameResult = (): string => {
         }
     } else {
         // PVE Mode: Original HP-based results
-        if (gameState.value.monster_hp ? gameState.value.monster_hp : 0 <= 0) {
+        if ((gameState.value.monster_hp ?? 1) <= 0) {
             return 'Victory! You defeated the monster together!';
         } else {
             return 'Defeat! The monster was too strong.';
@@ -706,7 +706,7 @@ onMounted(() => {
                 if (gameState.value.player_one_accuracy !== previousPlayerOneAccuracy) {
                     accuracyAnimation.value = {
                         player: 'one',
-                        change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0),
+                        change: (gameState.value.player_one_accuracy ?? 0) - (previousPlayerOneAccuracy ?? 0),
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
@@ -716,7 +716,7 @@ onMounted(() => {
                 if (gameState.value.player_two_accuracy !== previousPlayerTwoAccuracy) {
                     accuracyAnimation.value = {
                         player: 'two',
-                        change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0),
+                        change: (gameState.value.player_two_accuracy ?? 0) - (previousPlayerTwoAccuracy ?? 0),
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
@@ -727,7 +727,7 @@ onMounted(() => {
                 if (gameState.value.player_one_streak !== previousPlayerOneStreak) {
                     streakAnimation.value = {
                         player: 'one',
-                        streak: gameState.value.player_one_streak,
+                        streak: gameState.value.player_one_streak ?? 0,
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
@@ -737,7 +737,7 @@ onMounted(() => {
                 if (gameState.value.player_two_streak !== previousPlayerTwoStreak) {
                     streakAnimation.value = {
                         player: 'two',
-                        streak: gameState.value.player_two_streak,
+                        streak: gameState.value.player_two_streak ?? 0,
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
