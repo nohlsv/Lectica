@@ -486,6 +486,13 @@ const checkAnswer = (userAnswer: string | string[], quiz: Quiz): boolean => {
 // Sound effects
 const correctSfx = new Audio('/sfx/correct.wav');
 const incorrectSfx = new Audio('/sfx/incorrect.wav');
+const gameStartSfx = new Audio('/sfx/game_start.wav');
+const gameEndSfx = new Audio('/sfx/game_end.wav');
+const turnStartSfx = new Audio('/sfx/turn_start.wav');
+const streakSfx = new Audio('/sfx/streak.wav');
+const victorySfx = new Audio('/sfx/victory.wav');
+const defeatSfx = new Audio('/sfx/defeat.wav');
+const damageSfx = new Audio('/sfx/damage.wav');
 
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
     // Play sound effect
@@ -513,11 +520,13 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     } else {
         // PVE Mode: Original damage-based feedback
         if (isCorrect) {
+            playDamageSfx();
             lastAction.value = {
                 type: 'success',
                 message: `Correct! You dealt ${damageDealt} damage!`,
             };
         } else {
+            playDamageSfx();
             lastAction.value = {
                 type: 'error',
                 message: `Wrong answer. You took ${damageReceived} damage.`,
@@ -821,6 +830,58 @@ onMounted(() => {
         startTimer();
     }
 });
+
+// Play sfx for game start animation
+watch(gameStartAnimation, (val) => {
+    if (val) {
+        gameStartSfx.currentTime = 0;
+        gameStartSfx.play();
+    }
+});
+
+// Play sfx for game end animation
+watch(gameEndAnimation, (val) => {
+    if (val) {
+        gameEndSfx.currentTime = 0;
+        gameEndSfx.play();
+    }
+});
+
+// Play sfx when player's turn starts
+watch(isMyTurn, (val, oldVal) => {
+    if (val && !oldVal) {
+        turnStartSfx.currentTime = 0;
+        turnStartSfx.play();
+    }
+});
+
+// Play sfx for streaks (3+)
+watch(streakAnimation, (val) => {
+    if (val && val.streak >= 3) {
+        streakSfx.currentTime = 0;
+        streakSfx.play();
+    }
+});
+
+// Play sfx for victory/defeat
+watch(gameOver, (val) => {
+    if (val) {
+        const result = getGameResult();
+        if (result.includes('Victory')) {
+            victorySfx.currentTime = 0;
+            victorySfx.play();
+        } else if (result.includes('Defeat')) {
+            defeatSfx.currentTime = 0;
+            defeatSfx.play();
+        }
+    }
+});
+
+// Play damage sfx when damage is dealt/taken
+function playDamageSfx() {
+    damageSfx.currentTime = 0;
+    damageSfx.play();
+}
 </script>
 
 <style>
