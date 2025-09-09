@@ -3,9 +3,9 @@
 
     <AppLayout>
         <!-- Main Collection Info Card (merged main info and description, with battle actions and buttons) -->
-        <div class="my-6 overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800 mx-auto max-w-7xl ">
-            <div class="p-6 gap-2">
-                <div class="flex items-center gap-4 flex-wrap">
+        <div class="mx-auto my-6 max-w-7xl overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
+            <div class="gap-2 p-6">
+                <div class="flex flex-wrap items-center gap-4">
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">{{ collection.name }}</h1>
                     <span
                         v-if="!collection.is_public"
@@ -26,7 +26,7 @@
                         Copy
                     </span>
                 </div>
-                <div class="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400 mt-2">
+                <div class="mt-2 flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                     <span class="flex items-center">
                         <svg class="mr-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
@@ -76,26 +76,35 @@
                     {{ collection.description }}
                 </div>
                 <!-- Battle Actions and Buttons -->
-                <div class="flex flex-wrap gap-2 mt-4">
+                <div class="mt-4 flex flex-wrap gap-2">
                     <button
                         v-if="canCopy"
                         @click="copyCollection"
                         class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-blue-700 focus:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none active:bg-blue-900 dark:focus:ring-offset-gray-800"
                     >
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                            />
                         </svg>
                         Copy Collection
                     </button>
                     <button
                         @click="toggleFavorite"
-                        :class="isFavorited
-                            ? 'bg-red-600 hover:bg-red-700 focus:bg-red-700 focus:ring-red-500 active:bg-red-900'
-                            : 'bg-gray-600 hover:bg-gray-700 focus:bg-gray-700 focus:ring-gray-500 active:bg-gray-900'"
+                        :class="
+                            isFavorited
+                                ? 'bg-red-600 hover:bg-red-700 focus:bg-red-700 focus:ring-red-500 active:bg-red-900'
+                                : 'bg-gray-600 hover:bg-gray-700 focus:bg-gray-700 focus:ring-gray-500 active:bg-gray-900'
+                        "
                         class="inline-flex items-center rounded-md border border-transparent px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                     >
                         <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                            />
                         </svg>
                         {{ isFavorited ? 'Unfavorite' : 'Favorite' }}
                     </button>
@@ -105,7 +114,12 @@
                         class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-indigo-700 focus:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none active:bg-indigo-900 dark:focus:ring-offset-gray-800"
                     >
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                            />
                         </svg>
                         Edit
                     </Link>
@@ -114,7 +128,7 @@
                         class="inline-flex items-center rounded-md border border-transparent bg-red-600 px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-red-700 focus:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none active:bg-red-900"
                     >
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                         Solo Battle
                     </Link>
@@ -123,7 +137,12 @@
                         class="inline-flex items-center rounded-md border border-transparent bg-purple-600 px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-purple-700 focus:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none active:bg-purple-900"
                     >
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                            />
                         </svg>
                         Multiplayer Battle
                     </Link>
@@ -133,7 +152,6 @@
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-
                 <!-- Files in Collection -->
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6">

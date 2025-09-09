@@ -5,8 +5,8 @@
                 <h1 class="welcome-banner animate-soft-bounce w-fit px-10 py-2 text-2xl font-bold">History Details</h1>
             </div>
             <!-- Progress Chart -->
-            <div v-if="progressRecords && progressRecords.length > 1" class="mb-8 bg-container p-6 rounded-lg border-2 border-[#0c0a03]">
-                <h2 class="text-lg font-bold mb-2">Your Progress Over Time</h2>
+            <div v-if="progressRecords && progressRecords.length > 1" class="bg-container mb-8 rounded-lg border-2 border-[#0c0a03] p-6">
+                <h2 class="mb-2 text-lg font-bold">Your Progress Over Time</h2>
                 <canvas ref="progressChart"></canvas>
             </div>
             <div class="bg-container p-6">
@@ -43,8 +43,8 @@
 
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { computed, onMounted, ref } from 'vue';
 import Chart from 'chart.js/auto';
+import { computed, onMounted, ref } from 'vue';
 interface Props {
     record: {
         id: number;
@@ -114,20 +114,22 @@ onMounted(() => {
     if (progressChart.value && props.progressRecords && props.progressRecords.length > 1) {
         const ctx = progressChart.value.getContext('2d');
         if (!ctx) return;
-        const labels = props.progressRecords.map(r => new Date(r.created_at).toLocaleDateString());
-        const data = props.progressRecords.map(r => r.total_questions > 0 ? Math.round((r.correct_answers / r.total_questions) * 100) : 0);
+        const labels = props.progressRecords.map((r) => new Date(r.created_at).toLocaleDateString());
+        const data = props.progressRecords.map((r) => (r.total_questions > 0 ? Math.round((r.correct_answers / r.total_questions) * 100) : 0));
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels,
-                datasets: [{
-                    label: 'Score (%)',
-                    data,
-                    fill: false,
-                    borderColor: '#fb9e1b',
-                    backgroundColor: '#fb9e1b',
-                    tension: 0.2,
-                }],
+                datasets: [
+                    {
+                        label: 'Score (%)',
+                        data,
+                        fill: false,
+                        borderColor: '#fb9e1b',
+                        backgroundColor: '#fb9e1b',
+                        tension: 0.2,
+                    },
+                ],
             },
             options: {
                 responsive: true,

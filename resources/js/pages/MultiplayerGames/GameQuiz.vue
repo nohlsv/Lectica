@@ -125,9 +125,7 @@
 
                     <!-- Timer Constraint -->
                     <div class="mb-4 flex items-center justify-between">
-                        <span class="text-sm font-semibold text-purple-600">
-                            Time left: {{ timer }}s
-                        </span>
+                        <span class="text-sm font-semibold text-purple-600"> Time left: {{ timer }}s </span>
                         <span v-if="timer === 0" class="text-sm text-red-500">Time's up!</span>
                     </div>
 
@@ -182,7 +180,7 @@
 
                     <!-- Enumeration -->
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
-                        <p class="font-bold text-purple-700 mb-2">Please provide {{ currentQuiz.answers.length }} answers:</p>
+                        <p class="mb-2 font-bold text-purple-700">Please provide {{ currentQuiz.answers.length }} answers:</p>
                         <div v-for="idx in currentQuiz.answers.length" :key="idx" class="mb-2">
                             <input
                                 type="text"
@@ -256,7 +254,7 @@
                         <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{
                             opponentFeedback?.isCorrect ? 'correct' : 'wrong'
                         }}</span>
-<!--                        : "{{ opponentFeedback?.answer }}"-->
+                        <!--                        : "{{ opponentFeedback?.answer }}"-->
                     </p>
                 </div>
 
@@ -297,7 +295,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, onMounted, ref, watch, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Quiz {
     id: number;
@@ -404,7 +402,8 @@ const submitAnswer = async () => {
         (!selectedAnswer.value && currentQuiz.value.type !== 'enumeration') ||
         submitting.value ||
         timedOut.value
-    ) return;
+    )
+        return;
 
     submitting.value = true;
     answerSubmitted.value = true;
@@ -589,8 +588,8 @@ const getGameResult = (): string => {
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
         if (pvpMode === 'hp') {
             // HP-based PvP result
-            const myHp = isPlayerOne ? gameState.value.player_one_hp ?? 0 : gameState.value.player_two_hp ?? 0;
-            const opponentHp = isPlayerOne ? gameState.value.player_two_hp ?? 0 : gameState.value.player_one_hp ?? 0;
+            const myHp = isPlayerOne ? (gameState.value.player_one_hp ?? 0) : (gameState.value.player_two_hp ?? 0);
+            const opponentHp = isPlayerOne ? (gameState.value.player_two_hp ?? 0) : (gameState.value.player_one_hp ?? 0);
             if (myHp > opponentHp) {
                 return `Victory! 🏆 Your HP: ${myHp} vs Opponent: ${opponentHp}`;
             } else if (myHp < opponentHp) {
@@ -600,8 +599,8 @@ const getGameResult = (): string => {
             }
         } else {
             // Default to accuracy-based PvP result
-            const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy ?? 0 : gameState.value.player_two_accuracy ?? 0;
-            const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy ?? 0 : gameState.value.player_one_accuracy ?? 0;
+            const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy ?? 0) : (gameState.value.player_two_accuracy ?? 0);
+            const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy ?? 0) : (gameState.value.player_one_accuracy ?? 0);
             if (myAccuracy > opponentAccuracy) {
                 return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
             } else if (myAccuracy < opponentAccuracy) {

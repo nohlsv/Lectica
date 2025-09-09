@@ -334,8 +334,8 @@ const getGameResult = () => {
         const isPlayerOne = currentUser.value.id === props.playerOne.id;
         if (props.game.pvp_mode === 'hp') {
             // HP-based PvP result
-            const myHp = isPlayerOne ? props.game.player_one_hp ?? 0 : props.game.player_two_hp ?? 0;
-            const opponentHp = isPlayerOne ? props.game.player_two_hp ?? 0 : props.game.player_one_hp ?? 0;
+            const myHp = isPlayerOne ? (props.game.player_one_hp ?? 0) : (props.game.player_two_hp ?? 0);
+            const opponentHp = isPlayerOne ? (props.game.player_two_hp ?? 0) : (props.game.player_one_hp ?? 0);
             if (myHp > opponentHp) {
                 return {
                     type: 'victory',
@@ -361,12 +361,12 @@ const getGameResult = () => {
         } else {
             // Default to accuracy-based PvP result
             const myAccuracy = getAccuracy(
-                isPlayerOne ? props.game.correct_answers_p1 ?? 0 : props.game.correct_answers_p2 ?? 0,
-                isPlayerOne ? props.game.total_questions_p1 ?? 0 : props.game.total_questions_p2 ?? 0,
+                isPlayerOne ? (props.game.correct_answers_p1 ?? 0) : (props.game.correct_answers_p2 ?? 0),
+                isPlayerOne ? (props.game.total_questions_p1 ?? 0) : (props.game.total_questions_p2 ?? 0),
             );
             const opponentAccuracy = getAccuracy(
-                isPlayerOne ? props.game.correct_answers_p2 ?? 0 : props.game.correct_answers_p1 ?? 0,
-                isPlayerOne ? props.game.total_questions_p2 ?? 0 : props.game.total_questions_p1 ?? 0,
+                isPlayerOne ? (props.game.correct_answers_p2 ?? 0) : (props.game.correct_answers_p1 ?? 0),
+                isPlayerOne ? (props.game.total_questions_p2 ?? 0) : (props.game.total_questions_p1 ?? 0),
             );
             const myAccuracyNum = parseFloat(myAccuracy);
             const opponentAccuracyNum = parseFloat(opponentAccuracy);
