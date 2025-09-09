@@ -173,9 +173,9 @@
                         <div v-for="idx in currentQuiz.answers.length" :key="idx" class="mb-2">
                             <input
                                 type="text"
-                                :placeholder="`Answer ${idx}`"
-                                v-model="selectedAnswer[idx - 1]"
-                                @input="updateEnumerationAnswer(idx - 1, selectedAnswer[idx - 1])"
+                                :placeholder="`Answer ${idx + 1}`"
+                                v-model="selectedAnswer[idx]"
+                                @input="updateEnumerationAnswer(idx, selectedAnswer[idx])"
                                 :disabled="answerSubmitted || timedOut"
                                 class="w-full rounded-lg border border-gray-300 p-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                             />
@@ -571,11 +571,12 @@ onUnmounted(() => {
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
+        // PVP Mode: Accuracy-based results
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
         const myAccuracy = isPlayerOne ? gameState.value.player_one_accuracy || 0 : gameState.value.player_two_accuracy || 0;
         const opponentAccuracy = isPlayerOne ? gameState.value.player_two_accuracy || 0 : gameState.value.player_one_accuracy || 0;
-            const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy ?? 0) : (gameState.value.player_two_accuracy ?? 0);
-            const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy ?? 0) : (gameState.value.player_one_accuracy ?? 0);
+
+        // Debug logging to see what values we're getting
         console.log('Game result calculation:', {
             isPlayerOne,
             myAccuracy,
@@ -588,8 +589,8 @@ const getGameResult = (): string => {
             return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
         } else if (myAccuracy < opponentAccuracy) {
             return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
-            const myHP = isPlayerOne ? (gameState.value.player_one_hp ?? 0) : (gameState.value.player_two_hp ?? 0);
-            const opponentHP = isPlayerOne ? (gameState.value.player_two_hp ?? 0) : (gameState.value.player_one_hp ?? 0);
+        } else {
+            // Handle tie case, including when both are 0%
             if (myAccuracy === 0 && opponentAccuracy === 0) {
                 return `No answers recorded! 🤔 The game ended unexpectedly.`;
             } else {
@@ -598,8 +599,9 @@ const getGameResult = (): string => {
         }
     } else {
         // PVE Mode: Original HP-based results
-        if (gameState.value.monster_hp <= 0) {
-        if ((gameState.value.monster_hp ?? 0) <= 0) {
+        if (gameState.value.monster_hp ? gameState.value.monster_hp : 0 <= 0) {
+            return 'Victory! You defeated the monster together!';
+        } else {
             return 'Defeat! The monster was too strong.';
         }
     }
@@ -699,20 +701,20 @@ onMounted(() => {
                 // Show accuracy animations if changed (using the updated values)
                 if (gameState.value.player_one_accuracy !== previousPlayerOneAccuracy) {
                     accuracyAnimation.value = {
-                if ((gameState.value.player_one_accuracy ?? 0) !== (previousPlayerOneAccuracy ?? 0)) {
+                        player: 'one',
                         change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0),
                     };
-                        change: (gameState.value.player_one_accuracy ?? 0) - (previousPlayerOneAccuracy ?? 0),
+                    setTimeout(() => {
                         accuracyAnimation.value = null;
                     }, 2000);
                 }
 
                 if (gameState.value.player_two_accuracy !== previousPlayerTwoAccuracy) {
                     accuracyAnimation.value = {
-                if ((gameState.value.player_two_accuracy ?? 0) !== (previousPlayerTwoAccuracy ?? 0)) {
+                        player: 'two',
                         change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0),
                     };
-                        change: (gameState.value.player_two_accuracy ?? 0) - (previousPlayerTwoAccuracy ?? 0),
+                    setTimeout(() => {
                         accuracyAnimation.value = null;
                     }, 2000);
                 }
@@ -720,20 +722,20 @@ onMounted(() => {
                 // Show streak animations if changed (using the updated values)
                 if (gameState.value.player_one_streak !== previousPlayerOneStreak) {
                     streakAnimation.value = {
-                if ((gameState.value.player_one_streak ?? 0) !== (previousPlayerOneStreak ?? 0)) {
+                        player: 'one',
                         streak: gameState.value.player_one_streak,
                     };
-                        streak: gameState.value.player_one_streak ?? 0,
+                    setTimeout(() => {
                         streakAnimation.value = null;
                     }, 2000);
                 }
 
                 if (gameState.value.player_two_streak !== previousPlayerTwoStreak) {
                     streakAnimation.value = {
-                if ((gameState.value.player_two_streak ?? 0) !== (previousPlayerTwoStreak ?? 0)) {
+                        player: 'two',
                         streak: gameState.value.player_two_streak,
                     };
-                        streak: gameState.value.player_two_streak ?? 0,
+                    setTimeout(() => {
                         streakAnimation.value = null;
                     }, 2000);
                 }
