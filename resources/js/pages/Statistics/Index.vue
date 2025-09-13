@@ -241,10 +241,19 @@ onMounted(async () => {
 });
 </script>
 
+<style scoped>
+/* Use a modern, easy-to-read font for the entire statistics page */
+.stats-readable-font {
+    font-family: 'Inter', 'Segoe UI', 'Arial', 'sans-serif', system-ui;
+    font-size: 1rem;
+    letter-spacing: 0.01em;
+}
+</style>
+
 <template>
     <Head title="Usage and Statistics" />
     <AppLayout>
-        <div class="bg-gradient min-h-screen py-10">
+        <div class="bg-gradient min-h-screen py-10 stats-readable-font">
             <div class="mb-8 flex items-center justify-between px-6">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Usage & Statistics Dashboard</h1>
                 <span class="text-sm text-gray-500 dark:text-gray-400">Updated: {{ new Date().toLocaleDateString() }}</span>

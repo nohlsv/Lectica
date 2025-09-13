@@ -744,7 +744,19 @@ class MultiplayerGameController extends Controller
                     $winnerUser = User::find($winnerId);
                     if ($winnerUser) {
                         $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                        $winnerUser->addExperience(50); // Winner XP
+                        $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                        $loserUser = User::find($loserId);
+                        if ($loserUser) {
+                            $loserUser->addExperience(25); // Loser XP
+                        }
                     }
+                } else {
+                    // Tie: both get draw XP
+                    $playerOne = User::find($multiplayerGame->player_one_id);
+                    $playerTwo = User::find($multiplayerGame->player_two_id);
+                    if ($playerOne) $playerOne->addExperience(35);
+                    if ($playerTwo) $playerTwo->addExperience(35);
                 }
                 return true;
             }
@@ -756,6 +768,23 @@ class MultiplayerGameController extends Controller
                     if ($accuracyDiff >= 30) {
                         $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                         $multiplayerGame->markAsFinished();
+                        if ($winnerId) {
+                            $winnerUser = User::find($winnerId);
+                            if ($winnerUser) {
+                                $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                                $winnerUser->addExperience(50);
+                                $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                                $loserUser = User::find($loserId);
+                                if ($loserUser) {
+                                    $loserUser->addExperience(25);
+                                }
+                            }
+                        } else {
+                            $playerOne = User::find($multiplayerGame->player_one_id);
+                            $playerTwo = User::find($multiplayerGame->player_two_id);
+                            if ($playerOne) $playerOne->addExperience(35);
+                            if ($playerTwo) $playerTwo->addExperience(35);
+                        }
                         return true;
                     }
                 }
@@ -764,6 +793,23 @@ class MultiplayerGameController extends Controller
                 if ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                     $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                     $multiplayerGame->markAsFinished();
+                    if ($winnerId) {
+                        $winnerUser = User::find($winnerId);
+                        if ($winnerUser) {
+                            $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                            $winnerUser->addExperience(50);
+                            $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                            $loserUser = User::find($loserId);
+                            if ($loserUser) {
+                                $loserUser->addExperience(25);
+                            }
+                        }
+                    } else {
+                        $playerOne = User::find($multiplayerGame->player_one_id);
+                        $playerTwo = User::find($multiplayerGame->player_two_id);
+                        if ($playerOne) $playerOne->addExperience(35);
+                        if ($playerTwo) $playerTwo->addExperience(35);
+                    }
                     return true;
                 }
             }
@@ -772,18 +818,32 @@ class MultiplayerGameController extends Controller
             if ($multiplayerGame->monster_hp <= 0) {
                 // Both players win against the monster - no single winner in PVE
                 $multiplayerGame->markAsFinished();
+                $playerOne = User::find($multiplayerGame->player_one_id);
+                $playerTwo = User::find($multiplayerGame->player_two_id);
+                if ($playerOne) $playerOne->addExperience(40); // PvE win XP
+                if ($playerTwo) $playerTwo->addExperience(40);
                 return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
                 // Both players lost - no winner
                 $multiplayerGame->markAsFinished();
+                $playerOne = User::find($multiplayerGame->player_one_id);
+                $playerTwo = User::find($multiplayerGame->player_two_id);
+                if ($playerOne) $playerOne->addExperience(20); // PvE both lose XP
+                if ($playerTwo) $playerTwo->addExperience(20);
                 return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                 // One player lost - other player wins
                 if ($multiplayerGame->player_one_hp > 0) {
                     $multiplayerGame->update(['winner_id' => $multiplayerGame->player_one_id]);
+                    $winner = User::find($multiplayerGame->player_one_id);
+                    $loser = User::find($multiplayerGame->player_two_id);
                 } else {
                     $multiplayerGame->update(['winner_id' => $multiplayerGame->player_two_id]);
+                    $winner = User::find($multiplayerGame->player_two_id);
+                    $loser = User::find($multiplayerGame->player_one_id);
                 }
+                if ($winner) $winner->addExperience(40); // PvE win XP
+                if ($loser) $loser->addExperience(20); // PvE lose XP
                 $multiplayerGame->markAsFinished();
                 return true;
             }
