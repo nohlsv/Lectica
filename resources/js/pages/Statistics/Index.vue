@@ -300,7 +300,7 @@ onMounted(async () => {
                 <!-- Charts section -->
                 <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
-                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Files per Program</h2>
+                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Students per Program</h2>
                         <canvas id="filesPerProgramChart" class="w-full max-w-md"></canvas>
                     </div>
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
