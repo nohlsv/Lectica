@@ -13,9 +13,12 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Collection;
+use App\Services\QuestService;
 
 class MultiplayerGameController extends Controller
 {
+    public function __construct(private QuestService $questService) {}
+
     /**
      * Display a listing of multiplayer games.
      */
@@ -162,6 +165,9 @@ class MultiplayerGameController extends Controller
             $game = MultiplayerGame::create($gameData);
             \Log::info('Game created successfully', ['game_id' => $game->id]);
 
+            // Update quest progress for creating a multiplayer game
+            $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_create');
+
             // Broadcast to lobby for real-time updates
             broadcast(new \App\Events\MultiplayerGameLobbyUpdate())->toOthers();
 
@@ -279,6 +285,9 @@ class MultiplayerGameController extends Controller
         $multiplayerGame->update([
             'player_two_id' => Auth::id(),
         ]);
+
+        // Update quest progress for joining a multiplayer game
+        $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_join');
 
         // Start the game
         $multiplayerGame->startGame();
@@ -464,6 +473,9 @@ class MultiplayerGameController extends Controller
             // At the end of the transaction, return a value to avoid warning
             return null;
         });
+
+        // Update quest progress for answering a multiplayer question
+        $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_questions');
 
         // Broadcast AFTER transaction is committed
         if ($broadcastData) {
@@ -727,6 +739,13 @@ class MultiplayerGameController extends Controller
                 // Calculate and set winner_id before marking as finished
                 $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                 $multiplayerGame->markAsFinished();
+                // Update quest progress for winning a multiplayer game
+                if ($winnerId) {
+                    $winnerUser = User::find($winnerId);
+                    if ($winnerUser) {
+                        $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                    }
+                }
                 return true;
             }
 

@@ -115,6 +115,9 @@ class BattleController extends Controller
             'total_questions' => 0
         ]);
 
+        // Update quest progress for starting a battle
+        $this->questService->updateQuestProgress(Auth::user(), 'battle_start');
+
         return redirect()->route('battles.show', $battle)
             ->with('success', 'Battle started! Good luck!');
     }
@@ -220,6 +223,9 @@ class BattleController extends Controller
             $battle->save();
         });
 
+        // Update quest progress for answering a battle question
+        $this->questService->updateQuestProgress(Auth::user(), 'battle_questions');
+
         // Get next quiz if battle is still active
         $nextQuiz = null;
         if ($battle->status === 'active') {
@@ -276,8 +282,10 @@ class BattleController extends Controller
 
         $user->addExperience($totalXP);
 
-        // Update quest progress for completing a battle
-        $this->questService->checkQuestCompletion($user, 'battle');
+        // Update quest progress for completing a battle (win only)
+        if ($request->status === 'victory') {
+            $this->questService->updateQuestProgress($user, 'battle_win');
+        }
 
         return response()->json([
             'success' => true,

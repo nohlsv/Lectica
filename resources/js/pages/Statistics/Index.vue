@@ -19,6 +19,39 @@ import { nextTick, onMounted } from 'vue';
 // Register required Chart.js components
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, PieController, ArcElement, LineController, LineElement, PointElement);
 
+// College and program acronyms as in ProgramSeeder
+const collegeAcronyms: { [key: string]: string } = {
+    'College of Computer Studies': 'CCS',
+    'College of Engineering': 'COE',
+    'College of Business': 'COB',
+    'College of Technology': 'COT',
+    'College of Allied Health and Sciences': 'CAHS',
+};
+const programAcronyms: { [key: string]: string } = {
+    'Computer Science': 'CS',
+    'Information Technology': 'IT',
+    'Entertainment and Multimedia Computing': 'EMC',
+    'Civil Engineering': 'CE',
+    'Electrical Engineering': 'EE',
+    'Mechanical Engineering': 'ME',
+    'Industrial Engineering': 'IE',
+    'Architecture': 'ARC',
+    'Business Administration': 'BA',
+    'Industrial Technology': 'ITECH',
+    'Nursing': 'NUR',
+    'Midwifery': 'MID',
+};
+
+// Use program code or college acronym if available, else fallback to acronym from first letters
+const simplifyName = (name: string): string => {
+    if (programAcronyms[name]) return programAcronyms[name];
+    if (collegeAcronyms[name]) return collegeAcronyms[name];
+    if (name.length > 20) {
+        return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
+    }
+    return name;
+};
+
 interface Statistics {
     total_users: number;
     total_files: number;
@@ -35,7 +68,6 @@ interface Statistics {
     user_with_most_stars: { last_name: string; first_name: string; files_sum_stars: number };
     most_quizzes_by_user: { last_name: string; first_name: string; quizzes_count: number };
     average_flashcards_per_quiz: number;
-    // New statistics
     new_users_7d: number;
     new_files_7d: number;
     new_quizzes_7d: number;
@@ -64,7 +96,7 @@ interface Statistics {
     storage_per_program: Array<{ name: string; storage_mb: number }>;
     quizzes_per_program: Array<{ name: string; quizzes_count: number }>;
     flashcards_per_program: Array<{ name: string; flashcards_count: number }>;
-    access_logs: Array<{ user: string; route: string; method: string; accessed_at: string }>; // New field for access logs
+    access_logs: Array<{ user: string; route: string; method: string; accessed_at: string }>;
 }
 
 const props = defineProps<{ statistics: Statistics }>();
@@ -76,7 +108,6 @@ const renderChart = (id: string, type: keyof ChartTypeRegistry, data: any, optio
 
 onMounted(async () => {
     await nextTick();
-    // Chart options for white text and non-blending axes/grid
     const chartOptions = {
         responsive: true,
         plugins: {
@@ -106,10 +137,10 @@ onMounted(async () => {
         'filesPerProgramChart',
         'bar',
         {
-            labels: props.statistics.most_files_per_program.map((p) => p.name),
+            labels: props.statistics.most_files_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
-                    label: 'Files per Program',
+                    label: 'Students per Program',
                     data: props.statistics.most_files_per_program.map((p) => p.files_count),
                     backgroundColor: 'rgba(255,255,255,0.7)',
                     borderColor: '#fff',
@@ -160,7 +191,7 @@ onMounted(async () => {
         'storagePerProgramChart',
         'bar',
         {
-            labels: props.statistics.storage_per_program.map((p) => p.name),
+            labels: props.statistics.storage_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
                     label: 'Storage Usage Per Program (MB)',
@@ -177,7 +208,7 @@ onMounted(async () => {
         'quizzesPerProgramChart',
         'bar',
         {
-            labels: props.statistics.quizzes_per_program.map((p) => p.name),
+            labels: props.statistics.quizzes_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
                     label: 'Quizzes Per Program',
@@ -194,7 +225,7 @@ onMounted(async () => {
         'flashcardsPerProgramChart',
         'bar',
         {
-            labels: props.statistics.flashcards_per_program.map((p) => p.name),
+            labels: props.statistics.flashcards_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
                     label: 'Flashcards Per Program',
@@ -308,7 +339,7 @@ onMounted(async () => {
                                 :key="tag.name"
                                 class="text-primary pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
                             >
-                                {{ tag.name }}: {{ tag.flashcards_count }} flashcards
+                                {{ simplifyName(tag.name) }}: {{ tag.flashcards_count }} flashcards
                             </span>
                         </div>
                     </div>
@@ -320,7 +351,7 @@ onMounted(async () => {
                                 :key="tag.name"
                                 class="pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
                             >
-                                {{ tag.name }}: {{ tag.quizzes_count }} quizzes
+                                {{ simplifyName(tag.name) }}: {{ tag.quizzes_count }} quizzes
                             </span>
                         </div>
                     </div>
@@ -422,7 +453,7 @@ onMounted(async () => {
                             <span class="font-bold">Tags:</span>
                             <ul class="text-xs">
                                 <li v-for="tag in statistics.latest_tags" :key="tag.id">
-                                    {{ tag.name }} <span class="text-gray-400">({{ tag.created_at }})</span>
+                                    {{ simplifyName(tag.name) }} <span class="text-gray-400">({{ tag.created_at }})</span>
                                 </li>
                             </ul>
                         </div>
@@ -430,7 +461,7 @@ onMounted(async () => {
                             <span class="font-bold">Programs:</span>
                             <ul class="text-xs">
                                 <li v-for="program in statistics.latest_programs" :key="program.id">
-                                    {{ program.name }} <span class="text-gray-400">({{ program.created_at }})</span>
+                                    {{ simplifyName(program.name) }} <span class="text-gray-400">({{ program.created_at }})</span>
                                 </li>
                             </ul>
                         </div>
@@ -443,11 +474,11 @@ onMounted(async () => {
                                 <span class="text-gray-400">({{ statistics.most_popular_file.starred_by_count }} stars)</span>
                             </li>
                             <li>
-                                Tag: <span class="font-bold">{{ statistics.most_popular_tag.name }}</span>
+                                Tag: <span class="font-bold">{{ simplifyName(statistics.most_popular_tag.name) }}</span>
                                 <span class="text-gray-400">({{ statistics.most_popular_tag.files_count }} files)</span>
                             </li>
                             <li>
-                                Program: <span class="font-bold">{{ statistics.most_popular_program.name }}</span>
+                                Program: <span class="font-bold">{{ simplifyName(statistics.most_popular_program.name) }}</span>
                                 <span class="text-gray-400">({{ statistics.most_popular_program.files_count }} files)</span>
                             </li>
                         </ul>

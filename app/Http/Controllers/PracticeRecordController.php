@@ -7,10 +7,12 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Services\QuestService;
 
 class PracticeRecordController extends Controller
 {
 	use AuthorizesRequests;
+	public function __construct(private QuestService $questService) {}
 	public function index(): Response
 	{
 		$userId = auth()->id();
@@ -75,7 +77,14 @@ class PracticeRecordController extends Controller
 			$validated['mistakes'] = json_encode($validated['mistakes']);
 		}
 
-		PracticeRecord::create($validated);
+		$record = PracticeRecord::create($validated);
+
+		// Update quest progress
+		if ($validated['type'] === 'quiz') {
+			$this->questService->updateQuestProgress(auth()->user(), 'practice_quiz');
+		} elseif ($validated['type'] === 'flashcard') {
+			$this->questService->updateQuestProgress(auth()->user(), 'practice_flashcard');
+		}
 
 		return response()->json(['message' => 'Practice record saved successfully.'], 201);
 	}

@@ -573,6 +573,10 @@ class FileController extends Controller
                     };
                 });
 
+                // Update quest progress for quiz generation
+                $user = auth()->user();
+                $this->questService->updateQuestProgress($user, 'quiz_generate');
+
                 return redirect()->route('files.show', $file->id)
                     ->with('success', ucfirst(str_replace('_', ' ', $type)) . ' generated successfully!');
             } else {
