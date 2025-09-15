@@ -19,6 +19,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustHosts(at: ['www.lectica.tech', 'lectica.tech', 'lectica-app-5y8wm.ondigitalocean.app']);
         $middleware->trustProxies(at: '*');
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        $middleware->append(
+            [
+                \App\Http\Middleware\LogAccess::class,
+            ]
+        );
 
         // Add CORS middleware to API routes
         $middleware->api(prepend: [

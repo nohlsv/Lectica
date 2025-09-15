@@ -4,15 +4,8 @@
     <AppLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">
-                    Waiting for Player to Join
-                </h2>
-                <button
-                    @click="abandonGame"
-                    class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
-                >
-                    Cancel Game
-                </button>
+                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Waiting for Player to Join</h2>
+                <button @click="abandonGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">Cancel Game</button>
             </div>
         </template>
 
@@ -25,20 +18,18 @@
                             <!-- Loading Animation -->
                             <div class="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
 
-                            <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-gray-100">
-                                Game Created Successfully!
-                            </h3>
-                            <p class="mb-6 text-gray-600 dark:text-gray-400">
-                                Waiting for another player to join your battle...
-                            </p>
+                            <h3 class="mb-2 text-xl font-medium text-gray-900 dark:text-gray-100">Game Created Successfully!</h3>
+                            <p class="mb-6 text-gray-600 dark:text-gray-400">Waiting for another player to join your battle...</p>
 
                             <!-- Game Mode Badge -->
                             <div class="mb-6 flex justify-center">
                                 <span
                                     class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
-                                    :class="game.game_mode === 'pvp'
-                                        ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
-                                        : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'"
+                                    :class="
+                                        game.game_mode === 'pvp'
+                                            ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
+                                            : 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+                                    "
                                 >
                                     {{ game.game_mode === 'pvp' ? 'PvP (Player vs Player)' : 'PvE (Co-op vs Monster)' }}
                                 </span>
@@ -86,7 +77,12 @@
                                 <div v-else-if="game.game_mode === 'pvp'" class="flex items-center space-x-3">
                                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/20">
                                         <svg class="h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                            ></path>
                                         </svg>
                                     </div>
                                     <div>
@@ -136,10 +132,7 @@
                                     readonly
                                     class="flex-1 rounded-md border border-gray-300 bg-gray-50 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
                                 />
-                                <button
-                                    @click="copyGameUrl"
-                                    class="rounded-md bg-purple-600 px-3 py-2 text-sm text-white hover:bg-purple-700"
-                                >
+                                <button @click="copyGameUrl" class="rounded-md bg-purple-600 px-3 py-2 text-sm text-white hover:bg-purple-700">
                                     {{ copied ? 'Copied!' : 'Copy' }}
                                 </button>
                             </div>
@@ -147,9 +140,7 @@
 
                         <!-- Wait Time Display -->
                         <div class="mt-6 text-center">
-                            <p class="text-sm text-gray-500">
-                                Waiting for {{ waitTime }} seconds...
-                            </p>
+                            <p class="text-sm text-gray-500">Waiting for {{ waitTime }} seconds...</p>
                         </div>
                     </div>
                 </div>
@@ -171,14 +162,13 @@
                         :disabled="refreshing"
                         class="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 disabled:opacity-50"
                     >
-                        <svg
-                            class="mr-2 h-4 w-4"
-                            :class="refreshing ? 'animate-spin' : ''"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                        >
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                        <svg class="mr-2 h-4 w-4" :class="refreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                            ></path>
                         </svg>
                         {{ refreshing ? 'Refreshing...' : 'Refresh' }}
                     </button>
@@ -191,7 +181,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 
 interface Game {
     id: number;
@@ -255,7 +245,7 @@ const refreshLobby = () => {
     router.reload({
         onFinish: () => {
             refreshing.value = false;
-        }
+        },
     });
 };
 

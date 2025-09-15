@@ -128,8 +128,8 @@ class Collection extends Model
         if (!Auth::check()) {
             return false;
         }
-
-        return $this->user_id === Auth::id();
+        // Only allow editing if user owns and it's original
+        return $this->user_id === Auth::id() && $this->is_original;
     }
 
     /**

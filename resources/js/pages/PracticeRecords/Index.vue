@@ -1,40 +1,36 @@
 <template>
     <AppLayout>
-        <div class="p-6 space-y-4 bg-gradient min-h-screen">
-            <div class="flex justify-center items-center">
-                <h1 class="text-2xl text-center font-bold welcome-banner animate-soft-bounce pixel-outline w-fit py-2 px-10">History</h1>
+        <div class="bg-gradient min-h-screen space-y-4 p-6">
+            <div class="flex items-center justify-center">
+                <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-10 py-2 text-center text-2xl font-bold">History</h1>
             </div>
-            <div class="p-6 bg-container">
-                <div v-if="records.data.length === 0" class="text-center text-muted-foreground">
-                    No practice records found.
-                </div>
-                <div v-else class="space-y-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 gap-5">
-                    <div v-for="record in records.data" :key="record.id" class="h-full flex flex-col p-4 bg-[#8E2C38] border-[#0c0a03] border-2 pixel-outline rounded-lg shadow">
-                        <h2 class="text-lg font-semibold">
-                            {{ record.file.name }} - {{ record.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}
-                        </h2>
-                        <p>Score: {{ record.correct_answers }} / {{ record.total_questions }}</p>
-                        <button class="bg-[#10B981] hover:bg-[#0e9459] hover:scale-105 duration-300 mt-5 text-base text-primary border-[#0c0a03] border-2 pixel-outline py-0.5 px-2.5 rounded-md tracking-wide self-start">
-                        <Link :href="route('practice-records.show', record.id)">
-                            View Details
-                        </Link>
-                        </button>
-                    </div>
-                </div>
-                <!-- Pagination -->
-                <div v-if="records.last_page > 1" class="flex justify-center mt-6">
-                    <div class="flex space-x-2">
-                        <Link
-                            v-for="page in paginationLinks"
-                            :key="page.label"
-                            :href="page.url || '#'"
-                            :class="[
-                                'text-sm px-3 py-1.5 sm:text-base sm:px-4 sm:py-2 rounded border items-center justify-center flex',
-                                page.active ? 'bg-[#B23A48] text-primary pixel-outline border-2 border-[#0c0a03]' : 'bg-[#3B1A14] border-[#0c0a03] hover:bg-[#77252e] duration-300',
-                                !page.url && 'opacity-50 cursor-not-allowed'
-                            ]"
-                            v-html="page.label"
-                        ></Link>
+            <div class="bg-container p-6">
+                <div v-if="groupedRecords.length === 0" class="text-muted-foreground text-center">No practice records found.</div>
+                <div v-else class="grid grid-cols-1 gap-5 space-y-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4">
+                    <div
+                        v-for="group in groupedRecords"
+                        :key="group.file.id"
+                        class="pixel-outline flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4 shadow"
+                    >
+                        <h2 class="text-lg font-semibold cursor-pointer text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]" @click="toggleGroup(group.file.id)">{{ group.file.name }}</h2>
+                        <div v-if="expandedGroups[group.file.id]" class="mt-2">
+                            <div v-for="attempt in group.attempts" :key="attempt.id" class="mb-2">
+                                <div class="flex items-center justify-between">
+                                    <span>
+                                        <span class="font-bold text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">{{ attempt.type === 'flashcard' ? 'Flashcards' : 'Quiz' }}</span>
+                                        <span class="ml-2 text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">Score: {{ attempt.correct_answers }} / {{ attempt.total_questions }}</span>
+                                        <span class="ml-2 text-xs text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">{{ formatDate(attempt.created_at) }}</span>
+                                    </span>
+                                    <Link :href="route('practice-records.show', attempt.id)" class="text-primary pixel-outline ml-2 rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-base tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]">
+                                        View Details
+                                    </Link>
+                                </div>
+                            </div>
+                            <div v-if="group.attempts.length > 1" class="mt-4">
+                                <canvas :ref="setChartRef(group.file.id)" class="w-full h-32"></canvas>
+                            </div>
+                        </div>
+                        <div v-else class="text-xs text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03] mt-2">Click to show attempts</div>
                     </div>
                 </div>
             </div>
@@ -43,35 +39,144 @@
 </template>
 
 <script setup lang="ts">
+import { ref, nextTick } from 'vue';
+import Chart from 'chart.js/auto';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
-interface Record {
+interface Attempt {
     id: number;
-    file: {
-        name: string;
-    };
     type: string;
     correct_answers: number;
     total_questions: number;
-    mistakes: string; // JSON string
+    created_at: string;
+    mistakes: string;
+}
+interface GroupedRecord {
+    file: {
+        id: number;
+        name: string;
+    };
+    attempts: Attempt[];
 }
 interface Props {
-    records: {
-        data: Record[];
-        current_page: number;
-        last_page: number;
-        total: number;
-        links: Array<{
-            url: string | null;
-            label: string;
-            active: boolean;
-        }>;
+    groupedRecords: GroupedRecord[];
+}
+const props = defineProps<Props>();
+const expandedGroups = ref<{ [key: number]: boolean }>({});
+const chartRefs = ref<{ [key: number]: HTMLCanvasElement | null }>({});
+const chartInstances = ref<{ [key: number]: Chart | null }>({});
+
+function setChartRef(fileId: number) {
+    // Only set the ref, do not render chart here to avoid recursive updates
+    return (el: HTMLCanvasElement | null) => {
+        chartRefs.value[fileId] = el;
     };
 }
-
-const props = defineProps<Props>();
-
-const paginationLinks = computed(() => props.records.links);
+function toggleGroup(fileId: number) {
+    expandedGroups.value[fileId] = !expandedGroups.value[fileId];
+    if (expandedGroups.value[fileId]) {
+        // Wait for DOM update, then render chart
+        nextTick(() => renderChart(fileId));
+    } else {
+        if (chartInstances.value[fileId]) {
+            chartInstances.value[fileId].destroy();
+            chartInstances.value[fileId] = null;
+        }
+    }
+}
+function renderChart(fileId: number) {
+    const group = props.groupedRecords.find(g => g.file.id === fileId);
+    if (!group || group.attempts.length < 2) return;
+    const canvas = chartRefs.value[fileId];
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    if (chartInstances.value[fileId]) {
+        chartInstances.value[fileId].destroy();
+    }
+    const labels = group.attempts.map(a => new Date(a.created_at).toLocaleDateString());
+    const data = group.attempts.map(a => a.total_questions > 0 ? Math.round((a.correct_answers / a.total_questions) * 100) : 0);
+    // Chart.js plugin for outlined text
+    const outlinedTextPlugin = {
+        id: 'outlinedText',
+        beforeDraw: (chart) => {
+            const ctx = chart.ctx;
+            ctx.save();
+            ctx.shadowColor = '#0c0a03';
+            ctx.shadowBlur = 4;
+        },
+        afterDraw: (chart) => {
+            const ctx = chart.ctx;
+            ctx.shadowColor = 'transparent';
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+    };
+    chartInstances.value[fileId] = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels,
+            datasets: [{
+                label: 'Score (%)',
+                data,
+                fill: false,
+                borderColor: '#fb9e1b',
+                backgroundColor: '#fb9e1b',
+                tension: 0.2,
+            }],
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    display: false,
+                    labels: {
+                        color: '#fff',
+                        font: {
+                            weight: 'bold',
+                            size: 14,
+                        },
+                    },
+                },
+                title: {
+                    display: false,
+                },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: '#0c0a03',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: '#fff',
+                    borderWidth: 1,
+                },
+            },
+            scales: {
+                y: {
+                    min: 0,
+                    max: 100,
+                    title: { display: true, text: 'Score (%)', color: '#fff', font: { weight: 'bold', size: 14 } },
+                    ticks: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                    },
+                    grid: { color: 'rgba(255,255,255,0.2)' },
+                },
+                x: {
+                    title: { display: true, text: 'Date', color: '#fff', font: { weight: 'bold', size: 14 } },
+                    ticks: {
+                        color: '#fff',
+                        font: { weight: 'bold', size: 12 },
+                    },
+                    grid: { color: 'rgba(255,255,255,0.2)' },
+                },
+            },
+        },
+        plugins: [outlinedTextPlugin],
+    });
+}
+function formatDate(dateStr: string) {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
 </script>

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import DataTable from '@/components/DataTable.vue';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -245,8 +244,8 @@ const addToCollection = async () => {
                         </Button>
                     </div>
                 </div>
-                <div class="flex-grow flex items-center justify-center">
-                        <h1 class="text-xl text-center font-semibold welcome-banner animate-soft-bounce py-2 px-10 pixel-outline">Files</h1>
+                <div class="flex flex-grow items-center justify-center">
+                    <h1 class="welcome-banner animate-soft-bounce pixel-outline px-10 py-2 text-center text-xl font-semibold">Files</h1>
                 </div>
             </div>
         </div>

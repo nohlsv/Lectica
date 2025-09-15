@@ -41,7 +41,8 @@ class MultiplayerGame extends Model
         'player_two_streak',
         'player_one_max_streak',
         'player_two_max_streak',
-        'winner_id'
+        'winner_id',
+        'pvp_mode' // Add pvp_mode to fillable
     ];
 
     protected $casts = [
@@ -153,22 +154,6 @@ class MultiplayerGame extends Model
         }
 
         return round(($this->correct_answers_p2 / $this->total_questions_p2) * 100, 2);
-    }
-
-    /**
-     * Check if player one won the game.
-     */
-    public function isPlayerOneWinner(): bool
-    {
-        return $this->isFinished() && $this->player_one_hp > 0 && ($this->player_two_hp <= 0 || $this->monster_hp <= 0);
-    }
-
-    /**
-     * Check if player two won the game.
-     */
-    public function isPlayerTwoWinner(): bool
-    {
-        return $this->isFinished() && $this->player_two_hp > 0 && ($this->player_one_hp <= 0 || $this->monster_hp <= 0);
     }
 
     /**

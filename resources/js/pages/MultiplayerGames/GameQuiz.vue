@@ -8,7 +8,10 @@
                     {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
                 </h2>
                 <div class="flex items-center space-x-4">
-                    <div v-if="gameState.game_mode === 'pve' && gameState.monster" class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20">
+                    <div
+                        v-if="gameState.game_mode === 'pve' && gameState.monster"
+                        class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20"
+                    >
                         <img
                             :src="gameState.monster.image_path || '/images/default-monster.png'"
                             :alt="gameState.monster.name"
@@ -19,12 +22,7 @@
                             {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
                         </span>
                     </div>
-                    <button
-                        @click="abandonGame"
-                        class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700"
-                    >
-                        Abandon Game
-                    </button>
+                    <button @click="abandonGame" class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700">Abandon Game</button>
                 </div>
             </div>
         </template>
@@ -46,11 +44,18 @@
                                     {{ gameState.playerOne.first_name }} {{ gameState.playerOne.last_name }}
                                 </p>
                                 <div class="flex items-center space-x-2">
-                                    <!-- PVP Mode: Show Accuracy and Streak -->
+                                    <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
-                                        <span class="text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
-                                        <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        <template v-if="gameState.pvp_mode === 'hp'">
+                                            <span class="text-sm text-red-500">❤️ {{ gameState.player_one_hp }}</span>
+                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
+                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        </template>
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
                                     <template v-else>
@@ -78,11 +83,17 @@
                                     {{ gameState.playerTwo.first_name }} {{ gameState.playerTwo.last_name }}
                                 </p>
                                 <div class="flex items-center justify-end space-x-2">
-                                    <!-- PVP Mode: Show Accuracy and Streak -->
+                                    <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
-                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                        <span class="text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
-                                        <span class="text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                        <template v-if="gameState.pvp_mode === 'hp'">
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="text-sm text-red-500">❤️ {{ gameState.player_two_hp }}</span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                        </template>
                                     </template>
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
@@ -112,19 +123,25 @@
                         </h3>
                     </div>
 
+                    <!-- Timer Constraint -->
+                    <div class="mb-4 flex items-center justify-between">
+                        <span class="text-sm font-semibold text-purple-600"> Time left: {{ timer }}s </span>
+                        <span v-if="timer === 0" class="text-sm text-red-500">Time's up!</span>
+                    </div>
+
                     <!-- Multiple Choice -->
                     <div v-if="currentQuiz.type === 'multiple_choice'" class="space-y-3">
                         <button
                             v-for="(option, index) in currentQuiz.options"
                             :key="index"
                             @click="selectAnswer(option)"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             :class="[
                                 'w-full rounded-lg border p-3 text-left transition-colors',
                                 selectedAnswer === option
                                     ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
                                     : 'border-gray-300 hover:border-purple-300 dark:border-gray-600',
-                                answerSubmitted && 'opacity-75 cursor-not-allowed'
+                                (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             {{ option }}
@@ -135,26 +152,26 @@
                     <div v-else-if="currentQuiz.type === 'true_false'" class="flex space-x-4">
                         <button
                             @click="selectAnswer('True')"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'True'
                                     ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
                                     : 'border-gray-300 hover:border-green-300 dark:border-gray-600',
-                                answerSubmitted && 'opacity-75 cursor-not-allowed'
+                                (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             True
                         </button>
                         <button
                             @click="selectAnswer('False')"
-                            :disabled="answerSubmitted"
+                            :disabled="answerSubmitted || timedOut"
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'False'
                                     ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
                                     : 'border-gray-300 hover:border-red-300 dark:border-gray-600',
-                                answerSubmitted && 'opacity-75 cursor-not-allowed'
+                                (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
                             False
@@ -163,20 +180,24 @@
 
                     <!-- Enumeration -->
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
-                        <textarea
-                            v-model="selectedAnswer"
-                            :disabled="answerSubmitted"
-                            placeholder="Enter your answer..."
-                            class="w-full rounded-lg border border-gray-300 p-3 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                            rows="3"
-                        ></textarea>
+                        <p class="mb-2 font-bold text-purple-700">Please provide {{ currentQuiz.answers.length }} answers:</p>
+                        <div v-for="idx in currentQuiz.answers.length" :key="idx" class="mb-2">
+                            <input
+                                type="text"
+                                :placeholder="`Answer ${idx + 1}`"
+                                v-model="selectedAnswer[idx]"
+                                @input="updateEnumerationAnswer(idx, selectedAnswer[idx])"
+                                :disabled="answerSubmitted || timedOut"
+                                class="w-full rounded-lg border border-gray-300 p-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                            />
+                        </div>
                     </div>
 
                     <!-- Submit Button -->
                     <div class="mt-4 flex justify-end">
                         <button
                             @click="submitAnswer"
-                            :disabled="!selectedAnswer || answerSubmitted || submitting"
+                            :disabled="!selectedAnswer || answerSubmitted || submitting || timedOut"
                             class="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50"
                         >
                             <span v-if="submitting" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
@@ -209,20 +230,31 @@
                 </div>
 
                 <!-- Last Action Feedback -->
-                <div v-if="lastAction" class="mt-4 rounded-lg p-4" :class="lastAction.type === 'success' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'">
+                <div
+                    v-if="lastAction"
+                    class="mt-4 rounded-lg p-4"
+                    :class="lastAction.type === 'success' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'"
+                >
                     <div class="flex items-center">
                         <div v-if="lastAction.type === 'success'" class="mr-3 h-5 w-5 text-green-400">✓</div>
                         <div v-else class="mr-3 h-5 w-5 text-red-400">✗</div>
-                        <p class="text-sm" :class="lastAction.type === 'success' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'">
+                        <p
+                            class="text-sm"
+                            :class="lastAction.type === 'success' ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'"
+                        >
                             {{ lastAction.message }}
                         </p>
                     </div>
                 </div>
 
                 <!-- Visual Feedback Animations -->
-                <div v-if="showOpponentAction" class="mt-4 rounded-lg p-4 bg-gray-100 dark:bg-gray-800">
+                <div v-if="showOpponentAction" class="mt-4 rounded-lg bg-gray-100 p-4 dark:bg-gray-800">
                     <p class="text-sm text-gray-700 dark:text-gray-300">
-                        {{ opponentFeedback?.name }}'s answer was <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{ opponentFeedback?.isCorrect ? 'correct' : 'wrong' }}</span>: "{{ opponentFeedback?.answer }}"
+                        {{ opponentFeedback?.name }}'s answer was
+                        <span :class="opponentFeedback?.isCorrect ? 'text-green-500' : 'text-red-500'">{{
+                            opponentFeedback?.isCorrect ? 'correct' : 'wrong'
+                        }}</span>
+                        <!--                        : "{{ opponentFeedback?.answer }}"-->
                     </p>
                 </div>
 
@@ -263,7 +295,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, computed, onMounted } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Quiz {
     id: number;
@@ -282,7 +314,6 @@ interface Game {
     player_two_hp: number;
     player_one_score: number;
     player_two_score: number;
-    // Add accuracy tracking fields
     player_one_accuracy?: number;
     player_two_accuracy?: number;
     player_one_streak?: number;
@@ -296,6 +327,7 @@ interface Game {
     currentUser: any;
     monster?: any;
     source_name: string;
+    pvp_mode?: string; // <-- Add pvp_mode to type
 }
 
 const props = defineProps<{
@@ -306,7 +338,7 @@ const props = defineProps<{
 }>();
 
 // Game state
-const selectedAnswer = ref('');
+const selectedAnswer = ref<string | string[]>('');
 const answerSubmitted = ref(false);
 const submitting = ref(false);
 const gameOver = ref(false);
@@ -324,6 +356,12 @@ const streakAnimation = ref<{ player: 'one' | 'two'; streak: number } | null>(nu
 const gameStartAnimation = ref(false);
 const gameEndAnimation = ref(false);
 
+// Timer constraint
+const TIMER_DURATION = 30; // seconds per question
+const timer = ref(TIMER_DURATION);
+let timerInterval: number | undefined;
+const timedOut = ref(false);
+
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
 const isMyTurn = computed(() => {
@@ -331,52 +369,91 @@ const isMyTurn = computed(() => {
     return (isPlayerOne && gameState.value.current_turn === 1) || (!isPlayerOne && gameState.value.current_turn === 2);
 });
 
+// Watch for turn changes to start/reset timer
+watch(isMyTurn, (newVal) => {
+    if (newVal) {
+        startTimer();
+    } else {
+        stopTimer();
+    }
+});
+
 // Methods
 const selectAnswer = (answer: string) => {
-    if (!answerSubmitted.value) {
-        selectedAnswer.value = answer;
+    if (!answerSubmitted.value && !timedOut.value) {
+        if (currentQuiz.value?.type === 'enumeration') {
+            // Do nothing, handled by input fields
+        } else {
+            selectedAnswer.value = answer;
+        }
     }
 };
 
+function updateEnumerationAnswer(idx: number, val: string) {
+    if (!answerSubmitted.value && !timedOut.value && Array.isArray(selectedAnswer.value)) {
+        selectedAnswer.value[idx] = val;
+    }
+}
+
 const submitAnswer = async () => {
-    if (!selectedAnswer.value || submitting.value) return;
+    if (!currentQuiz.value) return;
+    if (
+        (currentQuiz.value.type === 'enumeration' && Array.isArray(selectedAnswer.value) && selectedAnswer.value.every((a) => !a)) ||
+        (!selectedAnswer.value && currentQuiz.value.type !== 'enumeration') ||
+        submitting.value ||
+        timedOut.value
+    )
+        return;
 
     submitting.value = true;
     answerSubmitted.value = true;
 
+    // Prepare answer for submission: always a string
+    let answerToSubmit: string;
+    if (currentQuiz.value?.type === 'enumeration') {
+        // Always treat as string[]
+        answerToSubmit = (selectedAnswer.value as string[]).join(', ');
+    } else {
+        // Always treat as string
+        answerToSubmit = selectedAnswer.value as string;
+    }
+
     try {
         const isCorrect = checkAnswer(selectedAnswer.value, currentQuiz.value);
 
-        // Use Inertia router for reliable answer submission
-        router.post(route('multiplayer-games.answer', props.game.id), {
-            quiz_id: currentQuiz.value?.id,
-            answer: selectedAnswer.value,
-            is_correct: isCorrect,
-        }, {
-            preserveState: true,
-            preserveScroll: true,
-            onSuccess: () => {
-                console.log('Answer submitted successfully, WebSocket will update game state');
-                // Don't reset submission state here - let WebSocket handle it
+        router.post(
+            route('multiplayer-games.answer', props.game.id),
+            {
+                quiz_id: currentQuiz.value?.id,
+                answer: answerToSubmit,
+                is_correct: isCorrect,
             },
-            onError: (errors) => {
-                console.error('Answer submission errors:', errors);
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    console.log('Answer submitted successfully, WebSocket will update game state');
+                    // Don't reset submission state here - let WebSocket handle it
+                },
+                onError: (errors) => {
+                    console.error('Answer submission errors:', errors);
 
-                // Handle specific error types
-                if (errors.turn) {
-                    lastAction.value = { type: 'error', message: 'It\'s not your turn! Please wait for your opponent.' };
-                } else if (errors.game) {
-                    lastAction.value = { type: 'error', message: errors.game };
-                } else {
-                    const errorMessage = Object.values(errors)[0] as string || 'Failed to submit answer';
-                    lastAction.value = { type: 'error', message: errorMessage };
-                }
+                    // Handle specific error types
+                    if (errors.turn) {
+                        lastAction.value = { type: 'error', message: "It's not your turn! Please wait for your opponent." };
+                    } else if (errors.game) {
+                        lastAction.value = { type: 'error', message: errors.game };
+                    } else {
+                        const errorMessage = (Object.values(errors)[0] as string) || 'Failed to submit answer';
+                        lastAction.value = { type: 'error', message: errorMessage };
+                    }
 
-                // Reset submission state on error
-                answerSubmitted.value = false;
-                submitting.value = false;
-            }
-        });
+                    // Reset submission state on error
+                    answerSubmitted.value = false;
+                    submitting.value = false;
+                },
+            },
+        );
     } catch (error) {
         console.error('Error submitting answer:', error);
         lastAction.value = { type: 'error', message: 'Failed to submit answer. Please try again.' };
@@ -387,54 +464,72 @@ const submitAnswer = async () => {
     }
 };
 
-const checkAnswer = (userAnswer: string, quiz: Quiz): boolean => {
+const checkAnswer = (userAnswer: string | string[], quiz: Quiz): boolean => {
     if (!quiz || !quiz.answers || quiz.answers.length === 0 || !userAnswer) {
         return false;
     }
 
-    const userAnswerLower = userAnswer.toLowerCase().trim();
-
     if (quiz.type === 'multiple_choice' || quiz.type === 'true_false') {
-        // For these types, the first element in answers array is the correct answer
+        const userAnswerLower = (userAnswer as string).toLowerCase().trim();
         const correctAnswer = quiz.answers[0].toLowerCase().trim();
         return userAnswerLower === correctAnswer;
     } else if (quiz.type === 'enumeration') {
-        // For enumeration, check if user answer contains any of the correct answers
-        // Each answer in the array could be a valid response
-        return quiz.answers.some(correctAnswer => {
-            const correctLower = correctAnswer.toLowerCase().trim();
-            return userAnswerLower.includes(correctLower) || correctLower.includes(userAnswerLower);
-        });
+        // Check if all required answers are provided correctly (case insensitive)
+        const requiredAnswers = quiz.answers.map((ans) => ans.toLowerCase().trim());
+        const userAnswersLower = (userAnswer as string[]).map((ans) => ans.toLowerCase().trim());
+        // All required answers must be present
+        return requiredAnswers.every((reqAns) => userAnswersLower.includes(reqAns));
     }
-
     return false;
 };
 
+// Sound effects
+const correctSfx = new Audio('/sfx/correct.wav');
+const incorrectSfx = new Audio('/sfx/incorrect.wav');
+const gameStartSfx = new Audio('/sfx/game_start.wav');
+const gameEndSfx = new Audio('/sfx/game_end.wav');
+const turnStartSfx = new Audio('/sfx/turn_start.wav');
+const streakSfx = new Audio('/sfx/streak.wav');
+const victorySfx = new Audio('/sfx/victory.wav');
+const defeatSfx = new Audio('/sfx/defeat.wav');
+const damageSfx = new Audio('/sfx/damage.wav');
+
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
+    // Play sound effect
+    if (isCorrect) {
+        correctSfx.currentTime = 0;
+        correctSfx.play();
+    } else {
+        incorrectSfx.currentTime = 0;
+        incorrectSfx.play();
+    }
+
     if (props.game.game_mode === 'pvp') {
         // PVP Mode: Accuracy-focused feedback
         if (isCorrect) {
             lastAction.value = {
                 type: 'success',
-                message: `Correct! Your accuracy is improving! 🎯`
+                message: `Correct! Your accuracy is improving! 🎯`,
             };
         } else {
             lastAction.value = {
                 type: 'error',
-                message: `Wrong answer. Your accuracy dropped slightly. 📉`
+                message: `Wrong answer. Your accuracy dropped slightly. 📉`,
             };
         }
     } else {
         // PVE Mode: Original damage-based feedback
         if (isCorrect) {
+            playDamageSfx();
             lastAction.value = {
                 type: 'success',
-                message: `Correct! You dealt ${damageDealt} damage!`
+                message: `Correct! You dealt ${damageDealt} damage!`,
             };
         } else {
+            playDamageSfx();
             lastAction.value = {
                 type: 'error',
-                message: `Wrong answer. You took ${damageReceived} damage.`
+                message: `Wrong answer. You took ${damageReceived} damage.`,
             };
         }
     }
@@ -445,42 +540,104 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     }, 3000);
 };
 
-const resetForNextQuestion = () => {
-    selectedAnswer.value = '';
-    answerSubmitted.value = false;
+const startTimer = () => {
+    timer.value = TIMER_DURATION;
+    timedOut.value = false;
+    stopTimer();
+    timerInterval = window.setInterval(() => {
+        timer.value = Math.max(timer.value - 1, 0);
+        if (timer.value <= 0) {
+            stopTimer();
+            handleTimeout();
+        }
+    }, 1000);
 };
+
+const stopTimer = () => {
+    if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = undefined;
+    }
+};
+
+const handleTimeout = () => {
+    if (!answerSubmitted.value && isMyTurn.value) {
+        timedOut.value = true;
+        // Ensure selectedAnswer is set to an empty value appropriate for the quiz type
+        if (currentQuiz.value?.type === 'enumeration') {
+            selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+        } else {
+            selectedAnswer.value = '';
+        }
+        submitAnswer();
+        lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
+    }
+};
+
+const resetForNextQuestion = () => {
+    if (currentQuiz.value?.type === 'enumeration') {
+        selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+    } else {
+        selectedAnswer.value = '';
+    }
+    answerSubmitted.value = false;
+    timedOut.value = false;
+    timer.value = TIMER_DURATION;
+    stopTimer();
+    if (isMyTurn.value) {
+        startTimer();
+    }
+};
+
+// Watch for question change to reset enumeration fields
+watch(currentQuiz, (newQuiz) => {
+    if (newQuiz && newQuiz.type === 'enumeration') {
+        if (!Array.isArray(selectedAnswer.value) || selectedAnswer.value.length !== newQuiz.answers.length) {
+            selectedAnswer.value = Array(newQuiz.answers.length).fill('');
+        }
+    }
+});
+
+// Clean up timer on unmount
+onUnmounted(() => {
+    stopTimer();
+});
 
 const getGameResult = (): string => {
     if (gameState.value.game_mode === 'pvp') {
-        // PVP Mode: Accuracy-based results
+        // Use pvp_mode to determine win condition
+        const pvpMode = gameState.value.pvp_mode ?? 'accuracy';
         const isPlayerOne = gameState.value.currentUser.id === gameState.value.playerOne.id;
-        const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy || 0) : (gameState.value.player_two_accuracy || 0);
-        const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy || 0) : (gameState.value.player_one_accuracy || 0);
-
-        // Debug logging to see what values we're getting
-        console.log('Game result calculation:', {
-            isPlayerOne,
-            myAccuracy,
-            opponentAccuracy,
-            player_one_accuracy: gameState.value.player_one_accuracy,
-            player_two_accuracy: gameState.value.player_two_accuracy
-        });
-
-        if (myAccuracy > opponentAccuracy) {
-            return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
-        } else if (myAccuracy < opponentAccuracy) {
-            return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
-        } else {
-            // Handle tie case, including when both are 0%
-            if (myAccuracy === 0 && opponentAccuracy === 0) {
-                return `No answers recorded! 🤔 The game ended unexpectedly.`;
+        if (pvpMode === 'hp') {
+            // HP-based PvP result
+            const myHp = isPlayerOne ? (gameState.value.player_one_hp ?? 0) : (gameState.value.player_two_hp ?? 0);
+            const opponentHp = isPlayerOne ? (gameState.value.player_two_hp ?? 0) : (gameState.value.player_one_hp ?? 0);
+            if (myHp > opponentHp) {
+                return `Victory! 🏆 Your HP: ${myHp} vs Opponent: ${opponentHp}`;
+            } else if (myHp < opponentHp) {
+                return `Defeat! 💔 Your HP: ${myHp} vs Opponent: ${opponentHp}`;
             } else {
-                return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
+                return `Tie! 🤝 Both players have ${myHp} HP`;
+            }
+        } else {
+            // Default to accuracy-based PvP result
+            const myAccuracy = isPlayerOne ? (gameState.value.player_one_accuracy ?? 0) : (gameState.value.player_two_accuracy ?? 0);
+            const opponentAccuracy = isPlayerOne ? (gameState.value.player_two_accuracy ?? 0) : (gameState.value.player_one_accuracy ?? 0);
+            if (myAccuracy > opponentAccuracy) {
+                return `Victory! 🎯 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
+            } else if (myAccuracy < opponentAccuracy) {
+                return `Defeat! 📉 Your accuracy: ${myAccuracy}% vs Opponent: ${opponentAccuracy}%`;
+            } else {
+                if (myAccuracy === 0 && opponentAccuracy === 0) {
+                    return `No answers recorded! 🤔 The game ended unexpectedly.`;
+                } else {
+                    return `Tie! 🤝 Both players achieved ${myAccuracy}% accuracy`;
+                }
             }
         }
     } else {
         // PVE Mode: Original HP-based results
-        if (gameState.value.monster_hp <= 0) {
+        if ((gameState.value.monster_hp ?? 1) <= 0) {
             return 'Victory! You defeated the monster together!';
         } else {
             return 'Defeat! The monster was too strong.';
@@ -503,6 +660,7 @@ const handleImageError = (event: Event) => {
 let echo: any;
 
 onMounted(() => {
+    console.log('DEBUG: gameState.value.pvp_mode =', gameState.value.pvp_mode);
     if (window.Echo) {
         echo = window.Echo.private(`multiplayer-game.${props.game.id}`)
             .listen('MultiplayerGameUpdated', (e: any) => {
@@ -547,6 +705,14 @@ onMounted(() => {
                             answer: e.additional_data.answer_text,
                         };
 
+                        if (opponentFeedback.value.isCorrect) {
+                            correctSfx.currentTime = 0;
+                            correctSfx.play();
+                        } else {
+                            incorrectSfx.currentTime = 0;
+                            incorrectSfx.play();
+                        }
+
                         setTimeout(() => {
                             showOpponentAction.value = false;
                         }, 4000);
@@ -583,7 +749,7 @@ onMounted(() => {
                 if (gameState.value.player_one_accuracy !== previousPlayerOneAccuracy) {
                     accuracyAnimation.value = {
                         player: 'one',
-                        change: gameState.value.player_one_accuracy - (previousPlayerOneAccuracy || 0)
+                        change: (gameState.value.player_one_accuracy ?? 0) - (previousPlayerOneAccuracy ?? 0),
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
@@ -593,7 +759,7 @@ onMounted(() => {
                 if (gameState.value.player_two_accuracy !== previousPlayerTwoAccuracy) {
                     accuracyAnimation.value = {
                         player: 'two',
-                        change: gameState.value.player_two_accuracy - (previousPlayerTwoAccuracy || 0)
+                        change: (gameState.value.player_two_accuracy ?? 0) - (previousPlayerTwoAccuracy ?? 0),
                     };
                     setTimeout(() => {
                         accuracyAnimation.value = null;
@@ -604,7 +770,7 @@ onMounted(() => {
                 if (gameState.value.player_one_streak !== previousPlayerOneStreak) {
                     streakAnimation.value = {
                         player: 'one',
-                        streak: gameState.value.player_one_streak
+                        streak: gameState.value.player_one_streak ?? 0,
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
@@ -614,7 +780,7 @@ onMounted(() => {
                 if (gameState.value.player_two_streak !== previousPlayerTwoStreak) {
                     streakAnimation.value = {
                         player: 'two',
-                        streak: gameState.value.player_two_streak
+                        streak: gameState.value.player_two_streak ?? 0,
                     };
                     setTimeout(() => {
                         streakAnimation.value = null;
@@ -641,7 +807,7 @@ onMounted(() => {
                 // If it became my turn, reset for next question
                 if (!wasMyTurn && isMyTurn.value) {
                     resetForNextQuestion();
-                    console.log('It\'s now my turn, resetting for next question');
+                    console.log("It's now my turn, resetting for next question");
                 }
             })
             .listenForWhisper('answer-submitted', (e: any) => {
@@ -658,14 +824,72 @@ onMounted(() => {
         console.error('Laravel Echo not available');
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
     }
+
+    // Start timer immediately if it's my turn on mount (host first question)
+    if (isMyTurn.value) {
+        startTimer();
+    }
 });
+
+// Play sfx for game start animation
+watch(gameStartAnimation, (val) => {
+    if (val) {
+        gameStartSfx.currentTime = 0;
+        gameStartSfx.play();
+    }
+});
+
+// Play sfx for game end animation
+watch(gameEndAnimation, (val) => {
+    if (val) {
+        gameEndSfx.currentTime = 0;
+        gameEndSfx.play();
+    }
+});
+
+// Play sfx when player's turn starts
+watch(isMyTurn, (val, oldVal) => {
+    if (val && !oldVal) {
+        turnStartSfx.currentTime = 0;
+        turnStartSfx.play();
+    }
+});
+
+// Play sfx for streaks (3+)
+watch(streakAnimation, (val) => {
+    if (val && val.streak >= 3) {
+        streakSfx.currentTime = 0;
+        streakSfx.play();
+    }
+});
+
+// Play sfx for victory/defeat
+watch(gameOver, (val) => {
+    if (val) {
+        const result = getGameResult();
+        if (result.includes('Victory')) {
+            victorySfx.currentTime = 0;
+            victorySfx.play();
+        } else if (result.includes('Defeat')) {
+            defeatSfx.currentTime = 0;
+            defeatSfx.play();
+        }
+    }
+});
+
+// Play damage sfx when damage is dealt/taken
+function playDamageSfx() {
+    damageSfx.currentTime = 0;
+    damageSfx.play();
+}
 </script>
 
 <style>
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.5s;
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s;
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
-  opacity: 0;
+    opacity: 0;
 }
 </style>

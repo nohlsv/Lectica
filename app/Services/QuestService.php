@@ -9,6 +9,24 @@ use Carbon\Carbon;
 class QuestService
 {
     /**
+     * Supported quest categories:
+     * - practice_quiz: Complete quizzes
+     * - practice_flashcard: Review flashcards
+     * - battle_start: Start a battle
+     * - battle_win: Win a battle
+     * - battle_questions: Answer questions in battle
+     * - multiplayer_create: Create a multiplayer game
+     * - multiplayer_join: Join a multiplayer game
+     * - multiplayer_win: Win a multiplayer game
+     * - multiplayer_questions: Answer questions in multiplayer
+     * - file_create: Create a file
+     * - collection_create: Create a collection
+     * - quiz_generate: Generate quizzes for a file
+     * - daily_login: Log in daily
+     * - activity_streak: Complete activities for X consecutive days
+     */
+
+    /**
      * Assign daily quests to a user.
      */
     public function assignDailyQuests(User $user): void

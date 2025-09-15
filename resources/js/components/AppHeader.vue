@@ -96,13 +96,20 @@ const mainNavItems: NavItem[] = [
                   href: '/files/verify',
                   icon: FileIcon,
               },
-              {
-                  title: 'Statistics',
-                  href: '/statistics',
-                  icon: ChartArea,
-              },
           ]
         : []),
+    ...(auth.value.user.user_role === 'admin') ? [
+        {
+            title: 'Statistics',
+            href: '/statistics',
+            icon: ChartArea,
+        },
+          {
+              title: 'User Roles',
+              href: '/admin/user-roles',
+              icon: Users,
+          },
+      ] : [],
 ];
 
 const rightNavItems: NavItem[] = [

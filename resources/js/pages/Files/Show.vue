@@ -204,97 +204,111 @@ const showFlashcards = ref(true)
                                     <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
                                     <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
                                 </div>
-                                <div class="flex justify-between" v-if="fileInfo.size">
-                                    <dt class="text-base text-[#fce085] pixel-outline"> File Size:</dt>
-                                    <dd class="text-right pixel-outline">{{ formattedFileSize }}</dd>
-                                </div>
-                                <!-- <div class="flex justify-between" v-if="fileInfo.lastModified">
-                                    <dt class="text-base text-[#fce085]">Last Modified:</dt>
-                                    <dd class="text-right">{{ fileInfo.lastModified }}</dd>
-                                </div>-->
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Verified:</dt>
-                                    <dd class="text-right pixel-outline">
-                                        <span
-                                            :class="file.verified ? 'text-green-500' : 'text-red-500'"
-                                            class="font-semibold"
-                                        >
-                                            {{ file.verified ? 'Yes' : 'No' }}
-                                        </span>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Uploaded by:</dt>
-                                    <dd class="text-right pixel-outline">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
-                                </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Upload Date:</dt>
-                                    <dd class="text-right pixel-outline">{{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}</dd>
-                                </div>
-                                <div class="pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline mb-2">Tags:</dt>
-                                    <dd class="flex flex-wrap gap-1">
-                                        <span
-                                            v-for="tag in file.tags"
-                                            :key="tag.id"
-                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-[#faa800] text-[#661500]"
-                                        >
-                                            {{ tag.name }}
-                                        </span>
-                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm">
-                                            No tags
-                                        </span>
-                                    </dd>
-                                </div>
-                            </dl>
-
-                           <div class="mt-4 border-t border-[#faa800] py-4 space-y-2">
-                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] pixel-outline mb-5">Study Materials</h3>
-
-                                <!-- Toggle Button -->
-                                <div class="flex justify-center mb-5 duration-300">
-                                <button
-                                    @click="showFlashcards = !showFlashcards"
-                                    class=" flex items-center text-sm text-[#fdf6ee] bg-[#B94A2F] px-3 py-2 rounded-md hover:bg-[#993f27] duration-300 pixel-outline border-[#0c0a03] border-2"
-                                >
-                                    <ArrowRightLeftIcon class="h-4 w-4 mr-2 pixel-outline-icon"/>
-                                    {{ showFlashcards ? 'Switch to Quizzes' : 'Switch to Flashcards' }}
-                                </button>
-                                </div>
-
-                                <!-- Toggleable Content -->
-                                <div class="flex flex-col">
-                                    <div class="w-full py-2">
-                                        <div v-if="showFlashcards" key="flashcards">
-                                            <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                                <Link :href="route('files.flashcards.index', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
-                                                        <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        View Flashcards
-                                                    </Button>
-                                                </Link>
-                                                <Link :href="route('files.flashcards.practice', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
-                                                        <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        Practice
-                                                    </Button>
-                                                </Link>
-                                            </div>
-                                        </div>
-                                        <div v-else key="quizzes">
-                                            <div class="flex flex-wrap mb-2 gap-6 justify-center">
-                                                <Link :href="route('files.quizzes.index', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
-                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        View Quizzes
-                                                    </Button>
-                                                </Link>
-                                                <Link :href="route('files.quizzes.test', file.id)">
-                                                    <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
-                                                        <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                        Practice
-                                                    </Button>
-                                                </Link>
+                                <div class="border-border flex w-full justify-center gap-2 border-t pt-4" v-if="isOwner && file.verified">
+                                    <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
+                                        <DialogTrigger asChild>
+                                            <Button
+                                                class="bg-secondary text-secondary-foreground hover:bg-secondary/90 flex w-full items-center justify-center gap-1 rounded-md px-4 py-2 text-xs font-medium sm:w-auto"
+                                            >
+                                                <PencilIcon class="mr-2 h-3 w-3" />
+                                                Generate Flashcards & Quizzes
+                                            </Button>
+                                        </DialogTrigger>
+                                        <DialogContent>
+                                            <DialogHeader>
+                                                <DialogTitle>Generate Flashcards & Quizzes</DialogTitle>
+                                            </DialogHeader>
+                                            <div class="space-y-4">
+                                                <div class="flex items-center gap-2">
+                                                    <input type="checkbox" v-model="generateOptions.generate_flashcards" id="generate_flashcards" />
+                                                    <label for="generate_flashcards" class="text-sm font-medium">Generate Flashcards</label>
+                                                </div>
+                                                <div v-if="generateOptions.generate_flashcards" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="flashcards_count" class="text-sm font-medium">Flashcards Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.flashcards_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        id="flashcards_count"
+                                                        v-model="generateOptions.flashcards_count"
+                                                        min="1"
+                                                        max="15"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+                                                    />
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        v-model="generateOptions.generate_multiple_choice_quizzes"
+                                                        id="generate_multiple_choice_quizzes"
+                                                    />
+                                                    <label for="generate_multiple_choice_quizzes" class="text-sm font-medium"
+                                                        >Generate Multiple Choice Quizzes</label
+                                                    >
+                                                </div>
+                                                <div v-if="generateOptions.generate_multiple_choice_quizzes" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="multiple_choice_count" class="text-sm font-medium">Multiple Choice Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.multiple_choice_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        id="multiple_choice_count"
+                                                        v-model="generateOptions.multiple_choice_count"
+                                                        min="1"
+                                                        max="15"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+                                                    />
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        v-model="generateOptions.generate_enumeration_quizzes"
+                                                        id="generate_enumeration_quizzes"
+                                                    />
+                                                    <label for="generate_enumeration_quizzes" class="text-sm font-medium"
+                                                        >Generate Enumeration Quizzes</label
+                                                    >
+                                                </div>
+                                                <div v-if="generateOptions.generate_enumeration_quizzes" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="enumeration_count" class="text-sm font-medium">Enumeration Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.enumeration_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        id="enumeration_count"
+                                                        v-model="generateOptions.enumeration_count"
+                                                        min="1"
+                                                        max="15"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+                                                    />
+                                                </div>
+                                                <div class="flex items-center gap-2">
+                                                    <input
+                                                        type="checkbox"
+                                                        v-model="generateOptions.generate_true_false_quizzes"
+                                                        id="generate_true_false_quizzes"
+                                                    />
+                                                    <label for="generate_true_false_quizzes" class="text-sm font-medium"
+                                                        >Generate True/False Quizzes</label
+                                                    >
+                                                </div>
+                                                <div v-if="generateOptions.generate_true_false_quizzes" class="space-y-2">
+                                                    <div class="flex items-center justify-between">
+                                                        <label for="true_false_count" class="text-sm font-medium">True/False Count:</label>
+                                                        <span class="text-sm text-gray-600">{{ generateOptions.true_false_count }}</span>
+                                                    </div>
+                                                    <input
+                                                        type="range"
+                                                        id="true_false_count"
+                                                        v-model="generateOptions.true_false_count"
+                                                        min="1"
+                                                        max="15"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+                                                    />
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

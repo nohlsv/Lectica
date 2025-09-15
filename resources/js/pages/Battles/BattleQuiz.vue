@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, SwordIcon, XIcon } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -89,9 +89,143 @@ const battleResult = computed(() => {
     return null;
 });
 
-function checkAnswer() {
+// Sound effects
+const correctSfx = new Audio('/sfx/correct.wav');
+const incorrectSfx = new Audio('/sfx/incorrect.wav');
+const gameStartSfx = new Audio('/sfx/game_start.wav');
+const gameEndSfx = new Audio('/sfx/game_end.wav');
+const streakSfx = new Audio('/sfx/streak.wav');
+const victorySfx = new Audio('/sfx/victory.wav');
+const defeatSfx = new Audio('/sfx/defeat.wav');
+const damageSfx = new Audio('/sfx/damage.wav');
+
+// Play sfx for game start (first question)
+const firstQuestion = ref(true);
+watch(currentIndex, (val) => {
+    if (firstQuestion.value) {
+        gameStartSfx.currentTime = 0;
+        gameStartSfx.play();
+        firstQuestion.value = false;
+    }
+});
+
+// Play sfx for streaks (3+ correct in a row)
+watch(correctAnswers, (val, oldVal) => {
+    if (val >= 3 && val > oldVal) {
+        streakSfx.currentTime = 0;
+        streakSfx.play();
+    }
+});
+
+// Play sfx for victory/defeat
+watch(battleFinished, (val) => {
+    if (val) {
+        if (battleResult.value === 'victory') {
+            victorySfx.currentTime = 0;
+            victorySfx.play();
+        } else if (battleResult.value === 'defeat') {
+            defeatSfx.currentTime = 0;
+            defeatSfx.play();
+        }
+        gameEndSfx.currentTime = 0;
+        gameEndSfx.play();
+    }
+});
+
+// Play damage sfx when damage is dealt/taken
+function playDamageSfx() {
+    damageSfx.currentTime = 0;
+    damageSfx.play();
+}
+
+const nextQuestionDisabled = computed(() => {
+    return (
+        (currentQuiz.value.type === 'multiple_choice' && !userAnswers[currentIndex.value]) ||
+        (currentQuiz.value.type === 'true_false' && !userAnswers[currentIndex.value]) ||
+        (currentQuiz.value.type === 'enumeration' && userAnswers[currentIndex.value].every((a: string) => !a))
+    );
+});
+
+// Initialize sound effects
+const audioInit = () => {
+    correctSfx.volume = 0.5;
+    incorrectSfx.volume = 0.5;
+    gameStartSfx.volume = 0.5;
+    gameEndSfx.volume = 0.5;
+    streakSfx.volume = 0.5;
+    victorySfx.volume = 0.5;
+    defeatSfx.volume = 0.5;
+    damageSfx.volume = 0.5;
+};
+
+audioInit();
+
+const currentQuestionIndex = ref(0);
+const totalQuestions = ref(props.quizzes.length);
+
+const updateProgress = () => {
+    currentQuestionIndex.value = currentIndex.value + 1;
+};
+
+watch(currentIndex, updateProgress);
+
+// Initialize battle state
+const initBattleState = () => {
+    playerHp.value = props.battle.player_hp;
+    monsterHp.value = props.battle.monster_hp;
+    attackMessages.value = [];
+    correctAnswers.value = props.battle.correct_answers || 0;
+    totalAnswered.value = props.battle.total_questions || 0;
+    userAnswers.value = {};
+
+    // Reset userAnswers based on quiz type
+    props.quizzes.forEach((quiz, index) => {
+        if (quiz.type === 'multiple_choice') {
+            userAnswers.value[index] = '';
+        } else if (quiz.type === 'enumeration') {
+            userAnswers.value[index] = Array(quiz.answers.length).fill('');
+        } else if (quiz.type === 'true_false') {
+            userAnswers.value[index] = '';
+        }
+    });
+
+    currentIndex.value = 0;
+    showFeedback.value = false;
+    battleFinished.value = false;
+};
+
+initBattleState();
+
+// Sync battle state with props on file change
+watch(
+    () => props.file,
+    (newFile) => {
+        if (newFile) {
+            initBattleState();
+        }
+    },
+    { immediate: true }
+);
+
+const currentQuestion = computed(() => {
+    return props.quizzes[currentIndex.value];
+});
+
+// Check if the current answer is correct
+const checkAnswer = () => {
     showFeedback.value = true;
     totalAnswered.value++;
+
+    // Play sound effect
+    if (isCurrentAnswerCorrect.value) {
+        correctSfx.currentTime = 0;
+        correctSfx.play();
+        playDamageSfx();
+    } else {
+        incorrectSfx.currentTime = 0;
+        incorrectSfx.play();
+        playDamageSfx();
+    }
 
     // Process battle mechanics
     if (isCurrentAnswerCorrect.value) {
@@ -113,7 +247,7 @@ function checkAnswer() {
     if (monsterHp.value <= 0 || playerHp.value <= 0) {
         finishBattle();
     }
-}
+};
 
 function calculateDamage(attack: number, defense: number) {
     // Ensure we have valid numbers

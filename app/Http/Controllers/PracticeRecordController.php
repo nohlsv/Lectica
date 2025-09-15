@@ -7,20 +7,40 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Services\QuestService;
 
 class PracticeRecordController extends Controller
 {
 	use AuthorizesRequests;
+	public function __construct(private QuestService $questService) {}
 	public function index(): Response
 	{
-		$records = PracticeRecord::with(['file', 'user'])
-			->where('user_id', auth()->id())
-			->latest()
-			->paginate(10)
-			->withQueryString(); // Ensure query string is preserved
+		$userId = auth()->id();
+		// Get all practice records for the user, grouped by file (quiz)
+		$records = PracticeRecord::with(['file'])
+			->where('user_id', $userId)
+			->orderByDesc('created_at')
+			->get();
+
+		// Group records by file_id
+		$grouped = $records->groupBy('file_id')->map(function ($group) {
+			return [
+				'file' => $group->first()->file,
+				'attempts' => $group->map(function ($record) {
+					return [
+						'id' => $record->id,
+						'type' => $record->type,
+						'correct_answers' => $record->correct_answers,
+						'total_questions' => $record->total_questions,
+						'created_at' => $record->created_at,
+						'mistakes' => $record->mistakes,
+					];
+				}),
+			];
+		})->values();
 
 		return Inertia::render('PracticeRecords/Index', [
-			'records' => $records,
+			'groupedRecords' => $grouped,
 		]);
 	}
 
@@ -28,8 +48,15 @@ class PracticeRecordController extends Controller
 	{
 		$this->authorize('view', $practiceRecord);
 
+		// Fetch all previous records for the same file and user, ordered by creation date
+		$progressRecords = PracticeRecord::where('file_id', $practiceRecord->file_id)
+			->where('user_id', $practiceRecord->user_id)
+			->orderBy('created_at')
+			->get(['id', 'created_at', 'correct_answers', 'total_questions']);
+
 		return Inertia::render('PracticeRecords/Show', [
 			'record' => $practiceRecord->load('file'),
+			'progressRecords' => $progressRecords,
 		]);
 	}
 
@@ -50,7 +77,14 @@ class PracticeRecordController extends Controller
 			$validated['mistakes'] = json_encode($validated['mistakes']);
 		}
 
-		PracticeRecord::create($validated);
+		$record = PracticeRecord::create($validated);
+
+		// Update quest progress
+		if ($validated['type'] === 'quiz') {
+			$this->questService->updateQuestProgress(auth()->user(), 'practice_quiz');
+		} elseif ($validated['type'] === 'flashcard') {
+			$this->questService->updateQuestProgress(auth()->user(), 'practice_flashcard');
+		}
 
 		return response()->json(['message' => 'Practice record saved successfully.'], 201);
 	}
