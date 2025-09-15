@@ -203,5 +203,4 @@ const submit = () => {
             </div>
         </form>
     </AuthBase>
-    </div>
 </template>

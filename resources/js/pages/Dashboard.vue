@@ -235,85 +235,7 @@ const isStudent = computed(() => user.user_role === 'student');
                                         :key="file.id"
                                         :file="file"
                                         class="flex-shrink-0 w-auto max-w-xs"/>
-                                </div>
-                                <span class="font-medium">View Statistics</span>
-                            </Link>
-
-                            <Link
-                                v-if="isStudent"
-                                href="/files/create"
-                                class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-75 transition-colors hover:opacity-90"
-                            >
-                                <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#7eea7d"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="text-primary"
-                                    >
-                                        <path d="M5 12h14"></path>
-                                        <path d="M12 5v14"></path>
-                                    </svg>
-                                </div>
-                                <span class="font-medium">Upload File</span>
-                            </Link>
-
-                            <Link
-                                v-if="isStudent"
-                                href="/files"
-                                class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-75 transition-colors hover:opacity-90"
-                            >
-                                <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#7eea7d"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="text-primary"
-                                    >
-                                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                        <polyline points="14 2 14 8 20 8"></polyline>
-                                    </svg>
-                                </div>
-                                <span class="font-medium">Browse Files</span>
-                            </Link>
-
-                            <Link
-                                v-if="isStudent"
-                                href="/history"
-                                class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-75 transition-colors hover:opacity-90"
-                            >
-                                <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="#7eea7d"
-                                        stroke-width="2"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        class="text-primary"
-                                    >
-                                        <path d="M3 3h18v18H3z"></path>
-                                        <path d="M9 17V7"></path>
-                                        <path d="M15 17V11"></path>
-                                    </svg>
-                                </div>
-                                <span class="font-medium">History</span>
-                            </Link>
+                                </div>        
                         </div>
 
                         <!-- Message when no recommendations are available -->
@@ -343,6 +265,7 @@ const isStudent = computed(() => user.user_role === 'student');
                 
                 </div>
             </div>
+        </div>
             <!--Footer-->
                 <footer class="w-full mt-0 bg-yellow-800 border-4 border-black font-pixel text-white text-center p-2 shadow-[4px_4px_0px_rgba(0,0,0,1)]">
                     <p class="text-lg">© 2025 <span class="px-2 py-1 bg-black text-yellow-300 border-2 border-white shadow-[2px_2px_0px_rgba(0,0,0,1)]">Lectica</span></p>

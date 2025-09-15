@@ -391,6 +391,8 @@ function finishPractice() {
                   </Button>
                 </div>
             </div>
+        </div>
+        </div>
         </AppLayout>
     </div>
 </template>

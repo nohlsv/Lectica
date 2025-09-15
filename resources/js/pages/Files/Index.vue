@@ -307,8 +307,8 @@ const addToCollection = async () => {
                                 <PlusIcon class="h-4 w-4" />
                             </button>
                         </div>
-                    </div>
-                </div>
+                    </template>
+                </DataTable>
             </div>
         </div>
 
