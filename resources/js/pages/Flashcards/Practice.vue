@@ -133,7 +133,7 @@ function finishPractice() {
 <!-- Flashcard Template -->
 <template>
     <Head title="Practice Flashcards" />
-    <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+    <div class="flex h-full min-h-screen flex-1 flex-col gap-4 rounded-xl p-4">
         <AppLayout :breadcrumbs="breadcrumbs">
             <div class="bg-container min-h-screen bg-cover bg-center bg-no-repeat">
                 <!--Buttons Row (Top Left // Center)-->
@@ -357,8 +357,6 @@ function finishPractice() {
                   </Button>
                 </div>
             </div>
-        </div>
-        </div>
         </AppLayout>
     </div>
 </template>

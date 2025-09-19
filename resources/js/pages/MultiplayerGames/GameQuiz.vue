@@ -27,40 +27,40 @@
             </div>
         </template>
 
-        <div class="py-12">
+        <div class="py-12 bg-gradient min-h-screen">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Status Bar -->
-                <div class="mb-6 rounded-lg bg-white p-4 shadow-sm dark:bg-gray-800">
+                <div class="mb-6 mx-4 rounded-lg bg-black/50 p-4 shadow-sm border-2 border-green-500">
                     <div class="flex items-center justify-between">
                         <!-- Player 1 -->
                         <div class="flex items-center space-x-3">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/20">
-                                <span class="font-bold text-blue-800 dark:text-blue-300">
+                            <div class="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
+                                <span class="font-bold text-blue-300 pixel-outline">
                                     {{ gameState.playerOne.first_name.charAt(0) }}
                                 </span>
                             </div>
                             <div>
-                                <p class="font-medium text-gray-900 dark:text-gray-100">
+                                <p class="font-medium text-green-300 pixel-outline">
                                     {{ gameState.playerOne.first_name }} {{ gameState.playerOne.last_name }}
                                 </p>
                                 <div class="flex items-center space-x-2">
                                     <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
-                                            <span class="text-sm text-red-500">❤️ {{ gameState.player_one_hp }}</span>
-                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                            <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_one_hp }}</span>
+                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
                                         </template>
                                         <template v-else>
-                                            <span class="text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
-                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                            <span class="text-sm text-blue-500 pixel-outline">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
+                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
                                         </template>
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
                                     <template v-else>
-                                        <span class="text-sm text-red-500">❤️ {{ gameState.player_one_hp }}</span>
-                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_one_hp }}</span>
+                                        <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
                                     </template>
                                 </div>
                             </div>
@@ -68,42 +68,42 @@
 
                         <!-- Turn Indicator -->
                         <div class="text-center">
-                            <div v-if="isMyTurn" class="rounded-full bg-green-100 px-4 py-2 dark:bg-green-900/20">
-                                <p class="font-medium text-green-800 dark:text-green-300">Your Turn!</p>
+                            <div v-if="isMyTurn" class="rounded-full bg-green-900/20 px-4 py-2">
+                                <p class="text-sm sm:text-md font-medium text-green-300 pixel-outline">Your Turn!</p>
                             </div>
-                            <div v-else class="rounded-full bg-gray-100 px-4 py-2 dark:bg-gray-700">
-                                <p class="text-gray-600 dark:text-gray-400">Opponent's Turn</p>
+                            <div v-else class="rounded-full bg-red-900/20 px-4 py-2">
+                                <p class="text-sm sm:text-md font-medium text-red-500 pixel-outline">Opponent's Turn</p>
                             </div>
                         </div>
 
                         <!-- Player 2 -->
                         <div class="flex items-center space-x-3">
                             <div>
-                                <p class="text-right font-medium text-gray-900 dark:text-gray-100">
+                                <p class="text-right font-medium text-green-300 pixel-outline">
                                     {{ gameState.playerTwo.first_name }} {{ gameState.playerTwo.last_name }}
                                 </p>
                                 <div class="flex items-center justify-end space-x-2">
                                     <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
-                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="text-sm text-red-500">❤️ {{ gameState.player_two_hp }}</span>
+                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_two_hp }}</span>
                                         </template>
                                         <template v-else>
-                                            <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
-                                            <span class="text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="text-sm text-blue-500 pixel-outline">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
                                         </template>
                                     </template>
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
-                                        <span class="text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                        <span class="text-sm text-red-500">❤️ {{ gameState.player_two_hp }}</span>
+                                        <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
+                                        <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_two_hp }}</span>
                                     </template>
                                 </div>
                             </div>
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/20">
-                                <span class="font-bold text-green-800 dark:text-green-300">
+                            <div class="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
+                                <span class="font-bold text-green-300">
                                     {{ gameState.playerTwo.first_name.charAt(0) }}
                                 </span>
                             </div>
@@ -112,21 +112,23 @@
                 </div>
 
                 <!-- Quiz Question -->
-                <div v-if="currentQuiz && isMyTurn" class="mb-6 rounded-lg bg-white p-6 shadow-sm dark:bg-gray-800">
+                <div v-if="currentQuiz && isMyTurn" class="mb-6 mx-4 rounded-lg p-6 shadow-sm border-2 border-blue-500" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
                     <div class="mb-4">
                         <div class="mb-2 flex items-center justify-between">
-                            <span class="text-sm text-gray-500">{{ quizTypes[currentQuiz.type] || 'Question' }}</span>
-                            <span class="text-sm text-gray-500">Source: {{ game.source_name }}</span>
+                            <span class="text-sm text-gray-400 pixel-outline">{{ quizTypes[currentQuiz.type] || 'Question' }}</span>
+                            <span class="text-sm text-gray-400 pixel-outline ml-6 sm:ml-0">Source: {{ game.source_name }}</span>
                         </div>
-                        <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">
-                            {{ currentQuiz.question }}
-                        </h3>
+                        <div class="items-center p-4 -mx-6.5 border-2 border-blue-500 bg-black/50">
+                            <h3 class="text-md sm:text-lg font-medium text-center text-blue-200 pixel-outline">
+                                {{ currentQuiz.question }}
+                            </h3>
+                        </div>
                     </div>
 
                     <!-- Timer Constraint -->
                     <div class="mb-4 flex items-center justify-between">
-                        <span class="text-sm font-semibold text-purple-600"> Time left: {{ timer }}s </span>
-                        <span v-if="timer === 0" class="text-sm text-red-500">Time's up!</span>
+                        <span class="text-sm font-semibold text-blue-500 pixel-outline"> Time left: {{ timer }}s </span>
+                        <span v-if="timer === 0" class="text-sm text-red-500 pixel-outline">Time's up!</span>
                     </div>
 
                     <!-- Multiple Choice -->
@@ -139,8 +141,8 @@
                             :class="[
                                 'w-full rounded-lg border p-3 text-left transition-colors',
                                 selectedAnswer === option
-                                    ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20'
-                                    : 'border-gray-300 hover:border-purple-300 dark:border-gray-600',
+                                    ? 'bg-black/50 border-2 border-blue-500 text-white shadow-md hover:scale-105 transition-transform duration-500 pixel-outline'
+                                    : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500 pixel-outline',
                                 (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
@@ -156,8 +158,8 @@
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'True'
-                                    ? 'border-green-500 bg-green-50 dark:bg-green-900/20'
-                                    : 'border-gray-300 hover:border-green-300 dark:border-gray-600',
+                                    ? 'bg-green-900/20 border-2 border-green-500 text-white shadow-md hover:scale-105 transition-transform duration-500 pixel-outline'
+                                    : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500 pixel-outline',
                                 (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
@@ -169,8 +171,8 @@
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'False'
-                                    ? 'border-red-500 bg-red-50 dark:bg-red-900/20'
-                                    : 'border-gray-300 hover:border-red-300 dark:border-gray-600',
+                                    ? 'bg-red-900/20 border-2 border-red-500 text-white shadow-md hover:scale-105 transition-transform duration-500 pixel-outline'
+                                    : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500 pixel-outline',
                                 (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
@@ -180,7 +182,7 @@
 
                     <!-- Enumeration -->
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
-                        <p class="mb-2 font-bold text-purple-700">Please provide {{ currentQuiz.answers.length }} answers:</p>
+                        <p class="mb-2 font-bold text-blue-500 pixel-outline">Please provide {{ currentQuiz.answers.length }} answers:</p>
                         <div v-for="idx in currentQuiz.answers.length" :key="idx" class="mb-2">
                             <input
                                 type="text"
@@ -188,7 +190,7 @@
                                 v-model="selectedAnswer[idx]"
                                 @input="updateEnumerationAnswer(idx, selectedAnswer[idx])"
                                 :disabled="answerSubmitted || timedOut"
-                                class="w-full rounded-lg border border-gray-300 p-2 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
+                                class="w-full rounded-lg border border-blue-500 p-2 bg-black/50 pixel-outline text-gray-400"
                             />
                         </div>
                     </div>
@@ -198,7 +200,7 @@
                         <button
                             @click="submitAnswer"
                             :disabled="!selectedAnswer || answerSubmitted || submitting || timedOut"
-                            class="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50"
+                            class="inline-flex items-center pixel-outline rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
                         >
                             <span v-if="submitting" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
                             {{ submitting ? 'Submitting...' : 'Submit Answer' }}
@@ -207,10 +209,12 @@
                 </div>
 
                 <!-- Waiting for Opponent -->
-                <div v-else-if="!isMyTurn" class="rounded-lg bg-gray-50 p-8 text-center dark:bg-gray-900">
-                    <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
-                    <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">Waiting for opponent...</h3>
-                    <p class="text-gray-500">Your opponent is answering their question.</p>
+                <div v-else-if="!isMyTurn" class="mx-4 rounded-lg p-8 border-red-500 border-2 text-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
+                    <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-red-200 border-t-red-600 pixel-outline-icon"></div>
+                    <div class="items-center -mx-8.5 mb-2 bg-black/50 border-2 border-red-500 p-4">
+                        <h3 class="text-lg font-medium text-center text-red-500 pixel-outline">Waiting for opponent...</h3>
+                    </div> 
+                    <p class="text-gray-400 pixel-outline">Your opponent is answering their question.</p>
                 </div>
 
                 <!-- Game Over -->

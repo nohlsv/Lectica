@@ -144,9 +144,9 @@ const getExperienceProgress = () => {
 <template>
     <div>
         <div class="border-sidebar-border/80 border-b bg-[#4d0a02]">
-            <div class="mx-auto flex h-16 items-center px-4 md:max-w-7xl">
+            <div class="mx-auto flex h-16 items-center px-4 md:max-w-8xl">
                 <!-- Mobile Menu -->
-                <div class="lg:hidden">
+                <div class="2xl:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
                             <Button variant="ghost" size="icon" class="mr-2 h-9 w-9">
@@ -194,7 +194,7 @@ const getExperienceProgress = () => {
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="pixel-outline hidden h-full text-[#fce3aa] lg:flex lg:flex-1">
+                <div class="pixel-outline hidden h-full text-[#fce3aa] 2xl:flex 2xl:flex-1">
                     <NavigationMenu class="ml-10 flex h-full items-stretch">
                         <NavigationMenuList class="flex h-full items-stretch space-x-2">
                             <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">
@@ -244,7 +244,7 @@ const getExperienceProgress = () => {
 
                     <!-- Level and XP Display -->
                     <div
-                        class="hidden items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 md:flex dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20"
+                        class="flex items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 sm:active dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20"
                     >
                         <!-- Level Badge -->
                         <div class="flex items-center space-x-1">

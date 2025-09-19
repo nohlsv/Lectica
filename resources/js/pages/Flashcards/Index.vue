@@ -43,7 +43,7 @@ const isOwner = computed(() => {
 <template>
     <Head title="Flashcards" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8">
+        <div class="bg-gradient min-h-screen mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between">
                 <div class="flex flex-wrap space-x-2">
                     <Link :href="route('files.show', file.id)">

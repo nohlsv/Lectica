@@ -1,7 +1,7 @@
 <template>
     <AppLayout>
         <div class="bg-gradient min-h-screen space-y-4 p-6">
-            <div class="flex items-center justify-center">
+            <div class="mx-auto max-w-md flex items-center justify-center">
                 <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-10 py-2 text-center text-2xl font-bold">History</h1>
             </div>
             <div class="bg-container p-6">

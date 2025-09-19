@@ -125,13 +125,12 @@ const isStudent = computed(() => user.user_role === 'student');
                 <!--Divider-->
                 <hr class="-mx-4 h-2 border-2 border-black bg-red-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
             </div>
-
             <!--Main Content-->
             <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
                 <!-- Quick Actions -->
-                <div class="mb-8">
-                    <h2 class="wave mb-6 text-xl font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                        <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span> <span>t</span
+                <div class="mb-2">
+                    <h2 class="wave text-lg sm:text-xl font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                        <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span><span>t</span
                         ><span>i</span><span>o</span><span>n</span><span>s</span>
                     </h2>
                     <div class="grid grid-cols-2 gap-4 text-center md:grid-cols-2">
@@ -157,7 +156,7 @@ const isStudent = computed(() => user.user_role === 'student');
                                     <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
                                 </svg>
                             </div>
-                            <span class="font-medium">Verify Files</span>
+                            <span class="font-medium text-sm sm:text-lg">Verify Files</span>
                         </Link>
                     </div>
                     <Link
@@ -184,7 +183,7 @@ const isStudent = computed(() => user.user_role === 'student');
                                 <path d="M21 17V11"></path>
                             </svg>
                         </div>
-                        <span class="font-medium">View Statistics</span>
+                        <span class="font-medium text-sm sm:text-lg">View Statistics</span>
                     </Link>
                 </div>
                 <div class="grid grid-cols-4 gap-4 text-center md:grid-cols-4">
@@ -210,7 +209,7 @@ const isStudent = computed(() => user.user_role === 'student');
                                 <path d="M12 5v14"></path>
                             </svg>
                         </div>
-                        <span class="font-medium">Upload File</span>
+                        <span class="font-medium text-sm sm:text-lg">Upload File</span>
                     </Link>
 
                     <Link
@@ -235,7 +234,7 @@ const isStudent = computed(() => user.user_role === 'student');
                                 <polyline points="14 2 14 8 20 8"></polyline>
                             </svg>
                         </div>
-                        <span class="font-medium">Browse Files</span>
+                        <span class="font-medium text-sm sm:text-lg">Browse Files</span>
                     </Link>
 
                     <Link
@@ -261,12 +260,12 @@ const isStudent = computed(() => user.user_role === 'student');
                                 <path d="M15 17V11"></path>
                             </svg>
                         </div>
-                        <span class="font-medium">History</span>
+                        <span class="font-medium text-sm sm:text-lg">History</span>
                     </Link>
 
                     <Link
                         v-if="isStudent"
-                        href="/games/lobby"
+                        href="/multiplayer-games"
                         class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
                     >
                         <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
@@ -287,12 +286,12 @@ const isStudent = computed(() => user.user_role === 'student');
                                 <path d="M12 8v8"></path>
                             </svg>
                         </div>
-                        <span class="font-medium">Game Lobby</span>
+                        <span class="font-medium text-sm sm:text-lg">Game Lobby</span>
                     </Link>
                 </div>
 
                 <!-- Recommendations Section -->
-                <div class="relative mb-10">
+                <div class="relative mt-4 mb-10">
                     <h2
                         class="animate-soft-bounce mb-6 text-xl font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
                     >

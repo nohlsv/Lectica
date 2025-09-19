@@ -46,18 +46,7 @@ const isOwner = computed(() => {
     <Head title="Quizzes" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8">
-            <!-- Breadcrumbs -->
-            <div class="text-muted-foreground flex items-center text-sm">
-                <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
-                    <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
-                        {{ crumb.title }}
-                    </Link>
-                    <span v-else class="text-foreground font-medium">{{ crumb.title }}</span>
-
-                    <span v-if="index < breadcrumbs.length - 1" class="mx-2">/</span>
-                </div>
-            </div>
+        <div class="bg-gradient min-h-screen mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <div class="flex flex-wrap space-x-2">
                     <Link :href="route('files.show', file.id)">

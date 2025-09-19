@@ -161,7 +161,7 @@ const showFlashcards = ref(true)
 <template>
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient p-6">
+        <div class="bg-gradient min-h-screen p-6">
 
             <!-- First Container (Opening) -->
             <div class="flex flex-col justify-between gap-4">
@@ -179,7 +179,7 @@ const showFlashcards = ref(true)
                 </div>
 
                 <!-- File Detail part -->
-                <div class="rounded-xl px-10 py-2 text-3xl sm:text-3xl md:text-4xl font-extrabold welcome-banner
+                <div class="mx-auto max-w-md rounded-xl px-10 py-2 text-3xl sm:text-3xl md:text-4xl font-extrabold welcome-banner
                             shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce justify-center m-auto mb-3 pixel-outline"
                             style="image-rendering: pixelated;">
                     <h1 class="text-2xl md:text-2xl font-extrabold text-center">File Details</h1>
@@ -199,7 +199,7 @@ const showFlashcards = ref(true)
                                 <p class="text-muted-foreground">{{ file.description }}</p>
                                 </div>
                             -->
-                            <dl class="space-y-2 text-sm">
+                            <div class="space-y-2 text-sm">
                                 <div class="flex justify-between">
                                     <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
                                     <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
@@ -310,6 +310,8 @@ const showFlashcards = ref(true)
                                                     />
                                                 </div>
                                             </div>
+                                        </DialogContent>
+                                    </Dialog>
                                         </div>
                                     </div>
                                     <div class="mt-3">
@@ -530,8 +532,6 @@ const showFlashcards = ref(true)
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
     </AppLayout>
 </template>
 
