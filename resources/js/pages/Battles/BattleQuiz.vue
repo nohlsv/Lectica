@@ -10,7 +10,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, SwordIcon, XIcon } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -89,9 +89,143 @@ const battleResult = computed(() => {
     return null;
 });
 
-function checkAnswer() {
+// Sound effects
+const correctSfx = new Audio('/sfx/correct.wav');
+const incorrectSfx = new Audio('/sfx/incorrect.wav');
+const gameStartSfx = new Audio('/sfx/game_start.wav');
+const gameEndSfx = new Audio('/sfx/game_end.wav');
+const streakSfx = new Audio('/sfx/streak.wav');
+const victorySfx = new Audio('/sfx/victory.wav');
+const defeatSfx = new Audio('/sfx/defeat.wav');
+const damageSfx = new Audio('/sfx/damage.wav');
+
+// Play sfx for game start (first question)
+const firstQuestion = ref(true);
+watch(currentIndex, (val) => {
+    if (firstQuestion.value) {
+        gameStartSfx.currentTime = 0;
+        gameStartSfx.play();
+        firstQuestion.value = false;
+    }
+});
+
+// Play sfx for streaks (3+ correct in a row)
+watch(correctAnswers, (val, oldVal) => {
+    if (val >= 3 && val > oldVal) {
+        streakSfx.currentTime = 0;
+        streakSfx.play();
+    }
+});
+
+// Play sfx for victory/defeat
+watch(battleFinished, (val) => {
+    if (val) {
+        if (battleResult.value === 'victory') {
+            victorySfx.currentTime = 0;
+            victorySfx.play();
+        } else if (battleResult.value === 'defeat') {
+            defeatSfx.currentTime = 0;
+            defeatSfx.play();
+        }
+        gameEndSfx.currentTime = 0;
+        gameEndSfx.play();
+    }
+});
+
+// Play damage sfx when damage is dealt/taken
+function playDamageSfx() {
+    damageSfx.currentTime = 0;
+    damageSfx.play();
+}
+
+const nextQuestionDisabled = computed(() => {
+    return (
+        (currentQuiz.value.type === 'multiple_choice' && !userAnswers[currentIndex.value]) ||
+        (currentQuiz.value.type === 'true_false' && !userAnswers[currentIndex.value]) ||
+        (currentQuiz.value.type === 'enumeration' && userAnswers[currentIndex.value].every((a: string) => !a))
+    );
+});
+
+// Initialize sound effects
+const audioInit = () => {
+    correctSfx.volume = 0.5;
+    incorrectSfx.volume = 0.5;
+    gameStartSfx.volume = 0.5;
+    gameEndSfx.volume = 0.5;
+    streakSfx.volume = 0.5;
+    victorySfx.volume = 0.5;
+    defeatSfx.volume = 0.5;
+    damageSfx.volume = 0.5;
+};
+
+audioInit();
+
+const currentQuestionIndex = ref(0);
+const totalQuestions = ref(props.quizzes.length);
+
+const updateProgress = () => {
+    currentQuestionIndex.value = currentIndex.value + 1;
+};
+
+watch(currentIndex, updateProgress);
+
+// Initialize battle state
+const initBattleState = () => {
+    playerHp.value = props.battle.player_hp;
+    monsterHp.value = props.battle.monster_hp;
+    attackMessages.value = [];
+    correctAnswers.value = props.battle.correct_answers || 0;
+    totalAnswered.value = props.battle.total_questions || 0;
+    userAnswers.value = {};
+
+    // Reset userAnswers based on quiz type
+    props.quizzes.forEach((quiz, index) => {
+        if (quiz.type === 'multiple_choice') {
+            userAnswers.value[index] = '';
+        } else if (quiz.type === 'enumeration') {
+            userAnswers.value[index] = Array(quiz.answers.length).fill('');
+        } else if (quiz.type === 'true_false') {
+            userAnswers.value[index] = '';
+        }
+    });
+
+    currentIndex.value = 0;
+    showFeedback.value = false;
+    battleFinished.value = false;
+};
+
+initBattleState();
+
+// Sync battle state with props on file change
+watch(
+    () => props.file,
+    (newFile) => {
+        if (newFile) {
+            initBattleState();
+        }
+    },
+    { immediate: true }
+);
+
+const currentQuestion = computed(() => {
+    return props.quizzes[currentIndex.value];
+});
+
+// Check if the current answer is correct
+const checkAnswer = () => {
     showFeedback.value = true;
     totalAnswered.value++;
+
+    // Play sound effect
+    if (isCurrentAnswerCorrect.value) {
+        correctSfx.currentTime = 0;
+        correctSfx.play();
+        playDamageSfx();
+    } else {
+        incorrectSfx.currentTime = 0;
+        incorrectSfx.play();
+        playDamageSfx();
+    }
 
     // Process battle mechanics
     if (isCurrentAnswerCorrect.value) {
@@ -113,7 +247,7 @@ function checkAnswer() {
     if (monsterHp.value <= 0 || playerHp.value <= 0) {
         finishBattle();
     }
-}
+};
 
 function calculateDamage(attack: number, defense: number) {
     // Ensure we have valid numbers
@@ -160,77 +294,80 @@ function finishBattle() {
 <template>
     <Head :title="`Battle: ${battle.monster.name}`" />
     <AppLayout>
-        <div class="flex min-h-screen w-full flex-col overflow-hidden bg-cover bg-center">
+        <div class="flex min-h-screen w-full flex-col overflow-hidden bg-gradient min-h-screen">
             <!--             style="background-image: url('/images/game-background.png');">-->
 
             <!-- Battle Header -->
-            <div class="flex items-center justify-between p-4">
-                <Link :href="route('files.quizzes.index', file.id)">
+            <div class="flex flex-col justify-between p-4">
+                <Link :href="route('files.quizzes.index', file.id)" class="mb-4">
                     <Button
-                        class="border-4 border-red-700 bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                        class="border-4 border-red-700 pixel-outline bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
                     >
                         Escape Battle
                     </Button>
                 </Link>
-                <div class="bg-opacity-70 rounded-lg bg-black p-2 text-xl font-bold text-white">
+                <div class="flex grid text-center rounded-lg p-2 text-xl md:text-3xl font-bold welcome-banner mb-4 animate-soft-bounce pixel-outline">
                     {{ file.name }}
                 </div>
+                <hr class="-mx-4 h-2 border-2 border-black bg-red-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
             </div>
 
             <!-- Battle Arena -->
-            <div class="flex flex-1 flex-col">
+            <div class="flex flex-1 flex-col -my-4" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
                 <!-- Monster Area -->
                 <div class="mb-4 flex flex-col items-center">
-                    <div class="bg-opacity-70 mb-2 flex w-full max-w-md items-center rounded-lg bg-black p-2">
+                    <div class="border-red-500 border-2 my-4 flex w-full max-w-md items-center rounded-lg bg-black/50 pixel-outline p-2">
                         <div class="mr-2 font-bold text-white">{{ battle.monster.name }}</div>
                         <div class="flex-1">
                             <Progress :value="monsterHpPercent" class="h-4 bg-red-900">
-                                <div class="h-full bg-red-500" :style="`width: ${monsterHpPercent}%`"></div>
+                                <div class="h-full bg-red-300 pixel-outline-icon" :style="`width: ${monsterHpPercent}%`"></div>
                             </Progress>
                         </div>
                         <div class="ml-2 font-bold text-white">{{ monsterHp }}/{{ battle.monster.hp }}</div>
                     </div>
-                    <div class="relative">
+                    <div class="relative bg-black/70 p-4 w-full flex items-center justify-center">
                         <img
                             :src="battle.monster.image_path"
-                            class="animate-floating h-40"
+                            class="animate-floating h-30 sm:h-40 pixel-outline-icon"
                             :alt="battle.monster.name"
                             @error="$event.target.style.display = 'none'"
                         />
-                    </div>
-                </div>
-
-                <!-- Battle Log -->
-                <div class="bg-opacity-70 mx-4 mb-4 max-h-28 overflow-y-auto rounded-lg bg-black p-2">
-                    <div v-for="(message, index) in attackMessages" :key="index" class="text-sm text-white">
-                        {{ message }}
-                    </div>
-                    <div v-if="attackMessages.length === 0" class="text-sm text-gray-400">
-                        The battle is about to begin! Answer correctly to attack the monster.
+                        <div class="flex flex-col p-4 rounded-lg">
+                            <div class="text-sm pixel-outline sm:text-base md:text-lg text-left font-bold text-yellow-300 mb-2">
+                                {{ quizTypes[currentQuiz.type] }}
+                            </div>
+                            <div class="text-base pixel-outline sm:text-lg md:text-xl font-bold text-white">
+                                {{ currentQuiz.question }}
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Player Area -->
                 <div class="mb-4 flex items-center justify-center">
-                    <div class="bg-opacity-70 mb-2 flex w-full max-w-md items-center rounded-lg bg-black p-2">
-                        <div class="mr-2 font-bold text-white">You</div>
+                    <div class="border-green-500 border-2 mb-2 flex w-full max-w-md items-center rounded-lg bg-black/50 p-2">
+                        <div class="mr-2 font-bold text-white pixel-outline">You</div>
                         <div class="flex-1">
                             <Progress :value="playerHpPercent" class="h-4 bg-green-900">
-                                <div class="h-full bg-green-500" :style="`width: ${playerHpPercent}%`"></div>
+                                <div class="h-full bg-green-300 pixel-outline-icon" :style="`width: ${playerHpPercent}%`"></div>
                             </Progress>
                         </div>
-                        <div class="ml-2 font-bold text-white">{{ playerHp }}/100</div>
+                        <div class="ml-2 font-bold text-white pixel-outline">{{ playerHp }}/100</div>
+                    </div>
+                </div>
+
+                <!-- Battle Log -->
+                <div class="mx-4 mb-4 max-w-auto max-h-7.5 overflow-y-auto rounded-lg bg-blue-600 p-2">
+                    <div v-for="(message, index) in attackMessages" :key="index" class="text-sm text-white pixel-outline">
+                        {{ message }}
+                    </div>
+                    <div v-if="attackMessages.length === 0" class="text-sm text-gray-200 pixel-outline">
+                        The battle is about to begin! Answer correctly to defeat the monster!
                     </div>
                 </div>
 
                 <!-- Quiz Question -->
-                <Card class="mx-4 mb-4" v-if="currentQuiz && !battleFinished">
-                    <CardHeader>
-                        <div class="flex items-center justify-between">
-                            <Badge>{{ quizTypes[currentQuiz.type] }}</Badge>
-                        </div>
-                        <CardTitle>{{ currentQuiz.question }}</CardTitle>
-                    </CardHeader>
+                <Card class="mx-4 mb-10 bg-black/50 border-blue-500 border-2" v-if="currentQuiz && !battleFinished">
                     <CardContent>
                         <!-- Multiple Choice Question -->
                         <div v-if="currentQuiz.type === 'multiple_choice'" class="w-full">
@@ -238,7 +375,7 @@ function finishBattle() {
                                 <div v-for="(option, index) in currentQuiz.options" :key="index" class="h-full w-full">
                                     <Label
                                         :for="`option-${index}`"
-                                        class="flex h-full w-full transform cursor-pointer items-center justify-center rounded-lg border-4 border-blue-700 bg-blue-500 px-6 py-3 text-center text-lg font-bold text-balance text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out select-none hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                        class="flex h-full w-full transform cursor-pointer items-center justify-center rounded-lg border-4 border-blue-700 pixel-outline bg-blue-500 px-6 py-3 text-center text-lg font-bold text-balance text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out select-none hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
                                         :class="{
                                             'border-blue-800 bg-blue-600': !showFeedback && userAnswers[currentIndex] === option,
                                             'border-green-800 bg-green-700': showFeedback && option === currentQuiz.answers[0],
@@ -258,7 +395,7 @@ function finishBattle() {
                             <RadioGroup v-model="userAnswers[currentIndex]" class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                                 <Label
                                     for="answer-true"
-                                    class="flex h-full w-full cursor-pointer items-center justify-center rounded-lg border-4 border-green-700 bg-green-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
+                                    class="flex h-full w-full pixel-outline cursor-pointer items-center justify-center rounded-lg border-4 border-green-700 bg-green-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
                                     :class="{
                                         'border-green-800 bg-green-600': !showFeedback && userAnswers[currentIndex] === 'true',
                                         'border-green-800 bg-green-700': showFeedback && 'true' === currentQuiz.answers[0],
@@ -270,7 +407,7 @@ function finishBattle() {
                                 </Label>
                                 <Label
                                     for="answer-false"
-                                    class="flex h-full w-full cursor-pointer items-center justify-center rounded-lg border-4 border-red-700 bg-red-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
+                                    class="flex h-full w-full pixel-outline cursor-pointer items-center justify-center rounded-lg border-4 border-red-700 bg-red-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
                                     :class="{
                                         'border-red-800 bg-red-600': !showFeedback && userAnswers[currentIndex] === 'false',
                                         'border-green-800 bg-green-700': showFeedback && 'false' === currentQuiz.answers[0],
@@ -286,15 +423,15 @@ function finishBattle() {
                         <!-- Enumeration Question -->
                         <div v-else-if="currentQuiz.type === 'enumeration'" class="w-full space-y-4">
                             <p
-                                class="rounded-lg border-4 border-blue-700 bg-blue-500 px-4 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
+                                class="rounded-lg border-4 border-blue-700 bg-blue-500 px-4 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] pixel-outline"
                             >
                                 Enter {{ currentQuiz.answers.length }} answers
                             </p>
                             <div v-for="(answer, index) in userAnswers[currentIndex]" :key="index" class="w-full">
                                 <div
-                                    class="flex w-full items-center rounded-lg border-4 bg-gradient-to-b from-gray-800 to-gray-900 px-4 py-2 text-lg font-bold text-yellow-300 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
+                                    class="flex w-full items-center rounded-lg border-4 px-4 py-2 text-lg font-bold text-yellow-300 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
                                     :class="{
-                                        'border-gray-700': !showFeedback,
+                                        'border-blue-700': !showFeedback,
                                         'border-green-800 bg-green-700 text-white':
                                             showFeedback && currentQuiz.answers.some((a: string) => a.toLowerCase() === answer.toLowerCase()),
                                         'border-red-800 bg-red-700 text-white':
@@ -307,7 +444,7 @@ function finishBattle() {
                                         v-model="userAnswers[currentIndex][index]"
                                         :placeholder="`Answer ${index + 1}`"
                                         :disabled="showFeedback"
-                                        class="flex-1 border-none bg-transparent text-center outline-none"
+                                        class="flex-1 bg-transparent border-none text-center text-white pixel-outline"
                                     />
                                 </div>
                             </div>
@@ -322,16 +459,16 @@ function finishBattle() {
                             <div class="flex items-center">
                                 <div v-if="isCurrentAnswerCorrect" class="flex-shrink-0">
                                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                                        <CheckIcon class="h-6 w-6 text-green-600 dark:text-green-300" />
+                                        <CheckIcon class="h-6 w-6 text-green-600 dark:text-green-300 pixel-outline-icon" />
                                     </div>
                                 </div>
                                 <div v-else class="flex-shrink-0">
                                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-                                        <XIcon class="h-6 w-6 text-red-600 dark:text-red-300" />
+                                        <XIcon class="h-6 w-6 text-red-600 dark:text-red-300 pixel-outline-icon" />
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-muted-foreground text-lg font-medium">
+                                    <h3 class="text-muted-foreground text-lg font-medium pixel-outline">
                                         {{ isCurrentAnswerCorrect ? 'Correct! You attacked the monster!' : 'Incorrect! The monster attacked you!' }}
                                     </h3>
                                 </div>
@@ -359,22 +496,22 @@ function finishBattle() {
                 </Card>
 
                 <!-- Battle Result -->
-                <Card class="mx-4 mb-4" v-if="battleFinished">
+                <Card class="mx-4 mb-10 bg-black/50 " v-if="battleFinished">
                     <CardHeader>
-                        <CardTitle class="text-center">
+                        <CardTitle class="text-center pixel-outline">
                             {{ battleResult === 'victory' ? 'Victory!' : 'Defeat!' }}
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="text-center">
-                        <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500">You defeated {{ battle.monster.name }}!</div>
-                        <div v-else class="mb-4 text-2xl text-red-500">{{ battle.monster.name }} defeated you!</div>
+                        <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500 pixel-outline">You defeated {{ battle.monster.name }}!</div>
+                        <div v-else class="mb-4 text-2xl text-red-500 pixel-outline">{{ battle.monster.name }} defeated you!</div>
                         <div class="mt-4">
-                            <p>You answered {{ correctAnswers }} out of {{ totalAnswered }} questions correctly.</p>
+                            <p class="pixel-outline">You answered {{ correctAnswers }} out of {{ totalAnswered }} questions correctly.</p>
                         </div>
                     </CardContent>
                     <CardFooter class="flex justify-center">
-                        <Link :href="route('files.quizzes.index', file.id)">
-                            <Button>Return to Quizzes</Button>
+                        <Link :href="route('battles.index')">
+                            <Button>Return to Battles</Button>
                         </Link>
                     </CardFooter>
                 </Card>

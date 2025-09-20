@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\UserController;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -105,6 +106,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
     Route::get('/statistics', [App\Http\Controllers\StatisticsController::class, 'index'])->name('statistics.index');
+    Route::get('/leaderboards', function () {
+        return Inertia::render('Leaderboards');
+    })->name('leaderboards');
+
+    Route::get('/admin/user-roles', [UserController::class, 'show'])
+        ->name('admin.user-roles');
 });
 
 require __DIR__ . '/settings.php';

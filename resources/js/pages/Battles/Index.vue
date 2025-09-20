@@ -11,16 +11,19 @@
             </div>
         </template>
 
-        <div class="py-12">
+        <div class="py-12 bg-gradient min-h-screen">
+            <div class="mx-auto max-w-md flex justify-center mb-6 mx-4">
+                <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-center text-2xl leading-tight font-bold pixel-outline">Battles</h1>
+            </div>
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
+                <div class="overflow-hidden mx-4 bg-container bordershadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
                         <div v-if="battles.data.length === 0" class="py-8 text-center">
-                            <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100">No battles yet</h3>
-                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Start your first battle to test your knowledge!</p>
+                            <h3 class="text-lg font-medium text-gray-100 pixel-outline">No battles yet</h3>
+                            <p class="mt-2 text-sm text-gray-400 pixel-outline">Start your first battle to test your knowledge!</p>
                             <Link
                                 :href="route('battles.create')"
-                                class="mt-4 inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase hover:bg-blue-700"
+                                class="mt-4 inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 pixel-outline text-xs font-semibold tracking-widest text-white uppercase hover:bg-blue-800"
                             >
                                 Start Battle
                             </Link>
@@ -30,7 +33,7 @@
                             <div
                                 v-for="battle in battles.data"
                                 :key="battle.id"
-                                class="rounded-lg border border-gray-200 bg-gray-50 p-6 dark:border-gray-600 dark:bg-gray-700"
+                                class="rounded-lg border-green-500 border-2 bg-black/50 p-6"
                             >
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center space-x-4">
@@ -38,22 +41,22 @@
                                             v-if="battle.monster?.image_path"
                                             :src="battle.monster.image_path"
                                             :alt="battle.monster.name"
-                                            class="h-16 w-16 rounded-lg object-cover"
+                                            class="h-16 w-16 rounded-lg object-cover pixel-outline-icon"
                                             @error="$event.target.style.display = 'none'"
                                         />
                                         <div>
-                                            <h3 class="text-lg font-semibold">vs {{ battle.monster?.name || 'Unknown Monster' }}</h3>
-                                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                            <h3 class="text-lg font-semibold pixel-outline">vs {{ battle.monster?.name || 'Unknown Monster' }}</h3>
+                                            <p class="text-sm text-gray-300 pixel-outline">
                                                 File: {{ battle.file?.title || battle.file?.name }}
                                             </p>
                                             <div class="mt-2 flex space-x-2">
-                                                <span :class="getStatusBadge(battle.status)" class="rounded-full px-2 py-1 text-xs font-medium">
+                                                <span :class="getStatusBadge(battle.status)" class="rounded-full px-2 py-1 text-xs font-medium pixel-outline-icon">
                                                     {{ battle.status.charAt(0).toUpperCase() + battle.status.slice(1) }}
                                                 </span>
                                                 <span
                                                     v-if="battle.monster?.difficulty"
                                                     :class="getDifficultyBadge(battle.monster.difficulty).color"
-                                                    class="rounded-full px-2 py-1 text-xs font-medium"
+                                                    class="rounded-full px-2 py-1 text-xs font-medium pixel-outline-icon"
                                                 >
                                                     {{ getDifficultyBadge(battle.monster.difficulty).text }}
                                                 </span>
@@ -63,13 +66,13 @@
                                     <div class="text-right">
                                         <div class="flex space-x-4 text-sm">
                                             <div>
-                                                <span class="text-green-600">❤️ {{ battle.player_hp }}</span>
+                                                <span class="text-green-600 pixel-outline">❤️ {{ battle.player_hp }}</span>
                                             </div>
                                             <div>
-                                                <span class="text-red-600">👹 {{ battle.monster_hp }}</span>
+                                                <span class="text-red-600 pixel-outline">👹 {{ battle.monster_hp }}</span>
                                             </div>
                                         </div>
-                                        <div class="mt-1 text-xs text-gray-500">
+                                        <div class="mt-1 text-xs text-gray-500 pixel-outline">
                                             {{ battle.correct_answers }}/{{ battle.total_questions }} correct
                                         </div>
                                         <div class="mt-2">
@@ -78,7 +81,7 @@
                                                 :class="
                                                     battle.status === 'active' ? 'bg-green-500 hover:bg-green-700' : 'bg-gray-500 hover:bg-gray-700'
                                                 "
-                                                class="rounded px-3 py-1 text-sm font-bold text-white"
+                                                class="rounded px-3 py-1 text-sm font-bold text-white pixel-outline"
                                             >
                                                 {{ battle.status === 'active' ? 'Continue' : 'View' }}
                                             </Link>

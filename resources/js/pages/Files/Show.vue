@@ -568,7 +568,7 @@ const addToCollection = async () => {
                                                         v-model="generateOptions.flashcards_count"
                                                         min="1"
                                                         max="15"
-                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -592,7 +592,7 @@ const addToCollection = async () => {
                                                         v-model="generateOptions.multiple_choice_count"
                                                         min="1"
                                                         max="15"
-                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -616,7 +616,7 @@ const addToCollection = async () => {
                                                         v-model="generateOptions.enumeration_count"
                                                         min="1"
                                                         max="15"
-                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
                                                     />
                                                 </div>
                                                 <div class="flex items-center gap-2">
@@ -640,7 +640,7 @@ const addToCollection = async () => {
                                                         v-model="generateOptions.true_false_count"
                                                         min="1"
                                                         max="15"
-                                                        class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                                                        class="h-2 w-full cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
                                                     />
                                                 </div>
                                             </div>

@@ -133,95 +133,59 @@ function finishPractice() {
 <!-- Flashcard Template -->
 <template>
     <Head title="Practice Flashcards" />
-    <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
-      <AppLayout :breadcrumbs="breadcrumbs">
-        <div 
-          class="min-h-screen bg-no-repeat bg-cover bg-center bg-container"
-       >
+    <div class="flex h-full min-h-screen flex-1 flex-col gap-4 rounded-xl p-4">
+        <AppLayout :breadcrumbs="breadcrumbs">
+            <div class="bg-container min-h-screen bg-cover bg-center bg-no-repeat">
+                <!--Buttons Row (Top Left // Center)-->
+                <div class="mt-6 ml-4 flex flex-wrap justify-center gap-3 sm:mt-8 sm:ml-6 sm:justify-start">
+                    <!--Back Button (Escape)-->
+                    <Link :href="route('files.flashcards.index', file.id)">
+                        <Button
+                            variant="default"
+                            class="pixel-outline border-4 border-red-700 bg-red-500 px-3 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:px-4 sm:py-3 sm:text-base md:px-6 md:text-lg"
+                        >
+                            Escape
+                        </Button>
+                    </Link>
+                    <!--Shuffle Button-->
+                    <Button
+                        @click="shuffleCards"
+                        v-if="!shuffled"
+                        class="pixel-outline border-4 border-green-700 bg-green-500 px-3 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-green-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:px-4 sm:py-3 sm:text-base md:px-6 md:text-lg"
+                    >
+                        <Shuffle class="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        Shuffle
+                    </Button>
+                    <!--Reset Button (from shuffle)-->
+                    <Button
+                        @click="resetOrder"
+                        v-else
+                        class="pixel-outline border-4 border-blue-700 bg-blue-500 px-3 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-blue-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:px-4 sm:py-3 sm:text-base md:px-6 md:text-lg"
+                    >
+                        <RotateCcw class="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        Reset
+                    </Button>
+                    <!--Restart Button-->
+                    <Button
+                        @click="reset"
+                        variant="default"
+                        class="pixel-outline border-4 border-yellow-700 bg-yellow-500 px-3 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-yellow-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:px-4 sm:py-3 sm:text-base md:px-6 md:text-lg"
+                    >
+                        <RotateCcw class="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        Restart
+                    </Button>
+                </div>
 
-            <!--Buttons Row (Top Left // Center)-->
-            <div 
-              class="flex flex-wrap justify-center sm:justify-start gap-3 mt-6 sm:mt-8 ml-4 sm:ml-6">
-              <!--Back Button (Escape)-->
-              <Link :href="route('files.flashcards.index', file.id)">
-                <Button 
-                  variant="default" 
-                  class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
-                        bg-red-500 border-4 border-red-700 text-white font-bold
-                        shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                        hover:bg-red-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-                        active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out pixel-outline">
-                  Escape
-                </Button>
-              </Link>
-                <!--Shuffle Button-->
-                <Button 
-                  @click="shuffleCards" 
-                  v-if="!shuffled"
-                  class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
-                        bg-green-500 border-4 border-green-700 text-white font-bold
-                        shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                        hover:bg-green-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-                        active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out pixel-outline">
-                  <Shuffle class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                    Shuffle
-                </Button>
-                <!--Reset Button (from shuffle)-->
-                <Button 
-                  @click="resetOrder" 
-                  v-else
-                  class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
-                        bg-blue-500 border-4 border-blue-700 text-white font-bold
-                        shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                        hover:bg-blue-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-                        active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out pixel-outline">
-                  <RotateCcw class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Reset
-                </Button>
-                <!--Restart Button-->
-                <Button
-                  @click="reset"
-                  variant="default"
-                  class="px-3 sm:px-4 md:px-6 py-2 sm:py-3 text-sm sm:text-base md:text-lg
-                        bg-yellow-500 border-4 border-yellow-700 text-white font-bold
-                        shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                        hover:bg-yellow-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-                        active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out pixel-outline">
-                  <RotateCcw class="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Restart
-                </Button>
-            </div>
-
-            <!--Main Content-->
-            <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
-            <!--Title Header-->
-            <div class="welcome-banner px-6 py-4 animate-soft-bounce text-center mb-4">
-              <h2 class="text-2xl font-pixel text-white tracking-wider 
-                        pixel-outline">
-                Flashcard Practice
-              </h2>
-            </div>
-            <!--No Flashcards Message-->
-            <div v-if="cards.length === 0" class="text-center py-10">
-              <p class="text-muted-foreground pixel-outline">No flashcards available.</p>
-              <p class="text-muted-foreground mt-2 pixel-outline">Create flashcards to start practicing.</p>
-              <Link :href="route('files.flashcards.create', file.id)" class="mt-4 inline-block">
-                <Button>Create Flashcard</Button>
-              </Link>
-            </div>
-            <div v-else class="space-y-4">
-                <div class="flex justify-between items-center">
-                    <div class="text-sm text-muted-foreground">
-                        Card {{ currentIndex + 1 }} of {{ cards.length }}
+                <!--Main Content-->
+                <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
+                    <!--Title Header-->
+                    <div class="welcome-banner animate-soft-bounce mb-4 px-6 py-4 text-center">
+                        <h2 class="font-pixel pixel-outline text-2xl tracking-wider text-white">Flashcard Practice</h2>
                     </div>
                     <!--No Flashcards Message-->
                     <div v-if="cards.length === 0" class="py-10 text-center">
-                        <p class="text-muted-foreground">No flashcards available.</p>
-                        <p class="text-muted-foreground mt-2">Create flashcards to start practicing.</p>
+                        <p class="text-muted-foreground pixel-outline">No flashcards available.</p>
+                        <p class="text-muted-foreground pixel-outline mt-2">Create flashcards to start practicing.</p>
                         <Link :href="route('files.flashcards.create', file.id)" class="mt-4 inline-block">
                             <Button>Create Flashcard</Button>
                         </Link>
@@ -235,7 +199,7 @@ function finishPractice() {
                         </div>
                         <!--Flashcard Layout-->
                         <Card
-                            class="font-pixel relative mx-auto min-h-[320px] w-full max-w-sm overflow-hidden rounded-xl border-[6px] border-yellow-500 bg-gradient-to-br from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-transform duration-500 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] sm:min-h-[360px] sm:max-w-md md:min-h-[420px] md:max-w-lg"
+                            class="font-pixel relative mx-auto min-h-[320px] w-full max-w-sm overflow-hidden rounded-xl border-[6px] border-yellow-500 bg-gradient-to-br from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-transform duration-500 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] sm:min-h-[360px] sm:max-w-lg md:min-h-[420px] md:max-w-xl lg:max-w-3xl xl:max-w-4xl"
                         >
                             <CardContent class="perspective flex min-h-[320px] flex-col items-center justify-between p-6">
                                 <!--Flip Flashcard-->
@@ -245,14 +209,16 @@ function finishPractice() {
                                 >
                                     <!--Front (Question)-->
                                     <div class="absolute inset-0 flex items-center justify-center p-4 backface-hidden sm:p-6">
-                                        <p class="font-pixel text-center text-sm leading-relaxed break-words text-white sm:text-base md:text-lg">
+                                        <p
+                                            class="font-pixel text-center text-sm leading-relaxed break-words text-white sm:text-base md:text-lg lg:text-2xl"
+                                        >
                                             {{ (currentFlashcard as Flashcard).question }}
                                         </p>
                                     </div>
                                     <!--Back (Answer)-->
                                     <div class="absolute inset-0 flex rotate-y-180 items-center justify-center p-4 backface-hidden sm:p-6">
                                         <p
-                                            class="font-pixel animate-soft-bounce px-2 text-center text-sm text-yellow-300 sm:px-4 sm:text-base md:text-lg"
+                                            class="font-pixel animate-soft-bounce px-2 text-center text-sm text-yellow-300 sm:px-4 sm:text-base md:text-lg lg:text-xl"
                                         >
                                             {{ (currentFlashcard as Flashcard).answer }}
                                         </p>
@@ -275,21 +241,21 @@ function finishPractice() {
                             </CardContent>
 
                             <!--Footer with navigation buttons-->
-                            <CardFooter class="flex justify-between border-t-4 border-black bg-yellow-300 px-4 py-3">
+                            <CardFooter class="flex justify-between border-t-4 border-black bg-yellow-500 px-4 py-3">
                                 <!--Redirects to previous flashcard-->
                                 <Button
                                     @click="previous"
                                     variant="default"
-                                    class="font-pixel border-4 border-black bg-gray-200 transition hover:translate-x-1 hover:translate-y-1 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                    class="pixel-outline border-2 border-blue-700 bg-blue-500 text-[#fdf6ee] hover:bg-blue-600"
                                 >
                                     <ChevronLeft class="mr-2 h-4 w-4" />
                                     Previous
                                 </Button>
-                                <!--Skips to next flashcard-->
+                                <!--Reset Button (from shuffle)-->
                                 <Button
                                     @click="next"
                                     variant="default"
-                                    class="font-pixel border-4 border-black bg-gray-200 transition hover:translate-x-1 hover:translate-y-1 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                    class="pixel-outline border-2 border-orange-700 bg-orange-500 text-[#fdf6ee] hover:bg-orange-600"
                                 >
                                     Skip
                                     <ChevronRight class="ml-2 h-4 w-4" />
@@ -302,7 +268,7 @@ function finishPractice() {
                             <Button
                                 @click="next"
                                 :disabled="currentIndex === cards.length - 1"
-                                class="border-4 border-green-700 bg-green-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-green-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                class="pixel-outline border-4 border-green-700 bg-green-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-green-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
                             >
                                 Next Card
                                 <ChevronRight class="ml-2 h-4 w-4" />
@@ -312,9 +278,9 @@ function finishPractice() {
                 </div>
                 <!--Flashcard Layout-->
                 <Card class="relative min-h-[320px] sm:min-h-[360px] md:min-h-[420px] w-full max-w-sm
-                          sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br 
-                          from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] hover:scale-105 
-                          hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 
+                          sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br
+                          from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] hover:scale-105
+                          hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500
                           font-pixel overflow-hidden mx-auto">
                   <CardContent class="flex flex-col items-center justify-between min-h-[320px] perspective p-6">
                     <!--Flip Flashcard-->
@@ -337,21 +303,21 @@ function finishPractice() {
                     <!--Middle Button (Flip Trigger)-->
                     <div
                       @click="toggleAnswer"
-                      class="relative mt-6 sm:mt-8 cursor-pointer group flex items-center justify-center 
-                          w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-black 
-                          bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)] 
+                      class="relative mt-6 sm:mt-8 cursor-pointer group flex items-center justify-center
+                          w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-black
+                          bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)]
                           hover:scale-110 transition-transform duration-300">
                       <!--Glow-->
                       <div
                         class="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white blur-xl opacity-20
-                            group-hover:animate-ping"> 
+                            group-hover:animate-ping">
                       </div>
                       <!--Show star when on question-->
-                      <span v-if="!showAnswer" 
+                      <span v-if="!showAnswer"
                         class="relative z-10 text-xl sm:text-2xl md:text-3xl animate-pulse">⭐
                       </span>
                       <!--Show moon when on answer-->
-                      <span v-else 
+                      <span v-else
                         class="relative z-10 text-xl sm:text-2xl md:text-3xl animate-pulse">🌙
                       </span>
                     </div>
@@ -375,11 +341,11 @@ function finishPractice() {
                     </Button>
                   </CardFooter>
                 </Card>
-                
+
                 <!--Next Card Button (after flipping)-->
                 <div v-if="showAnswer" class="flex justify-center">
-                  <Button 
-                    @click="next" 
+                  <Button
+                    @click="next"
                     :disabled="currentIndex === cards.length - 1"
                     class="bg-green-500 border-4 border-green-700 text-white font-bold
                         shadow-[4px_4px_0px_rgba(0,0,0,0.4)]

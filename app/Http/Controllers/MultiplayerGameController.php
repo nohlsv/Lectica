@@ -13,9 +13,12 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Collection;
+use App\Services\QuestService;
 
 class MultiplayerGameController extends Controller
 {
+    public function __construct(private QuestService $questService) {}
+
     /**
      * Display a listing of multiplayer games.
      */
@@ -58,6 +61,7 @@ class MultiplayerGameController extends Controller
         try {
             $request->validate([
                 'game_mode' => 'required|in:pve,pvp',
+                'pvp_mode' => 'required_if:game_mode,pvp|in:accuracy,hp', // Add validation for PvP mode
                 'monster_id' => 'required_if:game_mode,pve|nullable|integer|exists:monsters,id',
                 'source_type' => 'required|in:file,collection',
                 'file_id' => [
@@ -134,6 +138,7 @@ class MultiplayerGameController extends Controller
         $gameData = [
             'player_one_id' => Auth::id(),
             'game_mode' => $request->game_mode,
+            'pvp_mode' => $request->pvp_mode ?? null, // Store PvP mode
             'status' => MultiplayerGameStatus::WAITING,
             'player_one_hp' => 100,
             'player_two_hp' => 100,
@@ -159,6 +164,9 @@ class MultiplayerGameController extends Controller
         try {
             $game = MultiplayerGame::create($gameData);
             \Log::info('Game created successfully', ['game_id' => $game->id]);
+
+            // Update quest progress for creating a multiplayer game
+            $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_create');
 
             // Broadcast to lobby for real-time updates
             broadcast(new \App\Events\MultiplayerGameLobbyUpdate())->toOthers();
@@ -249,6 +257,7 @@ class MultiplayerGameController extends Controller
             'playerTwo' => $multiplayerGame->playerTwo,
             'source_name' => $multiplayerGame->getSourceName(),
             'quizTypes' => $quizTypes,
+            'pvp_mode' => $multiplayerGame->pvp_mode ?? 'accuracy', // Ensure pvp_mode is present
         ]);
     }
 
@@ -276,6 +285,9 @@ class MultiplayerGameController extends Controller
         $multiplayerGame->update([
             'player_two_id' => Auth::id(),
         ]);
+
+        // Update quest progress for joining a multiplayer game
+        $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_join');
 
         // Start the game
         $multiplayerGame->startGame();
@@ -458,7 +470,12 @@ class MultiplayerGameController extends Controller
                     ]
                 ];
             }
+            // At the end of the transaction, return a value to avoid warning
+            return null;
         });
+
+        // Update quest progress for answering a multiplayer question
+        $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_questions');
 
         // Broadcast AFTER transaction is committed
         if ($broadcastData) {
@@ -497,15 +514,40 @@ class MultiplayerGameController extends Controller
     private function processDamage(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne, &$damageDealt, &$damageReceived)
     {
         if ($multiplayerGame->isPvp()) {
-            // PVP Mode: Accuracy-based competition (no HP system)
-            // Note: updateAccuracyStats is now called after answer counters are updated in the main flow
-
-            // Set visual feedback values for frontend
-            if ($isCorrect) {
-                $damageDealt = 10; // Visual indicator for correct answer
-                $multiplayerGame->increment($isPlayerOne ? 'player_one_score' : 'player_two_score', 10);
+            // Check PvP mode
+            if ($multiplayerGame->pvp_mode === 'hp') {
+                // HP-based PvP: deal damage to opponent, self-damage for wrong answer
+                if ($isCorrect) {
+                    $damage = 15; // Base damage for correct answer in PvP HP mode
+                    $damageDealt = $damage;
+                    if ($isPlayerOne) {
+                        $newOpponentHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                        $multiplayerGame->update(['player_two_hp' => $newOpponentHp]);
+                        $multiplayerGame->increment('player_one_score', 10);
+                    } else {
+                        $newOpponentHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                        $multiplayerGame->update(['player_one_hp' => $newOpponentHp]);
+                        $multiplayerGame->increment('player_two_score', 10);
+                    }
+                } else {
+                    $damage = 5; // Self-damage for wrong answer in PvP HP mode
+                    $damageReceived = $damage;
+                    if ($isPlayerOne) {
+                        $newPlayerHp = max(0, $multiplayerGame->player_one_hp - $damage);
+                        $multiplayerGame->update(['player_one_hp' => $newPlayerHp]);
+                    } else {
+                        $newPlayerHp = max(0, $multiplayerGame->player_two_hp - $damage);
+                        $multiplayerGame->update(['player_two_hp' => $newPlayerHp]);
+                    }
+                }
             } else {
-                $damageReceived = 5; // Visual indicator for wrong answer
+                // Accuracy-based PvP: only affect score and accuracy, not HP
+                if ($isCorrect) {
+                    $damageDealt = 10; // Visual indicator for correct answer
+                    $multiplayerGame->increment($isPlayerOne ? 'player_one_score' : 'player_two_score', 10);
+                } else {
+                    $damageReceived = 5; // Visual indicator for wrong answer
+                }
             }
         } else {
             // PVE Mode: Traditional HP-based system with monster
@@ -687,30 +729,87 @@ class MultiplayerGameController extends Controller
         $multiplayerGame->refresh();
 
         if ($multiplayerGame->isPvp()) {
-            // PVP accuracy-based win conditions
+            // PVP win conditions
             $quizzes = $multiplayerGame->getAvailableQuizzes();
             $totalQuestions = $quizzes->count();
 
             // End game when both players have answered all questions
             if ($multiplayerGame->total_questions_p1 >= $totalQuestions &&
                 $multiplayerGame->total_questions_p2 >= $totalQuestions) {
-
                 // Calculate and set winner_id before marking as finished
                 $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                 $multiplayerGame->markAsFinished();
+                // Update quest progress for winning a multiplayer game
+                if ($winnerId) {
+                    $winnerUser = User::find($winnerId);
+                    if ($winnerUser) {
+                        $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                        $winnerUser->addExperience(50); // Winner XP
+                        $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                        $loserUser = User::find($loserId);
+                        if ($loserUser) {
+                            $loserUser->addExperience(25); // Loser XP
+                        }
+                    }
+                } else {
+                    // Tie: both get draw XP
+                    $playerOne = User::find($multiplayerGame->player_one_id);
+                    $playerTwo = User::find($multiplayerGame->player_two_id);
+                    if ($playerOne) $playerOne->addExperience(35);
+                    if ($playerTwo) $playerTwo->addExperience(35);
+                }
                 return true;
             }
 
             // Optional: End game early if one player has significantly higher accuracy
-            // and enough questions have been answered (at least 10 questions)
-            if ($multiplayerGame->total_questions_p1 >= 10 && $multiplayerGame->total_questions_p2 >= 10) {
-                $accuracyDiff = abs($multiplayerGame->player_one_accuracy - $multiplayerGame->player_two_accuracy);
-
-                // End early if accuracy difference is 30% or more
-                if ($accuracyDiff >= 30) {
-                    // Calculate and set winner_id before marking as finished
+            if ($multiplayerGame->pvp_mode === 'accuracy') {
+                if ($multiplayerGame->total_questions_p1 >= 10 && $multiplayerGame->total_questions_p2 >= 10) {
+                    $accuracyDiff = abs($multiplayerGame->player_one_accuracy - $multiplayerGame->player_two_accuracy);
+                    if ($accuracyDiff >= 30) {
+                        $winnerId = $this->calculateAndSetWinner($multiplayerGame);
+                        $multiplayerGame->markAsFinished();
+                        if ($winnerId) {
+                            $winnerUser = User::find($winnerId);
+                            if ($winnerUser) {
+                                $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                                $winnerUser->addExperience(50);
+                                $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                                $loserUser = User::find($loserId);
+                                if ($loserUser) {
+                                    $loserUser->addExperience(25);
+                                }
+                            }
+                        } else {
+                            $playerOne = User::find($multiplayerGame->player_one_id);
+                            $playerTwo = User::find($multiplayerGame->player_two_id);
+                            if ($playerOne) $playerOne->addExperience(35);
+                            if ($playerTwo) $playerTwo->addExperience(35);
+                        }
+                        return true;
+                    }
+                }
+            } else if ($multiplayerGame->pvp_mode === 'hp') {
+                // HP-based win condition: if either player's HP reaches 0, end game
+                if ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                     $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                     $multiplayerGame->markAsFinished();
+                    if ($winnerId) {
+                        $winnerUser = User::find($winnerId);
+                        if ($winnerUser) {
+                            $this->questService->updateQuestProgress($winnerUser, 'multiplayer_win');
+                            $winnerUser->addExperience(50);
+                            $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                            $loserUser = User::find($loserId);
+                            if ($loserUser) {
+                                $loserUser->addExperience(25);
+                            }
+                        }
+                    } else {
+                        $playerOne = User::find($multiplayerGame->player_one_id);
+                        $playerTwo = User::find($multiplayerGame->player_two_id);
+                        if ($playerOne) $playerOne->addExperience(35);
+                        if ($playerTwo) $playerTwo->addExperience(35);
+                    }
                     return true;
                 }
             }
@@ -719,18 +818,32 @@ class MultiplayerGameController extends Controller
             if ($multiplayerGame->monster_hp <= 0) {
                 // Both players win against the monster - no single winner in PVE
                 $multiplayerGame->markAsFinished();
+                $playerOne = User::find($multiplayerGame->player_one_id);
+                $playerTwo = User::find($multiplayerGame->player_two_id);
+                if ($playerOne) $playerOne->addExperience(40); // PvE win XP
+                if ($playerTwo) $playerTwo->addExperience(40);
                 return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 && $multiplayerGame->player_two_hp <= 0) {
                 // Both players lost - no winner
                 $multiplayerGame->markAsFinished();
+                $playerOne = User::find($multiplayerGame->player_one_id);
+                $playerTwo = User::find($multiplayerGame->player_two_id);
+                if ($playerOne) $playerOne->addExperience(20); // PvE both lose XP
+                if ($playerTwo) $playerTwo->addExperience(20);
                 return true;
             } elseif ($multiplayerGame->player_one_hp <= 0 || $multiplayerGame->player_two_hp <= 0) {
                 // One player lost - other player wins
                 if ($multiplayerGame->player_one_hp > 0) {
                     $multiplayerGame->update(['winner_id' => $multiplayerGame->player_one_id]);
+                    $winner = User::find($multiplayerGame->player_one_id);
+                    $loser = User::find($multiplayerGame->player_two_id);
                 } else {
                     $multiplayerGame->update(['winner_id' => $multiplayerGame->player_two_id]);
+                    $winner = User::find($multiplayerGame->player_two_id);
+                    $loser = User::find($multiplayerGame->player_one_id);
                 }
+                if ($winner) $winner->addExperience(40); // PvE win XP
+                if ($loser) $loser->addExperience(20); // PvE lose XP
                 $multiplayerGame->markAsFinished();
                 return true;
             }
@@ -747,40 +860,27 @@ class MultiplayerGameController extends Controller
         if (!$multiplayerGame->isPvp()) {
             return null;
         }
-
-        // Refresh to ensure we have the latest accuracy data
         $multiplayerGame->refresh();
-
-        // Calculate current accuracies from the fresh data
-        $playerOneAccuracy = $multiplayerGame->getPlayerOneAccuracy();
-        $playerTwoAccuracy = $multiplayerGame->getPlayerTwoAccuracy();
-
-        \Log::info('Calculating winner', [
-            'game_id' => $multiplayerGame->id,
-            'player_one_accuracy_calculated' => $playerOneAccuracy,
-            'player_two_accuracy_calculated' => $playerTwoAccuracy,
-            'player_one_accuracy_field' => $multiplayerGame->player_one_accuracy,
-            'player_two_accuracy_field' => $multiplayerGame->player_two_accuracy,
-            'correct_answers_p1' => $multiplayerGame->correct_answers_p1,
-            'total_questions_p1' => $multiplayerGame->total_questions_p1,
-            'correct_answers_p2' => $multiplayerGame->correct_answers_p2,
-            'total_questions_p2' => $multiplayerGame->total_questions_p2,
-        ]);
-
         $winnerId = null;
-        if ($playerOneAccuracy > $playerTwoAccuracy) {
-            $winnerId = $multiplayerGame->player_one_id;
-        } elseif ($playerTwoAccuracy > $playerOneAccuracy) {
-            $winnerId = $multiplayerGame->player_two_id;
+        if ($multiplayerGame->pvp_mode === 'accuracy') {
+            $playerOneAccuracy = $multiplayerGame->getPlayerOneAccuracy();
+            $playerTwoAccuracy = $multiplayerGame->getPlayerTwoAccuracy();
+            if ($playerOneAccuracy > $playerTwoAccuracy) {
+                $winnerId = $multiplayerGame->player_one_id;
+            } elseif ($playerTwoAccuracy > $playerOneAccuracy) {
+                $winnerId = $multiplayerGame->player_two_id;
+            }
+        } else if ($multiplayerGame->pvp_mode === 'hp') {
+            // HP-based: winner is the player with the most HP
+            if ($multiplayerGame->player_one_hp > $multiplayerGame->player_two_hp) {
+                $winnerId = $multiplayerGame->player_one_id;
+            } elseif ($multiplayerGame->player_two_hp > $multiplayerGame->player_one_hp) {
+                $winnerId = $multiplayerGame->player_two_id;
+            }
         }
-        // If accuracies are equal, it's a tie (winnerId remains null)
-
-        \Log::info('Winner calculated', [
-            'game_id' => $multiplayerGame->id,
-            'winner_id' => $winnerId,
-            'player_one_accuracy' => $playerOneAccuracy,
-            'player_two_accuracy' => $playerTwoAccuracy
-        ]);
+        if ($winnerId !== null) {
+            $multiplayerGame->update(['winner_id' => $winnerId]);
+        }
 
         return $winnerId;
     }

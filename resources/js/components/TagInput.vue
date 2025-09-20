@@ -241,7 +241,11 @@ onMounted(() => {
     <div class="tag-input-container relative w-full">
         <div class="border-input flex min-h-10 flex-wrap gap-2 rounded-md border p-2 dark:bg-[#d9d9d9] dark:text-[#2F2F2F]" @click="focusInput">
             <!-- Selected Tags -->
-            <div v-for="tag in selectedTags" :key="tag.id" class="bg-primary text-primary-foreground inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs dark:text-[#2F2F2F]">
+            <div
+                v-for="tag in selectedTags"
+                :key="tag.id"
+                class="bg-primary text-primary-foreground inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs dark:text-[#2F2F2F]"
+            >
                 {{ tag.name }}
                 <button @click.stop="removeTag(tag.id)" class="hover:text-primary/70 dark:text-[#2F2F2F]">
                     <XIcon class="dark:color-[#2F2F2F] h-3 w-3" />
@@ -253,7 +257,7 @@ onMounted(() => {
                 v-model="inputValue"
                 type="text"
                 placeholder="Type to search or add tags..."
-                class="flex-1 border-none bg-transparent text-sm outline-none placeholder:text-muted-foreground dark:text-[#2F2F2F] dark:placeholder:text-[#666]"
+                class="placeholder:text-muted-foreground flex-1 border-none bg-transparent text-sm outline-none dark:text-[#2F2F2F] dark:placeholder:text-[#666]"
                 @input="handleInput"
                 @keydown="handleKeydown"
                 @focus="showDropdown = true"
@@ -263,18 +267,16 @@ onMounted(() => {
         <!-- Dropdown -->
         <div
             v-if="showDropdown && (filteredSuggestions.length > 0 || filteredRelatedTags.length > 0 || inputValue.trim())"
-            class="border-border bg-background absolute left-0 right-0 top-full z-50 mt-1 max-h-64 overflow-y-auto rounded-md border shadow-lg"
+            class="border-border bg-background absolute top-full right-0 left-0 z-50 mt-1 max-h-64 overflow-y-auto rounded-md border shadow-lg"
         >
             <!-- Loading indicator -->
-            <div v-if="isLoading" class="p-2 text-center text-sm text-muted-foreground">
-                Loading suggestions...
-            </div>
+            <div v-if="isLoading" class="text-muted-foreground p-2 text-center text-sm">Loading suggestions...</div>
 
             <!-- Suggestions -->
             <div v-else>
                 <!-- Search Results / Suggestions -->
                 <div v-if="filteredSuggestions.length > 0">
-                    <div class="bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
+                    <div class="bg-muted text-muted-foreground px-3 py-1 text-xs font-medium">
                         {{ inputValue ? 'Search Results' : 'Suggestions' }}
                     </div>
                     <button
@@ -285,15 +287,13 @@ onMounted(() => {
                     >
                         <component :is="getSuggestionIcon(tag.suggestion_type)" class="h-4 w-4" :class="getSuggestionColor(tag.suggestion_type)" />
                         <span class="flex-1">{{ tag.name }}</span>
-                        <span class="text-xs text-muted-foreground">{{ getSuggestionLabel(tag.suggestion_type) }}</span>
+                        <span class="text-muted-foreground text-xs">{{ getSuggestionLabel(tag.suggestion_type) }}</span>
                     </button>
                 </div>
 
                 <!-- Related Tags -->
                 <div v-if="filteredRelatedTags.length > 0">
-                    <div class="bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-                        Related Tags
-                    </div>
+                    <div class="bg-muted text-muted-foreground px-3 py-1 text-xs font-medium">Related Tags</div>
                     <button
                         v-for="tag in filteredRelatedTags"
                         :key="tag.id"
@@ -302,30 +302,29 @@ onMounted(() => {
                     >
                         <LinkIcon class="h-4 w-4 text-orange-600 dark:text-orange-400" />
                         <span class="flex-1">{{ tag.name }}</span>
-                        <span class="text-xs text-muted-foreground">Related</span>
+                        <span class="text-muted-foreground text-xs">Related</span>
                     </button>
                 </div>
 
                 <!-- Create new tag option -->
-                <div v-if="inputValue.trim() && props.addNewTags && !filteredSuggestions.some(tag => tag.name.toLowerCase() === inputValue.toLowerCase())">
-                    <div class="bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
-                        Create New
-                    </div>
-                    <button
-                        class="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm"
-                        @click="createNewTag"
-                    >
+                <div
+                    v-if="
+                        inputValue.trim() &&
+                        props.addNewTags &&
+                        !filteredSuggestions.some((tag) => tag.name.toLowerCase() === inputValue.toLowerCase())
+                    "
+                >
+                    <div class="bg-muted text-muted-foreground px-3 py-1 text-xs font-medium">Create New</div>
+                    <button class="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm" @click="createNewTag">
                         <PlusIcon class="h-4 w-4 text-green-600 dark:text-green-400" />
                         <span class="flex-1">Create "{{ inputValue.trim() }}"</span>
-                        <span class="text-xs text-muted-foreground">New tag</span>
+                        <span class="text-muted-foreground text-xs">New tag</span>
                     </button>
                 </div>
 
                 <!-- No results -->
                 <div v-if="filteredSuggestions.length === 0 && filteredRelatedTags.length === 0 && !inputValue.trim()">
-                    <div class="p-3 text-center text-sm text-muted-foreground">
-                        No suggestions available
-                    </div>
+                    <div class="text-muted-foreground p-3 text-center text-sm">No suggestions available</div>
                 </div>
             </div>
         </div>

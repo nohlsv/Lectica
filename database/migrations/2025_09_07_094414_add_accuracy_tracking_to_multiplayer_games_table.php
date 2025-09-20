@@ -19,6 +19,7 @@ return new class extends Migration
             $table->integer('player_two_streak', false, true)->default(0)->after('player_two_accuracy');
             $table->integer('player_one_max_streak', false, true)->default(0)->after('player_one_streak');
             $table->integer('player_two_max_streak', false, true)->default(0)->after('player_two_streak');
+            $table->foreignId('winner_id')->nullable()->constrained('users')->after('player_two_max_streak');
         });
     }
 
@@ -34,7 +35,8 @@ return new class extends Migration
                 'player_one_streak',
                 'player_two_streak',
                 'player_one_max_streak',
-                'player_two_max_streak'
+                'player_two_max_streak',
+                'winner_id'
             ]);
         });
     }
