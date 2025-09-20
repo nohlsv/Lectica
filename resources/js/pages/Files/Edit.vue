@@ -8,6 +8,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
 
+
 interface Props {
     file: File;
     allTags: Tag[];
@@ -108,7 +109,7 @@ const addToCollection = async () => {
 <template>
     <Head title="Edit File" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient flex flex-col gap-6 p-6">
+        <div class="bg-gradient min-h-screen flex flex-col gap-6 p-6">
             <div class="flex w-full flex-col gap-4 px-4 sm:flex-row sm:items-center sm:justify-between">
                 <!-- Back Button -->
                 <div class="sm:order-1 sm:flex-1">
@@ -122,7 +123,7 @@ const addToCollection = async () => {
                 </div>
 
                 <!-- Centered Title -->
-                <div class="flex justify-center sm:order-2 sm:flex-1">
+                <div class="mx-auto max-w-md flex justify-center sm:order-2 sm:flex-1">
                     <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-center text-2xl leading-tight font-bold">Edit File</h1>
                 </div>
 
@@ -203,11 +204,11 @@ const addToCollection = async () => {
 
                             <!-- Save Button -->
                             <button
-                                type="submit"
-                                class="pixel-outline inline-flex items-center justify-center rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-4 py-2 text-sm font-medium duration-300 hover:bg-[#0e9459]"
-                                :disabled="form.processing"
+                            type="submit"
+                            class="inline-flex items-center justify-center rounded-md bg-[#10B981] hover:bg-[#0e9459] px-4 py-2 text-sm font-medium border-[#0c0a03] border-2 pixel-outline duration-300"
+                            :disabled="form.processing"
                             >
-                                {{ form.processing ? 'Saving...' : 'Save Changes' }}
+                            {{ form.processing ? 'Saving...' : 'Save Changes' }}
                             </button>
                         </div>
                     </div>

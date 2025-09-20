@@ -31,7 +31,7 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Reset password" description="Please enter your new password below">
+    <AuthLayout title="Reset password" description="Please enter your new password below" class="">
         <Head title="Reset password" />
 
         <form @submit.prevent="submit">

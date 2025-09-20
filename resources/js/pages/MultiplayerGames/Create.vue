@@ -6,7 +6,7 @@
             <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Create Multiplayer Battle</h2>
         </template>
 
-        <div class="py-12">
+        <div class="py-12 min-h-screen bg-gradient">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">

@@ -28,7 +28,7 @@ function submit() {
     <Head title="Edit Flashcard" />
 
     <AppLayout>
-        <div class="mx-full bg-gradient space-y-6 p-6 sm:px-6 lg:px-8">
+        <div class="mx-full bg-gradient min-h-screen space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <Link :href="route('files.flashcards.index', file.id)">
                     <Button

@@ -11,7 +11,7 @@ defineProps<{
     <div class="flex h-screen flex-col items-center justify-center gap-6 p-6 md:p-10">
         <div class="w-full max-w-sm">
             <div class="flex flex-col gap-8">
-                <div class="flex flex-col items-center gap-4">
+                <div class="flex flex-col items-center gap-3">
                     <Link :href="route('home')" class="flex flex-col items-center gap-2 font-medium">
                         <span class="sr-only">{{ title }}</span>
                     </Link>

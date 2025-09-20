@@ -38,8 +38,8 @@ const verifyFile = (fileId: number) => {
 <template>
     <Head title="Verify Files" />
     <AppLayout>
-        <div class="bg-gradient space-y-6 p-6">
-            <div class="flex justify-center">
+        <div class="bg-gradient min-h-screen space-y-6 p-6">
+            <div class="mx-auto max-w-md flex justify-center">
                 <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-10 py-2 text-center text-2xl font-bold">Verify Files</h1>
             </div>
             <div class="bg-container p-6">

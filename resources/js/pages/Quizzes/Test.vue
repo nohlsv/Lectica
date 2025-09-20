@@ -280,7 +280,7 @@ watch(
 <template>
     <Head title="Take Quiz" />
     <AppLayout>
-        <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
+        <div class="bg-gradient min-h-screen flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
             <h2 class="pixel-outline welcome-banner animate-soft-bounce mt-3 text-center text-lg font-bold break-words sm:text-xl md:text-2xl">
                 Practice Quiz: {{ file.name }}
             </h2>

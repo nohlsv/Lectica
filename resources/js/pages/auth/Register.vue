@@ -48,8 +48,8 @@ const submit = () => {
         <Head title="Register" />
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label class="text-base" for="user_role">Role</Label>
+                <div class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="user_role">Role</Label>
                     <select
                         id="user_role"
                         v-model="form.user_role"
@@ -76,12 +76,13 @@ const submit = () => {
                             autocomplete="given-name"
                             v-model="form.first_name"
                             placeholder="First name"
+                            class="py-4"
                         />
                         <InputError :message="form.errors.first_name" />
                     </div>
 
-                    <div class="grid gap-2">
-                        <Label class="text-base" for="last_name">Last Name</Label>
+                    <div class="grid gap-1">
+                        <Label class="text-base pixel-outline tracking-wide" for="last_name">Last Name</Label>
                         <Input
                             id="last_name"
                             type="text"
@@ -90,13 +91,14 @@ const submit = () => {
                             autocomplete="family-name"
                             v-model="form.last_name"
                             placeholder="Last name"
+                            class="py-4"
                         />
                         <InputError :message="form.errors.last_name" />
                     </div>
                 </div>
 
-                <div v-if="form.user_role === 'student'" class="grid gap-2">
-                    <Label class="text-base" for="college">College</Label>
+                <div v-if="form.user_role === 'student'" class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="college">College</Label>
                     <select
                         id="college"
                         v-model="selectedCollege"
@@ -109,8 +111,8 @@ const submit = () => {
                     </select>
                 </div>
 
-                <div v-if="form.user_role === 'student'" class="grid gap-2">
-                    <Label class="text-base" for="program">Program</Label>
+                <div v-if="form.user_role === 'student'" class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="program">Program</Label>
                     <select
                         id="program"
                         v-model="form.program_id"
@@ -126,8 +128,8 @@ const submit = () => {
                     <InputError :message="form.errors.program_id" />
                 </div>
 
-                <div v-if="form.user_role === 'student'" class="grid gap-2">
-                    <Label class="base" for="year_of_study">Year Level</Label>
+                <div v-if="form.user_role === 'student'" class="grid gap-1">
+                    <Label class="base pixel-outline tracking-wide" for="year_of_study">Year Level</Label>
                     <select
                         id="year_of_study"
                         v-model="form.year_of_study"
@@ -146,8 +148,8 @@ const submit = () => {
                     <InputError :message="form.errors.year_of_study" />
                 </div>
 
-                <div class="grid gap-2">
-                    <Label class="text-base" for="email">Email address</Label>
+                <div class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="email">Email address</Label>
                     <Input
                         id="email"
                         type="email"
@@ -161,8 +163,8 @@ const submit = () => {
                     <InputError :message="form.errors.email" />
                 </div>
 
-                <div class="grid gap-2">
-                    <Label class="text-base" for="password">Password</Label>
+                <div class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="password">Password</Label>
                     <Input
                         id="password"
                         type="password"
@@ -175,8 +177,8 @@ const submit = () => {
                     <InputError :message="form.errors.password" />
                 </div>
 
-                <div class="grid gap-2">
-                    <Label class="text-base" for="password_confirmation">Confirm password</Label>
+                <div class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="password_confirmation">Confirm password</Label>
                     <Input
                         id="password_confirmation"
                         type="password"
@@ -189,7 +191,7 @@ const submit = () => {
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
-                <Button type="submit" class="mt-2 w-full" tabindex="9" :disabled="form.processing">
+                <Button type="submit" class="mt-2 w-full" tabindex="9" :disabled="form.processing" variant="green">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Create account
                 </Button>
