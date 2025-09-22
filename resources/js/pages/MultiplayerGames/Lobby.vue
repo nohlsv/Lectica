@@ -61,17 +61,9 @@
                                 :key="game.id"
                                 class="rounded-lg border-2 border-green-500 bg-black/50 p-4 transition-all hover:shadow-md"
                             >
-                                <!-- Game Mode Badge -->
                                 <div class="mb-3 flex items-center justify-between">
-                                    <span
-                                        class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium pixel-outline"
-                                        :class="
-                                            game.game_mode === 'pvp'
-                                                ? 'bg-red-900/20 text-red-300'
-                                                : 'bg-green-900/20 text-green-300'
-                                        "
-                                    >
-                                        {{ game.game_mode === 'pvp' ? 'PvP' : 'PvE' }}
+                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium pixel-outline bg-red-900/20 text-red-300">
+                                        PvP
                                     </span>
                                     <span class="text-xs text-gray-400 pixel-outline">{{ formatTimeAgo(game.created_at) }}</span>
                                 </div>
@@ -101,25 +93,8 @@
                                     </p>
                                 </div>
 
-                                <!-- Monster Info (PvE only) -->
-                                <div
-                                    v-if="game.game_mode === 'pve' && game.monster"
-                                    class="mb-4 flex items-center rounded-md bg-black/50 border-2 border-red-500 p-4"
-                                >
-                                    <img
-                                        :src="game.monster.image_path || '/images/default-monster.png'"
-                                        :alt="game.monster.name"
-                                        class="mr-2 h-8 w-8 rounded-full object-cover pixel-outline-icon"
-                                        @error="handleImageError"
-                                    />
-                                    <div>
-                                        <p class="text-sm font-medium text-red-700 pixel-outline">{{ game.monster.name }}</p>
-                                        <p class="text-xs text-gray-400 pixel-outline">HP: {{ game.monster.hp }} | Attack: {{ game.monster.attack }}</p>
-                                    </div>
-                                </div>
-
                                 <!-- PvP Info -->
-                                <div v-if="game.game_mode === 'pvp'" class="mb-4 rounded-md bg-black/50 border-2 border-red-500 p-2">
+                                <div class="mb-4 rounded-md bg-black/50 border-2 border-red-500 p-2">
                                     <div class="flex items-center">
                                         <svg class="mr-2 h-4 w-4 text-red-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
@@ -256,7 +231,7 @@
                                 </div>
                             </div>
                         </div>                        <!-- PvP Win Condition Toggle -->
-                        <div v-if="form.game_mode === 'pvp'" class="mb-6">
+                        <div class="mb-6">
                             <label class="mb-2 block text-sm font-medium text-gray-300 pixel-outline">PvP Win Condition</label>
                             <div class="flex space-x-4">
                                 <button
@@ -342,37 +317,16 @@
 
                         <!-- Monster Selection (Removed - PvP only) -->
 
-                        <!-- Game Info -->
-                        <div
-                            class="mb-6 rounded-lg border p-4"
-                            :class="
-                                form.game_mode === 'pve'
-                                    ? 'border-green-800 bg-green-900/20 border-2'
-                                    : 'border-red-800 bg-red-900/20 border-2'
-                            "
-                        >
-                            <h3
-                                class="mb-2 text-lg font-medium"
-                                :class="form.game_mode === 'pve' ? 'text-green-100 pixel-outline' : 'text-red-100 pixel-outline'"
-                            >
-                                {{ form.game_mode === 'pve' ? 'How PvE (Co-op) Battles Work' : 'How PvP (Versus) Battles Work' }}
+                        <!-- PvP Game Info -->
+                        <div class="mb-6 rounded-lg border border-red-800 bg-red-900/20 border-2 p-4">
+                            <h3 class="mb-2 text-lg font-medium text-red-100 pixel-outline">
+                                How PvP (Versus) Battles Work
                             </h3>
-                            <ul
-                                class="space-y-1 text-sm"
-                                :class="form.game_mode === 'pve' ? 'text-green-300 pixel-outline' : 'text-red-300 pixel-outline'"
-                            >
-                                <template v-if="form.game_mode === 'pve'">
-                                    <li>• You and another player take turns answering questions</li>
-                                    <li>• Correct answers deal damage to the monster</li>
-                                    <li>• Wrong answers cause the monster to damage the current player</li>
-                                    <li>• Work together to defeat the monster before it defeats you both!</li>
-                                </template>
-                                <template v-else>
-                                    <li>• You and another player take turns answering questions</li>
-                                    <li>• Correct answers deal damage to your opponent</li>
-                                    <li>• Wrong answers cause damage to yourself</li>
-                                    <li>• Be the last player standing to win!</li>
-                                </template>
+                            <ul class="space-y-1 text-sm text-red-300 pixel-outline">
+                                <li>• You and another player take turns answering questions</li>
+                                <li>• Correct answers deal damage to your opponent</li>
+                                <li>• Wrong answers cause damage to yourself</li>
+                                <li>• Be the last player standing to win!</li>
                             </ul>
                         </div>
 
@@ -423,17 +377,7 @@
                                                 {{ getStatusLabel(game.status) }}
                                             </span>
                                             <div class="mb-2 flex items-center gap-2 justify-center">
-                                                <img
-                                                    v-if="game.game_mode === 'pve' && game.monster"
-                                                    :src="game.monster.image_path || '/images/default-monster.png'"
-                                                    :alt="game.monster.name"
-                                                    class="h-8 w-8 rounded-full object-cover pixel-outline-icon"
-                                                    @error="handleImageError"
-                                                />
-                                                <div
-                                                    v-else
-                                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-red-900/20"
-                                                >
+                                                <div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-900/20">
                                                     <svg class="h-4 w-4 text-red-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path
                                                             stroke-linecap="round"
@@ -444,7 +388,7 @@
                                                     </svg>
                                                 </div>
                                                 <h3 class="text-lg font-medium text-red-700 pixel-outline">
-                                                    {{ game.game_mode === 'pve' ? `vs ${game.monster?.name || 'Monster'}` : 'PvP Battle' }}
+                                                    PvP Battle
                                                 </h3>
                                             </div>
                                             <p class="mb-3 text-sm text-gray-600 dark:text-gray-400 pixel-outline text-center">
@@ -489,7 +433,6 @@
                                         class="mb-4 flex items-center justify-between text-sm text-gray-500 dark:text-gray-400"
                                     >
                                         <div class="flex items-center space-x-4">
-                                            <span v-if="game.game_mode === 'pve'">Monster: {{ game.monster_hp }}❤️</span>
                                             <span>Score: {{ game.player_one_score }} - {{ game.player_two_score }}</span>
                                         </div>
                                         <span class="text-xs">{{ formatTimeAgo(game.created_at) }}</span>
@@ -556,14 +499,6 @@ interface Player {
     last_name: string;
 }
 
-interface Monster {
-    id: number;
-    name: string;
-    hp: number;
-    attack: number;
-    image_path?: string;
-}
-
 interface File {
     id: number;
     name: string;
@@ -581,18 +516,16 @@ interface Collection {
 interface Game {
     id: number;
     player_one: Player;
-    player_two?: Player; // Missing - causes errors
+    player_two?: Player;
     file?: File;
     collection?: Collection;
-    monster?: Monster;
-    game_mode: 'pve' | 'pvp';
+    game_mode: 'pvp';
     created_at: string;
-    status: string; // Missing - causes errors
-    player_one_hp: number; // Missing - causes errors
-    player_two_hp: number; // Missing - causes errors
-    player_one_score: number; // Missing - causes errors
-    player_two_score: number; // Missing - causes errors
-    monster_hp?: number; // Missing - causes errors
+    status: string;
+    player_one_hp: number;
+    player_two_hp: number;
+    player_one_score: number;
+    player_two_score: number;
 }
 
 interface PaginatedGames {
@@ -601,7 +534,6 @@ interface PaginatedGames {
 }
 
 const props = defineProps<{
-    monsters: Monster[];
     files: File[];
     collections: Collection[];
     waitingGames: PaginatedGames;
@@ -616,8 +548,7 @@ const form = useForm({
     source_type: 'file',
     file_id: null,
     collection_id: null,
-    monster_id: null,
-    game_mode: 'pve',
+    game_mode: 'pvp',
     pvp_mode: 'accuracy', // 'accuracy' or 'hp'
 });
 
@@ -627,10 +558,8 @@ const joiningGameId = ref<number | null>(null);
 // Form validation
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
-    const hasRequiredMonster = form.game_mode === 'pvp' || (form.game_mode === 'pve' && form.monster_id);
-    // PvP mode must have pvp_mode selected
-    const hasPvpMode = form.game_mode !== 'pvp' || !!form.pvp_mode;
-    return hasSource && hasRequiredMonster && hasPvpMode;
+    const hasPvpMode = !!form.pvp_mode;
+    return hasSource && hasPvpMode;
 });
 
 // Reset file/collection when source type changes
@@ -639,16 +568,6 @@ watch(
     () => {
         form.file_id = '';
         form.collection_id = '';
-    },
-);
-
-// Reset monster when game mode changes from PVE to PVP
-watch(
-    () => form.game_mode,
-    (newMode) => {
-        if (newMode === 'pvp') {
-            form.monster_id = '';
-        }
     },
 );
 
@@ -689,11 +608,6 @@ const formatTimeAgo = (dateString: string): string => {
 
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays}d ago`;
-};
-
-const handleImageError = (event: Event) => {
-    const img = event.target as HTMLImageElement;
-    img.src = '/images/default-monster.png';
 };
 
 // Additional utility functions for My Games tab
