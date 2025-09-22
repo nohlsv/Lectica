@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Enums\MultiplayerGameStatus;
 use App\Models\MultiplayerGame;
-use App\Models\Monster;
 use App\Models\File;
 use App\Models\Quiz;
 use App\Models\User;
@@ -33,7 +32,6 @@ class MultiplayerGameController extends Controller
      */
     public function create()
     {
-        $monsters = Monster::all();
         $files = File::where('user_id', Auth::id())->get();
         $collections = Collection::where('user_id', Auth::id())
             ->with(['files'])
@@ -41,7 +39,6 @@ class MultiplayerGameController extends Controller
             ->get();
 
         return Inertia::render('MultiplayerGames/Create', [
-            'monsters' => $monsters,
             'files' => $files,
             'collections' => $collections
         ]);
@@ -60,9 +57,7 @@ class MultiplayerGameController extends Controller
 
         try {
             $request->validate([
-                'game_mode' => 'required|in:pve,pvp',
-                'pvp_mode' => 'required_if:game_mode,pvp|in:accuracy,hp', // Add validation for PvP mode
-                'monster_id' => 'required_if:game_mode,pve|nullable|integer|exists:monsters,id',
+                'pvp_mode' => 'required|in:accuracy,hp',
                 'source_type' => 'required|in:file,collection',
                 'file_id' => [
                     'required_if:source_type,file',
@@ -83,15 +78,6 @@ class MultiplayerGameController extends Controller
                 'request_data' => $request->all()
             ]);
             throw $e; // Re-throw to show errors in form
-        }
-
-        // Validate monster only for PVE mode
-        $monster = null;
-        if ($request->game_mode === 'pve') {
-            $monster = Monster::find($request->monster_id);
-            if (!$monster) {
-                return back()->withErrors(['monster_id' => 'Invalid monster selected.']);
-            }
         }
 
         $file = null;
@@ -134,11 +120,11 @@ class MultiplayerGameController extends Controller
             }
         }
 
-        // Create the game with appropriate values based on game mode
+        // Create the PvP game
         $gameData = [
             'player_one_id' => Auth::id(),
-            'game_mode' => $request->game_mode,
-            'pvp_mode' => $request->pvp_mode ?? null, // Store PvP mode
+            'game_mode' => 'pvp',
+            'pvp_mode' => $request->pvp_mode,
             'status' => MultiplayerGameStatus::WAITING,
             'player_one_hp' => 100,
             'player_two_hp' => 100,
@@ -151,12 +137,6 @@ class MultiplayerGameController extends Controller
             $gameData['file_id'] = $file->id;
         } else {
             $gameData['collection_id'] = $collection->id;
-        }
-
-        // Add monster data only for PVE mode
-        if ($request->game_mode === 'pve' && $monster) {
-            $gameData['monster_id'] = $monster->id;
-            $gameData['monster_hp'] = $monster->hp;
         }
 
         \Log::info('Attempting to create game with data', ['game_data' => $gameData]);
@@ -195,11 +175,8 @@ class MultiplayerGameController extends Controller
 
         // Handle JSON requests for sync checks (but not Inertia requests)
         if (request()->wantsJson() && !request()->header('X-Inertia')) {
-            $monster = Monster::find($multiplayerGame->monster_id);
-
             return response()->json([
                 'game' => array_merge($multiplayerGame->toArray(), [
-                    'monster' => $monster,
                     'playerOne' => $multiplayerGame->playerOne,
                     'playerTwo' => $multiplayerGame->playerTwo,
                     'currentUser' => Auth::user(),
@@ -210,7 +187,6 @@ class MultiplayerGameController extends Controller
         }
 
         $quizzes = $multiplayerGame->getAvailableQuizzes();
-        $monster = Monster::find($multiplayerGame->monster_id);
 
         $quizTypes = [
             'multiple_choice' => 'Multiple Choice',
@@ -225,7 +201,6 @@ class MultiplayerGameController extends Controller
 
             return Inertia::render('MultiplayerGames/GameQuiz', [
                 'game' => array_merge($multiplayerGame->toArray(), [
-                    'monster' => $monster,
                     'playerOne' => $multiplayerGame->playerOne,
                     'playerTwo' => $multiplayerGame->playerTwo,
                     'currentUser' => Auth::user(),
@@ -241,7 +216,6 @@ class MultiplayerGameController extends Controller
         if ($multiplayerGame->status === MultiplayerGameStatus::WAITING) {
             return Inertia::render('MultiplayerGames/WaitingRoom', [
                 'game' => array_merge($multiplayerGame->toArray(), [
-                    'monster' => $monster,
                     'playerOne' => $multiplayerGame->playerOne,
                     'currentUser' => Auth::user(),
                     'source_name' => $multiplayerGame->getSourceName()
@@ -252,12 +226,11 @@ class MultiplayerGameController extends Controller
         // Otherwise show the game results/summary
         return Inertia::render('MultiplayerGames/Show', [
             'game' => $multiplayerGame,
-            'monster' => $monster,
             'playerOne' => $multiplayerGame->playerOne,
             'playerTwo' => $multiplayerGame->playerTwo,
             'source_name' => $multiplayerGame->getSourceName(),
             'quizTypes' => $quizTypes,
-            'pvp_mode' => $multiplayerGame->pvp_mode ?? 'accuracy', // Ensure pvp_mode is present
+            'pvp_mode' => $multiplayerGame->pvp_mode ?? 'accuracy',
         ]);
     }
 
@@ -307,7 +280,6 @@ class MultiplayerGameController extends Controller
      */
     public function lobby()
     {
-        $monsters = Monster::all();
         $files = File::where('user_id', Auth::id())->get();
         $collections = Collection::where('user_id', Auth::id())
             ->with(['files'])
@@ -329,19 +301,10 @@ class MultiplayerGameController extends Controller
             ->paginate(10);
 
         return Inertia::render('MultiplayerGames/Lobby', [
-            'monsters' => $monsters,
             'files' => $files,
             'collections' => $collections,
-            'waitingGames' => $waitingGames->through(function ($game) {
-                $monster = Monster::find($game->monster_id);
-                $game->monster = $monster;
-                return $game;
-            }),
-            'myGames' => $myGames->through(function ($game) {
-                $monster = Monster::find($game->monster_id);
-                $game->monster = $monster;
-                return $game;
-            })
+            'waitingGames' => $waitingGames,
+            'myGames' => $myGames
         ]);
     }
 

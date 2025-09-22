@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\Monster;
 use App\Enums\MultiplayerGameStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -20,10 +19,8 @@ class MultiplayerGame extends Model
         'player_two_id',
         'file_id',
         'collection_id',
-        'monster_id',
         'player_one_hp',
         'player_two_hp',
-        'monster_hp',
         'player_one_score',
         'player_two_score',
         'current_turn',
@@ -48,8 +45,6 @@ class MultiplayerGame extends Model
     protected $casts = [
         'player_one_hp' => 'integer',
         'player_two_hp' => 'integer',
-        'monster_id' => 'integer',
-        'monster_hp' => 'integer',
         'player_one_score' => 'integer',
         'player_two_score' => 'integer',
         'current_turn' => 'integer',
@@ -85,16 +80,6 @@ class MultiplayerGame extends Model
     public function collection(): BelongsTo
     {
         return $this->belongsTo(Collection::class);
-    }
-
-    /**
-     * Get the monster data from config (not a database relationship).
-     */
-    public function monster(): Attribute
-    {
-        return Attribute::make(
-            get: fn () => $this->monster_id ? Monster::find($this->monster_id) : null
-        );
     }
 
     public function getPhaseAttribute()
@@ -311,7 +296,6 @@ class MultiplayerGame extends Model
             'player_two_id' => $this->player_two_id,
             'player_one_hp' => $this->player_one_hp,
             'player_two_hp' => $this->player_two_hp,
-            'monster_hp' => $this->monster_hp,
             'last_updated' => $this->updated_at->toISOString(),
             'minutes_since_update' => $this->updated_at->diffInMinutes(now()),
         ];

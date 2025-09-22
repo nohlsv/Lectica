@@ -236,35 +236,26 @@
                         </div>
 
                         <!-- Game Mode Selection -->
+                        <!-- Game Mode Selection (PvP Only) -->
                         <div class="mb-6">
-                            <span class="block text-sm font-medium text-gray-300 pixel-outline">Game Mode</span>
-                            <div class="mt-2 flex space-x-4">
-                                <button
-                                    @click="form.game_mode = 'pve'"
-                                    :class="[
-                                        'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all pixel-outline',
-                                        form.game_mode === 'pve'
-                                            ? 'bg-black/50 border-2 border-purple-500 text-white shadow-md hover:scale-105 transition-transform duration-500'
-                                            : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500',
-                                    ]"
-                                >
-                                    PvE
-                                </button>
-                                <button
-                                    @click="form.game_mode = 'pvp'"
-                                    :class="[
-                                        'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all pixel-outline',
-                                        form.game_mode === 'pvp'
-                                            ? 'bg-black/50 border-2 border-purple-500 text-white shadow-md hover:scale-105 transition-transform duration-500'
-                                            : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500',
-                                    ]"
-                                >
-                                    PvP
-                                </button>
+                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300 pixel-outline"> Game Mode </label>
+                            <div class="rounded-lg border-2 border-purple-500 bg-black/50 p-4">
+                                <div class="flex items-center">
+                                    <svg class="mr-3 h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                                        ></path>
+                                    </svg>
+                                    <div>
+                                        <h3 class="font-medium text-white pixel-outline">PvP (Player vs Player)</h3>
+                                        <p class="text-sm text-gray-300 pixel-outline">Battle against another player</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        <!-- PvP Win Condition Toggle -->
+                        </div>                        <!-- PvP Win Condition Toggle -->
                         <div v-if="form.game_mode === 'pvp'" class="mb-6">
                             <label class="mb-2 block text-sm font-medium text-gray-300 pixel-outline">PvP Win Condition</label>
                             <div class="flex space-x-4">
@@ -349,38 +340,7 @@
                             </div>
                         </div>
 
-                        <!-- Monster Selection (PvE only) -->
-                        <div v-if="form.game_mode === 'pve'" class="mb-6">
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Choose Your Monster Opponent </label>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                                <button
-                                    type="button"
-                                    v-for="monster in props.monsters"
-                                    :key="monster.id"
-                                    @click="form.monster_id = monster.id"
-                                    :class="
-                                        form.monster_id === monster.id
-                                            ? 'bg-black/50 border-2 border-red-500 text-white shadow-md hover:scale-105 transition-transform duration-500'
-                                            : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500'
-                                    "
-                                    class="rounded-lg border p-4 text-left transition-colors"
-                                >
-                                    <div class="flex items-center">
-                                        <img
-                                            :src="monster.image_path || '/images/default-monster.png'"
-                                            :alt="monster.name"
-                                            class="mr-3 h-10 w-10 sm:h-12 sm:w-10 rounded-full object-cover pixel-outline-icon"
-                                            @error="handleImageError"
-                                        />
-                                        <div>
-                                            <h3 class="font-medium pixel-outline text-red-700">{{ monster.name }}</h3>
-                                            <p class="text-sm text-gray-400 pixel-outline">HP: {{ monster.hp }}</p>
-                                            <p class="text-sm text-gray-400 pixel-outline">Attack: {{ monster.attack }}</p>
-                                        </div>
-                                    </div>
-                                </button>
-                            </div>
-                        </div>
+                        <!-- Monster Selection (Removed - PvP only) -->
 
                         <!-- Game Info -->
                         <div
