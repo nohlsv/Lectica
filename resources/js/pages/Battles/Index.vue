@@ -2,18 +2,20 @@
     <Head title="Battles" />
 
     <AppLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Battle History</h2>
-                <Link :href="route('battles.create')" class="rounded bg-blue-500 px-4 py-2 font-bold text-white hover:bg-blue-700">
-                    Start New Battle
-                </Link>
-            </div>
-        </template>
-
         <div class="py-12 bg-gradient min-h-screen">
             <div class="mx-auto max-w-md flex justify-center mb-6 mx-4">
                 <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-center text-2xl leading-tight font-bold pixel-outline">Battles</h1>
+            </div>
+            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+                <!-- Start Battle Button -->
+                <div class="mb-6 flex justify-end mx-4">
+                    <Link 
+                        :href="route('battles.create')" 
+                        class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-green-700 focus:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none active:bg-green-900 dark:focus:ring-offset-gray-800 pixel-outline"
+                    >
+                        Start New Battle
+                    </Link>
+                </div>
             </div>
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden mx-4 bg-container bordershadow-sm sm:rounded-lg">
