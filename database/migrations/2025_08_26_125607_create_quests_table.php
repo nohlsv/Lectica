@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->enum('type', ['daily', 'weekly', 'one_time']);
-            $table->enum('category', ['battle', 'file_upload', 'quiz', 'study']);
+            $table->string('category'); // Change category from enum to string for flexibility
             $table->json('requirements'); // Store quest requirements as JSON
             $table->integer('experience_reward');
             $table->boolean('is_active')->default(true);
