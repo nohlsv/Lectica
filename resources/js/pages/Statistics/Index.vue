@@ -120,6 +120,29 @@ onMounted(async () => {
             title: {
                 color: '#fff',
             },
+            tooltip: {
+                backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                titleColor: '#fff',
+                bodyColor: '#fff',
+                borderColor: '#fff',
+                borderWidth: 1,
+                displayColors: false,
+                callbacks: {
+                    title: function(context: any) {
+                        return context[0].label;
+                    },
+                    label: function(context: any) {
+                        const label = context.dataset.label || '';
+                        const value = context.parsed.y;
+                        return `${label}: ${value}`;
+                    },
+                    afterLabel: function(context: any) {
+                        const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
+                        const percentage = ((context.parsed.y / total) * 100).toFixed(1);
+                        return `Percentage: ${percentage}%`;
+                    }
+                }
+            }
         },
         scales: {
             x: {
@@ -140,7 +163,7 @@ onMounted(async () => {
             labels: props.statistics.most_files_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
-                    label: 'Students per Program',
+                    label: 'Users/Students per Program',
                     data: props.statistics.most_files_per_program.map((p) => p.files_count),
                     backgroundColor: 'rgba(255,255,255,0.7)',
                     borderColor: '#fff',
@@ -162,26 +185,6 @@ onMounted(async () => {
                     backgroundColor: 'rgba(255,255,255,0.7)',
                     borderColor: '#fff',
                     borderWidth: 2,
-                },
-            ],
-        },
-        chartOptions,
-    );
-    renderChart(
-        'filesCreatedPerMonthChart',
-        'line',
-        {
-            labels: props.statistics.files_created_per_month.map((m) => m.month),
-            datasets: [
-                {
-                    label: 'Files Created Per Month',
-                    data: props.statistics.files_created_per_month.map((m) => m.count),
-                    backgroundColor: 'rgba(255,255,255,0.3)',
-                    borderColor: '#fff',
-                    borderWidth: 2,
-                    pointBackgroundColor: '#fff',
-                    pointBorderColor: '#fff',
-                    fill: true,
                 },
             ],
         },
@@ -211,7 +214,7 @@ onMounted(async () => {
             labels: props.statistics.quizzes_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
-                    label: 'Quizzes Per Program',
+                    label: 'Quiz Items Per Program',
                     data: props.statistics.quizzes_per_program.map((p) => p.quizzes_count),
                     backgroundColor: 'rgba(255,255,255,0.7)',
                     borderColor: '#fff',
@@ -228,7 +231,7 @@ onMounted(async () => {
             labels: props.statistics.flashcards_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
-                    label: 'Flashcards Per Program',
+                    label: 'Flashcard Items Per Program',
                     data: props.statistics.flashcards_per_program.map((p) => p.flashcards_count),
                     backgroundColor: 'rgba(255,255,255,0.7)',
                     borderColor: '#fff',
@@ -270,11 +273,11 @@ onMounted(async () => {
                         <p class="text-4xl font-extrabold">{{ statistics.total_files }}</p>
                     </div>
                     <div class="pixel-outline flex flex-col items-center rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 shadow-md">
-                        <h2 class="mb-2 text-lg font-semibold">Quizzes</h2>
+                        <h2 class="mb-2 text-lg font-semibold">Quiz Items</h2>
                         <p class="text-4xl font-extrabold">{{ statistics.total_quizzes }}</p>
                     </div>
                     <div class="pixel-outline flex flex-col items-center rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 shadow-md">
-                        <h2 class="mb-2 text-lg font-semibold">Flashcards</h2>
+                        <h2 class="mb-2 text-lg font-semibold">Flashcard Items</h2>
                         <p class="text-4xl font-extrabold">{{ statistics.total_flashcards }}</p>
                     </div>
                     <div class="pixel-outline flex flex-col items-center rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-6 shadow-md">
@@ -300,16 +303,16 @@ onMounted(async () => {
                         <p>{{ statistics.user_with_most_stars.files_sum_stars }} stars</p>
                     </div>
                     <div class="pixel-outline rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-4 shadow">
-                        <h2 class="text-lg font-semibold">Most Quizzes by User</h2>
+                        <h2 class="text-lg font-semibold">Most Quiz Items by User</h2>
                         <p class="text-xl">{{ statistics.most_quizzes_by_user.last_name }}, {{ statistics.most_quizzes_by_user.first_name }}</p>
-                        <p>{{ statistics.most_quizzes_by_user.quizzes_count }} quizzes</p>
+                        <p>{{ statistics.most_quizzes_by_user.quizzes_count }} quiz items</p>
                     </div>
                 </div>
 
                 <!-- Charts section -->
                 <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
-                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Students per Program</h2>
+                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Users/Students per Program</h2>
                         <canvas id="filesPerProgramChart" class="w-full max-w-md"></canvas>
                     </div>
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
@@ -317,23 +320,17 @@ onMounted(async () => {
                         <canvas id="filesByTypeChart" class="w-full max-w-md"></canvas>
                     </div>
                 </div>
-                <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
-                    <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
-                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Files Created Per Month</h2>
-                        <canvas id="filesCreatedPerMonthChart" class="w-full max-w-md"></canvas>
-                    </div>
+                <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
                         <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Storage Usage Per Program</h2>
                         <canvas id="storagePerProgramChart" class="w-full max-w-md"></canvas>
                     </div>
-                </div>
-                <div class="mb-8 grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
-                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Quizzes Per Program</h2>
+                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Quiz Items Per Program</h2>
                         <canvas id="quizzesPerProgramChart" class="w-full max-w-md"></canvas>
                     </div>
                     <div class="flex flex-col items-center rounded-xl bg-[#8E2C38] p-6 shadow">
-                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Flashcards Per Program</h2>
+                        <h2 class="pixel-outline mb-4 text-xl font-bold text-white">Flashcard Items Per Program</h2>
                         <canvas id="flashcardsPerProgramChart" class="w-full max-w-md"></canvas>
                     </div>
                 </div>
@@ -341,26 +338,26 @@ onMounted(async () => {
                 <!-- Tag and Quiz lists -->
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-2">
                     <div>
-                        <h2 class="pixel-outline mb-2 text-xl font-bold">Flashcards per Tag</h2>
+                        <h2 class="pixel-outline mb-2 text-xl font-bold">Flashcard Items per Tag</h2>
                         <div class="flex flex-wrap gap-2">
                             <span
                                 v-for="tag in statistics.total_flashcards_per_tag"
                                 :key="tag.name"
                                 class="text-primary pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
                             >
-                                {{ simplifyName(tag.name) }}: {{ tag.flashcards_count }} flashcards
+                                {{ simplifyName(tag.name) }}: {{ tag.flashcards_count }} flashcard items
                             </span>
                         </div>
                     </div>
                     <div>
-                        <h2 class="pixel-outline mb-2 text-xl font-bold">Quizzes per Tag</h2>
+                        <h2 class="pixel-outline mb-2 text-xl font-bold">Quiz Items per Tag</h2>
                         <div class="flex flex-wrap gap-2">
                             <span
                                 v-for="tag in statistics.total_quizzes_per_tag"
                                 :key="tag.name"
                                 class="pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
                             >
-                                {{ simplifyName(tag.name) }}: {{ tag.quizzes_count }} quizzes
+                                {{ simplifyName(tag.name) }}: {{ tag.quizzes_count }} quiz items
                             </span>
                         </div>
                     </div>
@@ -373,7 +370,7 @@ onMounted(async () => {
                         <p class="text-2xl">{{ statistics.average_files_per_user }}</p>
                     </div>
                     <div class="pixel-outline flex flex-col items-center rounded-xl border-2 border-[#0c0a03] bg-[#8E2C38] p-4 shadow">
-                        <h2 class="text-lg font-semibold">Average Flashcards per Quiz</h2>
+                        <h2 class="text-lg font-semibold">Average Flashcard Items per Quiz</h2>
                         <p class="text-2xl">{{ statistics.average_flashcards_per_quiz }}</p>
                     </div>
                 </div>
@@ -390,12 +387,6 @@ onMounted(async () => {
                                 Files: <span class="font-bold">{{ statistics.new_files_7d }}</span>
                             </li>
                             <li>
-                                Quizzes: <span class="font-bold">{{ statistics.new_quizzes_7d }}</span>
-                            </li>
-                            <li>
-                                Flashcards: <span class="font-bold">{{ statistics.new_flashcards_7d }}</span>
-                            </li>
-                            <li>
                                 Tags: <span class="font-bold">{{ statistics.new_tags_7d }}</span>
                             </li>
                             <li>
@@ -409,12 +400,6 @@ onMounted(async () => {
                             </li>
                             <li>
                                 Files: <span class="font-bold">{{ statistics.new_files_30d }}</span>
-                            </li>
-                            <li>
-                                Quizzes: <span class="font-bold">{{ statistics.new_quizzes_30d }}</span>
-                            </li>
-                            <li>
-                                Flashcards: <span class="font-bold">{{ statistics.new_flashcards_30d }}</span>
                             </li>
                             <li>
                                 Tags: <span class="font-bold">{{ statistics.new_tags_30d }}</span>
@@ -439,22 +424,6 @@ onMounted(async () => {
                             <ul class="text-xs">
                                 <li v-for="file in statistics.latest_files" :key="file.id">
                                     {{ file.name }} <span class="text-gray-400">({{ file.created_at }})</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="mb-2">
-                            <span class="font-bold">Quizzes:</span>
-                            <ul class="text-xs">
-                                <li v-for="quiz in statistics.latest_quizzes" :key="quiz.id">
-                                    {{ quiz.name }} <span class="text-gray-400">({{ quiz.created_at }})</span>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="mb-2">
-                            <span class="font-bold">Flashcards:</span>
-                            <ul class="text-xs">
-                                <li v-for="flashcard in statistics.latest_flashcards" :key="flashcard.id">
-                                    {{ flashcard.question }} <span class="text-gray-400">({{ flashcard.created_at }})</span>
                                 </li>
                             </ul>
                         </div>
