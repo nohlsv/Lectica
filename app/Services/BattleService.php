@@ -59,6 +59,18 @@ class BattleService
             throw new \InvalidArgumentException('Either file_id or collection_id must be provided.');
         }
 
+        // Additional validation: Check if there are questions for the monster's difficulty
+        $allQuizzes = $fileId 
+            ? Quiz::where('file_id', $fileId)->get()
+            : Quiz::whereIn('file_id', $collection->files()->pluck('id'))->get();
+            
+        $categorized = $this->difficultyService->categorizeQuizzesByDifficulty($allQuizzes);
+        $monsterDifficulty = $monster->difficulty;
+        
+        if ($categorized[$monsterDifficulty]->count() === 0) {
+            throw new \InvalidArgumentException("No {$monsterDifficulty} questions available for the selected monster difficulty.");
+        }
+
         return Battle::create([
             'user_id' => Auth::id(),
             'monster_id' => $monsterId,
@@ -94,8 +106,13 @@ class BattleService
         if ($isCorrect) {
             $battle->correct_answers++;
 
-            // Calculate EXP reward based on question difficulty
-            $expEarned = $this->difficultyService->getExpRewardForQuizType($quiz->type);
+            // Calculate EXP reward based on question difficulty with scaling for short battles
+            $allQuizzes = $battle->getAvailableQuizzes();
+            $categorized = $this->difficultyService->categorizeQuizzesByDifficulty($allQuizzes);
+            $difficultyType = $this->difficultyService->getDifficultyForQuizType($quiz->type);
+            $questionsOfSameDifficulty = $categorized[$difficultyType]->count();
+            
+            $expEarned = $this->difficultyService->getExpRewardForQuizType($quiz->type, $questionsOfSameDifficulty);
             
             // Award experience to the user
             $user = User::find($battle->user_id);
@@ -109,7 +126,8 @@ class BattleService
             $battle->monster_hp = max(0, $battle->monster_hp - $actualDamage);
 
             $difficultyText = $this->difficultyService->getDifficultyForQuizType($quiz->type);
-            $message = "Correct! You dealt {$actualDamage} damage to the {$monster->name}! (+{$expEarned} EXP for {$difficultyText} question)";
+            $scalingNote = $questionsOfSameDifficulty < 5 ? " (scaled for short battle)" : "";
+            $message = "Correct! You dealt {$actualDamage} damage to the {$monster->name}! (+{$expEarned} EXP for {$difficultyText} question{$scalingNote})";
         } else {
             // Monster deals damage to player - reduced since player should focus on learning
             $monsterDamage = $this->calculateMonsterDamage($monster);

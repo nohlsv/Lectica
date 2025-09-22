@@ -63,6 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/battles/complete', [App\Http\Controllers\BattleController::class, 'complete'])->name('battles.complete');
     Route::get('/battle-stats', [App\Http\Controllers\BattleController::class, 'stats'])->name('battles.stats');
     Route::get('/api/monsters', [App\Http\Controllers\BattleController::class, 'getMonstersByDifficulty'])->name('api.monsters');
+    Route::get('/api/question-counts', [App\Http\Controllers\BattleController::class, 'getQuestionCounts'])->name('api.question-counts');
 
     // Collection routes - playlist-like file management system
     Route::get('/user/collections', [App\Http\Controllers\CollectionController::class, 'userCollections'])->name('collections.user');

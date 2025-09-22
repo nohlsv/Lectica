@@ -44,9 +44,25 @@ class QuizDifficultyService
     }
 
     /**
-     * Get experience reward for a quiz type
+     * Get experience reward for a quiz type, with scaling for short battles
      */
-    public function getExpRewardForQuizType(QuizType|string $quizType): int
+    public function getExpRewardForQuizType(QuizType|string $quizType, int $totalQuestionsOfSameDifficulty = 5): int
+    {
+        $baseExp = $this->getBaseExpRewardForQuizType($quizType);
+        
+        // Apply scaling if there are fewer than 5 questions of the same difficulty
+        if ($totalQuestionsOfSameDifficulty < 5) {
+            $scalingFactor = max(0.6, $totalQuestionsOfSameDifficulty / 5); // Minimum 60% of normal EXP
+            return (int) round($baseExp * $scalingFactor);
+        }
+        
+        return $baseExp;
+    }
+
+    /**
+     * Get base experience reward for a quiz type (without scaling)
+     */
+    public function getBaseExpRewardForQuizType(QuizType|string $quizType): int
     {
         $difficulty = $this->getDifficultyForQuizType($quizType);
         return $this->getExpRewardForDifficulty($difficulty);

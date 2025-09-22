@@ -303,4 +303,56 @@ class BattleController extends Controller
             'monsters' => $monsters
         ]);
     }
+
+    /**
+     * Get question counts by difficulty for a source (file or collection)
+     */
+    public function getQuestionCounts(Request $request)
+    {
+        $request->validate([
+            'source_type' => 'required|in:file,collection',
+            'source_id' => 'required|integer',
+        ]);
+
+        $quizzes = collect();
+
+        if ($request->source_type === 'file') {
+            $file = File::find($request->source_id);
+            if ($file && $file->user_id === Auth::id()) {
+                $quizzes = Quiz::where('file_id', $file->id)->get();
+            }
+        } else {
+            $collection = Collection::find($request->source_id);
+            if ($collection && $collection->user_id === Auth::id()) {
+                $fileIds = $collection->files()->pluck('id');
+                $quizzes = Quiz::whereIn('file_id', $fileIds)->get();
+            }
+        }
+
+        // Categorize questions by difficulty using the difficulty service
+        $categorized = $this->difficultyService->categorizeQuizzesByDifficulty($quizzes);
+        
+        $counts = [
+            'easy' => $categorized['easy']->count(),
+            'medium' => $categorized['medium']->count(),
+            'hard' => $categorized['hard']->count(),
+            'total' => $quizzes->count(),
+        ];
+
+        // Add warnings for insufficient questions
+        $warnings = [];
+        foreach (['easy', 'medium', 'hard'] as $difficulty) {
+            if ($counts[$difficulty] < 5 && $counts[$difficulty] > 0) {
+                $warnings[$difficulty] = "Only {$counts[$difficulty]} {$difficulty} questions available. Battle will be shorter and give less EXP.";
+            } elseif ($counts[$difficulty] === 0) {
+                $warnings[$difficulty] = "No {$difficulty} questions available for this source.";
+            }
+        }
+
+        return response()->json([
+            'counts' => $counts,
+            'warnings' => $warnings,
+            'has_questions' => $quizzes->count() > 0
+        ]);
+    }
 }
