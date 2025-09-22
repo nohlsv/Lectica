@@ -10,6 +10,7 @@ use App\Models\Quiz;
 use App\Models\Collection;
 use App\Services\BattleService;
 use App\Services\QuestService;
+use App\Services\QuizDifficultyService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -19,7 +20,8 @@ class BattleController extends Controller
 {
     public function __construct(
         private BattleService $battleService,
-        private QuestService $questService
+        private QuestService $questService,
+        private QuizDifficultyService $difficultyService
     ) {}
 
     /**
@@ -78,42 +80,10 @@ class BattleController extends Controller
         $quizCount = 0;
 
         if ($request->source_type === 'file') {
-            $file = File::findOrFail($request->file_id);
-
-            // Check if user owns the file
-            if ($file->user_id !== Auth::id()) {
-                abort(403, 'You can only battle with your own files.');
-            }
-
-            $quizCount = Quiz::where('file_id', $file->id)->count();
-            if ($quizCount === 0) {
-                return back()->withErrors(['file_id' => 'This file has no quizzes. Please generate quizzes first.']);
-            }
+            $battle = $this->battleService->createBattle($monster->id, $request->file_id);
         } else {
-            $collection = Collection::findOrFail($request->collection_id);
-
-            // Check if user owns the collection
-            if ($collection->user_id !== Auth::id()) {
-                abort(403, 'You can only battle with your own collections.');
-            }
-
-            $quizCount = $collection->getTotalQuizzesCount();
-            if ($quizCount === 0) {
-                return back()->withErrors(['collection_id' => 'This collection has no quizzes. Please add files with quizzes first.']);
-            }
+            $battle = $this->battleService->createBattle($monster->id, null, $request->collection_id);
         }
-
-        $battle = Battle::create([
-            'user_id' => Auth::id(),
-            'monster_id' => $request->monster_id,
-            'file_id' => $file?->id,
-            'collection_id' => $collection?->id,
-            'status' => 'active',
-            'player_hp' => 100,
-            'monster_hp' => $monster->hp,
-            'correct_answers' => 0,
-            'total_questions' => 0
-        ]);
 
         // Update quest progress for starting a battle
         $this->questService->updateQuestProgress(Auth::user(), 'battle_start');
@@ -188,40 +158,10 @@ class BattleController extends Controller
         }
 
         $monster = Monster::find($battle->monster_id);
+        $quiz = Quiz::find($request->quiz_id);
         $isCorrect = $request->is_correct;
 
-        DB::transaction(function () use ($battle, $request, $isCorrect, $monster) {
-            // Update question stats
-            $battle->total_questions++;
-
-            if ($isCorrect) {
-                $battle->correct_answers++;
-
-                // Player deals damage to monster
-                $baseDamage = rand(15, 25);
-                $actualDamage = $monster->takeDamage($baseDamage);
-                $battle->monster_hp = max(0, $battle->monster_hp - $actualDamage);
-
-                $message = "Correct! You dealt {$actualDamage} damage to the {$monster->name}!";
-            } else {
-                // Monster deals damage to player
-                $monsterDamage = rand($monster->attack - 5, $monster->attack + 5);
-                $battle->player_hp = max(0, $battle->player_hp - $monsterDamage);
-
-                $message = "Wrong! The {$monster->name} dealt {$monsterDamage} damage to you!";
-            }
-
-            // Check win/loss conditions
-            if ($battle->monster_hp <= 0) {
-                $battle->status = 'won';
-                $message .= " You have defeated the {$monster->name}!";
-            } elseif ($battle->player_hp <= 0) {
-                $battle->status = 'lost';
-                $message .= " You have been defeated by the {$monster->name}!";
-            }
-
-            $battle->save();
-        });
+        $result = $this->battleService->processAnswer($battle, $quiz, $isCorrect);
 
         // Update quest progress for answering a battle question
         $this->questService->updateQuestProgress(Auth::user(), 'battle_questions');
@@ -231,17 +171,17 @@ class BattleController extends Controller
         // Get next quiz if battle is still active
         $nextQuiz = null;
         if ($battle->status === 'active') {
-            $file = File::find($battle->file_id);
-            $quizzes = Quiz::where('file_id', $file->id)->get();
-            $nextQuiz = $quizzes->random();
+            $allQuizzes = $battle->getAvailableQuizzes();
+            $nextQuiz = $allQuizzes->random();
         }
 
         return response()->json([
-            'battle' => $battle->fresh(),
-            'monster' => $monster,
-            'message' => $message ?? 'Battle continues...',
+            'battle' => $result['battle'],
+            'monster' => $result['monster'],
+            'message' => $result['message'],
             'nextQuiz' => $nextQuiz,
-            'battleEnded' => in_array($battle->status, ['won', 'lost'])
+            'battleEnded' => $result['battleEnded'],
+            'expEarned' => $result['expEarned'] ?? 0
         ]);
     }
 
@@ -277,12 +217,10 @@ class BattleController extends Controller
             'status' => $request->status === 'victory' ? 'won' : 'lost',
         ]);
 
-        // Award XP based on battle performance
-        $baseXP = $request->status === 'victory' ? 50 : 25; // Victory gives more XP
-        $accuracyBonus = round(($request->correct_answers / max(1, $request->total_questions)) * 20); // Up to 20 bonus XP for accuracy
-        $totalXP = $baseXP + $accuracyBonus;
-
-        $user->addExperience($totalXP);
+        // Award XP based on difficulty-based system (this is handled by the service during battle)
+        // Additional completion bonus
+        $completionBonus = $request->status === 'victory' ? 50 : 25; // Victory gives more XP
+        $user->addExperience($completionBonus);
 
         // Update quest progress for completing a battle (win only)
         if ($request->status === 'victory') {
@@ -291,7 +229,7 @@ class BattleController extends Controller
 
         return response()->json([
             'success' => true,
-            'xp_gained' => $totalXP,
+            'xp_gained' => $completionBonus,
             'new_level' => $user->level
         ]);
     }

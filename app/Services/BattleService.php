@@ -6,37 +6,64 @@ use App\Models\Battle;
 use App\Models\File;
 use App\Models\Quiz;
 use App\Models\Monster;
+use App\Models\Collection;
+use App\Models\User;
 use App\Enums\BattleStatus;
 use Illuminate\Support\Facades\Auth;
 
 class BattleService
 {
+    public function __construct(
+        private QuizDifficultyService $difficultyService
+    ) {}
     /**
      * Create a new battle for the authenticated user.
      */
-    public function createBattle(int $monsterId, int $fileId): Battle
+    public function createBattle(int $monsterId, ?int $fileId = null, ?int $collectionId = null): Battle
     {
         $monster = Monster::find($monsterId);
         if (!$monster) {
             throw new \InvalidArgumentException('Invalid monster selected.');
         }
 
-        $file = File::findOrFail($fileId);
+        $file = null;
+        $collection = null;
+        $quizCount = 0;
 
-        // Check if user owns the file
-//        if ($file->user_id !== Auth::id()) {
-//            throw new \UnauthorizedAccessException('You can only battle with your own files.');
-//        }
+        if ($fileId) {
+            $file = File::findOrFail($fileId);
 
-        // Check if file has quizzes
-        if (!$file->hasQuizzes()) {
-            throw new \InvalidArgumentException('This file has no quizzes. Please generate quizzes first.');
+            // Check if user owns the file
+            if ($file->user_id !== Auth::id()) {
+                throw new \UnauthorizedAccessException('You can only battle with your own files.');
+            }
+
+            // Check if file has quizzes
+            $quizCount = Quiz::where('file_id', $file->id)->count();
+            if ($quizCount === 0) {
+                throw new \InvalidArgumentException('This file has no quizzes. Please generate quizzes first.');
+            }
+        } elseif ($collectionId) {
+            $collection = Collection::findOrFail($collectionId);
+
+            // Check if user owns the collection
+            if ($collection->user_id !== Auth::id()) {
+                throw new \UnauthorizedAccessException('You can only battle with your own collections.');
+            }
+
+            $quizCount = $collection->getTotalQuizzesCount();
+            if ($quizCount === 0) {
+                throw new \InvalidArgumentException('This collection has no quizzes. Please add files with quizzes.');
+            }
+        } else {
+            throw new \InvalidArgumentException('Either file_id or collection_id must be provided.');
         }
 
         return Battle::create([
             'user_id' => Auth::id(),
             'monster_id' => $monsterId,
-            'file_id' => $file->id,
+            'file_id' => $fileId,
+            'collection_id' => $collectionId,
             'status' => BattleStatus::ACTIVE,
             'player_hp' => $this->getDefaultPlayerHp(),
             'monster_hp' => $monster->hp,
@@ -48,30 +75,43 @@ class BattleService
     /**
      * Process a quiz answer during battle.
      */
-    public function processAnswer(Battle $battle, bool $isCorrect): array
+    public function processAnswer(Battle $battle, Quiz $quiz, bool $isCorrect): array
     {
         if (!$battle->isActive()) {
             throw new \RuntimeException('Battle is not active.');
         }
 
         $monster = $battle->monster;
+        $allQuizzes = $battle->getAvailableQuizzes();
+        $totalQuestions = $allQuizzes->count();
 
         // Update question stats
         $battle->total_questions++;
 
         $message = '';
+        $expEarned = 0;
 
         if ($isCorrect) {
             $battle->correct_answers++;
 
-            // Player deals damage to monster
-            $damage = $this->calculatePlayerDamage();
-            $actualDamage = $monster->takeDamage($damage);
+            // Calculate EXP reward based on question difficulty
+            $expEarned = $this->difficultyService->getExpRewardForQuizType($quiz->type);
+            
+            // Award experience to the user
+            $user = User::find($battle->user_id);
+            if ($user) {
+                $user->addExperience($expEarned);
+            }
+
+            // Calculate damage based on total questions to ensure monster dies when all questions are answered
+            $damagePerQuestion = $this->difficultyService->calculateDamagePerQuestion($monster->hp, $totalQuestions);
+            $actualDamage = (int) round($damagePerQuestion);
             $battle->monster_hp = max(0, $battle->monster_hp - $actualDamage);
 
-            $message = "Correct! You dealt {$actualDamage} damage to the {$monster->name}!";
+            $difficultyText = $this->difficultyService->getDifficultyForQuizType($quiz->type);
+            $message = "Correct! You dealt {$actualDamage} damage to the {$monster->name}! (+{$expEarned} EXP for {$difficultyText} question)";
         } else {
-            // Monster deals damage to player
+            // Monster deals damage to player - reduced since player should focus on learning
             $monsterDamage = $this->calculateMonsterDamage($monster);
             $battle->player_hp = max(0, $battle->player_hp - $monsterDamage);
 
@@ -82,6 +122,15 @@ class BattleService
         if ($battle->monster_hp <= 0) {
             $battle->markAsWon();
             $message .= " You have defeated the {$monster->name}!";
+            
+            // Bonus experience for completing the battle
+            $user = User::find($battle->user_id);
+            if ($user) {
+                $bonusExp = 50; // Flat completion bonus
+                $user->addExperience($bonusExp);
+                $expEarned += $bonusExp;
+                $message .= " (+{$bonusExp} completion bonus EXP)";
+            }
         } elseif ($battle->player_hp <= 0) {
             $battle->markAsLost();
             $message .= " You have been defeated by the {$monster->name}!";
@@ -93,7 +142,8 @@ class BattleService
             'battle' => $battle->fresh(),
             'monster' => $monster,
             'message' => $message,
-            'battleEnded' => $battle->isFinished()
+            'battleEnded' => $battle->isFinished(),
+            'expEarned' => $expEarned
         ];
     }
 
@@ -209,6 +259,18 @@ class BattleService
             'correct_answers' => $correctAnswers,
             'total_questions' => $totalQuestions,
         ]);
+
+        // Calculate and award final experience based on performance
+        $allQuizzes = $battle->getAvailableQuizzes();
+        $user = User::find($battle->user_id);
+        
+        if ($user && $correctAnswers > 0) {
+            // Create a mock array of correct answers for calculation
+            // This is a simplified approach - in practice you'd track individual question results
+            $correctAnswersArray = array_fill(0, $correctAnswers, true);
+            $expEarned = $this->difficultyService->calculateEarnedExp($allQuizzes, $correctAnswersArray);
+            $user->addExperience($expEarned);
+        }
 
         if ($status === 'victory') {
             $battle->markAsWon();
