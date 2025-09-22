@@ -38,8 +38,8 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <!-- Email Field -->
-                <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                <div class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="email">Email address</Label>
                     <Input
                         id="email"
                         type="email"
@@ -54,8 +54,8 @@ const submit = () => {
                 </div>
 
                 <!-- Password Field -->
-                <div class="grid gap-2">
-                    <Label for="password">Password</Label>
+                <div class="grid gap-1">
+                    <Label class="text-base pixel-outline tracking-wide" for="password">Password</Label>
                     <Input
                         id="password"
                         type="password"
@@ -70,25 +70,25 @@ const submit = () => {
 
                 <!-- Remember me and Forgot password in one row -->
                 <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
+                    <Label for="remember" class="flex items-center space-x-0.5">
                         <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
-                        <span>Remember me</span>
+                        <span class="tracking-wide">Remember me</span>
                     </Label>
 
-                    <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm" :tabindex="5"> Forgot password? </TextLink>
+                    <TextLink v-if="canResetPassword" :href="route('password.request')" class="text-sm tracking-wide" :tabindex="5"> Forgot password? </TextLink>
                 </div>
 
                 <!-- Submit Button -->
-                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing">
-                    <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
+                <Button type="submit" class="mt-4 w-full" :tabindex="4" :disabled="form.processing" variant="green">
+                    <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin"/>
                     Log in
                 </Button>
             </div>
 
             <!-- Register Link -->
-            <div class="text-muted-foreground text-center text-sm">
+            <div class="text-white/80 text-center text-sm xl:text-base tracking-wide">
                 Don't have an account?
-                <TextLink :href="route('register')" :tabindex="5">Sign up</TextLink>
+                <TextLink :href="route('register')" class="underline underline-offset-4 ml-0.5" :tabindex="5">Sign up</TextLink>
             </div>
         </form>
     </AuthBase>

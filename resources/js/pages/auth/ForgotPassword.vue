@@ -31,7 +31,7 @@ const submit = () => {
 
         <div class="space-y-6">
             <form @submit.prevent="submit">
-                <div class="grid gap-2">
+                <div class="grid gap-1">
                     <Label for="email" class="pixel-outline tracking-wide text-base">Email address</Label>
                     <Input id="email" type="email" name="email" autocomplete="off" v-model="form.email" autofocus placeholder="email@example.com" class="py-4" />
                     <InputError :message="form.errors.email" class="pixel-outline"/>
@@ -45,9 +45,9 @@ const submit = () => {
                 </div>
             </form>
 
-            <div class="text-muted-foreground space-x-1 text-center text-sm">
+            <div class="text-white/80 text-center text-sm xl:text-base space-x-1 tracking-wide">
                 <span>Or, return to</span>
-                <TextLink :href="route('login')">log in</TextLink>
+                <TextLink :href="route('login')" class="underline underline-offset-4 ml-0.5">Log In</TextLink>
             </div>
         </div>
     </AuthLayout>

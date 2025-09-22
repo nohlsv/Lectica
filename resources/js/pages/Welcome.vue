@@ -35,9 +35,9 @@ const props = defineProps();
                             <Link
                                 v-if="$page.props.auth.user"
                                 :href="route('home')"
-                                class="pixel-outline inline-block rounded-sm border border-[#19140035] border-blue-700 bg-blue-500 px-5 py-1.5 text-[#fdf6ee] hover:bg-blue-600"
+                                class="pixel-outline inline-block rounded-lg border-2 border-[#0c0a03] bg-[#ff6910] px-4 py-1 text-base font-medium duration-300 hover:scale-110 hover:bg-[#cc560d] md:px-6 md:py-2 md:text-lg mx-auto"
                             >
-                                Home
+                                Back to dashboard
                             </Link>
                         </nav>
                         <div class="logo-fall flex items-center justify-center">

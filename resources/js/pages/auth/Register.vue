@@ -53,7 +53,7 @@ const submit = () => {
                     <select
                         id="user_role"
                         v-model="form.user_role"
-                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         required
                         :tabindex="1"
                     >
@@ -65,8 +65,8 @@ const submit = () => {
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div class="grid gap-2">
-                        <Label class="text-base" for="first_name">First Name</Label>
+                    <div class="grid gap-1">
+                        <Label class="text-base pixel-outline tracking-wide" for="first_name">First Name</Label>
                         <Input
                             id="first_name"
                             type="text"
@@ -102,7 +102,7 @@ const submit = () => {
                     <select
                         id="college"
                         v-model="selectedCollege"
-                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         <option value="">All Colleges</option>
                         <option v-for="college in colleges" :key="college" :value="college">
@@ -116,7 +116,7 @@ const submit = () => {
                     <select
                         id="program"
                         v-model="form.program_id"
-                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         required
                         :tabindex="4"
                     >
@@ -133,7 +133,7 @@ const submit = () => {
                     <select
                         id="year_of_study"
                         v-model="form.year_of_study"
-                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+                        class="border-input bg-background ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring flex h-10 w-full rounded-md border px-3 py-2 text-base file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
                         required
                         :tabindex="5"
                     >
@@ -158,8 +158,9 @@ const submit = () => {
                         autocomplete="email"
                         v-model="form.email"
                         placeholder="youremail@bpsu.edu.ph"
+                        class="py-4"
                     />
-                    <div class="text-muted-foreground text-xs">Only @bpsu.edu.ph email addresses are allowed</div>
+                    <div class="text-white/80 text-xs">Only @bpsu.edu.ph email addresses are allowed</div>
                     <InputError :message="form.errors.email" />
                 </div>
 
@@ -173,6 +174,7 @@ const submit = () => {
                         autocomplete="new-password"
                         v-model="form.password"
                         placeholder="Password"
+                        class="py-4"
                     />
                     <InputError :message="form.errors.password" />
                 </div>
@@ -187,6 +189,7 @@ const submit = () => {
                         autocomplete="new-password"
                         v-model="form.password_confirmation"
                         placeholder="Confirm password"
+                        class="py-4"
                     />
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
@@ -197,11 +200,10 @@ const submit = () => {
                 </Button>
             </div>
 
-            <div class="text-muted-foreground text-center text-sm">
+            <div class="text-white/80 text-center text-sm xl:text-base tracking-wide">
                 Already have an account?
-                <TextLink :href="route('login')" class="underline underline-offset-4" :tabindex="10">Log in</TextLink>
+                <TextLink :href="route('login')" class="underline underline-offset-4 ml-0.5" :tabindex="10">Log in</TextLink>
             </div>
         </form>
     </AuthBase>
-    </div>
 </template>

@@ -8,16 +8,17 @@ defineProps<{
 </script>
 
 <template>
-    <div class="flex h-screen flex-col items-center justify-center gap-6 p-6 md:p-10">
-        <div class="w-full max-w-sm">
+    <div class="flex flex-col items-center justify-center p-6 md:p-10 min-h-screen">
+        <div class="w-full max-w-sm flex-grow flex flex-col justify-center">
             <div class="flex flex-col gap-8">
                 <div class="flex flex-col items-center gap-3">
                     <Link :href="route('home')" class="flex flex-col items-center gap-2 font-medium">
                         <span class="sr-only">{{ title }}</span>
                     </Link>
                     <div class="space-y-2 text-center">
-                        <h1 class="text-xl font-medium">{{ title }}</h1>
-                        <p class="text-muted-foreground text-center text-sm">{{ description }}</p>
+                        <img class="w-30 h-30 lg:w-40 lg:h-40 mx-auto" src="/logo-lectica.gif" alt="Lectica logo">
+                        <h1 class="text-xl pixel-outline tracking-wide font-medium">{{ title }}</h1>
+                        <p class="text-white/80 text-center text-sm pixel-outline tracking-wide -mb-5">{{ description }}</p>
                     </div>
                 </div>
                 <slot />

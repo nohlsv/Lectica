@@ -364,14 +364,6 @@ circle {
     }
 }
 
-.welcome-banner {
-    width: 100%;
-    background: linear-gradient(to right, #851103, #220401);
-    border: 2px solid #a05704;
-    color: #fbd178;
-    border-radius: 0.375rem;
-}
-
 .bg-gradient {
     background: linear-gradient(to bottom, #161615, #690202);
 }
