@@ -13,11 +13,12 @@ import {
     LineElement,
     PieController,
     PointElement,
+    Tooltip,
 } from 'chart.js';
 import { nextTick, onMounted } from 'vue';
 
 // Register required Chart.js components
-Chart.register(BarController, BarElement, CategoryScale, LinearScale, PieController, ArcElement, LineController, LineElement, PointElement);
+Chart.register(BarController, BarElement, CategoryScale, LinearScale, PieController, ArcElement, LineController, LineElement, PointElement, Tooltip);
 
 // College and program acronyms as in ProgramSeeder
 const collegeAcronyms: { [key: string]: string } = {
@@ -121,6 +122,7 @@ onMounted(async () => {
                 color: '#fff',
             },
             tooltip: {
+                enabled: true,
                 backgroundColor: 'rgba(0, 0, 0, 0.8)',
                 titleColor: '#fff',
                 bodyColor: '#fff',
@@ -128,18 +130,15 @@ onMounted(async () => {
                 borderWidth: 1,
                 displayColors: false,
                 callbacks: {
-                    title: function(context: any) {
-                        return context[0].label;
-                    },
                     label: function(context: any) {
                         const label = context.dataset.label || '';
                         const value = context.parsed.y;
-                        return `${label}: ${value}`;
-                    },
-                    afterLabel: function(context: any) {
                         const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
-                        const percentage = ((context.parsed.y / total) * 100).toFixed(1);
-                        return `Percentage: ${percentage}%`;
+                        const percentage = ((value / total) * 100).toFixed(1);
+                        return [
+                            `${label}: ${value}`,
+                            `Percentage: ${percentage}%`
+                        ];
                     }
                 }
             }
