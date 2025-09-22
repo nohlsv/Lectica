@@ -476,6 +476,8 @@ class MultiplayerGameController extends Controller
 
         // Update quest progress for answering a multiplayer question
         $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_questions');
+        // Update quest progress for activity streak
+        $this->questService->updateQuestProgress(Auth::user(), 'activity_streak');
 
         // Broadcast AFTER transaction is committed
         if ($broadcastData) {

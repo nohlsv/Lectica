@@ -33,6 +33,12 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        // Assign daily quests if not already assigned
+        $user = Auth::user();
+        app(\App\Services\QuestService::class)->assignDailyQuests($user);
+        // Update quest progress for daily login
+        app(\App\Services\QuestService::class)->updateQuestProgress($user, 'daily_login');
+
         return redirect()->intended(route('home', absolute: false))
             ->with('success', 'Logged in successfully!');
     }

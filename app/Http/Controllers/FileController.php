@@ -154,6 +154,8 @@ class FileController extends Controller
 
             // Update quest progress for file upload
             $this->questService->checkQuestCompletion($user, 'file_upload');
+            // Update quest progress for activity streak
+            $this->questService->updateQuestProgress($user, 'activity_streak');
 
             return redirect()->route('files.show', $file)
                 ->with([

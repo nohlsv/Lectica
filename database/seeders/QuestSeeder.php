@@ -50,6 +50,114 @@ class QuestSeeder extends Seeder
                 'experience_reward' => 35,
                 'is_active' => true,
             ],
+            [
+                'title' => 'Battle Winner',
+                'description' => 'Win 1 battle today',
+                'type' => 'daily',
+                'category' => 'battle_win',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 30,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Battle Starter',
+                'description' => 'Start 1 battle today',
+                'type' => 'daily',
+                'category' => 'battle_start',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 15,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Battle Questions',
+                'description' => 'Answer 3 battle questions today',
+                'type' => 'daily',
+                'category' => 'battle_questions',
+                'requirements' => ['count' => 3],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Multiplayer Creator',
+                'description' => 'Create 1 multiplayer game today',
+                'type' => 'daily',
+                'category' => 'multiplayer_create',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Multiplayer Joiner',
+                'description' => 'Join 1 multiplayer game today',
+                'type' => 'daily',
+                'category' => 'multiplayer_join',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Multiplayer Winner',
+                'description' => 'Win 1 multiplayer game today',
+                'type' => 'daily',
+                'category' => 'multiplayer_win',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 35,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Multiplayer Questions',
+                'description' => 'Answer 3 multiplayer questions today',
+                'type' => 'daily',
+                'category' => 'multiplayer_questions',
+                'requirements' => ['count' => 3],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'File Creator',
+                'description' => 'Create 1 file today',
+                'type' => 'daily',
+                'category' => 'file_create',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Collection Creator',
+                'description' => 'Create 1 collection today',
+                'type' => 'daily',
+                'category' => 'collection_create',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Quiz Generator',
+                'description' => 'Generate 1 quiz today',
+                'type' => 'daily',
+                'category' => 'quiz_generate',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 20,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Daily Login',
+                'description' => 'Log in today',
+                'type' => 'daily',
+                'category' => 'daily_login',
+                'requirements' => ['count' => 1],
+                'experience_reward' => 10,
+                'is_active' => true,
+            ],
+            [
+                'title' => 'Activity Streak',
+                'description' => 'Maintain a 3-day activity streak',
+                'type' => 'daily',
+                'category' => 'activity_streak',
+                'requirements' => ['count' => 3],
+                'experience_reward' => 40,
+                'is_active' => true,
+            ],
 
             // Weekly Quests
             [
@@ -111,7 +219,14 @@ class QuestSeeder extends Seeder
         ];
 
         foreach ($quests as $questData) {
-            Quest::create($questData);
+            Quest::updateOrCreate(
+                [
+                    'category' => $questData['category'],
+                    'type' => $questData['type'],
+                    'title' => $questData['title'],
+                ],
+                $questData
+            );
         }
     }
 }

@@ -141,6 +141,8 @@ class CollectionController extends Controller
         // Update quest progress for creating a collection
         $user = Auth::user();
         app(\App\Services\QuestService::class)->updateQuestProgress($user, 'collection_create');
+        // Update quest progress for activity streak
+        app(\App\Services\QuestService::class)->updateQuestProgress($user, 'activity_streak');
 
         // Return JSON response for API requests
         if ($request->expectsJson() || $request->is('api/*')) {

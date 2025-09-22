@@ -225,6 +225,8 @@ class BattleController extends Controller
 
         // Update quest progress for answering a battle question
         $this->questService->updateQuestProgress(Auth::user(), 'battle_questions');
+        // Update quest progress for activity streak
+        $this->questService->updateQuestProgress(Auth::user(), 'activity_streak');
 
         // Get next quiz if battle is still active
         $nextQuiz = null;
