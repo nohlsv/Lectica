@@ -244,6 +244,15 @@ const addToCollection = async () => {
                         </Button>
                     </div>
                 </div>
+                <!-- TAGS FILTER UI -->
+                <div v-if="allTags.length" class="flex flex-wrap gap-2 items-center">
+                    <span class="text-sm font-medium">Tags:</span>
+                    <label v-for="tag in allTags" :key="tag.id" class="flex items-center gap-1 text-xs border rounded px-2 py-1 cursor-pointer">
+                        <input type="checkbox" :value="tag.id" v-model="selectedTags" @change="applyFilters" />
+                        <span>{{ tag.name }}</span>
+                    </label>
+                </div>
+                <!-- END TAGS FILTER UI -->
                 <div class="flex flex-grow items-center justify-center">
                     <h1 class="welcome-banner animate-soft-bounce pixel-outline px-10 py-2 text-center text-xl font-semibold">Files</h1>
                 </div>
