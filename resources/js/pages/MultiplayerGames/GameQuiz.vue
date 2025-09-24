@@ -375,6 +375,7 @@ const TIMER_DURATION = 30; // seconds per question
 const timer = ref(TIMER_DURATION);
 let timerInterval: number | undefined;
 const timedOut = ref(false);
+const awaitingTimeoutResponse = ref(false); // Track if we're waiting for a timeout response
 
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
@@ -462,9 +463,16 @@ const submitAnswer = async (isTimeout = false) => {
                         lastAction.value = { type: 'error', message: errorMessage };
                     }
 
+                    // If this was a timeout submission that failed, force a page refresh
+                    if (isTimeout && timedOut.value) {
+                        console.warn('Timeout answer submission failed, forcing page refresh');
+                        setTimeout(() => window.location.reload(), 2000);
+                    }
+
                     // Reset submission state on error
                     answerSubmitted.value = false;
                     submitting.value = false;
+                    awaitingTimeoutResponse.value = false;
                 },
             },
         );
@@ -579,6 +587,8 @@ const stopTimer = () => {
 const handleTimeout = () => {
     if (!answerSubmitted.value && isMyTurn.value) {
         timedOut.value = true;
+        awaitingTimeoutResponse.value = true;
+        
         // Ensure selectedAnswer is set to an empty value appropriate for the quiz type
         if (currentQuiz.value?.type === 'enumeration') {
             selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
@@ -590,13 +600,21 @@ const handleTimeout = () => {
         submitAnswer(true); // Pass isTimeout = true to allow submission
         lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
         
-        // Fallback: If WebSocket doesn't update game state within 10 seconds, force a page refresh
+        // Fallback 1: If WebSocket doesn't update game state within 8 seconds, force a page refresh
         setTimeout(() => {
-            if (timedOut.value && !gameOver.value) {
+            if (awaitingTimeoutResponse.value && !gameOver.value) {
                 console.warn('WebSocket update not received after timeout, forcing page refresh');
                 window.location.reload();
             }
-        }, 10000);
+        }, 8000);
+
+        // Fallback 2: If it's still my turn after 15 seconds (indicating game stuck), force refresh
+        setTimeout(() => {
+            if (isMyTurn.value && timedOut.value && !gameOver.value) {
+                console.warn('Game appears stuck after timeout, forcing refresh');
+                window.location.reload();
+            }
+        }, 15000);
     }
 };
 
@@ -608,6 +626,7 @@ const resetForNextQuestion = () => {
     }
     answerSubmitted.value = false;
     timedOut.value = false;
+    awaitingTimeoutResponse.value = false; // Clear the timeout response flag
     timer.value = TIMER_DURATION;
     stopTimer();
     if (isMyTurn.value) {
@@ -836,10 +855,28 @@ onMounted(() => {
                 // Reset submission state when we receive the update
                 submitting.value = false;
 
+                // Clear timeout response flag if we get any game update
+                if (awaitingTimeoutResponse.value) {
+                    awaitingTimeoutResponse.value = false;
+                    console.log('Timeout response received via WebSocket');
+                }
+
                 // If it became my turn, reset for next question
                 if (!wasMyTurn && isMyTurn.value) {
                     resetForNextQuestion();
                     console.log("It's now my turn, resetting for next question");
+                }
+                
+                // If it's still my turn after a timeout (meaning the game didn't progress properly),
+                // force a page refresh after a short delay
+                if (wasMyTurn && isMyTurn.value && timedOut.value) {
+                    console.warn('Still my turn after timeout, game may not have progressed properly');
+                    setTimeout(() => {
+                        if (isMyTurn.value && timedOut.value) {
+                            console.warn('Forcing refresh - game stuck after timeout');
+                            window.location.reload();
+                        }
+                    }, 3000);
                 }
             })
             .listenForWhisper('answer-submitted', (e: any) => {
