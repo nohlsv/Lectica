@@ -78,6 +78,183 @@ const recommendationCategories = [
 // Adjust quick actions and information based on user role
 const isFacultyOrAdmin = computed(() => ['faculty', 'admin'].includes(user.user_role));
 const isStudent = computed(() => user.user_role === 'student');
+const isFaculty = computed(() => user.user_role === 'faculty');
+const isAdmin = computed(() => user.user_role === 'admin');
+
+// Define role-specific quick actions
+const studentActions = [
+    {
+        title: 'Upload File',
+        href: '/files/create',
+        description: 'Share your study materials',
+        icon: 'upload',
+        color: 'blue'
+    },
+    {
+        title: 'Browse Files',
+        href: '/files',
+        description: 'Find study resources',
+        icon: 'browse',
+        color: 'green'
+    },
+    {
+        title: 'Game Battles',
+        href: '/battles',
+        description: 'Challenge yourself',
+        icon: 'sword',
+        color: 'red'
+    },
+    {
+        title: 'Multiplayer',
+        href: '/multiplayer-games',
+        description: 'Play with friends',
+        icon: 'users',
+        color: 'purple'
+    },
+    {
+        title: 'Quests',
+        href: '/quests',
+        description: 'Complete challenges',
+        icon: 'target',
+        color: 'orange'
+    },
+    {
+        title: 'My Progress',
+        href: '/history',
+        description: 'View your stats',
+        icon: 'chart',
+        color: 'indigo'
+    }
+];
+
+const facultyActions = [
+    {
+        title: 'Verify Files',
+        href: '/files/verify',
+        description: 'Review student uploads',
+        icon: 'check',
+        color: 'green'
+    },
+    {
+        title: 'My Files',
+        href: '/myfiles',
+        description: 'Manage your content',
+        icon: 'folder',
+        color: 'blue'
+    },
+    {
+        title: 'Upload Resource',
+        href: '/files/create',
+        description: 'Share teaching materials',
+        icon: 'upload',
+        color: 'indigo'
+    },
+    {
+        title: 'Collections',
+        href: '/collections',
+        description: 'Organize file sets',
+        icon: 'collection',
+        color: 'purple'
+    },
+    {
+        title: 'Student Progress',
+        href: '/leaderboards',
+        description: 'Monitor class performance',
+        icon: 'trophy',
+        color: 'yellow'
+    },
+    {
+        title: 'Browse All Files',
+        href: '/files',
+        description: 'Explore all resources',
+        icon: 'browse',
+        color: 'gray'
+    }
+];
+
+const adminActions = [
+    {
+        title: 'User Management',
+        href: '/admin/user-roles',
+        description: 'Manage user roles',
+        icon: 'users',
+        color: 'red'
+    },
+    {
+        title: 'System Statistics',
+        href: '/statistics',
+        description: 'View platform analytics',
+        icon: 'chart',
+        color: 'blue'
+    },
+    {
+        title: 'Verify Files',
+        href: '/files/verify',
+        description: 'Moderate content',
+        icon: 'check',
+        color: 'green'
+    },
+    {
+        title: 'All Files',
+        href: '/files',
+        description: 'System-wide file access',
+        icon: 'browse',
+        color: 'indigo'
+    },
+    {
+        title: 'Collections',
+        href: '/collections',
+        description: 'Manage file collections',
+        icon: 'collection',
+        color: 'purple'
+    },
+    {
+        title: 'Leaderboards',
+        href: '/leaderboards',
+        description: 'Platform engagement',
+        icon: 'trophy',
+        color: 'yellow'
+    }
+];
+
+// Get current user's actions based on role
+const currentUserActions = computed(() => {
+    if (isAdmin.value) return adminActions;
+    if (isFaculty.value) return facultyActions;
+    return studentActions;
+});
+
+// Helper function to get icon SVG
+const getIconSvg = (iconName: string) => {
+    const icons = {
+        upload: 'M5 12h14 M12 5v14',
+        browse: 'M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z M14 2v6h6',
+        sword: 'M6.5 6.5L17.5 17.5 M6.5 17.5L17.5 6.5',
+        users: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2 M9 7a4 4 0 1 0 8 0 4 4 0 0 0-8 0 M22 21v-2a4 4 0 0 0-3-3.87 M16 3.13a4 4 0 0 1 0 7.75',
+        target: 'M12 2L2 7l10 5 10-5-10-5z M2 17l10 5 10-5 M2 12l10 5 10-5',
+        chart: 'M3 3v18h18 M9 17V9 M15 17v-4 M21 17v-6',
+        check: 'M9 11l3 3L22 4 M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11',
+        folder: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',
+        collection: 'M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M8 6v4 M16 6v4',
+        trophy: 'M6 9H4.5a2.5 2.5 0 0 1 0-5H6 M18 9h1.5a2.5 2.5 0 0 0 0-5H18 M12 12.5a4.5 4.5 0 0 0 0-9 4.5 4.5 0 0 0 0 9z M12 12.5v7.5',
+    };
+    return icons[iconName] || icons.browse;
+};
+
+// Helper function to get color classes
+const getColorClasses = (color: string) => {
+    const colors = {
+        blue: 'border-blue-200 bg-blue-50 hover:bg-blue-100 dark:border-blue-700 dark:bg-blue-900/20 dark:hover:bg-blue-800/30',
+        green: 'border-green-200 bg-green-50 hover:bg-green-100 dark:border-green-700 dark:bg-green-900/20 dark:hover:bg-green-800/30',
+        red: 'border-red-200 bg-red-50 hover:bg-red-100 dark:border-red-700 dark:bg-red-900/20 dark:hover:bg-red-800/30',
+        purple: 'border-purple-200 bg-purple-50 hover:bg-purple-100 dark:border-purple-700 dark:bg-purple-900/20 dark:hover:bg-purple-800/30',
+        orange: 'border-orange-200 bg-orange-50 hover:bg-orange-100 dark:border-orange-700 dark:bg-orange-900/20 dark:hover:bg-orange-800/30',
+        indigo: 'border-indigo-200 bg-indigo-50 hover:bg-indigo-100 dark:border-indigo-700 dark:bg-indigo-900/20 dark:hover:bg-indigo-800/30',
+        yellow: 'border-yellow-200 bg-yellow-50 hover:bg-yellow-100 dark:border-yellow-700 dark:bg-yellow-900/20 dark:hover:bg-yellow-800/30',
+        gray: 'border-gray-200 bg-gray-50 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-900/20 dark:hover:bg-gray-800/30',
+    };
+    return colors[color] || colors.gray;
+};
 </script>
 
 <template>
@@ -128,166 +305,72 @@ const isStudent = computed(() => user.user_role === 'student');
             <!--Main Content-->
             <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
                 <!-- Quick Actions -->
-                <div class="mb-2">
-                    <h2 class="wave text-lg sm:text-xl font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                        <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span><span>t</span
-                        ><span>i</span><span>o</span><span>n</span><span>s</span>
-                    </h2>
-                    <div class="grid grid-cols-2 gap-4 text-center md:grid-cols-2">
+                <div class="mb-8">
+                    <div class="mb-6 flex items-center justify-between">
+                        <h2 class="wave text-lg sm:text-xl font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                            <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span><span>t</span
+                            ><span>i</span><span>o</span><span>n</span><span>s</span>
+                        </h2>
+                        <div class="hidden sm:block">
+                            <span class="rounded-full border-2 border-yellow-400 bg-yellow-500 px-3 py-1 text-xs font-bold text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">
+                                {{ isAdmin ? 'ADMIN' : isFaculty ? 'FACULTY' : 'STUDENT' }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Role-specific action grid -->
+                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
                         <Link
-                            v-if="isFacultyOrAdmin"
-                            href="/files/verify"
-                            class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
+                            v-for="action in currentUserActions"
+                            :key="action.title"
+                            :href="action.href"
+                            :class="[
+                                'group relative flex flex-col items-center justify-center rounded-xl border-2 p-4 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all duration-200 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px]',
+                                getColorClasses(action.color)
+                            ]"
                         >
-                            <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
+                            <!-- Icon -->
+                            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 shadow-lg backdrop-blur-sm">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="24"
-                                    height="24"
+                                    width="20"
+                                    height="20"
                                     viewBox="0 0 24 24"
                                     fill="none"
-                                    stroke="#7eea7d"
+                                    stroke="currentColor"
                                     stroke-width="2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    class="text-primary"
+                                    class="text-gray-700 dark:text-gray-300"
                                 >
-                                    <path d="M9 11l3 3L22 4"></path>
-                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                                    <path :d="getIconSvg(action.icon)" />
                                 </svg>
                             </div>
-                            <span class="font-medium text-sm sm:text-lg">Verify Files</span>
+                            
+                            <!-- Title -->
+                            <span class="mb-1 text-center text-sm font-semibold text-gray-800 dark:text-gray-200">
+                                {{ action.title }}
+                            </span>
+                            
+                            <!-- Description -->
+                            <span class="text-center text-xs text-gray-600 dark:text-gray-400">
+                                {{ action.description }}
+                            </span>
+
+                            <!-- Hover effect -->
+                            <div class="absolute inset-0 rounded-xl bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100"></div>
                         </Link>
                     </div>
-                    <Link
-                        v-if="isFacultyOrAdmin"
-                        href="/statistics"
-                        class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
-                    >
-                        <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#7eea7d"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="text-primary"
-                            >
-                                <path d="M3 3v18h18"></path>
-                                <path d="M9 17V9"></path>
-                                <path d="M15 17V13"></path>
-                                <path d="M21 17V11"></path>
-                            </svg>
-                        </div>
-                        <span class="font-medium text-sm sm:text-lg">View Statistics</span>
-                    </Link>
-                </div>
-                <div class="grid grid-cols-4 gap-4 text-center md:grid-cols-4">
-                    <Link
-                        v-if="isStudent"
-                        href="/files/create"
-                        class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
-                    >
-                        <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#7eea7d"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="text-primary"
-                            >
-                                <path d="M5 12h14"></path>
-                                <path d="M12 5v14"></path>
-                            </svg>
-                        </div>
-                        <span class="font-medium text-sm sm:text-lg">Upload File</span>
-                    </Link>
 
-                    <Link
-                        v-if="isStudent"
-                        href="/files"
-                        class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
-                    >
-                        <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#7eea7d"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="text-primary"
-                            >
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                            </svg>
-                        </div>
-                        <span class="font-medium text-sm sm:text-lg">Browse Files</span>
-                    </Link>
-
-                    <Link
-                        v-if="isStudent"
-                        href="/history"
-                        class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
-                    >
-                        <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="#7eea7d"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="text-primary"
-                            >
-                                <path d="M3 3h18v18H3z"></path>
-                                <path d="M9 17V7"></path>
-                                <path d="M15 17V11"></path>
-                            </svg>
-                        </div>
-                        <span class="font-medium text-sm sm:text-lg">History</span>
-                    </Link>
-
-                    <Link
-                        v-if="isStudent"
-                        href="/multiplayer-games"
-                        class="border-border bg-card hover:bg-accent flex flex-col items-center justify-center rounded-xl border p-6 opacity-70 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-colors hover:opacity-90"
-                    >
-                        <div class="bg-primary/10 mb-3 flex h-12 w-12 items-center justify-center rounded-full">
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="24"
-                                height="24"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                class="text-primary"
-                            >
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <path d="M8 12h8"></path>
-                                <path d="M12 8v8"></path>
-                            </svg>
-                        </div>
-                        <span class="font-medium text-sm sm:text-lg">Game Lobby</span>
-                    </Link>
+                    <!-- Role-specific tip -->
+                    <div class="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-700 dark:bg-yellow-900/20">
+                        <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                            <span class="font-semibold">💡 Tip:</span>
+                            <span v-if="isStudent">Complete quests and battles to level up and unlock new content!</span>
+                            <span v-else-if="isFaculty">Use the verification system to moderate and approve student submissions.</span>
+                            <span v-else-if="isAdmin">Monitor platform usage through statistics and manage user permissions.</span>
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Recommendations Section -->
