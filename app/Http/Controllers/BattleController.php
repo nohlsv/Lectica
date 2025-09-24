@@ -122,7 +122,7 @@ class BattleController extends Controller
                     'source_name' => $battle->getSourceName()
                 ]),
                 'file' => $battle->file ?: $battle->collection,
-                'quizzes' => $quizzes,
+                'quizzes' => $quizzes->values()->toArray(),
                 'quizTypes' => $quizTypes,
             ]);
         }

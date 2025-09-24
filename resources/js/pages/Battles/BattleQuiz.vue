@@ -38,18 +38,22 @@ const answerEffectType = ref<'correct' | 'incorrect' | null>(null);
 const soundEnabled = ref(true);
 
 // Initialize userAnswers
-props.quizzes.forEach((quiz, index) => {
-    if (quiz.type === 'multiple_choice') {
-        userAnswers.value[index] = '';
-    } else if (quiz.type === 'enumeration') {
-        userAnswers.value[index] = Array(quiz.answers.length).fill('');
-    } else if (quiz.type === 'true_false') {
-        userAnswers.value[index] = '';
-    }
-});
+if (Array.isArray(props.quizzes)) {
+    props.quizzes.forEach((quiz, index) => {
+        if (quiz.type === 'multiple_choice') {
+            userAnswers.value[index] = '';
+        } else if (quiz.type === 'enumeration') {
+            userAnswers.value[index] = Array(quiz.answers.length).fill('');
+        } else if (quiz.type === 'true_false') {
+            userAnswers.value[index] = '';
+        }
+    });
+} else {
+    console.error('props.quizzes is not an array:', props.quizzes);
+}
 
 const currentQuiz = computed(() => {
-    if (props.quizzes.length === 0) return null;
+    if (!Array.isArray(props.quizzes) || props.quizzes.length === 0) return null;
     return props.quizzes[currentIndex.value];
 });
 
@@ -172,7 +176,7 @@ const audioInit = () => {
 audioInit();
 
 const currentQuestionIndex = ref(0);
-const totalQuestions = ref(props.quizzes.length);
+const totalQuestions = ref(Array.isArray(props.quizzes) ? props.quizzes.length : 0);
 
 const updateProgress = () => {
     currentQuestionIndex.value = currentIndex.value + 1;
@@ -190,15 +194,17 @@ const initBattleState = () => {
     userAnswers.value = {};
 
     // Reset userAnswers based on quiz type
-    props.quizzes.forEach((quiz, index) => {
-        if (quiz.type === 'multiple_choice') {
-            userAnswers.value[index] = '';
-        } else if (quiz.type === 'enumeration') {
-            userAnswers.value[index] = Array(quiz.answers.length).fill('');
-        } else if (quiz.type === 'true_false') {
-            userAnswers.value[index] = '';
-        }
-    });
+    if (Array.isArray(props.quizzes)) {
+        props.quizzes.forEach((quiz, index) => {
+            if (quiz.type === 'multiple_choice') {
+                userAnswers.value[index] = '';
+            } else if (quiz.type === 'enumeration') {
+                userAnswers.value[index] = Array(quiz.answers.length).fill('');
+            } else if (quiz.type === 'true_false') {
+                userAnswers.value[index] = '';
+            }
+        });
+    }
 
     currentIndex.value = 0;
     showFeedback.value = false;
@@ -219,6 +225,7 @@ watch(
 );
 
 const currentQuestion = computed(() => {
+    if (!Array.isArray(props.quizzes) || currentIndex.value >= props.quizzes.length) return null;
     return props.quizzes[currentIndex.value];
 });
 
@@ -265,7 +272,7 @@ const checkAnswer = () => {
     // Check if battle is over
     if (monsterHp.value <= 0 || playerHp.value <= 0) {
         finishBattle();
-    } else if (currentIndex.value >= props.quizzes.length - 1) {
+    } else if (Array.isArray(props.quizzes) && currentIndex.value >= props.quizzes.length - 1) {
         // If this was the last question and neither player is defeated, end the battle
         finishBattle();
     }
@@ -306,7 +313,7 @@ function toggleSound() {
 }
 
 function next() {
-    if (currentIndex.value < props.quizzes.length - 1) {
+    if (Array.isArray(props.quizzes) && currentIndex.value < props.quizzes.length - 1) {
         currentIndex.value++;
         showFeedback.value = false;
     } else {
@@ -340,7 +347,18 @@ function finishBattle() {
 <template>
     <Head :title="`Battle: ${battle.monster.name}`" />
     <AppLayout>
-        <div class="flex min-h-screen w-full flex-col overflow-hidden bg-gradient min-h-screen">
+        <!-- Error state when quizzes is not an array -->
+        <div v-if="!Array.isArray(quizzes) || quizzes.length === 0" class="flex min-h-screen items-center justify-center bg-gradient">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-white mb-4">Battle Error</h1>
+                <p class="text-white mb-6">No quiz questions are available for this battle.</p>
+                <Link :href="route('battles.index')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                    Back to Battles
+                </Link>
+            </div>
+        </div>
+
+        <div v-else class="flex min-h-screen w-full flex-col overflow-hidden bg-gradient min-h-screen">
             <!--             style="background-image: url('/images/game-background.png');">-->
 
             <!-- Battle Header -->
