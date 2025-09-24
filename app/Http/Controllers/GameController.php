@@ -87,8 +87,28 @@ class GameController extends Controller
         $playerTwo = User::find($game->player_two_id);
         $playerOneFileIds = $playerOne->starredFiles->pluck('id');
         $playerTwoFileIds = $playerTwo->starredFiles->pluck('id');
-        $playerOneQuizzes = Quiz::whereIn('file_id', $playerOneFileIds)->inRandomOrder()->limit(5)->get();
-        $playerTwoQuizzes = Quiz::whereIn('file_id', $playerTwoFileIds)->inRandomOrder()->limit(5)->get();
+        
+        // Get all quizzes first, then filter if game has difficulty setting
+        $playerOneQuizzes = Quiz::whereIn('file_id', $playerOneFileIds)->inRandomOrder();
+        $playerTwoQuizzes = Quiz::whereIn('file_id', $playerTwoFileIds)->inRandomOrder();
+        
+        // Apply difficulty filtering if game has a difficulty setting
+        if (isset($game->difficulty)) {
+            $allowedType = match($game->difficulty) {
+                'easy' => 'true_false',
+                'medium' => 'multiple_choice',
+                'hard' => 'enumeration',
+                default => null
+            };
+            
+            if ($allowedType) {
+                $playerOneQuizzes = $playerOneQuizzes->where('type', $allowedType);
+                $playerTwoQuizzes = $playerTwoQuizzes->where('type', $allowedType);
+            }
+        }
+        
+        $playerOneQuizzes = $playerOneQuizzes->limit(5)->get();
+        $playerTwoQuizzes = $playerTwoQuizzes->limit(5)->get();
         $questions = [];
         foreach ($playerOneQuizzes as $quiz) {
             $questions[] = [

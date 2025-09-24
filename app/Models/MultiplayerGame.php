@@ -327,18 +327,35 @@ class MultiplayerGame extends Model
 
     /**
      * Get all quizzes available for this game (from file or collection).
+     * Filtered by difficulty if set: easy = true_false, medium = multiple_choice, hard = enumeration
      */
     public function getAvailableQuizzes()
     {
+        $quizzes = collect([]);
+        
         if ($this->collection_id) {
             // Get quizzes from all files in the collection
-            return Quiz::whereIn('file_id', $this->collection->files()->pluck('id'))->get();
+            $quizzes = Quiz::whereIn('file_id', $this->collection->files()->pluck('id'))->get();
         } elseif ($this->file_id) {
             // Get quizzes from the single file
-            return Quiz::where('file_id', $this->file_id)->get();
+            $quizzes = Quiz::where('file_id', $this->file_id)->get();
         }
 
-        return collect([]);
+        // Filter quizzes based on difficulty if set
+        if (isset($this->difficulty) && $quizzes->count() > 0) {
+            $allowedType = match($this->difficulty) {
+                'easy' => 'true_false',
+                'medium' => 'multiple_choice',
+                'hard' => 'enumeration',
+                default => null
+            };
+
+            if ($allowedType) {
+                $quizzes = $quizzes->where('type', $allowedType);
+            }
+        }
+
+        return $quizzes;
     }
 
     /**
