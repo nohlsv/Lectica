@@ -399,13 +399,13 @@ function updateEnumerationAnswer(idx: number, val: string) {
     }
 }
 
-const submitAnswer = async () => {
+const submitAnswer = async (isTimeout = false) => {
     if (!currentQuiz.value) return;
     if (
         (currentQuiz.value.type === 'enumeration' && Array.isArray(selectedAnswer.value) && selectedAnswer.value.every((a) => !a)) ||
         (!selectedAnswer.value && currentQuiz.value.type !== 'enumeration') ||
         submitting.value ||
-        timedOut.value
+        (timedOut.value && !isTimeout) // Only block if timed out AND not called from timeout handler
     )
         return;
 
@@ -573,8 +573,18 @@ const handleTimeout = () => {
         } else {
             selectedAnswer.value = '';
         }
-        submitAnswer();
+        
+        // Submit the timeout answer
+        submitAnswer(true); // Pass isTimeout = true to allow submission
         lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
+        
+        // Fallback: If WebSocket doesn't update game state within 10 seconds, force a page refresh
+        setTimeout(() => {
+            if (timedOut.value && !gameOver.value) {
+                console.warn('WebSocket update not received after timeout, forcing page refresh');
+                window.location.reload();
+            }
+        }, 10000);
     }
 };
 
