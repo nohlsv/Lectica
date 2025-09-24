@@ -126,6 +126,20 @@ class BattleController extends Controller
                 'quizTypes' => $quizTypes,
             ]);
         }
+        
+        // If battle is active but has no quizzes (shouldn't happen with new validation), mark as abandoned
+        if ($battle->status === BattleStatus::ACTIVE && $quizzes->count() === 0) {
+            $battle->markAsAbandoned();
+            $difficultyQuizType = match($battle->monster->difficulty) {
+                'easy' => 'True/False',
+                'medium' => 'Multiple Choice', 
+                'hard' => 'Enumeration',
+                default => 'appropriate difficulty'
+            };
+            return back()->withErrors([
+                'battle' => "This battle was abandoned because no {$difficultyQuizType} questions are available for {$battle->monster->difficulty} difficulty. Please generate {$difficultyQuizType} quizzes first."
+            ]);
+        }
 
         // Otherwise show the battle results/summary
         return Inertia::render('Battles/Show', [

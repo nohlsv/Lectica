@@ -196,7 +196,7 @@
                                                 {{ questionValidation.counts.easy }} available
                                             </span>
                                             <span v-else class="text-red-400 pixel-outline">
-                                                No questions
+                                                No True/False questions
                                             </span>
                                         </div>
                                     </button>
@@ -232,7 +232,7 @@
                                                 {{ questionValidation.counts.medium }} available
                                             </span>
                                             <span v-else class="text-red-400 pixel-outline">
-                                                No questions
+                                                No Multiple Choice questions
                                             </span>
                                         </div>
                                     </button>
@@ -268,7 +268,7 @@
                                                 {{ questionValidation.counts.hard }} available
                                             </span>
                                             <span v-else class="text-red-400 pixel-outline">
-                                                No questions
+                                                No Enumeration questions
                                             </span>
                                         </div>
                                     </button>
@@ -364,7 +364,7 @@
                                             No questions available
                                         </p>
                                         <p v-else-if="questionValidation && questionValidation.counts[selectedDifficulty] === 0" class="text-sm text-red-400 pixel-outline">
-                                            No {{ selectedDifficulty }} questions available
+                                            No {{ selectedDifficulty === 'easy' ? 'True/False' : selectedDifficulty === 'medium' ? 'Multiple Choice' : 'Enumeration' }} questions available for {{ selectedDifficulty }} difficulty
                                         </p>
                                         <p v-else-if="!form.monster_id" class="text-sm text-yellow-400 pixel-outline">
                                             Please select a monster
