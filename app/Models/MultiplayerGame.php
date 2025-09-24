@@ -82,6 +82,14 @@ class MultiplayerGame extends Model
         return $this->belongsTo(Collection::class);
     }
 
+    /**
+     * Get the monster for PVE games.
+     */
+    public function monster(): BelongsTo
+    {
+        return $this->belongsTo(Monster::class, 'monster_id');
+    }
+
     public function getPhaseAttribute()
     {
         if (is_null($this->player_two_id)) {

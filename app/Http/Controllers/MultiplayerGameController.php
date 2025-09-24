@@ -975,4 +975,107 @@ class MultiplayerGameController extends Controller
         }
         return null; // Tie or PVE mode
     }
+
+    /**
+     * Get fresh game state for synchronization purposes
+     */
+    public function getGameState(MultiplayerGame $multiplayerGame)
+    {
+        // Ensure user is part of this game
+        if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
+            abort(403, 'You are not part of this game.');
+        }
+
+        // Refresh the model to get latest data
+        $multiplayerGame->refresh();
+
+        // Get current question
+        $currentQuestion = $multiplayerGame->getCurrentQuestion();
+
+        return response()->json([
+            'game' => $multiplayerGame->load(['playerOne', 'playerTwo', 'monster']),
+            'currentQuestion' => $currentQuestion,
+            'timestamp' => now()->toISOString(),
+        ]);
+    }
+
+    /**
+     * Ping game state to check for stale conditions and trigger corrections
+     */
+    public function pingGameState(Request $request, MultiplayerGame $multiplayerGame)
+    {
+        // Ensure user is part of this game
+        if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
+            abort(403, 'You are not part of this game.');
+        }
+
+        $shouldRefresh = false;
+        $turnChanged = false;
+        $gameFixed = false;
+
+        DB::transaction(function () use ($multiplayerGame, $request, &$shouldRefresh, &$turnChanged, &$gameFixed) {
+            // Lock the game for update to prevent race conditions
+            $multiplayerGame = MultiplayerGame::where('id', $multiplayerGame->id)->lockForUpdate()->first();
+            
+            $originalTurn = $multiplayerGame->current_turn;
+            
+            // Check if game is stale (inactive for too long)
+            if ($multiplayerGame->isStale(5)) { // 5 minutes threshold for ping checks
+                logger()->info('Detected stale game during ping', [
+                    'game_id' => $multiplayerGame->id,
+                    'last_updated' => $multiplayerGame->updated_at,
+                    'minutes_since_update' => $multiplayerGame->updated_at->diffInMinutes(now()),
+                    'current_turn' => $multiplayerGame->current_turn,
+                    'status' => $multiplayerGame->status->value
+                ]);
+                
+                // If the game has been inactive and someone is pinging about a timeout,
+                // it likely means a turn switch was missed
+                if ($request->has('last_action') && $request->last_action === 'timeout') {
+                    // Force turn switch if game is active but stale
+                    if ($multiplayerGame->isActive() && $multiplayerGame->player_two_id) {
+                        try {
+                            $multiplayerGame->switchTurn();
+                            $multiplayerGame->advanceToNextQuestion();
+                            $turnChanged = true;
+                            $gameFixed = true;
+                            
+                            logger()->info('Fixed stale game by switching turn', [
+                                'game_id' => $multiplayerGame->id,
+                                'old_turn' => $originalTurn,
+                                'new_turn' => $multiplayerGame->current_turn
+                            ]);
+                            
+                            // Broadcast the fix
+                            broadcast(new \App\Events\MultiplayerGameUpdated(
+                                $multiplayerGame->fresh(),
+                                'turn_corrected',
+                                [
+                                    'reason' => 'stale_game_detected',
+                                    'previous_turn' => $originalTurn,
+                                    'corrected_turn' => $multiplayerGame->current_turn
+                                ]
+                            ));
+                            
+                        } catch (\Exception $e) {
+                            logger()->error('Failed to fix stale game', [
+                                'game_id' => $multiplayerGame->id,
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                }
+                
+                $shouldRefresh = true;
+            }
+        });
+
+        return response()->json([
+            'should_refresh' => $shouldRefresh,
+            'turn_changed' => $turnChanged,
+            'game_fixed' => $gameFixed,
+            'current_turn' => $multiplayerGame->current_turn,
+            'timestamp' => now()->toISOString(),
+        ]);
+    }
 }

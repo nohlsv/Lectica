@@ -463,10 +463,10 @@ const submitAnswer = async (isTimeout = false) => {
                         lastAction.value = { type: 'error', message: errorMessage };
                     }
 
-                    // If this was a timeout submission that failed, force a page refresh
+                    // If this was a timeout submission that failed, try to sync game state
                     if (isTimeout && timedOut.value) {
-                        console.warn('Timeout answer submission failed, forcing page refresh');
-                        setTimeout(() => window.location.reload(), 2000);
+                        console.warn('Timeout answer submission failed, syncing game state');
+                        setTimeout(() => fetchFreshGameState(), 2000);
                     }
 
                     // Reset submission state on error
@@ -600,19 +600,19 @@ const handleTimeout = () => {
         submitAnswer(true); // Pass isTimeout = true to allow submission
         lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
         
-        // Fallback 1: If WebSocket doesn't update game state within 8 seconds, force a page refresh
+        // Fallback 1: If WebSocket doesn't update game state within 8 seconds, fetch fresh state
         setTimeout(() => {
             if (awaitingTimeoutResponse.value && !gameOver.value) {
-                console.warn('WebSocket update not received after timeout, forcing page refresh');
-                window.location.reload();
+                console.warn('WebSocket update not received after timeout, fetching fresh game state');
+                fetchFreshGameState();
             }
         }, 8000);
 
-        // Fallback 2: If it's still my turn after 15 seconds (indicating game stuck), force refresh
+        // Fallback 2: If it's still my turn after 15 seconds (indicating game stuck), force state sync
         setTimeout(() => {
             if (isMyTurn.value && timedOut.value && !gameOver.value) {
-                console.warn('Game appears stuck after timeout, forcing refresh');
-                window.location.reload();
+                console.warn('Game appears stuck after timeout, forcing state synchronization');
+                forceSyncGameState();
             }
         }, 15000);
     }
@@ -643,9 +643,10 @@ watch(currentQuiz, (newQuiz) => {
     }
 });
 
-// Clean up timer on unmount
+// Clean up timer and intervals on unmount
 onUnmounted(() => {
     stopTimer();
+    stopStateCheckInterval();
 });
 
 const getGameResult = (): string => {
@@ -705,8 +706,151 @@ const handleImageError = (event: Event) => {
     img.src = '/images/default-monster.png';
 };
 
+// Fetch fresh game state from the server
+const fetchFreshGameState = async () => {
+    try {
+        console.log('Fetching fresh game state from server...');
+        
+        const response = await fetch(route('multiplayer-games.state', props.game.id), {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin'
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.game) {
+            // Store previous state for comparison
+            const wasMyTurn = isMyTurn.value;
+            const previousTurn = gameState.value.current_turn;
+            
+            // Update game state
+            Object.assign(gameState.value, data.game);
+            Object.assign(props.game, data.game);
+            
+            // Update current question if provided
+            if (data.currentQuestion !== undefined) {
+                currentQuestion.value = data.currentQuestion;
+            }
+            
+            console.log('Fresh game state fetched successfully:', {
+                previousTurn,
+                newTurn: gameState.value.current_turn,
+                wasMyTurn,
+                isMyTurnNow: isMyTurn.value
+            });
+            
+            // Clear timeout flags since we have fresh state
+            awaitingTimeoutResponse.value = false;
+            
+            // Handle turn changes
+            if (!wasMyTurn && isMyTurn.value) {
+                resetForNextQuestion();
+                console.log('Turn switched after state sync, resetting for next question');
+            } else if (wasMyTurn && !isMyTurn.value) {
+                // My turn ended, stop timer and reset timeout flags
+                stopTimer();
+                timedOut.value = false;
+                awaitingTimeoutResponse.value = false;
+                console.log('My turn ended after state sync, stopping timer');
+            }
+            
+            // If we were stuck with a timeout but the turn hasn't changed,
+            // and it's been more than a minute, the backend might need a nudge
+            if (wasMyTurn && isMyTurn.value && timedOut.value) {
+                const timeoutAge = Date.now() - (timer.value < TIMER_DURATION ? (TIMER_DURATION - timer.value) * 1000 : 60000);
+                if (timeoutAge > 60000) { // Timeout was more than 1 minute ago
+                    console.warn('Timeout persisted after state sync, game may need server-side correction');
+                    // Don't reset the flags yet, let the next ping attempt to fix it
+                }
+            }
+            
+            // If game ended, handle it
+            if (gameState.value.status === 'finished') {
+                gameOver.value = true;
+                console.log('Game ended according to fresh state');
+            }
+            
+        } else {
+            console.error('Invalid response format from game state API');
+        }
+        
+    } catch (error) {
+        console.error('Failed to fetch fresh game state:', error);
+        lastAction.value = { type: 'error', message: 'Connection issue. Please check your internet connection.' };
+    }
+};
+
+// Force synchronization by checking if the game progressed correctly
+const forceSyncGameState = async () => {
+    console.log('Forcing game state synchronization...');
+    
+    // First try to fetch fresh state
+    await fetchFreshGameState();
+    
+    // If it's still showing as our turn after timeout, there might be a server-side issue
+    // Let's try to "ping" the server to check if our timeout was processed
+    if (isMyTurn.value && timedOut.value) {
+        try {
+            const response = await fetch(route('multiplayer-games.ping', props.game.id), {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({
+                    check_stale: true,
+                    last_action: 'timeout'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Ping response:', data);
+                
+                // If server says game should have progressed, fetch state again
+                if (data.should_refresh || data.turn_changed) {
+                    setTimeout(() => fetchFreshGameState(), 1000);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to ping server for state sync:', error);
+        }
+    }
+};
+
 // WebSocket listener for real-time updates
 let echo: any;
+let stateCheckInterval: number | undefined;
+
+// Periodic state check to ensure game synchronization
+const startStateCheckInterval = () => {
+    // Check game state every 30 seconds to catch any missed updates
+    stateCheckInterval = window.setInterval(() => {
+        // Only check if game is active and not during transitions
+        if (gameState.value.status === 'active' && !submitting.value && !awaitingTimeoutResponse.value) {
+            console.log('Periodic state check...');
+            fetchFreshGameState();
+        }
+    }, 30000);
+};
+
+const stopStateCheckInterval = () => {
+    if (stateCheckInterval) {
+        clearInterval(stateCheckInterval);
+        stateCheckInterval = undefined;
+    }
+};
 
 onMounted(() => {
     console.log('DEBUG: gameState.value.pvp_mode =', gameState.value.pvp_mode);
@@ -868,13 +1012,13 @@ onMounted(() => {
                 }
                 
                 // If it's still my turn after a timeout (meaning the game didn't progress properly),
-                // force a page refresh after a short delay
+                // try to sync the game state after a short delay
                 if (wasMyTurn && isMyTurn.value && timedOut.value) {
                     console.warn('Still my turn after timeout, game may not have progressed properly');
                     setTimeout(() => {
                         if (isMyTurn.value && timedOut.value) {
-                            console.warn('Forcing refresh - game stuck after timeout');
-                            window.location.reload();
+                            console.warn('Syncing game state - game stuck after timeout');
+                            fetchFreshGameState();
                         }
                     }, 3000);
                 }
@@ -886,6 +1030,15 @@ onMounted(() => {
             .error((error: any) => {
                 console.error('WebSocket error:', error);
                 lastAction.value = { type: 'error', message: 'Connection lost. Trying to reconnect...' };
+                
+                // If WebSocket fails, increase the frequency of state checks as a fallback
+                stopStateCheckInterval();
+                stateCheckInterval = window.setInterval(() => {
+                    if (gameState.value.status === 'active' && !gameOver.value) {
+                        console.log('WebSocket down, using fallback state check...');
+                        fetchFreshGameState();
+                    }
+                }, 10000); // Check every 10 seconds when WebSocket is down
             });
 
         console.log('WebSocket connection established for game:', props.game.id);
@@ -898,6 +1051,9 @@ onMounted(() => {
     if (isMyTurn.value) {
         startTimer();
     }
+
+    // Start periodic state checking
+    startStateCheckInterval();
 });
 
 // Play sfx for game start animation
