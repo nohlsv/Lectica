@@ -27,17 +27,27 @@ class StatisticsController extends Controller
 			'total_tags' => Tag::count(), // New statistic
 			'total_programs' => Program::count(), // New statistic
 			'most_used_tags' => Tag::withCount('files')->orderBy('files_count', 'desc')->take(5)->get(),
-			'most_files_per_program' => Program::with(['users.files'])
-				->get()
-				->map(function ($program) {
-					$program->files_count = $program->users->sum(function ($user) {
-						return $user->files->count();
-					});
-					return $program;
-				})
-				->sortByDesc('files_count')
-				->take(5)
-				->values(),
+			   // Users per program (for chart)
+			   'users_per_program' => Program::withCount('users')
+				   ->orderBy('users_count', 'desc')
+				   ->get(['name', 'users_count'])
+				   ->map(function ($program) {
+					   return [
+						   'name' => $program->name,
+						   'users_count' => $program->users_count,
+					   ];
+				   }),
+			   // For backward compatibility, keep most_files_per_program as top 5 by user count
+			   'most_files_per_program' => Program::withCount('users')
+				   ->orderBy('users_count', 'desc')
+				   ->take(5)
+				   ->get(['name', 'users_count'])
+				   ->map(function ($program) {
+					   return [
+						   'name' => $program->name,
+						   'users_count' => $program->users_count,
+					   ];
+				   }),
 			'most_active_user' => User::withCount('files')->orderBy('files_count', 'desc')->first(),
 			'average_files_per_user' => round(File::count() / max(User::count(), 1), 2), // New statistic
 			'total_flashcards_per_tag' => Tag::with('files.flashcards')
@@ -137,49 +147,35 @@ class StatisticsController extends Controller
 				->groupBy('month')
 				->orderBy('month')
 				->get(),
-			'storage_per_program' => Program::with(['users.files'])
-				->get()
-				->map(function ($program) {
-					$program->storage_mb = round($program->users->sum(function ($user) {
-						return $user->files->sum('size');
-					}) / 1024 / 1024, 2);
-					return [
-						'name' => $program->name,
-						'storage_mb' => $program->storage_mb,
-					];
-				})
-				->sortByDesc('storage_mb')
-				->values(),
-			'quizzes_per_program' => Program::with(['users.files.quizzes'])
-				->get()
-				->map(function ($program) {
-					$program->quizzes_count = $program->users->sum(function ($user) {
-						return $user->files->sum(function ($file) {
-							return $file->quizzes->count();
-						});
-					});
-					return [
-						'name' => $program->name,
-						'quizzes_count' => $program->quizzes_count,
-					];
-				})
-				->sortByDesc('quizzes_count')
-				->values(),
-			'flashcards_per_program' => Program::with(['users.files.flashcards'])
-				->get()
-				->map(function ($program) {
-					$program->flashcards_count = $program->users->sum(function ($user) {
-						return $user->files->sum(function ($file) {
-							return $file->flashcards->count();
-						});
-					});
-					return [
-						'name' => $program->name,
-						'flashcards_count' => $program->flashcards_count,
-					];
-				})
-				->sortByDesc('flashcards_count')
-				->values(),
+			   // More robust: direct join for storage per program
+			   'storage_per_program' => Program::get()->map(function ($program) {
+				   $storage = \App\Models\File::whereIn('user_id', $program->users()->pluck('id'))
+					   ->sum('size');
+				   return [
+					   'name' => $program->name,
+					   'storage_mb' => round($storage / 1024 / 1024, 2),
+				   ];
+			   })->sortByDesc('storage_mb')->values(),
+			   // More robust: direct join for quizzes per program
+			   'quizzes_per_program' => Program::get()->map(function ($program) {
+				   $userIds = $program->users()->pluck('id');
+				   $fileIds = \App\Models\File::whereIn('user_id', $userIds)->pluck('id');
+				   $quizzesCount = \App\Models\Quiz::whereIn('file_id', $fileIds)->count();
+				   return [
+					   'name' => $program->name,
+					   'quizzes_count' => $quizzesCount,
+				   ];
+			   })->sortByDesc('quizzes_count')->values(),
+			   // More robust: direct join for flashcards per program
+			   'flashcards_per_program' => Program::get()->map(function ($program) {
+				   $userIds = $program->users()->pluck('id');
+				   $fileIds = \App\Models\File::whereIn('user_id', $userIds)->pluck('id');
+				   $flashcardsCount = \App\Models\Flashcard::whereIn('file_id', $fileIds)->count();
+				   return [
+					   'name' => $program->name,
+					   'flashcards_count' => $flashcardsCount,
+				   ];
+			   })->sortByDesc('flashcards_count')->values(),
 			// Add access logs
 			'access_logs' => AccessLog::with('user')
 				->orderBy('accessed_at', 'desc')

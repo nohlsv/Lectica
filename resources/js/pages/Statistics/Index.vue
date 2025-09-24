@@ -155,15 +155,16 @@ onMounted(async () => {
         },
     };
 
+    // Users/Students per Program chart
     renderChart(
         'filesPerProgramChart',
         'bar',
         {
-            labels: props.statistics.most_files_per_program.map((p) => simplifyName(p.name)),
+            labels: props.statistics.users_per_program.map((p) => simplifyName(p.name)),
             datasets: [
                 {
                     label: 'Users/Students per Program',
-                    data: props.statistics.most_files_per_program.map((p) => p.files_count),
+                    data: props.statistics.users_per_program.map((p) => p.users_count),
                     backgroundColor: 'rgba(255,255,255,0.7)',
                     borderColor: '#fff',
                     borderWidth: 2,
