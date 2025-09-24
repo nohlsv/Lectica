@@ -86,6 +86,12 @@ const monsterHpPercent = computed(() => {
 const battleResult = computed(() => {
     if (monsterHp.value <= 0) return 'victory';
     if (playerHp.value <= 0) return 'defeat';
+    
+    // If battle is finished but neither HP is 0, determine winner by remaining HP
+    if (battleFinished.value) {
+        return playerHp.value >= monsterHp.value ? 'victory' : 'defeat';
+    }
+    
     return null;
 });
 
@@ -246,6 +252,9 @@ const checkAnswer = () => {
     // Check if battle is over
     if (monsterHp.value <= 0 || playerHp.value <= 0) {
         finishBattle();
+    } else if (currentIndex.value >= props.quizzes.length - 1) {
+        // If this was the last question and neither player is defeated, end the battle
+        finishBattle();
     }
 };
 
@@ -266,6 +275,9 @@ function next() {
     if (currentIndex.value < props.quizzes.length - 1) {
         currentIndex.value++;
         showFeedback.value = false;
+    } else {
+        // No more questions, finish the battle
+        finishBattle();
     }
 }
 
@@ -503,8 +515,12 @@ function finishBattle() {
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="text-center">
-                        <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500 pixel-outline">You defeated {{ battle.monster.name }}!</div>
-                        <div v-else class="mb-4 text-2xl text-red-500 pixel-outline">{{ battle.monster.name }} defeated you!</div>
+                        <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500 pixel-outline">
+                            {{ monsterHp <= 0 ? `You defeated ${battle.monster.name}!` : `You outlasted ${battle.monster.name}!` }}
+                        </div>
+                        <div v-else class="mb-4 text-2xl text-red-500 pixel-outline">
+                            {{ playerHp <= 0 ? `${battle.monster.name} defeated you!` : `${battle.monster.name} outlasted you!` }}
+                        </div>
                         <div class="mt-4">
                             <p class="pixel-outline">You answered {{ correctAnswers }} out of {{ totalAnswered }} questions correctly.</p>
                         </div>
