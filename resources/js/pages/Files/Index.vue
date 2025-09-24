@@ -200,67 +200,122 @@ const addToCollection = async () => {
 </script>
 
 <template>
-    <Head title="File List" />
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-4 p-4">
-            <div class="flex items-center justify-between">
-                <h1 class="text-lg font-semibold">Files</h1>
-                <Link
-                    href="/files/create"
-                    class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium"
-                >
-                    Upload New File
-                </Link>
-            </div>
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center gap-4">
-                    <Input v-model="searchQuery" placeholder="Search files..." class="w-full" />
-                    <Button @click="applyFilters">Search</Button>
-                </div>
-                <div class="flex items-center gap-4">
-                    <label class="flex items-center gap-2 text-sm font-medium">
-                        <input type="checkbox" v-model="showStarredOnly" @change="applyFilters" />
-                        <span>Show Starred Only</span>
-                    </label>
-                    <label class="flex items-center gap-2 text-sm font-medium">
-                        <input type="checkbox" v-model="showSameProgramOnly" @change="applyFilters" />
-                        <span>Show Users from Same Program Only</span>
-                    </label>
-                    <div class="flex items-center gap-2">
-                        <label for="sort" class="text-sm font-medium">Sort By:</label>
-                        <select id="sort" v-model="selectedSort" @change="applyFilters" class="bg-background rounded border px-2 py-1 text-sm">
-                            <option v-for="option in sortOptions" :key="option.value" :value="option.value">
-                                {{ option.label }}
-                            </option>
-                        </select>
-                        <Button
-                            @click="
-                                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                                applyFilters();
-                            "
-                            class="text-sm font-medium"
-                        >
-                            {{ sortDirection === 'asc' ? 'Ascending' : 'Descending' }}
-                        </Button>
+    <div class="dark:bg-[#161615]">
+        <Head title="File Explorer" />
+        <AppLayout :breadcrumbs="breadcrumbs">
+            <div class="bg-lectica flex max-h-[200px] w-full flex-1 flex-col gap-4 px-4 pt-4 pb-0">
+                <!--Header Section-->
+                <div class="mb-6 flex min-h-[150px] w-full flex-col items-center justify-center gap-6 rounded-xl p-6 text-center sm:flex-row sm:text-left">
+                    <!--Icon-->
+                    <div class="relative flex flex-col items-center gap-2">
+                        <div class="animate-floating flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-green-500 to-blue-600 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:h-28 sm:w-28 md:h-32 md:w-32">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-white sm:h-14 sm:w-14 md:h-16 md:w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                        </div>
+                    </div>
+                    <!--Title-->
+                    <div>
+                        <h1 class="text-2xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-3xl">
+                            Knowledge Vault
+                        </h1>
+                        <p class="text-lg text-white/90 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-xl">
+                            Explore the collective wisdom of students
+                        </p>
+                    </div>
+                    <!--Action Button-->
+                    <div class="sm:ml-auto">
+                        <Link href="/files/create">
+                            <Button class="font-pixel border-2 border-white bg-green-600 px-4 py-2 text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px] transition-all">
+                                <PlusIcon class="mr-2 h-4 w-4" />
+                                Upload New File
+                            </Button>
+                        </Link>
                     </div>
                 </div>
-                <!-- TAGS FILTER UI -->
-                <div v-if="allTags.length" class="flex flex-wrap gap-2 items-center">
-                    <span class="text-sm font-medium">Tags:</span>
-                    <label v-for="tag in allTags" :key="tag.id" class="flex items-center gap-1 text-xs border rounded px-2 py-1 cursor-pointer">
-                        <input type="checkbox" :value="tag.id" v-model="selectedTags" @change="applyFilters" />
-                        <span>{{ tag.name }}</span>
-                    </label>
-                </div>
-                <!-- END TAGS FILTER UI -->
-                <div class="flex flex-grow items-center justify-center">
-                    <h1 class="welcome-banner animate-soft-bounce pixel-outline px-10 py-2 text-center text-xl font-semibold">Files</h1>
-                </div>
+                <!--Divider-->
+                <hr class="-mx-4 h-2 border-2 border-black bg-green-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
             </div>
-        </div>
-        <div class="border-border mb-8 overflow-hidden rounded-xl border p-4 sm:p-6">
-            <div class="-mx-4 overflow-x-auto sm:mx-0">
-                <DataTable :data="files" :columns="columns" class="min-w-full">
+
+            <!--Main Content-->
+            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-6 pb-0 lg:p-8">
+                <!-- Search and Filters Section -->
+                <div class="mb-6 space-y-4 rounded-xl border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                    <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                        🔍 Search & Filter
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <!-- Search Bar -->
+                        <div class="flex items-center gap-4">
+                            <Input v-model="searchQuery" placeholder="Search files..." class="flex-1 border-2 border-white/30 bg-white/10 text-white placeholder:text-white/60 backdrop-blur-sm focus:border-yellow-400" />
+                            <Button @click="applyFilters" class="font-pixel border-2 border-yellow-400 bg-yellow-500 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-yellow-400 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all">
+                                Search
+                            </Button>
+                        </div>
+
+                        <!-- Filter Options -->
+                        <div class="flex flex-wrap items-center gap-4">
+                            <label class="flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm">
+                                <input type="checkbox" v-model="showStarredOnly" @change="applyFilters" class="rounded border-white/30 bg-white/10 text-yellow-400 focus:ring-yellow-400" />
+                                <StarIcon class="h-4 w-4" />
+                                <span>Starred Only</span>
+                            </label>
+                            <label class="flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm">
+                                <input type="checkbox" v-model="showSameProgramOnly" @change="applyFilters" class="rounded border-white/30 bg-white/10 text-blue-400 focus:ring-blue-400" />
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                                </svg>
+                                <span>Same Program</span>
+                            </label>
+                        </div>
+
+                        <!-- Sort Controls -->
+                        <div class="flex flex-wrap items-center gap-3">
+                            <span class="text-sm font-medium text-white">Sort by:</span>
+                            <select 
+                                id="sort" 
+                                v-model="selectedSort" 
+                                @change="applyFilters" 
+                                class="rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400"
+                            >
+                                <option v-for="option in sortOptions" :key="option.value" :value="option.value" class="bg-gray-800 text-white">
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                            <Button
+                                @click="
+                                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                                    applyFilters();
+                                "
+                                class="font-pixel border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm hover:bg-white/20 transition-all"
+                            >
+                                {{ sortDirection === 'asc' ? '↑ Ascending' : '↓ Descending' }}
+                            </Button>
+                        </div>
+
+                        <!-- Tags Filter -->
+                        <div v-if="allTags.length" class="space-y-2">
+                            <span class="text-sm font-medium text-white">Filter by tags:</span>
+                            <div class="flex flex-wrap gap-2">
+                                <label v-for="tag in allTags" :key="tag.id" class="flex cursor-pointer items-center gap-1 rounded-lg border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-all hover:bg-white/20">
+                                    <input type="checkbox" :value="tag.id" v-model="selectedTags" @change="applyFilters" class="rounded border-white/30 bg-white/10 text-purple-400 focus:ring-purple-400" />
+                                    <span>{{ tag.name }}</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Files Data Table -->
+                <div class="rounded-xl border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                    <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                        📚 File Archive
+                    </h3>
+                    
+                    <div class="overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm">
+                        <div class="overflow-x-auto">
+                            <DataTable :data="files" :columns="columns" class="min-w-full">
                     <!-- Custom cell template to clamp content text -->
                     <template #cell-description="{ item }">
                         <p class="text-muted-foreground line-clamp-4 max-w-full text-sm sm:line-clamp-2">
@@ -316,55 +371,79 @@ const addToCollection = async () => {
                             </button>
                         </div>
                     </template>
-                </DataTable>
+                            </DataTable>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
         <!-- Collection Modal -->
         <Transition name="modal">
-            <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-                <div class="bg-background w-full max-w-md rounded-lg p-6">
-                    <h2 class="mb-4 text-lg font-semibold">Add File to Collection</h2>
+            <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                <div class="w-full max-w-md rounded-xl border-2 border-white bg-gradient-to-br from-gray-900 to-gray-800 p-6 shadow-[8px_8px_0px_rgba(0,0,0,0.8)]">
+                    <h2 class="font-pixel mb-6 text-xl font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">Add File to Collection</h2>
 
-                    <div v-if="!showCreateNewCollection" class="mb-4">
-                        <label for="collection" class="mb-2 block text-sm font-medium">Select Collection</label>
-                        <select id="collection" v-model="selectedCollection" class="bg-background w-full rounded border px-3 py-2 text-sm">
-                            <option value="">Choose a collection...</option>
-                            <option v-for="collection in userCollections" :key="collection.id" :value="collection.id">
+                    <div v-if="!showCreateNewCollection" class="mb-6">
+                        <label for="collection" class="mb-3 block text-sm font-medium text-white/80">Select Collection</label>
+                        <select 
+                            id="collection" 
+                            v-model="selectedCollection" 
+                            class="w-full rounded-lg border-2 border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400"
+                        >
+                            <option value="" class="bg-gray-800 text-white">Choose a collection...</option>
+                            <option v-for="collection in userCollections" :key="collection.id" :value="collection.id" class="bg-gray-800 text-white">
                                 {{ collection.name }} ({{ collection.file_count }} files)
                             </option>
                         </select>
-                        <p class="text-muted-foreground mt-1 text-xs">Don't see the collection you want? Create a new one below.</p>
+                        <p class="mt-1 text-xs text-white/60">Don't see the collection you want? Create a new one below.</p>
                     </div>
 
-                    <div v-if="showCreateNewCollection" class="mb-4">
-                        <label for="new-collection" class="mb-2 block text-sm font-medium">New Collection Name</label>
+                    <div v-if="showCreateNewCollection" class="mb-6">
+                        <label for="new-collection" class="mb-3 block text-sm font-medium text-white/80">New Collection Name</label>
                         <Input
                             id="new-collection"
                             v-model="newCollectionName"
                             placeholder="Enter collection name"
-                            class="w-full"
+                            class="w-full border-2 border-white/30 bg-white/10 text-white placeholder:text-white/60 backdrop-blur-sm focus:border-yellow-400"
                             @keydown.enter="createNewCollection"
                         />
                     </div>
 
-                    <div class="flex justify-between gap-2">
-                        <Button @click="showCreateNewCollection = !showCreateNewCollection" variant="ghost" class="text-sm">
+                    <div class="flex justify-between gap-3">
+                        <Button 
+                            @click="showCreateNewCollection = !showCreateNewCollection" 
+                            class="font-pixel border-2 border-blue-400 bg-blue-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-blue-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all"
+                        >
                             {{ showCreateNewCollection ? 'Select Existing' : 'Create New' }}
                         </Button>
                         <div class="flex gap-2">
-                            <Button @click="showCollectionModal = false" variant="outline" class="text-sm"> Cancel </Button>
-                            <Button v-if="!showCreateNewCollection" @click="addToCollection" :disabled="!selectedCollection" class="text-sm">
+                            <Button 
+                                @click="showCollectionModal = false" 
+                                class="font-pixel border-2 border-red-400 bg-red-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all"
+                            > 
+                                Cancel 
+                            </Button>
+                            <Button 
+                                v-if="!showCreateNewCollection" 
+                                @click="addToCollection" 
+                                :disabled="!selectedCollection" 
+                                class="font-pixel border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
                                 Add to Collection
                             </Button>
-                            <Button v-else :disabled="isCreatingCollection || !newCollectionName.trim()" @click="createNewCollection" class="text-sm">
-                                <span v-if="isCreatingCollection">Creating...</span>
-                                <span v-else>Create & Add</span>
+                            <Button 
+                                v-else 
+                                :disabled="isCreatingCollection || !newCollectionName.trim()" 
+                                @click="createNewCollection" 
+                                class="font-pixel border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                {{ isCreatingCollection ? 'Creating...' : 'Create & Add' }}
                             </Button>
                         </div>
                     </div>
                 </div>
             </div>
         </Transition>
-    </AppLayout>
+        </AppLayout>
+    </div>
 </template>

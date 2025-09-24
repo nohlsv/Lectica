@@ -145,51 +145,71 @@ const addToCollection = async () => {
 </script>
 
 <template>
-    <Head title="My Files" />
+    <div class="dark:bg-[#161615]">
+        <Head title="My Files" />
 
-    <AppLayout>
-        <div class="py-6">
-            <!-- Breadcrumbs -->
-            <div class="text-muted-foreground mb-6 ml-3 flex items-center text-sm">
-                <div v-for="(crumb, index) in breadcrumbs" :key="index" class="flex items-center">
-                    <Link v-if="index < breadcrumbs.length - 1" :href="crumb.href" class="hover:text-foreground">
-                        {{ crumb.title }}
-                    </Link>
-                    <span v-else class="text-foreground font-medium">{{ crumb.title }}</span>
-
-                    <span v-if="index < breadcrumbs.length - 1" class="mx-2">/</span>
+        <AppLayout :breadcrumbs="breadcrumbs">
+            <div class="bg-lectica flex max-h-[200px] w-full flex-1 flex-col gap-4 px-4 pt-4 pb-0">
+                <!--Header Section-->
+                <div class="mb-6 flex min-h-[150px] w-full flex-col items-center justify-center gap-6 rounded-xl p-6 text-center sm:flex-row sm:text-left">
+                    <!--Icon-->
+                    <div class="relative flex flex-col items-center gap-2">
+                        <div class="animate-floating flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:h-28 sm:w-28 md:h-32 md:w-32">
+                            <FileIcon class="h-10 w-10 text-white sm:h-14 sm:w-14 md:h-16 md:w-16" />
+                        </div>
+                    </div>
+                    <!--Title-->
+                    <div>
+                        <h1 class="text-2xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-3xl">
+                            My Files Archive
+                        </h1>
+                        <p class="text-lg text-white/90 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-xl">
+                            Your personal collection of shared knowledge
+                        </p>
+                    </div>
+                    <!--Action Button-->
+                    <div class="sm:ml-auto">
+                        <Link :href="route('files.create')">
+                            <Button class="font-pixel border-2 border-white bg-green-600 px-4 py-2 text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px] transition-all">
+                                <PlusIcon class="mr-2 h-4 w-4" />
+                                Add New File
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
+                <!--Divider-->
+                <hr class="-mx-4 h-2 border-2 border-black bg-blue-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
             </div>
 
-            <div class="mb-6 flex items-center justify-between">
-                <h1 class="text-3xl font-bold">My Files</h1>
-                <Link :href="route('files.create')">
-                    <Button>
-                        <PlusIcon class="mr-2 h-4 w-4" />
-                        Add New File
-                    </Button>
-                </Link>
-            </div>
+            <!--Main Content-->
+            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
 
-            <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12">
-                <FolderIcon class="text-muted-foreground mb-4 h-16 w-16" />
-                <h2 class="mb-2 text-xl font-semibold">No files found</h2>
-                <p class="text-muted-foreground mb-6">You haven't uploaded any files yet.</p>
-                <Link :href="route('files.create')">
-                    <Button>
-                        <PlusIcon class="mr-2 h-4 w-4" />
-                        Upload Your First File
-                    </Button>
-                </Link>
-            </div>
+                <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12">
+                    <div class="mb-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-dashed border-gray-400 bg-gray-100 dark:border-gray-600 dark:bg-gray-800">
+                        <FolderIcon class="h-16 w-16 text-gray-400 dark:text-gray-500" />
+                    </div>
+                    <h2 class="mb-2 text-xl font-semibold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">No files found</h2>
+                    <p class="mb-6 text-white/90 [text-shadow:1px_1px_0_black,-1px_-1px_0_black,1px_-1px_0_black,-1px_1px_0_black]">You haven't uploaded any files yet.</p>
+                    <Link :href="route('files.create')">
+                        <Button class="font-pixel border-2 border-white bg-green-600 px-6 py-3 text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px] transition-all">
+                            <PlusIcon class="mr-2 h-4 w-4" />
+                            Upload Your First File
+                        </Button>
+                    </Link>
+                </div>
 
-            <div v-else class="space-y-6">
-                <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
-                    <h2 class="border-b pb-2 text-xl font-bold">{{ letter }}</h2>
-                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                        <div v-for="file in files" :key="file.id" class="group relative">
-                            <Link :href="route('files.show', file.id)" class="block no-underline">
-                                <Card class="h-full transition-all hover:shadow-md">
+                <div v-else class="space-y-8">
+                    <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
+                        <div class="flex items-center gap-3">
+                            <div class="font-pixel bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-4 py-2 rounded-lg shadow-[4px_4px_0px_rgba(0,0,0,0.8)] text-xl font-bold">
+                                {{ letter }}
+                            </div>
+                            <hr class="flex-1 h-1 bg-gradient-to-r from-yellow-400 to-transparent rounded" />
+                        </div>
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
+                            <div v-for="file in files" :key="file.id" class="group relative">
+                                <Link :href="route('files.show', file.id)" class="block no-underline">
+                                    <Card class="h-full transition-all duration-200 hover:shadow-[8px_8px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px] border-2 border-gray-300 bg-white/90 backdrop-blur-sm dark:border-gray-600 dark:bg-gray-800/90">
                                     <CardHeader class="pb-2">
                                         <div class="flex items-start justify-between">
                                             <div class="flex items-center">
@@ -250,15 +270,17 @@ const addToCollection = async () => {
 
                 <!-- Pagination -->
                 <div v-if="files.meta && files.meta.last_page > 1" class="mt-8 flex justify-center">
-                    <div class="flex space-x-1">
+                    <div class="flex space-x-2">
                         <Link
                             v-for="page in files.meta.links"
                             :key="page.label"
                             :href="page.url ? page.url : '#'"
                             v-text="page.label"
                             :class="[
-                                'rounded border px-3 py-1',
-                                page.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted',
+                                'font-pixel border-2 px-4 py-2 text-sm transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.8)]',
+                                page.active 
+                                    ? 'border-yellow-400 bg-yellow-500 text-black shadow-[4px_4px_0px_rgba(0,0,0,0.8)]' 
+                                    : 'border-white/30 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]',
                                 !page.url && 'cursor-not-allowed opacity-50',
                             ]"
                         />
@@ -269,49 +291,78 @@ const addToCollection = async () => {
 
         <!-- Collection Modal -->
         <Transition name="modal">
-            <div v-if="showCollectionModal" class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                <div class="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
-                    <h2 class="mb-4 text-xl font-semibold">Add to Collection</h2>
+            <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+                <div class="w-full max-w-md rounded-xl border-2 border-white bg-gradient-to-br from-gray-900 to-gray-800 p-6 shadow-[8px_8px_0px_rgba(0,0,0,0.8)]">
+                    <h2 class="font-pixel mb-6 text-xl font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">Add to Collection</h2>
 
                     <!-- Existing Collections -->
                     <div v-if="userCollections.length > 0" class="mb-4">
-                        <p class="text-muted-foreground mb-2 text-sm">Select an existing collection:</p>
-                        <div class="space-y-2">
+                        <p class="mb-3 text-sm text-white/80">Select an existing collection:</p>
+                        <div class="space-y-2 max-h-40 overflow-y-auto">
                             <div
                                 v-for="collection in userCollections"
                                 :key="collection.id"
-                                class="hover:bg-muted flex cursor-pointer items-center justify-between rounded-lg border p-3"
+                                class="flex cursor-pointer items-center justify-between rounded-lg border border-white/20 bg-white/10 p-3 backdrop-blur-sm transition-all hover:bg-white/20 hover:border-white/40"
+                                :class="{ 'border-yellow-400 bg-yellow-500/20': selectedCollection === collection.id }"
                                 @click="selectedCollection = collection.id"
                             >
                                 <div class="flex items-center">
-                                    <FolderIcon class="text-primary mr-2 h-5 w-5" />
-                                    <span class="font-medium">{{ collection.name }}</span>
+                                    <FolderIcon class="mr-2 h-5 w-5 text-yellow-400" />
+                                    <span class="font-medium text-white">{{ collection.name }}</span>
                                 </div>
-                                <span class="text-muted-foreground text-xs">
-                                    {{ collection.file_count }} file
-                                    <span v-if="collection.file_count !== 1">s</span>
+                                <span class="text-xs text-white/60">
+                                    {{ collection.file_count }} file{{ collection.file_count !== 1 ? 's' : '' }}
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     <!-- New Collection -->
-                    <div v-if="showCreateNewCollection" class="mb-4">
-                        <p class="text-muted-foreground mb-2 text-sm">Create a new collection:</p>
-                        <Input v-model="newCollectionName" placeholder="Collection name" class="mb-2" :disabled="isCreatingCollection" />
-                        <Button @click="createNewCollection" :loading="isCreatingCollection" class="w-full"> Create Collection </Button>
+                    <div v-if="showCreateNewCollection" class="mb-6">
+                        <p class="mb-3 text-sm text-white/80">Create a new collection:</p>
+                        <Input 
+                            v-model="newCollectionName" 
+                            placeholder="Collection name" 
+                            class="mb-3 border-2 border-white/30 bg-white/10 text-white placeholder:text-white/60 backdrop-blur-sm focus:border-yellow-400" 
+                            :disabled="isCreatingCollection" 
+                        />
+                        <Button 
+                            @click="createNewCollection" 
+                            :disabled="isCreatingCollection" 
+                            class="font-pixel w-full border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all"
+                        > 
+                            {{ isCreatingCollection ? 'Creating...' : 'Create Collection' }}
+                        </Button>
                     </div>
 
                     <!-- Actions -->
-                    <div class="flex justify-end space-x-2">
-                        <Button variant="outline" @click="showCollectionModal = false" class="flex-1"> Cancel </Button>
-                        <Button v-if="!showCreateNewCollection" @click="showCreateNewCollection = true" class="flex-1">
-                            Create New Collection
+                    <div class="flex justify-end space-x-3">
+                        <Button 
+                            variant="outline" 
+                            @click="showCollectionModal = false" 
+                            class="font-pixel border-2 border-red-400 bg-red-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all"
+                        > 
+                            Cancel 
                         </Button>
-                        <Button v-else @click="addToCollection" class="flex-1"> Add to Collection </Button>
+                        <Button 
+                            v-if="!showCreateNewCollection" 
+                            @click="showCreateNewCollection = true" 
+                            class="font-pixel border-2 border-blue-400 bg-blue-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-blue-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all"
+                        >
+                            Create New
+                        </Button>
+                        <Button 
+                            v-else 
+                            @click="addToCollection" 
+                            :disabled="!selectedCollection"
+                            class="font-pixel border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] hover:bg-green-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        > 
+                            Add to Collection 
+                        </Button>
                     </div>
                 </div>
             </div>
         </Transition>
-    </AppLayout>
+        </AppLayout>
+    </div>
 </template>
