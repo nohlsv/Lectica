@@ -26,8 +26,8 @@ const currentIndex = ref(0);
 const userAnswers = ref<Record<number, any>>({});
 const showFeedback = ref(false);
 const battleFinished = ref(false);
-const playerHp = ref(props.battle.player_hp);
-const monsterHp = ref(props.battle.monster_hp);
+const playerHp = ref(3); // Player starts with 3 hearts
+const currentMonster = ref(props.battle.monster); // Current monster for this question
 const attackMessages = ref<string[]>([]);
 const correctAnswers = ref(props.battle.correct_answers || 0);
 const totalAnswered = ref(props.battle.total_questions || 0);
@@ -85,20 +85,19 @@ const isCurrentAnswerCorrect = computed(() => {
 });
 
 const playerHpPercent = computed(() => {
-    return (playerHp.value / 100) * 100;
+    return (playerHp.value / 3) * 100; // 3 hearts max
 });
 
 const monsterHpPercent = computed(() => {
-    return (monsterHp.value / props.battle.monster.hp) * 100;
+    return 100; // Monster always starts at full health for each question
 });
 
 const battleResult = computed(() => {
-    if (monsterHp.value <= 0) return 'victory';
     if (playerHp.value <= 0) return 'defeat';
     
-    // If battle is finished but neither HP is 0, determine winner by remaining HP
-    if (battleFinished.value) {
-        return playerHp.value >= monsterHp.value ? 'victory' : 'defeat';
+    // If all questions completed and player still has health, it's victory
+    if (battleFinished.value && playerHp.value > 0) {
+        return 'victory';
     }
     
     return null;
@@ -184,11 +183,22 @@ const updateProgress = () => {
 
 watch(currentIndex, updateProgress);
 
+// Get a random monster for each question
+const getRandomMonster = async () => {
+    try {
+        const response = await axios.get('/api/monsters/random');
+        return response.data;
+    } catch (error) {
+        console.error('Failed to get random monster:', error);
+        return props.battle.monster; // Fallback to original monster
+    }
+};
+
 // Initialize battle state
-const initBattleState = () => {
-    playerHp.value = props.battle.player_hp;
-    monsterHp.value = props.battle.monster_hp;
-    attackMessages.value = [];
+const initBattleState = async () => {
+    playerHp.value = 3; // Start with 3 hearts
+    currentMonster.value = await getRandomMonster(); // Start with random monster
+    attackMessages.value = [`A wild ${currentMonster.value.name} appears!`];
     correctAnswers.value = props.battle.correct_answers || 0;
     totalAnswered.value = props.battle.total_questions || 0;
     userAnswers.value = {};
@@ -253,27 +263,22 @@ const checkAnswer = () => {
     // Process battle mechanics
     if (isCurrentAnswerCorrect.value) {
         correctAnswers.value++;
-        // Player attacks monster - use fixed player attack value
-        const playerAttack = 20; // Default player attack value
-        const damage = calculateDamage(playerAttack, props.battle.monster.defense);
-        monsterHp.value = Math.max(0, monsterHp.value - damage);
-        attackMessages.value.unshift(`You dealt ${damage} damage to ${props.battle.monster.name}!`);
+        // Correct answer: Monster dies instantly
+        attackMessages.value.unshift(`You defeated ${currentMonster.value.name} with the correct answer!`);
         
         // Trigger monster shake animation
         triggerMonsterShake();
     } else {
-        // Monster attacks player - use default player defense
-        const playerDefense = 10; // Default player defense value
-        const damage = calculateDamage(props.battle.monster.attack, playerDefense);
-        playerHp.value = Math.max(0, playerHp.value - damage);
-        attackMessages.value.unshift(`${props.battle.monster.name} dealt ${damage} damage to you!`);
+        // Incorrect answer: Monster attacks (1 damage) and runs away
+        playerHp.value = Math.max(0, playerHp.value - 1);
+        attackMessages.value.unshift(`${currentMonster.value.name} attacked you for 1 damage and ran away!`);
     }
 
     // Check if battle is over
-    if (monsterHp.value <= 0 || playerHp.value <= 0) {
+    if (playerHp.value <= 0) {
         finishBattle();
     } else if (Array.isArray(props.quizzes) && currentIndex.value >= props.quizzes.length - 1) {
-        // If this was the last question and neither player is defeated, end the battle
+        // If this was the last question and player survived, they win
         finishBattle();
     }
 
@@ -312,10 +317,14 @@ function toggleSound() {
     soundEnabled.value = !soundEnabled.value;
 }
 
-function next() {
+async function next() {
     if (Array.isArray(props.quizzes) && currentIndex.value < props.quizzes.length - 1) {
         currentIndex.value++;
         showFeedback.value = false;
+        
+        // Spawn a new monster for the next question
+        currentMonster.value = await getRandomMonster();
+        attackMessages.value.unshift(`A wild ${currentMonster.value.name} appears!`);
     } else {
         // No more questions, finish the battle
         finishBattle();
@@ -330,7 +339,7 @@ function finishBattle() {
         .post(route('battles.complete'), {
             battle_id: props.battle.id,
             player_hp: playerHp.value,
-            monster_hp: monsterHp.value,
+            monster_hp: playerHp.value > 0 ? 0 : 1, // If player survived, all monsters were defeated
             correct_answers: correctAnswers.value,
             total_questions: totalAnswered.value,
             status: battleResult.value,
@@ -392,22 +401,22 @@ function finishBattle() {
                 <!-- Monster Area -->
                 <div class="mb-4 flex flex-col items-center">
                     <div class="border-red-500 border-2 my-4 flex w-full max-w-md items-center rounded-lg bg-black/50 pixel-outline p-2">
-                        <div class="mr-2 font-bold text-white">{{ battle.monster.name }}</div>
+                        <div class="mr-2 font-bold text-white">{{ currentMonster.name }}</div>
                         <div class="flex-1">
                             <Progress :value="monsterHpPercent" class="h-4 bg-red-900">
                                 <div class="h-full bg-red-300 pixel-outline-icon" :style="`width: ${monsterHpPercent}%`"></div>
                             </Progress>
                         </div>
-                        <div class="ml-2 font-bold text-white">{{ monsterHp }}/{{ battle.monster.hp }}</div>
+                        <div class="ml-2 font-bold text-white">{{ currentMonster.hp }}/{{ currentMonster.hp }}</div>
                     </div>
                     <div class="relative bg-black/70 p-4 w-full flex items-center justify-center">
                         <img
-                            :src="battle.monster.image_path"
+                            :src="currentMonster.image_path"
                             :class="[
                                 'h-30 sm:h-40 pixel-outline-icon transition-all duration-300',
                                 monsterShaking ? 'animate-shake' : 'animate-floating'
                             ]"
-                            :alt="battle.monster.name"
+                            :alt="currentMonster.name"
                             @error="$event.target.style.display = 'none'"
                         />
                         <div class="flex flex-col p-4 rounded-lg">
@@ -432,12 +441,12 @@ function finishBattle() {
                 <div class="mb-4 flex items-center justify-center">
                     <div class="border-green-500 border-2 mb-2 flex w-full max-w-md items-center rounded-lg bg-black/50 p-2">
                         <div class="mr-2 font-bold text-white pixel-outline">You</div>
-                        <div class="flex-1">
-                            <Progress :value="playerHpPercent" class="h-4 bg-green-900">
-                                <div class="h-full bg-green-300 pixel-outline-icon" :style="`width: ${playerHpPercent}%`"></div>
-                            </Progress>
+                        <div class="flex-1 flex justify-center items-center space-x-1">
+                            <span v-for="n in 3" :key="n" class="text-2xl">
+                                {{ n <= playerHp ? '❤️' : '🖤' }}
+                            </span>
                         </div>
-                        <div class="ml-2 font-bold text-white pixel-outline">{{ playerHp }}/100</div>
+                        <div class="ml-2 font-bold text-white pixel-outline">{{ playerHp }}/3</div>
                     </div>
                 </div>
 
@@ -589,13 +598,14 @@ function finishBattle() {
                     </CardHeader>
                     <CardContent class="text-center">
                         <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500 pixel-outline">
-                            {{ monsterHp <= 0 ? `You defeated ${battle.monster.name}!` : `You outlasted ${battle.monster.name}!` }}
+                            You survived all the monsters and completed the challenge!
                         </div>
                         <div v-else class="mb-4 text-2xl text-red-500 pixel-outline">
-                            {{ playerHp <= 0 ? `${battle.monster.name} defeated you!` : `${battle.monster.name} outlasted you!` }}
+                            The monsters defeated you! You ran out of hearts.
                         </div>
                         <div class="mt-4">
                             <p class="pixel-outline">You answered {{ correctAnswers }} out of {{ totalAnswered }} questions correctly.</p>
+                            <p class="pixel-outline">Hearts remaining: {{ playerHp }}/3</p>
                         </div>
                     </CardContent>
                     <CardFooter class="flex justify-center">

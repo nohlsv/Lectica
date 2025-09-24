@@ -288,63 +288,25 @@
                                 </div>
                             </div>
 
-                            <!-- Monster Selection -->
-                            <div v-if="availableMonsters.length > 0" class="mb-6">
-                                <label class="mb-2 block text-sm font-medium text-gray-300 pixel-outline"> Choose Your Opponent </label>
-                                
-                                <!-- EXP Information -->
-                                <div v-if="questionValidation && currentDifficultyCount > 0" class="mb-4 rounded-lg bg-black/30 p-3">
+                            <!-- Battle Info -->
+                            <div v-if="questionValidation && currentDifficultyCount > 0" class="mb-6">
+                                <div class="rounded-lg bg-black/30 p-4">
                                     <div class="text-center">
-                                        <h4 class="text-sm font-medium text-gray-300 pixel-outline">Expected Rewards</h4>
-                                        <div class="mt-1 text-xs text-gray-400 pixel-outline">
-                                            {{ getExpReward(selectedDifficulty, currentDifficultyCount) }} EXP per correct {{ selectedDifficulty }} question
+                                        <h4 class="text-lg font-medium text-gray-300 pixel-outline mb-2">Battle Challenge</h4>
+                                        <p class="text-sm text-gray-400 pixel-outline mb-3">
+                                            Face {{ currentDifficultyCount }} random monsters in sequence. Each question spawns a new monster!
+                                        </p>
+                                        <div class="text-sm text-gray-400 pixel-outline">
+                                            <div>{{ getExpReward(selectedDifficulty, currentDifficultyCount) }} EXP per correct {{ selectedDifficulty }} question</div>
                                             <span v-if="currentDifficultyCount < 5" class="text-yellow-400">
                                                 ({{ Math.round((Math.max(0.6, currentDifficultyCount / 5)) * 100) }}% of normal due to short battle)
                                             </span>
+                                            <div class="mt-1">+ 50 EXP victory bonus</div>
                                         </div>
-                                        <div class="mt-1 text-xs text-gray-400 pixel-outline">
-                                            + 50 EXP victory bonus
+                                        <div class="mt-3 p-2 bg-red-900/20 rounded border border-red-500">
+                                            <p class="text-red-300 text-sm pixel-outline">⚠️ You have 3 hearts - 3 wrong answers = defeat!</p>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                                    <button
-                                        type="button"
-                                        v-for="monster in availableMonsters"
-                                        :key="monster.id"
-                                        @click="form.monster_id = monster.id"
-                                        :class="
-                                            form.monster_id === monster.id
-                                                ? 'border-indigo-500 bg-black/50 ring-2 ring-indigo-500 hover:scale-105 transition-transform duration-500'
-                                                : 'border-gray-300 bg-black/30 hover:border-indigo-300 dark:border-gray-600 hover:scale-105 transition-transform duration-500'
-                                        "
-                                        class="rounded-lg border p-4 text-left transition-colors"
-                                    >
-                                        <div class="flex items-center">
-                                            <img
-                                                v-if="monster.image_path"
-                                                :src="monster.image_path"
-                                                :alt="monster.name"
-                                                class="mr-3 h-12 w-12 rounded-full pixel-outline-icon"
-                                                @error="$event.target.style.display = 'none'"
-                                            />
-                                            <div>
-                                                <h3 class="font-medium pixel-outline">{{ monster.name }}</h3>
-                                                <p class="text-sm text-gray-500 pixel-outline">HP: {{ monster.hp }}</p>
-                                                <p class="text-sm text-gray-500 pixel-outline">Attack: {{ monster.attack }}</p>
-                                                <div class="mt-1">
-                                                    <span class="inline-block rounded px-2 py-1 text-xs font-medium" 
-                                                          :class="getDifficultyBadgeClass(monster.difficulty)">
-                                                        {{ monster.difficulty.charAt(0).toUpperCase() + monster.difficulty.slice(1) }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-                                <div v-if="form.errors.monster_id" class="mt-2 text-sm text-red-600">
-                                    {{ form.errors.monster_id }}
                                 </div>
                             </div>
 
@@ -366,9 +328,7 @@
                                         <p v-else-if="questionValidation && questionValidation.counts[selectedDifficulty] === 0" class="text-sm text-red-400 pixel-outline">
                                             No {{ selectedDifficulty === 'easy' ? 'True/False' : selectedDifficulty === 'medium' ? 'Multiple Choice' : 'Enumeration' }} questions available for {{ selectedDifficulty }} difficulty
                                         </p>
-                                        <p v-else-if="!form.monster_id" class="text-sm text-yellow-400 pixel-outline">
-                                            Please select a monster
-                                        </p>
+
                                         <p v-else-if="!(form.source_type === 'file' ? form.file_id : form.collection_id)" class="text-sm text-yellow-400 pixel-outline">
                                             Please select a source
                                         </p>
@@ -416,15 +376,6 @@ import { Head, Link, useForm } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 
-interface Monster {
-    id: number;
-    name: string;
-    hp: number;
-    attack: number;
-    image_path: string;
-    difficulty: string;
-}
-
 interface File {
     id: number;
     name: string;
@@ -453,7 +404,6 @@ interface QuestionValidation {
 }
 
 const props = defineProps<{
-    monsters: Monster[];
     files: File[];
     collections: Collection[];
 }>();
@@ -466,12 +416,9 @@ const form = useForm({
     source_type: 'file',
     file_id: '',
     collection_id: '',
-    monster_id: '',
 });
 
-const availableMonsters = computed(() => {
-    return props.monsters.filter((monster) => monster.difficulty === selectedDifficulty.value);
-});
+// Monsters are now randomly selected for each question
 
 const selectedSource = computed(() => {
     if (form.source_type === 'file' && form.file_id) {
@@ -484,11 +431,10 @@ const selectedSource = computed(() => {
 
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
-    const hasMonster = form.monster_id && selectedDifficulty.value;
     const hasQuestions = questionValidation.value?.has_questions !== false;
     const hasQuestionsForDifficulty = questionValidation.value?.counts[selectedDifficulty.value] > 0;
     
-    return hasSource && hasMonster && hasQuestions && hasQuestionsForDifficulty;
+    return hasSource && hasQuestions && hasQuestionsForDifficulty;
 });
 
 const currentDifficultyWarning = computed(() => {
@@ -542,19 +488,9 @@ const getExpReward = (difficulty: string, questionCount: number) => {
     return baseExp;
 };
 
-const getDifficultyBadgeClass = (difficulty: string) => {
-    const classes = {
-        easy: 'bg-green-500/20 text-green-400 border border-green-500/30',
-        medium: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
-        hard: 'bg-red-500/20 text-red-400 border border-red-500/30'
-    };
-    return classes[difficulty] || classes.medium;
-};
+// Removed getDifficultyBadgeClass since we no longer show monsters
 
-// Reset monster selection when difficulty changes
-watch(selectedDifficulty, () => {
-    form.monster_id = '';
-});
+// No need to reset monster selection since we removed it
 
 // Reset file/collection when source type changes
 watch(
@@ -591,7 +527,7 @@ const submit = () => {
     // Prepare form data based on source type
     const formData = {
         source_type: form.source_type,
-        monster_id: form.monster_id,
+        monster_id: 1, // Default monster ID since we'll use random monsters
     };
 
     // Only include the relevant ID field based on source type

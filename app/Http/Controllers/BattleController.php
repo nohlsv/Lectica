@@ -44,7 +44,6 @@ class BattleController extends Controller
      */
     public function create()
     {
-        $monsters = Monster::all();
         $files = File::where('user_id', Auth::id())->get();
         $collections = Collection::where('user_id', Auth::id())
             ->with(['files'])
@@ -52,7 +51,6 @@ class BattleController extends Controller
             ->get();
 
         return Inertia::render('Battles/Create', [
-            'monsters' => $monsters,
             'files' => $files,
             'collections' => $collections
         ]);
@@ -64,15 +62,15 @@ class BattleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'monster_id' => 'required|integer|exists:monsters,id',
             'source_type' => 'required|in:file,collection',
             'file_id' => 'required_if:source_type,file|exists:files,id',
             'collection_id' => 'required_if:source_type,collection|exists:collections,id',
         ]);
 
-        $monster = Monster::find($request->monster_id);
+        // Get a random monster for the initial battle setup
+        $monster = Monster::where('is_active', true)->inRandomOrder()->first();
         if (!$monster) {
-            return back()->withErrors(['monster_id' => 'Invalid monster selected.']);
+            return back()->withErrors(['monster_id' => 'No monsters available.']);
         }
 
         $file = null;

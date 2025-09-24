@@ -59,30 +59,10 @@ class BattleService
             throw new \InvalidArgumentException('Either file_id or collection_id must be provided.');
         }
 
-        // Additional validation: Check if there are questions for the monster's difficulty
-        // Create a temporary battle to use the same filtering logic
-        $tempBattle = new Battle([
-            'monster_id' => $monsterId,
-            'file_id' => $fileId,
-            'collection_id' => $collectionId,
-        ]);
-        $tempBattle->monster = $monster;
-        if ($fileId) {
-            $tempBattle->file = $file;
-        } elseif ($collectionId) {
-            $tempBattle->collection = $collection;
-        }
-        
-        $availableQuizzes = $tempBattle->getAvailableQuizzes();
-        
-        if ($availableQuizzes->count() === 0) {
-            $difficultyQuizType = match($monster->difficulty) {
-                'easy' => 'True/False',
-                'medium' => 'Multiple Choice', 
-                'hard' => 'Enumeration',
-                default => 'appropriate difficulty'
-            };
-            throw new \InvalidArgumentException("No {$difficultyQuizType} questions available for {$monster->difficulty} difficulty battles. Please generate {$difficultyQuizType} quizzes first or choose a different monster.");
+        // Basic validation: Check if there are any questions available
+        // Since we use random monsters for each question, we just need ANY quizzes
+        if ($quizCount === 0) {
+            throw new \InvalidArgumentException("No questions available for battle. Please generate quizzes first.");
         }
 
         return Battle::create([

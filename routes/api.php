@@ -34,6 +34,11 @@ Route::middleware('auth')->get('/user', function (Request $request) {
 Route::get('/leaderboard/general', [LeaderboardController::class, 'general']);
 Route::get('/leaderboard/multiplayer', [LeaderboardController::class, 'multiplayer']);
 
+// Monster routes
+Route::get('/monsters/random', function () {
+    return App\Models\Monster::where('is_active', true)->inRandomOrder()->first();
+});
+
 //Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/users', [UserController::class, 'index']);
     Route::patch('/users/{user}/role', [UserController::class, 'updateRole']);
