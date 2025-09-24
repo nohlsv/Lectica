@@ -32,6 +32,11 @@ const attackMessages = ref<string[]>([]);
 const correctAnswers = ref(props.battle.correct_answers || 0);
 const totalAnswered = ref(props.battle.total_questions || 0);
 
+// Visual effects
+const monsterShaking = ref(false);
+const answerEffectType = ref<'correct' | 'incorrect' | null>(null);
+const soundEnabled = ref(true);
+
 // Initialize userAnswers
 props.quizzes.forEach((quiz, index) => {
     if (quiz.type === 'multiple_choice') {
@@ -222,15 +227,20 @@ const checkAnswer = () => {
     showFeedback.value = true;
     totalAnswered.value++;
 
-    // Play sound effect
-    if (isCurrentAnswerCorrect.value) {
-        correctSfx.currentTime = 0;
-        correctSfx.play();
-        playDamageSfx();
-    } else {
-        incorrectSfx.currentTime = 0;
-        incorrectSfx.play();
-        playDamageSfx();
+    // Set visual effect type
+    answerEffectType.value = isCurrentAnswerCorrect.value ? 'correct' : 'incorrect';
+
+    // Play sound effect (if enabled)
+    if (soundEnabled.value) {
+        if (isCurrentAnswerCorrect.value) {
+            correctSfx.currentTime = 0;
+            correctSfx.play();
+            playDamageSfx();
+        } else {
+            incorrectSfx.currentTime = 0;
+            incorrectSfx.play();
+            playDamageSfx();
+        }
     }
 
     // Process battle mechanics
@@ -241,6 +251,9 @@ const checkAnswer = () => {
         const damage = calculateDamage(playerAttack, props.battle.monster.defense);
         monsterHp.value = Math.max(0, monsterHp.value - damage);
         attackMessages.value.unshift(`You dealt ${damage} damage to ${props.battle.monster.name}!`);
+        
+        // Trigger monster shake animation
+        triggerMonsterShake();
     } else {
         // Monster attacks player - use default player defense
         const playerDefense = 10; // Default player defense value
@@ -256,6 +269,9 @@ const checkAnswer = () => {
         // If this was the last question and neither player is defeated, end the battle
         finishBattle();
     }
+
+    // Clear visual effects after delay
+    clearAnswerEffect();
 };
 
 function calculateDamage(attack: number, defense: number) {
@@ -269,6 +285,24 @@ function calculateDamage(attack: number, defense: number) {
 
     // Ensure we return a valid number, minimum 1 damage
     return Math.max(1, finalDamage || 1);
+}
+
+// Visual effect functions
+function triggerMonsterShake() {
+    monsterShaking.value = true;
+    setTimeout(() => {
+        monsterShaking.value = false;
+    }, 500);
+}
+
+function clearAnswerEffect() {
+    setTimeout(() => {
+        answerEffectType.value = null;
+    }, 2000);
+}
+
+function toggleSound() {
+    soundEnabled.value = !soundEnabled.value;
 }
 
 function next() {
@@ -311,13 +345,24 @@ function finishBattle() {
 
             <!-- Battle Header -->
             <div class="flex flex-col justify-between p-4">
-                <Link :href="route('files.quizzes.index', file.id)" class="mb-4">
+                <div class="flex justify-between items-start mb-4">
+                    <Link :href="route('files.quizzes.index', file.id)">
+                        <Button
+                            class="border-4 border-red-700 pixel-outline bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                        >
+                            Escape Battle
+                        </Button>
+                    </Link>
                     <Button
-                        class="border-4 border-red-700 pixel-outline bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                        @click="toggleSound"
+                        :class="[
+                            'border-4 pixel-outline font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]',
+                            soundEnabled ? 'border-green-700 bg-green-500 hover:bg-green-600' : 'border-gray-700 bg-gray-500 hover:bg-gray-600'
+                        ]"
                     >
-                        Escape Battle
+                        {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
                     </Button>
-                </Link>
+                </div>
                 <div class="flex grid text-center rounded-lg p-2 text-xl md:text-3xl font-bold welcome-banner mb-4 animate-soft-bounce pixel-outline">
                     {{ file.name }}
                 </div>
@@ -340,7 +385,10 @@ function finishBattle() {
                     <div class="relative bg-black/70 p-4 w-full flex items-center justify-center">
                         <img
                             :src="battle.monster.image_path"
-                            class="animate-floating h-30 sm:h-40 pixel-outline-icon"
+                            :class="[
+                                'h-30 sm:h-40 pixel-outline-icon transition-all duration-300',
+                                monsterShaking ? 'animate-shake' : 'animate-floating'
+                            ]"
                             :alt="battle.monster.name"
                             @error="$event.target.style.display = 'none'"
                         />
@@ -348,7 +396,14 @@ function finishBattle() {
                             <div class="text-sm pixel-outline sm:text-base md:text-lg text-left font-bold text-yellow-300 mb-2">
                                 {{ quizTypes[currentQuiz.type] }}
                             </div>
-                            <div class="text-base pixel-outline sm:text-lg md:text-xl font-bold text-white">
+                            <div 
+                                :class="[
+                                    'text-base pixel-outline sm:text-lg md:text-xl font-bold transition-all duration-300',
+                                    answerEffectType === 'correct' ? 'text-green-300 animate-pulse' : 
+                                    answerEffectType === 'incorrect' ? 'text-red-300 animate-pulse' : 
+                                    'text-white'
+                                ]"
+                            >
                                 {{ currentQuiz.question }}
                             </div>
                         </div>
@@ -541,6 +596,10 @@ function finishBattle() {
     animation: float 2s ease-in-out infinite;
 }
 
+.animate-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
 @keyframes float {
     0% {
         transform: translateY(0px);
@@ -550,6 +609,18 @@ function finishBattle() {
     }
     100% {
         transform: translateY(0px);
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-10px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(10px);
     }
 }
 </style>

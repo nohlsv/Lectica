@@ -22,6 +22,15 @@
                             {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
                         </span>
                     </div>
+                    <button
+                        @click="toggleSound"
+                        :class="[
+                            'rounded-md px-3 py-1 text-sm text-white transition-colors',
+                            soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
+                        ]"
+                    >
+                        {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
+                    </button>
                     <button @click="abandonGame" class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700">Abandon Game</button>
                 </div>
             </div>
@@ -359,6 +368,7 @@ const accuracyAnimation = ref<{ player: 'one' | 'two'; change: number } | null>(
 const streakAnimation = ref<{ player: 'one' | 'two'; streak: number } | null>(null);
 const gameStartAnimation = ref(false);
 const gameEndAnimation = ref(false);
+const soundEnabled = ref(true);
 
 // Timer constraint
 const TIMER_DURATION = 30; // seconds per question
@@ -499,13 +509,15 @@ const defeatSfx = new Audio('/sfx/defeat.wav');
 const damageSfx = new Audio('/sfx/damage.wav');
 
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
-    // Play sound effect
-    if (isCorrect) {
-        correctSfx.currentTime = 0;
-        correctSfx.play();
-    } else {
-        incorrectSfx.currentTime = 0;
-        incorrectSfx.play();
+    // Play sound effect (if enabled)
+    if (soundEnabled.value) {
+        if (isCorrect) {
+            correctSfx.currentTime = 0;
+            correctSfx.play();
+        } else {
+            incorrectSfx.currentTime = 0;
+            incorrectSfx.play();
+        }
     }
 
     if (props.game.game_mode === 'pvp') {
@@ -665,6 +677,10 @@ const abandonGame = () => {
     }
 };
 
+const toggleSound = () => {
+    soundEnabled.value = !soundEnabled.value;
+};
+
 const handleImageError = (event: Event) => {
     const img = event.target as HTMLImageElement;
     img.src = '/images/default-monster.png';
@@ -719,12 +735,14 @@ onMounted(() => {
                             answer: e.additional_data.answer_text,
                         };
 
-                        if (opponentFeedback.value.isCorrect) {
-                            correctSfx.currentTime = 0;
-                            correctSfx.play();
-                        } else {
-                            incorrectSfx.currentTime = 0;
-                            incorrectSfx.play();
+                        if (soundEnabled.value) {
+                            if (opponentFeedback.value.isCorrect) {
+                                correctSfx.currentTime = 0;
+                                correctSfx.play();
+                            } else {
+                                incorrectSfx.currentTime = 0;
+                                incorrectSfx.play();
+                            }
                         }
 
                         setTimeout(() => {
@@ -847,7 +865,7 @@ onMounted(() => {
 
 // Play sfx for game start animation
 watch(gameStartAnimation, (val) => {
-    if (val) {
+    if (val && soundEnabled.value) {
         gameStartSfx.currentTime = 0;
         gameStartSfx.play();
     }
@@ -855,7 +873,7 @@ watch(gameStartAnimation, (val) => {
 
 // Play sfx for game end animation
 watch(gameEndAnimation, (val) => {
-    if (val) {
+    if (val && soundEnabled.value) {
         gameEndSfx.currentTime = 0;
         gameEndSfx.play();
     }
@@ -863,7 +881,7 @@ watch(gameEndAnimation, (val) => {
 
 // Play sfx when player's turn starts
 watch(isMyTurn, (val, oldVal) => {
-    if (val && !oldVal) {
+    if (val && !oldVal && soundEnabled.value) {
         turnStartSfx.currentTime = 0;
         turnStartSfx.play();
     }

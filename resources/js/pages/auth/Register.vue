@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import type { Program } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle } from 'lucide-vue-next';
+import { LoaderCircle, Eye, EyeOff } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Props {
@@ -35,6 +35,17 @@ const selectedCollege = ref('');
 const filteredPrograms = computed(() => {
     return selectedCollege.value ? props.programs.filter((program) => program.college === selectedCollege.value) : props.programs;
 });
+
+const showPassword = ref(false);
+const showPasswordConfirmation = ref(false);
+
+const togglePasswordVisibility = () => {
+    showPassword.value = !showPassword.value;
+};
+
+const togglePasswordConfirmationVisibility = () => {
+    showPasswordConfirmation.value = !showPasswordConfirmation.value;
+};
 
 const submit = () => {
     form.post(route('register'), {
@@ -165,33 +176,57 @@ const submit = () => {
 
                 <div class="grid gap-1">
                     <Label class="text-base pixel-outline tracking-wide" for="password">Password</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        required
-                        :tabindex="7"
-                        autocomplete="new-password"
-                        v-model="form.password"
-                        placeholder="Password"
-                    />
+                    <div class="relative">
+                        <Input
+                            id="password"
+                            :type="showPassword ? 'text' : 'password'"
+                            required
+                            :tabindex="7"
+                            autocomplete="new-password"
+                            v-model="form.password"
+                            placeholder="Password"
+                            class="pr-10"
+                        />
+                        <button
+                            type="button"
+                            @click="togglePasswordVisibility"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            :tabindex="8"
+                        >
+                            <Eye v-if="!showPassword" class="h-4 w-4" />
+                            <EyeOff v-else class="h-4 w-4" />
+                        </button>
+                    </div>
                     <InputError :message="form.errors.password" />
                 </div>
 
                 <div class="grid gap-1">
                     <Label class="text-base pixel-outline tracking-wide" for="password_confirmation">Confirm password</Label>
-                    <Input
-                        id="password_confirmation"
-                        type="password"
-                        required
-                        :tabindex="8"
-                        autocomplete="new-password"
-                        v-model="form.password_confirmation"
-                        placeholder="Confirm password"
-                    />
+                    <div class="relative">
+                        <Input
+                            id="password_confirmation"
+                            :type="showPasswordConfirmation ? 'text' : 'password'"
+                            required
+                            :tabindex="9"
+                            autocomplete="new-password"
+                            v-model="form.password_confirmation"
+                            placeholder="Confirm password"
+                            class="pr-10"
+                        />
+                        <button
+                            type="button"
+                            @click="togglePasswordConfirmationVisibility"
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            :tabindex="10"
+                        >
+                            <Eye v-if="!showPasswordConfirmation" class="h-4 w-4" />
+                            <EyeOff v-else class="h-4 w-4" />
+                        </button>
+                    </div>
                     <InputError :message="form.errors.password_confirmation" />
                 </div>
 
-                <Button type="submit" class="mt-2 w-full" tabindex="9" :disabled="form.processing" variant="green">
+                <Button type="submit" class="mt-2 w-full" tabindex="11" :disabled="form.processing" variant="green">
                     <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
                     Create account
                 </Button>
