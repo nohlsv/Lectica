@@ -19,6 +19,7 @@ class Battle extends Model
         'file_id',
         'collection_id',
         'status',
+        'difficulty',
         'player_hp',
         'monster_hp',
         'correct_answers',
@@ -68,7 +69,7 @@ class Battle extends Model
 
     /**
      * Get all quizzes available for this battle (from file or collection).
-     * Returns all quiz types since monsters are randomly selected for each question.
+     * Filtered by the selected battle difficulty.
      */
     public function getAvailableQuizzes()
     {
@@ -82,7 +83,20 @@ class Battle extends Model
             $quizzes = Quiz::where('file_id', $this->file_id)->get();
         }
 
-        // No longer filter by monster difficulty since each question gets a random monster
+        // Filter quizzes based on battle difficulty if set
+        if (isset($this->difficulty) && $quizzes->count() > 0) {
+            $allowedType = match($this->difficulty) {
+                'easy' => 'true_false',
+                'medium' => 'multiple_choice',
+                'hard' => 'enumeration',
+                default => null
+            };
+
+            if ($allowedType) {
+                $quizzes = $quizzes->where('type', $allowedType);
+            }
+        }
+
         return $quizzes;
     }
 

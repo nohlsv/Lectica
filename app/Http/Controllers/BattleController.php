@@ -68,6 +68,7 @@ class BattleController extends Controller
             'source_type' => 'required|in:file,collection',
             'file_id' => 'required_if:source_type,file|exists:files,id',
             'collection_id' => 'required_if:source_type,collection|exists:collections,id',
+            'difficulty' => 'required|in:easy,medium,hard',
         ]);
 
         // Get a random monster for the initial battle setup
@@ -81,9 +82,9 @@ class BattleController extends Controller
         $quizCount = 0;
 
         if ($request->source_type === 'file') {
-            $battle = $this->battleService->createBattle($monster->id, $request->file_id);
+            $battle = $this->battleService->createBattle($monster->id, $request->file_id, null, $request->difficulty);
         } else {
-            $battle = $this->battleService->createBattle($monster->id, null, $request->collection_id);
+            $battle = $this->battleService->createBattle($monster->id, null, $request->collection_id, $request->difficulty);
         }
 
         // Update quest progress for starting a battle

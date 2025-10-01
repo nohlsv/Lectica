@@ -19,7 +19,7 @@ class BattleService
     /**
      * Create a new battle for the authenticated user.
      */
-    public function createBattle(int $monsterId, ?int $fileId = null, ?int $collectionId = null): Battle
+    public function createBattle(int $monsterId, ?int $fileId = null, ?int $collectionId = null, ?string $difficulty = 'easy'): Battle
     {
         $monster = Monster::find($monsterId);
         if (!$monster) {
@@ -71,6 +71,7 @@ class BattleService
             'file_id' => $fileId,
             'collection_id' => $collectionId,
             'status' => BattleStatus::ACTIVE,
+            'difficulty' => $difficulty ?? 'easy',
             'player_hp' => $this->getDefaultPlayerHp(),
             'monster_hp' => $monster->hp,
             'correct_answers' => 0,
@@ -194,7 +195,8 @@ class BattleService
             return null;
         }
 
-        return $battle->file->quizzes->random();
+        $availableQuizzes = $battle->getAvailableQuizzes();
+        return $availableQuizzes->count() > 0 ? $availableQuizzes->random() : null;
     }
 
     /**

@@ -417,6 +417,7 @@ const form = useForm({
     source_type: 'file',
     file_id: '',
     collection_id: '',
+    difficulty: 'easy',
 });
 
 // Monsters are now randomly selected for each question
@@ -521,6 +522,14 @@ watch(
     }
 );
 
+// Watch for changes in selectedDifficulty to update form
+watch(
+    () => selectedDifficulty.value,
+    (newDifficulty) => {
+        form.difficulty = newDifficulty;
+    }
+);
+
 const submit = () => {
     console.log('Form submission started');
 
@@ -538,6 +547,7 @@ const submit = () => {
     // Prepare form data based on source type
     const formData: any = {
         source_type: form.source_type,
+        difficulty: selectedDifficulty.value,
         monster_id: 1, // Default monster ID since we'll use random monsters
     };
 
