@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustHosts(at: ['www.lectica.tech', 'lectica.tech', 'lectica-app-5y8wm.ondigitalocean.app']);
         $middleware->trustProxies(at: '*');
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
+        
+        // Register middleware aliases
+        $middleware->alias([
+            'auth' => \App\Http\Middleware\Authenticate::class,
+            'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
+            'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        ]);
         $middleware->append(
             [
                 \App\Http\Middleware\LogAccess::class,
