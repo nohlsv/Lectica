@@ -140,6 +140,107 @@ const getTooltipText = (data: HeatmapData): string => {
     return `${data.date}: ${activities.join(', ')}`;
 };
 
+// Calculate this week's stats
+const thisWeekStats = computed(() => {
+    if (!props.streakData?.heatmap_data?.length) {
+        return {
+            daysActive: 0,
+            totalXP: 0,
+            totalQuestions: 0,
+            correctAnswers: 0,
+            quizzesCompleted: 0,
+            battlesParticipated: 0,
+            flashcardsReviewed: 0,
+            studyTime: 0,
+            weekProgress: 0,
+            daysPassed: 0,
+            daysRemaining: 7
+        };
+    }
+    
+    // Get current week (Sunday to Saturday)
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+    
+    // Calculate the start of this week (Sunday)
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - currentDayOfWeek);
+    weekStart.setHours(0, 0, 0, 0); // Start of Sunday
+    
+    // Calculate the end of this week (Saturday)
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999); // End of Saturday
+    
+    const thisWeekData = props.streakData.heatmap_data.filter(day => {
+        const dayDate = new Date(day.date + 'T00:00:00'); // Ensure proper date parsing
+        return dayDate >= weekStart && dayDate <= weekEnd;
+    });
+    
+    const stats = thisWeekData.reduce((acc, day) => {
+        if (day.value > 0) acc.daysActive++;
+        acc.totalXP += day.points || 0;
+        acc.totalQuestions += day.count || 0;
+        acc.correctAnswers += day.correct_answers || 0;
+        acc.quizzesCompleted += day.quizzes_completed || 0;
+        acc.battlesParticipated += day.battles_participated || 0;
+        acc.flashcardsReviewed += day.flashcards_reviewed || 0;
+        acc.studyTime += day.time_studied || 0;
+        return acc;
+    }, {
+        daysActive: 0,
+        totalXP: 0,
+        totalQuestions: 0,
+        correctAnswers: 0,
+        quizzesCompleted: 0,
+        battlesParticipated: 0,
+        flashcardsReviewed: 0,
+        studyTime: 0
+    });
+    
+    // Calculate how many days have passed in the current week (including today)
+    const daysPassed = currentDayOfWeek + 1; // +1 because Sunday is 0 but we want to count it as 1 day
+    
+    return {
+        ...stats,
+        weekProgress: Math.round((stats.daysActive / 7) * 100),
+        daysPassed: daysPassed,
+        daysRemaining: 7 - daysPassed
+    };
+});
+
+// Generate motivation text based on performance
+const motivationText = computed(() => {
+    const stats = thisWeekStats.value;
+    const streak = props.streakData?.current_streak || 0;
+    
+    if (stats.daysActive === 0) {
+        return "Ready to start your learning journey? Every expert was once a beginner! 🌱";
+    }
+    
+    if (stats.weekProgress >= 85) {
+        return `Incredible! ${stats.daysActive}/7 days active this week! You're on fire! 🔥`;
+    }
+    
+    if (stats.weekProgress >= 70) {
+        return `Great progress! ${stats.daysActive} days active this week. Keep pushing! 💪`;
+    }
+    
+    if (stats.weekProgress >= 40) {
+        return `Good start! ${stats.daysActive} days active. Can you reach 5 days this week? 🎯`;
+    }
+    
+    if (streak >= 7) {
+        return `${streak}-day streak! You're building amazing habits! 🏆`;
+    }
+    
+    if (streak >= 3) {
+        return `${streak} days in a row! Consistency is key to mastery! ⭐`;
+    }
+    
+    return `${stats.daysActive} active days this week. Small steps lead to big wins! 🚀`;
+});
+
 // Handle mouse events for tooltip
 const showTooltip = (event: MouseEvent, data: HeatmapData) => {
     if (data.value === -1 || !data.date) return;
@@ -251,6 +352,68 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
                 </CardTitle>
             </CardHeader>
             <CardContent class="p-3 sm:p-4 lg:p-6">
+                <!-- This Week's Stats & Motivation -->
+                <div class="mb-6 p-4 bg-black/30 rounded-lg border border-gold/20">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+                        <div>
+                            <h3 class="text-white pixel-outline font-bold text-lg mb-1">This Week's Progress (Sun-Sat)</h3>
+                            <p class="text-white/80 text-sm pixel-outline">{{ motivationText }}</p>
+                            <p class="text-white/60 text-xs mt-1">{{ thisWeekStats.daysPassed }} of 7 days passed • {{ thisWeekStats.daysRemaining }} days remaining</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="text-right">
+                                <div class="text-2xl font-bold text-gold pixel-outline">{{ thisWeekStats.weekProgress }}%</div>
+                                <div class="text-xs text-white/70">Complete</div>
+                            </div>
+                            <div class="w-16 h-16 relative">
+                                <svg class="w-16 h-16 transform -rotate-90" viewBox="0 0 36 36">
+                                    <path d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
+                                          fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="2"/>
+                                    <path d="m18,2.0845 a 15.9155,15.9155 0 0,1 0,31.831 a 15.9155,15.9155 0 0,1 0,-31.831"
+                                          fill="none" stroke="#ffd700" stroke-width="2"
+                                          :stroke-dasharray="`${thisWeekStats.weekProgress}, 100`"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-xs font-bold text-gold pixel-outline">{{ thisWeekStats.daysActive }}/7</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Complete Stats Grid -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7 gap-3 text-center">
+                        <!-- Always show these core stats -->
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-yellow-400 pixel-outline">{{ thisWeekStats.totalXP }}</div>
+                            <div class="text-xs text-white/70">XP Earned</div>
+                        </div>
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-blue-400 pixel-outline">{{ thisWeekStats.totalQuestions }}</div>
+                            <div class="text-xs text-white/70">Questions</div>
+                        </div>
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-emerald-400 pixel-outline">{{ thisWeekStats.correctAnswers }}</div>
+                            <div class="text-xs text-white/70">Correct</div>
+                        </div>
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-green-400 pixel-outline">{{ thisWeekStats.studyTime }}m</div>
+                            <div class="text-xs text-white/70">Study Time</div>
+                        </div>
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-purple-400 pixel-outline">{{ thisWeekStats.quizzesCompleted }}</div>
+                            <div class="text-xs text-white/70">📝 Quizzes</div>
+                        </div>
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-red-400 pixel-outline">{{ thisWeekStats.battlesParticipated }}</div>
+                            <div class="text-xs text-white/70">⚔️ Battles</div>
+                        </div>
+                        <div class="bg-black/40 rounded p-2 border border-white/10">
+                            <div class="text-lg font-bold text-indigo-400 pixel-outline">{{ thisWeekStats.flashcardsReviewed }}</div>
+                            <div class="text-xs text-white/70">🃏 Flashcards</div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="overflow-x-auto heatmap-scroll">
                     <div class="relative min-w-[280px] sm:min-w-[600px] lg:min-w-[800px] mx-auto">
                         <!-- Heatmap grid with weeks -->
@@ -326,11 +489,11 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
                 </div>
                 
                 <!-- Activities -->
-                <div v-if="tooltip.data.quizzes_completed > 0 || tooltip.data.battles_participated > 0 || tooltip.data.flashcards_reviewed > 0" class="space-y-0.5 pt-1 border-t border-white/20">
+                <!-- <div v-if="tooltip.data.quizzes_completed > 0 || tooltip.data.battles_participated > 0 || tooltip.data.flashcards_reviewed > 0" class="space-y-0.5 pt-1 border-t border-white/20"> -->
                     <div v-if="tooltip.data.quizzes_completed > 0">📝 Quizzes Completed: {{ tooltip.data.quizzes_completed }}</div>
                     <div v-if="tooltip.data.battles_participated > 0">⚔️ Battles Participated: {{ tooltip.data.battles_participated }}</div>
                     <div v-if="tooltip.data.flashcards_reviewed > 0">🃏 Flashcards Reviewed: {{ tooltip.data.flashcards_reviewed }}</div>
-                </div>
+                <!-- </div> -->
                 
                 <!-- Study Time -->
                 <div v-if="tooltip.data.time_studied > 0" class="text-blue-400 pt-1 border-t border-white/20">
