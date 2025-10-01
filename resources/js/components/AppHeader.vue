@@ -19,7 +19,7 @@ import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { ChartArea, FileChartLine, FileIcon, FolderOpen, LayoutGrid, Menu, Swords, Target, Users } from 'lucide-vue-next';
+import { ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Swords, Target, Users } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 interface Props {
@@ -87,6 +87,11 @@ const mainNavItems: NavItem[] = [
         title: 'Leaderboards',
         href: '/leaderboards',
         icon: ChartArea,
+    },
+    {
+        title: 'FAQ',
+        href: '/faq',
+        icon: HelpCircle,
     },
     // Add faculty/admin pages conditionally
     ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'

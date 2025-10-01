@@ -11,6 +11,7 @@ use App\Models\Collection;
 use App\Services\BattleService;
 use App\Services\QuestService;
 use App\Services\QuizDifficultyService;
+use App\Traits\TracksStudyActivity;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,8 @@ use Illuminate\Support\Facades\DB;
 
 class BattleController extends Controller
 {
+    use TracksStudyActivity;
+    
     public function __construct(
         private BattleService $battleService,
         private QuestService $questService,
@@ -238,6 +241,14 @@ class BattleController extends Controller
         if ($request->status === 'victory') {
             $this->questService->updateQuestProgress($user, 'battle_win');
         }
+
+        // Track study activity
+        $this->recordBattleActivity($user->id, [
+            'questions_answered' => $request->total_questions,
+            'correct_answers' => $request->correct_answers,
+            'points_earned' => $completionBonus,
+            'time_spent_minutes' => 5, // Estimate 5 minutes per battle
+        ]);
 
         return response()->json([
             'success' => true,

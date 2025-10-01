@@ -17,14 +17,26 @@ Route::get('/', function () {
 Route::get('home', function (Request $request) {
     $user = $request->user();
     $recommendationService = app(App\Services\FileRecommendationService::class);
+    $streakService = app(App\Services\StudyStreakService::class);
+    
     $recommendations = $recommendationService->getRecommendations($user);
+    $streakStats = $streakService->getStreakStats($user);
+    
     logger()->info('Recommendations:', [
         'user_id' => $user->id,
         'recommendations' => $recommendations
     ]);
+    
+    logger()->info('Streak Stats:', [
+        'user_id' => $user->id,
+        'current_streak' => $streakStats['current_streak'],
+        'heatmap_count' => count($streakStats['heatmap_data']),
+        'sample_heatmap_data' => array_slice($streakStats['heatmap_data'], 0, 5)
+    ]);
 
     return Inertia::render('Dashboard', [
-        'recommendations' => $recommendations
+        'recommendations' => $recommendations,
+        'streakStats' => $streakStats
     ]);
 })->middleware(['auth', 'verified'])->name('home');
 
@@ -112,6 +124,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/leaderboards', function () {
         return Inertia::render('Leaderboards');
     })->name('leaderboards');
+    Route::get('/faq', function () {
+        return Inertia::render('FAQ');
+    })->name('faq');
+    
+    // Debug route for testing streak data
+    Route::get('/debug-streaks', function (Request $request) {
+        $user = $request->user();
+        $streakService = app(App\Services\StudyStreakService::class);
+        $stats = $streakService->getStreakStats($user);
+        
+        return response()->json([
+            'current_streak' => $stats['current_streak'],
+            'longest_streak' => $stats['longest_streak'], 
+            'total_study_days' => $stats['total_study_days'],
+            'heatmap_count' => count($stats['heatmap_data']),
+            'sample_recent_data' => array_slice($stats['heatmap_data'], -10),
+            'sample_early_data' => array_slice($stats['heatmap_data'], 0, 10)
+        ]);
+    });
 
     Route::get('/admin/user-roles', [UserController::class, 'show'])
         ->name('admin.user-roles');

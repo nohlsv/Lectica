@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\MultiplayerGame;
 use App\Models\User;
 use App\Models\Quiz;
+use App\Traits\TracksStudyActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Broadcast;
 
 class GameController extends Controller
 {
+    use TracksStudyActivity;
     //
     public function store(Request $request) {
         // Make a game

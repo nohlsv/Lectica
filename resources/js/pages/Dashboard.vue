@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import FileCard from '@/components/FileCard.vue';
+import StudyStreakHeatmap from '@/components/StudyStreakHeatmap.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
@@ -26,8 +27,23 @@ interface RecommendationGroup {
     [key: string]: File[];
 }
 
+interface HeatmapData {
+    date: string;
+    value: number;
+    count: number;
+    points: number;
+}
+
+interface StreakStats {
+    current_streak: number;
+    longest_streak: number;
+    total_study_days: number;
+    heatmap_data: HeatmapData[];
+}
+
 interface Props {
     recommendations: RecommendationGroup;
+    streakStats: StreakStats;
 }
 
 const props = defineProps<Props>();
@@ -214,6 +230,13 @@ const adminActions = [
         description: 'Platform engagement',
         icon: 'trophy',
         color: 'yellow'
+    },
+    {
+        title: 'FAQ',
+        href: '/faq',
+        description: 'Help & Guidelines',
+        icon: 'help',
+        color: 'blue'
     }
 ];
 
@@ -237,6 +260,7 @@ const getIconSvg = (iconName: string) => {
         folder: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',
         collection: 'M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z M3 6h18 M8 6v4 M16 6v4',
         trophy: 'M6 9H4.5a2.5 2.5 0 0 1 0-5H6 M18 9h1.5a2.5 2.5 0 0 0 0-5H18 M12 12.5a4.5 4.5 0 0 0 0-9 4.5 4.5 0 0 0 0 9z M12 12.5v7.5',
+        help: 'M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3 M12 17h.01',
     };
     return icons[iconName] || icons.browse;
 };
@@ -371,6 +395,11 @@ const getColorClasses = (color: string) => {
                             <span v-else-if="isAdmin">Monitor platform usage through statistics and manage user permissions.</span>
                         </p>
                     </div>
+                </div>
+
+                <!-- Study Streaks Section -->
+                <div class="mb-8">
+                    <StudyStreakHeatmap :streak-data="streakStats" />
                 </div>
 
                 <!-- Recommendations Section -->
