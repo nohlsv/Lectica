@@ -25,13 +25,18 @@ class DatabaseSeeder extends Seeder
 
         // User::factory(10)->create();
         if (User::count() === 0) {
-            User::factory()->create([
+            $admin = User::factory()->create([
                 'first_name' => 'Admin',
                 'last_name' => '',
                 'email' => 'admin@bpsu.edu.ph',
                 'password' => Hash::make('password'),
                 'user_role' => 'admin',
+                'verification_status' => 'approved',
+                'verified_at' => now(),
             ]);
+            
+            // Set admin as self-verified
+            $admin->update(['verified_by' => $admin->id]);
 
             User::factory()->create([
                 'first_name' => 'Albert',

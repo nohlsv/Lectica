@@ -154,6 +154,15 @@
                 >
                     Refresh Status
                 </button>
+                
+                <Link 
+                    :href="route('logout')" 
+                    method="post" 
+                    as="button"
+                    class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-3 px-4 rounded pixel-outline transition-colors"
+                >
+                    Logout
+                </Link>
             </div>
         </div>
     </div>
