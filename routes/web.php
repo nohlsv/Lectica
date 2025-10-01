@@ -11,6 +11,8 @@ use App\Http\Controllers\TagController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\CollectionController;
 use App\Http\Controllers\UserController;
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
     return Inertia::render('Welcome');
@@ -194,6 +196,26 @@ Route::middleware(['auth'])->group(function () {
         ->name('admin.verifications.reject');
     Route::patch('/admin/verifications/{user}/update-details', [AdminVerificationController::class, 'updateUserDetails'])
         ->name('admin.verifications.update-details');
+    
+    // Secure document viewing route
+    Route::get('/verification-document/{user}', function (User $user) {
+        // Only allow admins to view documents
+        if (!Auth::user() || Auth::user()->user_role !== 'admin') {
+            abort(403);
+        }
+        
+        if (!$user->verification_document_path) {
+            abort(404);
+        }
+        
+        $filePath = storage_path('app/public/' . $user->verification_document_path);
+        
+        if (!file_exists($filePath)) {
+            abort(404);
+        }
+        
+        return response()->file($filePath);
+    })->name('verification.document');
 });
 
 require __DIR__ . '/settings.php';

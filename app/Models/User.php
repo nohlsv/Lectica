@@ -278,4 +278,16 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->verification_status === 'rejected';
     }
+
+    /**
+     * Get the URL for the verification document.
+     */
+    public function getVerificationDocumentUrlAttribute(): ?string
+    {
+        if (!$this->verification_document_path) {
+            return null;
+        }
+        
+        return route('verification.document', $this->id);
+    }
 }

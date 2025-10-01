@@ -46,9 +46,7 @@ class AdminVerificationController extends Controller
         return Inertia::render('Admin/VerificationDetail', [
             'user' => $user,
             'programs' => \App\Models\Program::orderBy('name')->get(),
-            'documentUrl' => $user->verification_document_path 
-                ? Storage::disk('public')->url($user->verification_document_path) 
-                : null
+            'documentUrl' => $user->verification_document_url
         ]);
     }
 
