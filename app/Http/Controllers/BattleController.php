@@ -336,8 +336,18 @@ class BattleController extends Controller
         } else {
             $collection = Collection::find($request->source_id);
             if ($collection && $collection->user_id === Auth::id()) {
-                $fileIds = $collection->files()->pluck('id');
-                $quizzes = Quiz::whereIn('file_id', $fileIds)->get();
+                // Ensure we only get quizzes from files that still exist and belong to the user
+                $fileIds = $collection->files()
+                    ->where('files.user_id', Auth::id()) // Additional safety check
+                    ->pluck('files.id');
+                
+                if ($fileIds->isNotEmpty()) {
+                    $quizzes = Quiz::whereIn('file_id', $fileIds)
+                        ->whereHas('file', function ($query) {
+                            $query->where('user_id', Auth::id());
+                        })
+                        ->get();
+                }
             }
         }
 

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class File extends Model
 {
@@ -31,6 +32,21 @@ class File extends Model
     {
         static::addGlobalScope('withStarCount', function ($builder) {
             $builder->withCount('starredBy as star_count');
+        });
+
+        // Update collection counts when a file is being deleted
+        static::deleting(function ($file) {
+            // Get all collections that contain this file
+            $collections = $file->collections;
+            
+            // Update counts for each collection after the file is removed
+            foreach ($collections as $collection) {
+                // The foreign key cascade will remove the pivot record,
+                // so we need to schedule the count update after deletion
+                DB::afterCommit(function () use ($collection) {
+                    $collection->updateCounts();
+                });
+            }
         });
     }
 
