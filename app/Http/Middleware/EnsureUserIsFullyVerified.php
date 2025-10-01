@@ -36,9 +36,10 @@ class EnsureUserIsFullyVerified
             return redirect()->route('verification.status');
         }
 
-        // If user verification was rejected, redirect to upload page
-        if ($user->isVerificationRejected()) {
-            return redirect()->route('verification.upload');
+        // Ensure user is fully verified (both email and document)
+        if (!$user->isFullyVerified()) {
+            // Fallback - if none of the above conditions caught it but user still not fully verified
+            return redirect()->route('verification.status');
         }
 
         // User is fully verified, proceed
