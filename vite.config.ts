@@ -28,4 +28,6 @@ export default defineConfig({
             'ziggy-js': resolve(__dirname, 'vendor/tightenco/ziggy'),
         },
     },
+    assetsInclude: ['**/*.gif', '**/*.png'],
+    publicDir: 'public',
 });

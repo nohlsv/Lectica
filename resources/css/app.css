@@ -301,8 +301,8 @@ circle {
 .bg-lectica{
     background-image:
         linear-gradient(rgba(46, 5, 0, 0.1), rgba(0, 0, 0, 0.8)), /* Maroon overlay */
-        url(/bg-lectica.gif);
-    background-size: cover;
+        url('/bg-lectica.gif');
+    ackground-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     position: relative;
