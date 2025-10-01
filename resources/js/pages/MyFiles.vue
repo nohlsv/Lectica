@@ -207,9 +207,9 @@ const addToCollection = async () => {
                             <hr class="flex-1 h-1 bg-gradient-to-r from-yellow-400 to-transparent rounded" />
                         </div>
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-                            <div v-for="file in files" :key="file.id" class="group relative">
+                            <div v-for="file in files" :key="file.id" class="group relative bg-container">
                                 <Link :href="route('files.show', file.id)" class="block no-underline">
-                                    <Card class="h-full transition-all duration-200 hover:shadow-[8px_8px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px] border-2 border-gray-300 bg-white/90 backdrop-blur-sm dark:border-gray-600 dark:bg-gray-800/90">
+                                    <Card class="h-full transition-all duration-200 hover:shadow-[8px_8px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px] border-2 border-gray-300 bg-container dark:border-gray-600 dark:bg-gray-800/90">
                                     <CardHeader class="pb-2">
                                         <div class="flex items-start justify-between">
                                             <div class="flex items-center">

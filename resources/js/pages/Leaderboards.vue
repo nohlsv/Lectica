@@ -34,10 +34,11 @@ onMounted(async () => {
 <template>
     <Head title="Leaderboards" />
     <AppLayout>
-        <div class="flex flex-col min-h-screen items-center px-4 py-8 bg-gradient">
-            <div class="flex justify-center mb-6 mx-4">
-                <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-center text-2xl leading-tight font-bold pixel-outline">Leaderboards</h1>
-            </div>
+                <div class="flex flex-col min-h-screen items-center px-4 py-8 bg-lectica">
+            <div class="text-center mb-8">
+                <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-2xl leading-tight font-bold pixel-outline">
+                    Leaderboards
+                </h1>
             <div class="mb-6 flex gap-4">
                 <button
                     class="rounded border-2 px-4 py-2 font-bold pixel-outline"

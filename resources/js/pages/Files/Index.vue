@@ -308,12 +308,12 @@ const addToCollection = async () => {
                 </div>
 
                 <!-- Files Data Table -->
-                <div class="rounded-xl border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                <div class="rounded-xl border-2 border-white/20 bg-container p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
                     <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                         📚 File Archive
                     </h3>
                     
-                    <div class="overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm">
+                    <div class="overflow-hidden rounded-lg border border-white/20 bg-container backdrop-blur-sm">
                         <div class="overflow-x-auto">
                             <DataTable :data="files" :columns="columns" class="min-w-full">
                     <!-- Custom cell template to clamp content text -->
