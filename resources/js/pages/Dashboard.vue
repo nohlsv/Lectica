@@ -4,8 +4,9 @@ import StudyStreakHeatmap from '@/components/StudyStreakHeatmap.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { GraduationCapIcon, TagsIcon, TrendingUpIcon, UsersIcon } from 'lucide-vue-next';
-import { computed, reactive } from 'vue';
+import { GraduationCapIcon, TagsIcon, TrendingUpIcon, UsersIcon, Bell, X } from 'lucide-vue-next';
+import { computed, reactive, ref, onMounted } from 'vue';
+import axios from 'axios';
 
 const scrollContainers = reactive<Record<string, HTMLElement | null>>({});
 
@@ -23,6 +24,33 @@ const scrollRight = (key: string) => {
     }
 };
 
+// Notifications
+const recentNotifications = ref<DashboardNotification[]>([]);
+const unreadNotificationsCount = ref(0);
+
+const fetchRecentNotifications = async () => {
+    try {
+        const response = await axios.get('/notifications/recent');
+        recentNotifications.value = response.data.notifications;
+    } catch (error) {
+        console.error('Error fetching recent notifications:', error);
+    }
+};
+
+const fetchUnreadCount = async () => {
+    try {
+        const response = await axios.get('/notifications/unread-count');
+        unreadNotificationsCount.value = response.data.count;
+    } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+    }
+};
+
+onMounted(() => {
+    fetchRecentNotifications();
+    fetchUnreadCount();
+});
+
 interface RecommendationGroup {
     [key: string]: File[];
 }
@@ -39,6 +67,22 @@ interface StreakStats {
     longest_streak: number;
     total_study_days: number;
     heatmap_data: HeatmapData[];
+}
+
+interface DashboardNotification {
+    id: string;
+    type: string;
+    notifiable_type: string;
+    notifiable_id: number;
+    data: {
+        file_id?: number;
+        file_name?: string;
+        denial_reason?: string;
+        message: string;
+    };
+    read_at: string | null;
+    created_at: string;
+    updated_at: string;
 }
 
 interface Props {
@@ -394,6 +438,64 @@ const getColorClasses = (color: string) => {
                             <span v-else-if="isFaculty">Use the verification system to moderate and approve student submissions.</span>
                             <span v-else-if="isAdmin">Monitor platform usage through statistics and manage user permissions.</span>
                         </p>
+                    </div>
+                </div>
+
+                <!-- Notifications Section -->
+                <div class="mb-8 w-full">
+                    <div class="bg-container rounded-lg p-4">
+                        <div class="mb-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-2">
+                                <Bell class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Notifications</h3>
+                                <span
+                                    v-if="unreadNotificationsCount > 0"
+                                    class="flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white"
+                                >
+                                    {{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}
+                                </span>
+                            </div>
+                            <Link
+                                :href="route('notifications.index')"
+                                class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                            >
+                                View All
+                            </Link>
+                        </div>
+                        
+                        <div v-if="recentNotifications.length === 0" class="py-8 text-center">
+                            <Bell class="mx-auto h-8 w-8 text-gray-400 dark:text-gray-500" />
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No notifications yet</p>
+                        </div>                        <div v-else class="space-y-3">
+                            <div
+                                v-for="notification in recentNotifications.slice(0, 3)"
+                                :key="notification.id"
+                                class="flex items-start space-x-3 rounded-lg border border-gray-200 p-3"
+                                :class="{ 'bg-blue-50 border-blue-200': !notification.read_at }"
+                            >
+                                <div
+                                    v-if="!notification.read_at"
+                                    class="mt-2 h-2 w-2 rounded-full bg-blue-600"
+                                ></div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-medium text-gray-900">
+                                        {{ notification.data.message }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        {{ new Date(notification.created_at).toLocaleDateString() }}
+                                    </p>
+                                    <div v-if="notification.data.file_name" class="mt-1">
+                                        <Link
+                                            v-if="notification.data.file_id"
+                                            :href="route('files.show', notification.data.file_id)"
+                                            class="text-xs text-blue-600 hover:text-blue-800"
+                                        >
+                                            View {{ notification.data.file_name }}
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

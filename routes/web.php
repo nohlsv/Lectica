@@ -79,6 +79,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/tags/{tag}/aliases', [TagController::class, 'removeAlias'])->name('tags.removeAlias');
 });
 
+// Notification routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::patch('/notifications/{id}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead');
+    Route::patch('/notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead');
+    Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount']);
+    Route::get('/notifications/recent', [App\Http\Controllers\NotificationController::class, 'getRecent']);
+});
+
 // Game routes
 Route::middleware(['auth', 'verified'])->group(function () {
     // Battle routes - complete battle system

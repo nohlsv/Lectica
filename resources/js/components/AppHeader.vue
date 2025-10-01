@@ -18,9 +18,26 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
+
+interface Notification {
+    id: string;
+    type: string;
+    notifiable_type: string;
+    notifiable_id: number;
+    data: {
+        file_id?: number;
+        file_name?: string;
+        denial_reason?: string;
+        message: string;
+    };
+    read_at: string | null;
+    created_at: string;
+    updated_at: string;
+}
 import { Link, usePage } from '@inertiajs/vue3';
-import { ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Swords, Target, Users } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Swords, Target, Users, Bell } from 'lucide-vue-next';
+import { computed, ref, onMounted } from 'vue';
+import axios from 'axios';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -41,6 +58,33 @@ const auth = computed<Auth>(() => page.props.auth as Auth);
 const isCurrentRoute = computed(() => (url: string) => page.url === url);
 
 const activeItemStyles = computed(() => (url: string) => (isCurrentRoute.value(url) ? 'text-neutral-900 dark:text-[#7eea7d]' : ''));
+
+const unreadNotificationsCount = ref(0);
+const showNotificationsDropdown = ref(false);
+const recentNotifications = ref<Notification[]>([]);
+
+const fetchUnreadCount = async () => {
+    try {
+        const response = await axios.get('/notifications/unread-count');
+        unreadNotificationsCount.value = response.data.count;
+    } catch (error) {
+        console.error('Error fetching unread notifications count:', error);
+    }
+};
+
+const fetchRecentNotifications = async () => {
+    try {
+        const response = await axios.get('/notifications/recent');
+        recentNotifications.value = response.data.notifications;
+    } catch (error) {
+        console.error('Error fetching recent notifications:', error);
+    }
+};
+
+onMounted(() => {
+    fetchUnreadCount();
+    fetchRecentNotifications();
+});
 
 const mainNavItems: NavItem[] = [
     {
@@ -277,6 +321,60 @@ const getExperienceProgress = () => {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Notifications Dropdown -->
+                    <DropdownMenu>
+                        <DropdownMenuTrigger :as-child="true">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="relative size-10 rounded-full p-2 focus-within:ring-2 focus-within:ring-primary"
+                            >
+                                <Bell class="h-5 w-5" />
+                                <span
+                                    v-if="unreadNotificationsCount > 0"
+                                    class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white"
+                                >
+                                    {{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}
+                                </span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" class="w-80">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h3 class="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+                                    <Link :href="route('notifications.index')" class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                        View all
+                                    </Link>
+                                </div>
+                                <div v-if="recentNotifications.length === 0" class="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+                                    No notifications
+                                </div>
+                                <div v-else class="space-y-3">
+                                    <div
+                                        v-for="notification in recentNotifications"
+                                        :key="notification.id"
+                                        class="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-b-0"
+                                    >
+                                        <div class="flex items-start space-x-3">
+                                            <div
+                                                v-if="!notification.read_at"
+                                                class="mt-2 h-2 w-2 rounded-full bg-blue-600"
+                                            ></div>
+                                            <div class="flex-1 min-w-0">
+                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                    {{ notification.data.message }}
+                                                </p>
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    {{ new Date(notification.created_at).toLocaleDateString() }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
 
                     <DropdownMenu>
                         <DropdownMenuTrigger :as-child="true">
