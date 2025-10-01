@@ -120,10 +120,6 @@ const faqSections = [
                 answer: 'Upload well-structured content with clear headings and key points. The better your source material, the more accurate and relevant the generated questions will be.'
             },
             {
-                question: 'Can I customize difficulty levels?',
-                answer: 'Yes! When creating battles or quizzes, you can adjust difficulty settings. Higher difficulty means more complex questions and faster time limits for increased challenge.'
-            },
-            {
                 question: 'How do I track my progress?',
                 answer: 'Check your profile for detailed statistics: accuracy rates, subjects studied, time spent learning, and improvement trends over time. Use this data to identify areas for focus.'
             },
@@ -138,14 +134,6 @@ const faqSections = [
         title: 'Account & Settings',
         icon: Settings,
         questions: [
-            {
-                question: 'How do I change my profile settings?',
-                answer: 'Click on your profile avatar in the top right corner and select "Profile" or "Settings". You can update your display name, email, password, and study preferences.'
-            },
-            {
-                question: 'Can I make my files private?',
-                answer: 'Yes, you can control the visibility of your files. By default, files are private to you. You can choose to share specific files or collections with study groups or make them public.'
-            },
             {
                 question: 'How do I delete my account?',
                 answer: 'Go to Settings → Account → Delete Account. Note that this action is permanent and will remove all your files, progress, and achievements.'
@@ -239,28 +227,6 @@ const faqSections = [
                     </Card>
                 </div>
 
-                <!-- Help Section -->
-                <div class="mt-16 text-center">
-                    <Card class="bg-container border-2 border-gold/30 shadow-lg max-w-2xl mx-auto">
-                        <CardContent class="p-8">
-                            <h3 class="text-2xl font-bold text-white mb-4 pixel-outline">
-                                Still Have Questions?
-                            </h3>
-                            <p class="text-white/90 mb-6 leading-relaxed">
-                                Can't find what you're looking for? We're here to help! 
-                                Reach out to our support team or check out our community forums.
-                            </p>
-                            <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                                <button class="px-6 py-3 bg-gold hover:bg-gold/90 text-black font-semibold rounded-lg transition-colors pixel-outline">
-                                    Contact Support
-                                </button>
-                                <button class="px-6 py-3 border-2 border-gold text-gold hover:bg-gold/10 font-semibold rounded-lg transition-colors pixel-outline">
-                                    Join Community
-                                </button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
             </div>
         </div>
     </AppLayout>
