@@ -111,6 +111,11 @@ class StudyStreakService
                 'value' => $activity ? $this->calculateIntensity($activity) : 0,
                 'count' => $activity ? $activity->questions_answered : 0,
                 'points' => $activity ? $activity->points_earned : 0,
+                'quizzes_completed' => $activity ? $activity->quizzes_completed : 0,
+                'correct_answers' => $activity ? $activity->correct_answers : 0,
+                'time_studied' => $activity ? $activity->time_studied : 0,
+                'battles_participated' => $activity ? $activity->battles_participated : 0,
+                'flashcards_reviewed' => $activity ? $activity->flashcards_reviewed : 0,
             ];
 
             $currentDate->addDay();

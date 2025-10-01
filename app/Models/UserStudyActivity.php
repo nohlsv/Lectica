@@ -33,6 +33,19 @@ class UserStudyActivity extends Model
     }
 
     /**
+     * Get the XP earned (alias for points_earned for frontend consistency).
+     */
+    public function getXpEarnedAttribute(): int
+    {
+        return $this->points_earned;
+    }
+
+    /**
+     * Append custom attributes to the model's array form.
+     */
+    protected $appends = ['xp_earned'];
+
+    /**
      * Record or update activity for a user on a specific date.
      */
     public static function recordActivity(

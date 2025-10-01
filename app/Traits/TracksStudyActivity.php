@@ -38,11 +38,12 @@ trait TracksStudyActivity
     /**
      * Record flashcard study activity.
      */
-    protected function recordFlashcardActivity(int $userId, int $cardsReviewed, int $timeSpentMinutes = 0): void
+    protected function recordFlashcardActivity(int $userId, int $cardsReviewed, int $timeSpentMinutes = 0, int $pointsEarned = 0): void
     {
         UserStudyActivity::incrementActivity($userId, [
             'flashcards_reviewed' => $cardsReviewed,
             'time_studied' => $timeSpentMinutes,
+            'points_earned' => $pointsEarned,
         ]);
     }
 

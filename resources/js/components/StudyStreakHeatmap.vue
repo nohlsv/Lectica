@@ -9,6 +9,11 @@ interface HeatmapData {
     value: number;
     count: number;
     points: number;
+    quizzes_completed: number;
+    correct_answers: number;
+    time_studied: number;
+    battles_participated: number;
+    flashcards_reviewed: number;
 }
 
 interface StreakStats {
@@ -63,7 +68,17 @@ const weeksData = computed(() => {
         // If this is the first day and it's not Sunday, pad the beginning
         if (i === 0 && dayOfWeek !== 0) {
             for (let j = 0; j < dayOfWeek; j++) {
-                currentWeek.push({ date: '', value: -1, count: 0, points: 0 });
+                currentWeek.push({ 
+                    date: '', 
+                    value: -1, 
+                    count: 0, 
+                    points: 0,
+                    quizzes_completed: 0,
+                    correct_answers: 0,
+                    time_studied: 0,
+                    battles_participated: 0,
+                    flashcards_reviewed: 0
+                });
             }
         }
         
@@ -73,7 +88,17 @@ const weeksData = computed(() => {
         if (dayOfWeek === 6 || i === data.length - 1) {
             // Pad end of week if needed
             while (currentWeek.length < 7) {
-                currentWeek.push({ date: '', value: -1, count: 0, points: 0 });
+                currentWeek.push({ 
+                    date: '', 
+                    value: -1, 
+                    count: 0, 
+                    points: 0,
+                    quizzes_completed: 0,
+                    correct_answers: 0,
+                    time_studied: 0,
+                    battles_participated: 0,
+                    flashcards_reviewed: 0
+                });
             }
             weeks.push([...currentWeek]);
             currentWeek = [];
@@ -93,6 +118,26 @@ const getIntensityColor = (value: number): string => {
     if (value === 3) return 'bg-green-500/80 border border-green-400/50';
     if (value === 4) return 'bg-green-300 border border-green-200/50';
     return 'bg-gray-800/50 border border-gray-700/50';
+};
+
+// Generate comprehensive tooltip text
+const getTooltipText = (data: HeatmapData): string => {
+    if (!data.date || data.value === -1) return '';
+    
+    const activities = [];
+    if (data.count > 0) activities.push(`${data.count} questions`);
+    if (data.correct_answers > 0) activities.push(`${data.correct_answers} correct`);
+    if (data.points > 0) activities.push(`${data.points} XP`);
+    if (data.quizzes_completed > 0) activities.push(`${data.quizzes_completed} quizzes`);
+    if (data.battles_participated > 0) activities.push(`${data.battles_participated} battles`);
+    if (data.flashcards_reviewed > 0) activities.push(`${data.flashcards_reviewed} flashcards`);
+    if (data.time_studied > 0) activities.push(`${data.time_studied}min study`);
+    
+    if (activities.length === 0) {
+        return `${data.date}: No activity`;
+    }
+    
+    return `${data.date}: ${activities.join(', ')}`;
 };
 
 // Handle mouse events for tooltip
@@ -231,7 +276,7 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
                                         :class="getIntensityColor(day.value)"
                                         @mouseenter="day.date ? showTooltip($event, day) : null"
                                         @mouseleave="hideTooltip"
-                                        :title="day.date ? `${day.date}: ${day.count} questions, ${day.points} points` : ''"
+                                        :title="getTooltipText(day)"
                                     ></div>
                                 </div>
                             </div>
@@ -268,9 +313,34 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
             :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
         >
             <div class="font-semibold">{{ formatDate(tooltip.data.date) }}</div>
-            <div class="text-white/80 mt-1">
-                <div>Questions: {{ tooltip.data.count }}</div>
-                <div>Points: {{ tooltip.data.points }}</div>
+            <div class="text-white/80 mt-1 space-y-0.5">
+                <!-- Performance Stats -->
+                <div v-if="tooltip.data.count > 0 || tooltip.data.correct_answers > 0" class="space-y-0.5">
+                    <div v-if="tooltip.data.count > 0">Questions Answered: {{ tooltip.data.count }}</div>
+                    <div v-if="tooltip.data.correct_answers > 0">Correct Answers: {{ tooltip.data.correct_answers }}</div>
+                </div>
+                
+                <!-- XP and Rewards -->
+                <div v-if="tooltip.data.points > 0" class="text-yellow-400 font-medium">
+                    XP Earned: {{ tooltip.data.points }}
+                </div>
+                
+                <!-- Activities -->
+                <div v-if="tooltip.data.quizzes_completed > 0 || tooltip.data.battles_participated > 0 || tooltip.data.flashcards_reviewed > 0" class="space-y-0.5 pt-1 border-t border-white/20">
+                    <div v-if="tooltip.data.quizzes_completed > 0">📝 Quizzes Completed: {{ tooltip.data.quizzes_completed }}</div>
+                    <div v-if="tooltip.data.battles_participated > 0">⚔️ Battles Participated: {{ tooltip.data.battles_participated }}</div>
+                    <div v-if="tooltip.data.flashcards_reviewed > 0">🃏 Flashcards Reviewed: {{ tooltip.data.flashcards_reviewed }}</div>
+                </div>
+                
+                <!-- Study Time -->
+                <div v-if="tooltip.data.time_studied > 0" class="text-blue-400 pt-1 border-t border-white/20">
+                    ⏱️ Study Time: {{ tooltip.data.time_studied }} min
+                </div>
+                
+                <!-- No Activity Message -->
+                <div v-if="tooltip.data.value === 0 && tooltip.data.count === 0 && tooltip.data.points === 0" class="text-white/60">
+                    No activity this day
+                </div>
                 <div v-if="tooltip.data.value > 0" class="mt-1">
                     <Badge 
                         :variant="tooltip.data.value >= 3 ? 'default' : 'secondary'"

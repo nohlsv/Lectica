@@ -218,6 +218,35 @@ class GameController extends Controller
             } elseif (count($remainingQuestions) === 0) {
                 $game->game_end_reason = 'no_more_questions';
             }
+            
+            // Award XP and track study activity for both players
+            $totalQuestions = 10 - count($remainingQuestions); // Estimate original questions minus remaining
+            
+            // Award XP and track activity for player one
+            $playerOneXP = $game->player_one_score * 15; // 15 XP per correct answer
+            if ($playerOne = User::find($game->player_one_id)) {
+                $playerOne->addExperience($playerOneXP);
+            }
+            $this->recordBattleActivity($game->player_one_id, [
+                'questions_answered' => $totalQuestions,
+                'correct_answers' => $game->player_one_score,
+                'points_earned' => $playerOneXP,
+                'time_spent_minutes' => 10, // Estimate 10 minutes for a multiplayer game
+            ]);
+            
+            // Award XP and track activity for player two
+            if ($game->player_two_id) {
+                $playerTwoXP = $game->player_two_score * 15; // 15 XP per correct answer
+                if ($playerTwo = User::find($game->player_two_id)) {
+                    $playerTwo->addExperience($playerTwoXP);
+                }
+                $this->recordBattleActivity($game->player_two_id, [
+                    'questions_answered' => $totalQuestions,
+                    'correct_answers' => $game->player_two_score,
+                    'points_earned' => $playerTwoXP,
+                    'time_spent_minutes' => 10, // Estimate 10 minutes for a multiplayer game
+                ]);
+            }
         }
         $game->save();
         // Broadcast game state using Laravel Reverb
