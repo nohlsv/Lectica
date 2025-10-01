@@ -96,6 +96,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useForm, Link } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 import InputError from '@/components/InputError.vue';
 
 const props = defineProps({
@@ -121,7 +122,7 @@ const uploadDocument = () => {
     console.log('Uploading document:', form.document);
     
     if (!form.document) {
-        alert('Please select a file first');
+        toast.error('Please select a file first');
         return;
     }
     
@@ -130,9 +131,13 @@ const uploadDocument = () => {
         onSuccess: () => {
             selectedFile.value = null;
             fileInput.value.value = '';
+            
+            // Show success toast
+            toast.success('Document uploaded successfully! Your document is now pending admin verification.');
         },
         onError: (errors) => {
             console.error('Upload failed:', errors);
+            toast.error('Failed to upload document. Please try again.');
         }
     });
 };
