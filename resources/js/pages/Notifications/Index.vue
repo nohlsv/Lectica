@@ -79,23 +79,22 @@ const unreadCount = computed(() => {
                 <!-- Header -->
                 <div class="mb-6 flex items-center justify-between">
                     <div class="flex items-center space-x-4">
-                        <Bell class="h-8 w-8 text-blue-600" />
+                        <Bell class="h-8 w-8 text-yellow-300" />
                         <div>
-                            <h1 class="text-3xl font-bold text-white-900">Notifications</h1>
-                            <p class="text-white-600">
+                            <h1 class="text-3xl font-bold text-yellow-200 pixel-font">Notifications</h1>
+                            <p class="text-gray-100">
                                 {{ unreadCount }} unread notification{{ unreadCount !== 1 ? 's' : '' }}
                             </p>
                         </div>
                     </div>
-                    <Button 
+                    <button 
                         v-if="unreadCount > 0"
                         @click="markAllAsRead"
-                        variant="outline"
-                        class="flex items-center space-x-2"
+                        class="flex items-center space-x-2 bg-yellow-300 hover:bg-yellow-200 text-black font-bold py-2 px-4 rounded pixel-outline transition-colors"
                     >
                         <CheckCircle class="h-4 w-4" />
                         <span>Mark all as read</span>
-                    </Button>
+                    </button>
                 </div>
 
                 <!-- Notifications List -->
@@ -104,86 +103,82 @@ const unreadCount = computed(() => {
                         v-if="props.notifications.data.length === 0"
                         class="text-center py-12"
                     >
-                        <Bell class="mx-auto h-12 w-12 text-white-400" />
-                        <h3 class="mt-2 text-sm font-medium text-white-900">No notifications</h3>
-                        <p class="mt-1 text-sm text-white-500">You're all caught up!</p>
+                        <Bell class="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 class="mt-2 text-sm font-medium text-gray-100">No notifications</h3>
+                        <p class="mt-1 text-sm text-gray-200">You're all caught up!</p>
                     </div>
 
-                    <Card
+                    <div
                         v-for="notification in props.notifications.data"
                         :key="notification.id"
                         :class="[
-                            'transition-all duration-200 hover:shadow-md',
-                            !notification.read_at ? 'bg-blue-50 border-blue-200' : ''
+                            'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 transition-all duration-200 hover:shadow-md',
+                            !notification.read_at ? 'border-l-4 border-l-blue-500' : ''
                         ]"
                     >
-                        <CardHeader class="pb-3">
-                            <div class="flex items-start justify-between">
-                                <div class="flex items-start space-x-3">
+                        <div class="flex items-start justify-between space-x-4">
+                            <div class="flex items-start space-x-3 flex-1">
+                                <div
+                                    v-if="!notification.read_at"
+                                    class="mt-2 h-3 w-3 rounded-full bg-blue-600"
+                                ></div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+                                        {{ notification.type === 'App\\Notifications\\FileDeniedNotification' ? 'File Denied' : 'Notification' }}
+                                    </h3>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                                        {{ formatDate(notification.created_at) }}
+                                    </p>
+                                    <p class="mt-2 text-gray-700 dark:text-gray-300">{{ notification.data.message }}</p>
+                                    
+                                    <!-- File-specific information -->
                                     <div
-                                        v-if="!notification.read_at"
-                                        class="mt-1 h-3 w-3 rounded-full bg-blue-600"
-                                    ></div>
-                                    <div class="flex-1">
-                                        <CardTitle class="text-lg">
-                                            {{ notification.type === 'App\\Notifications\\FileDeniedNotification' ? 'File Denied' : 'Notification' }}
-                                        </CardTitle>
-                                        <CardDescription class="mt-1">
-                                            {{ formatDate(notification.created_at) }}
-                                        </CardDescription>
+                                        v-if="notification.data.file_name"
+                                        class="mt-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3"
+                                    >
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                            File: {{ notification.data.file_name }}
+                                        </p>
+                                        <p
+                                            v-if="notification.data.denial_reason"
+                                            class="mt-1 text-sm text-gray-600 dark:text-gray-300"
+                                        >
+                                            <strong>Reason:</strong> {{ notification.data.denial_reason }}
+                                        </p>
+                                    </div>
+
+                                    <!-- Action button -->
+                                    <div v-if="notification.data.file_id" class="mt-3">
+                                        <Link
+                                            :href="route('files.show', notification.data.file_id)"
+                                            class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
+                                        >
+                                            View File
+                                        </Link>
                                     </div>
                                 </div>
-                                <div class="flex items-center space-x-2">
-                                    <Badge
-                                        :variant="notification.read_at ? 'secondary' : 'default'"
-                                        class="text-xs"
-                                    >
-                                        {{ notification.read_at ? 'Read' : 'Unread' }}
-                                    </Badge>
-                                    <Button
-                                        v-if="!notification.read_at"
-                                        @click="markAsRead(notification.id)"
-                                        variant="ghost"
-                                        size="sm"
-                                        class="p-1"
-                                    >
-                                        <X class="h-4 w-4" />
-                                    </Button>
-                                </div>
                             </div>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="space-y-3">
-                                <p class="text-gray-900">{{ notification.data.message }}</p>
-                                
-                                <!-- File-specific information -->
-                                <div
-                                    v-if="notification.data.file_name"
-                                    class="rounded-lg bg-gray-50 p-3"
+                            <div class="flex flex-col items-end space-y-2">
+                                <span
+                                    :class="[
+                                        'text-xs px-2 py-1 rounded whitespace-nowrap',
+                                        notification.read_at 
+                                            ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300' 
+                                            : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold'
+                                    ]"
                                 >
-                                    <p class="text-sm font-medium text-gray-900">
-                                        File: {{ notification.data.file_name }}
-                                    </p>
-                                    <p
-                                        v-if="notification.data.denial_reason"
-                                        class="mt-1 text-sm text-gray-600"
-                                    >
-                                        <strong>Reason:</strong> {{ notification.data.denial_reason }}
-                                    </p>
-                                </div>
-
-                                <!-- Action button -->
-                                <div v-if="notification.data.file_id">
-                                    <Link
-                                        :href="route('files.show', notification.data.file_id)"
-                                        class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
-                                    >
-                                        View File
-                                    </Link>
-                                </div>
+                                    {{ notification.read_at ? 'Read' : 'Unread' }}
+                                </span>
+                                <button
+                                    v-if="!notification.read_at"
+                                    @click="markAsRead(notification.id)"
+                                    class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                >
+                                    Mark as read
+                                </button>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Pagination -->
@@ -208,3 +203,17 @@ const unreadCount = computed(() => {
         </div>
     </AppLayout>
 </template>
+
+<style scoped>
+.pixel-font {
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.pixel-outline {
+    box-shadow: 
+        0 0 0 1px currentColor,
+        2px 2px 0 0 rgba(0, 0, 0, 0.5);
+}
+</style>

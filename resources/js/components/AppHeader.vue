@@ -81,6 +81,17 @@ const fetchRecentNotifications = async () => {
     }
 };
 
+const markNotificationAsRead = async (notificationId: string) => {
+    try {
+        await axios.patch(`/notifications/${notificationId}/mark-as-read`);
+        // Refresh both counts and recent notifications
+        await fetchUnreadCount();
+        await fetchRecentNotifications();
+    } catch (error) {
+        console.error('Error marking notification as read:', error);
+    }
+};
+
 onMounted(() => {
     fetchUnreadCount();
     fetchRecentNotifications();
@@ -356,19 +367,28 @@ const getExperienceProgress = () => {
                                         :key="notification.id"
                                         class="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-b-0"
                                     >
-                                        <div class="flex items-start space-x-3">
-                                            <div
-                                                v-if="!notification.read_at"
-                                                class="mt-2 h-2 w-2 rounded-full bg-blue-600"
-                                            ></div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                                    {{ notification.data.message }}
-                                                </p>
-                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                    {{ new Date(notification.created_at).toLocaleDateString() }}
-                                                </p>
+                                        <div class="flex items-start justify-between space-x-3">
+                                            <div class="flex items-start space-x-3 flex-1 min-w-0">
+                                                <div
+                                                    v-if="!notification.read_at"
+                                                    class="mt-2 h-2 w-2 rounded-full bg-blue-600"
+                                                ></div>
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-medium text-gray-900 dark:text-white">
+                                                        {{ notification.data.message }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                        {{ new Date(notification.created_at).toLocaleDateString() }}
+                                                    </p>
+                                                </div>
                                             </div>
+                                            <button
+                                                v-if="!notification.read_at"
+                                                @click="markNotificationAsRead(notification.id)"
+                                                class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                            >
+                                                Mark as read
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

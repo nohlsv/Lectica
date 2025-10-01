@@ -53,9 +53,16 @@ class FileVerificationController extends Controller
 		]);
 
 		// Send verification notification to the file owner
-		$file->user->notify(new \App\Notifications\FileVerifiedNotification($file));
+		try {
+			$file->user->notify(new \App\Notifications\FileVerifiedNotification($file));
+		} catch (\Exception $e) {
+			\Log::error('Failed to send file verification notification', [
+				'file_id' => $file->id,
+				'error' => $e->getMessage()
+			]);
+		}
 
-		return redirect()->back()->with('success', 'File verified successfully!');
+		return back();
 	}
 
 	/**
@@ -82,6 +89,6 @@ class FileVerificationController extends Controller
 		// Mark as notified
 		$file->update(['user_notified_of_denial' => true]);
 
-		return redirect()->back()->with('success', 'File denied and user notified.');
+		return back();
 	}
 }

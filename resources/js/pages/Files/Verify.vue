@@ -22,18 +22,28 @@ const props = defineProps<Props>();
 const showDenyModal = ref(false);
 const selectedFileId = ref<number | null>(null);
 const denialReason = ref('');
+const verifyingFiles = ref<Set<number>>(new Set());
 
 const verifyFile = (fileId: number) => {
+    // Prevent multiple verification attempts for the same file
+    if (verifyingFiles.value.has(fileId)) {
+        return;
+    }
+    
+    verifyingFiles.value.add(fileId);
+    
     router.patch(
         route('files.verify.update', fileId),
         {},
         {
             onSuccess: () => {
                 toast.success('File verified successfully!');
-                router.reload(); // Refresh the file list after verification
+                verifyingFiles.value.delete(fileId);
+                router.reload({ only: ['files'] }); // Refresh only the files data
             },
             onError: () => {
                 toast.error('Failed to verify the file. Please try again.');
+                verifyingFiles.value.delete(fileId);
             },
         },
     );
@@ -60,7 +70,7 @@ const denyFile = () => {
                 showDenyModal.value = false;
                 selectedFileId.value = null;
                 denialReason.value = '';
-                router.reload();
+                router.reload({ only: ['files'] }); // Refresh only the files data
             },
             onError: () => {
                 toast.error('Failed to deny the file. Please try again.');
@@ -114,10 +124,16 @@ const denyFile = () => {
                             </button>
                             <button
                                 @click="verifyFile(file.id)"
-                                class="pixel-outline flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#5cae6e] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#4a9159] sm:px-4 sm:py-2 sm:text-base"
+                                :disabled="verifyingFiles.has(file.id)"
+                                :class="[
+                                    'pixel-outline flex items-center rounded-md border-2 border-[#0c0a03] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 sm:px-4 sm:py-2 sm:text-base',
+                                    verifyingFiles.has(file.id) 
+                                        ? 'bg-gray-500 cursor-not-allowed opacity-50' 
+                                        : 'bg-[#5cae6e] cursor-pointer hover:bg-[#4a9159]'
+                                ]"
                             >
                                 <CheckCircleIcon class="pixel-outline-icon mr-2 h-4 w-4" />
-                                <span>Verify</span>
+                                <span>{{ verifyingFiles.has(file.id) ? 'Verifying...' : 'Verify' }}</span>
                             </button>
                             <button
                                 @click="openDenyModal(file.id)"
