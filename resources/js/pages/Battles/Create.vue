@@ -168,7 +168,7 @@
                                     <button
                                         type="button"
                                         @click="selectedDifficulty = 'easy'"
-                                        :disabled="questionValidation && questionValidation.counts.easy === 0"
+                                        :disabled="!!(questionValidation && questionValidation.counts.easy === 0)"
                                         :class="[
                                             selectedDifficulty === 'easy'
                                                 ? 'border-green-500 bg-black/50 ring-2 ring-green-500 hover:scale-105 transition-transform duration-500'
@@ -204,7 +204,7 @@
                                     <button
                                         type="button"
                                         @click="selectedDifficulty = 'medium'"
-                                        :disabled="questionValidation && questionValidation.counts.medium === 0"
+                                        :disabled="!!(questionValidation && questionValidation.counts.medium === 0)"
                                         :class="[
                                             selectedDifficulty === 'medium'
                                                 ? 'border-yellow-500 bg-black/50 ring-2 ring-yellow-500 hover:scale-105 transition-transform duration-500'
@@ -240,7 +240,7 @@
                                     <button
                                         type="button"
                                         @click="selectedDifficulty = 'hard'"
-                                        :disabled="questionValidation && questionValidation.counts.hard === 0"
+                                        :disabled="!!(questionValidation && questionValidation.counts.hard === 0)"
                                         :class="[
                                             selectedDifficulty === 'hard'
                                                 ? 'border-red-500 bg-black/50 ring-2 ring-red-500 hover:scale-105 transition-transform duration-500'
@@ -395,6 +395,7 @@ interface QuestionCounts {
     medium: number;
     hard: number;
     total: number;
+    [key: string]: number;
 }
 
 interface QuestionValidation {
@@ -432,7 +433,7 @@ const selectedSource = computed(() => {
 const canSubmit = computed(() => {
     const hasSource = form.source_type === 'file' ? form.file_id : form.collection_id;
     const hasQuestions = questionValidation.value?.has_questions !== false;
-    const hasQuestionsForDifficulty = questionValidation.value?.counts[selectedDifficulty.value] > 0;
+    const hasQuestionsForDifficulty = (questionValidation.value?.counts?.[selectedDifficulty.value] || 0) > 0;
     
     return hasSource && hasQuestions && hasQuestionsForDifficulty;
 });
@@ -451,7 +452,10 @@ const currentDifficultyCount = computed(() => {
 const fetchQuestionCounts = async () => {
     const sourceId = form.source_type === 'file' ? form.file_id : form.collection_id;
     
+    console.log('fetchQuestionCounts called:', { sourceType: form.source_type, sourceId });
+    
     if (!sourceId) {
+        console.log('No source ID, clearing validation');
         questionValidation.value = null;
         return;
     }
@@ -459,6 +463,11 @@ const fetchQuestionCounts = async () => {
     isLoadingValidation.value = true;
     
     try {
+        console.log('Making API request with params:', {
+            source_type: form.source_type,
+            source_id: sourceId
+        });
+        
         const response = await axios.get('/api/question-counts', {
             params: {
                 source_type: form.source_type,
@@ -466,9 +475,11 @@ const fetchQuestionCounts = async () => {
             }
         });
         
+        console.log('API response received:', response.data);
         questionValidation.value = response.data;
-    } catch (error) {
+    } catch (error: any) {
         console.error('Failed to fetch question counts:', error);
+        console.error('Error details:', error.response?.data);
         questionValidation.value = null;
     } finally {
         isLoadingValidation.value = false;
@@ -477,7 +488,7 @@ const fetchQuestionCounts = async () => {
 
 // Utility functions
 const getExpReward = (difficulty: string, questionCount: number) => {
-    const baseRewards = { easy: 10, medium: 20, hard: 30 };
+    const baseRewards: { [key: string]: number } = { easy: 10, medium: 20, hard: 30 };
     const baseExp = baseRewards[difficulty] || 20;
     
     if (questionCount < 5) {
@@ -525,7 +536,7 @@ const submit = () => {
     }
 
     // Prepare form data based on source type
-    const formData = {
+    const formData: any = {
         source_type: form.source_type,
         monster_id: 1, // Default monster ID since we'll use random monsters
     };
