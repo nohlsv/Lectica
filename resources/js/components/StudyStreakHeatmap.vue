@@ -341,15 +341,19 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
                 <div v-if="tooltip.data.value === 0 && tooltip.data.count === 0 && tooltip.data.points === 0" class="text-white/60">
                     No activity this day
                 </div>
-                <div v-if="tooltip.data.value > 0" class="mt-1">
-                    <Badge 
-                        :variant="tooltip.data.value >= 3 ? 'default' : 'secondary'"
-                        class="text-xs"
+                <div v-if="tooltip.data.value > 0" class="mt-2 pt-2 border-t border-white/20">
+                    <div class="inline-block px-2 py-1 rounded text-xs font-bold text-white pixel-outline"
+                         :class="{
+                             'bg-green-600/80 border border-green-500/50': tooltip.data.value === 4,
+                             'bg-green-700/80 border border-green-600/50': tooltip.data.value === 3,
+                             'bg-blue-600/80 border border-blue-500/50': tooltip.data.value === 2,
+                             'bg-gray-600/80 border border-gray-500/50': tooltip.data.value === 1
+                         }"
                     >
                         {{ tooltip.data.value === 4 ? 'Very Active' : 
                            tooltip.data.value === 3 ? 'Active' : 
                            tooltip.data.value === 2 ? 'Moderate' : 'Light' }}
-                    </Badge>
+                    </div>
                 </div>
             </div>
         </div>
