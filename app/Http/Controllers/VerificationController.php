@@ -137,7 +137,7 @@ class VerificationController extends Controller
                 'filename' => $filename
             ]);
 
-            return redirect()->back()->with('success', 'Document uploaded successfully! Please wait for admin approval.');
+            return redirect()->route('verification.status')->with('success', 'Document uploaded successfully! Your document is now pending admin verification.');
             
         } catch (\Illuminate\Validation\ValidationException $e) {
             return redirect()->back()->withErrors($e->errors());

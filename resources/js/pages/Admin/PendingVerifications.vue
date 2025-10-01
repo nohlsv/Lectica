@@ -60,7 +60,7 @@
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">
                                                     <div class="h-10 w-10 rounded-full bg-yellow-400 flex items-center justify-center">
-                                                        <span class="text-black font-semibold">
+                                                        <span class="text-white font-semibold">
                                                             {{ user.first_name.charAt(0) }}{{ user.last_name.charAt(0) }}
                                                         </span>
                                                     </div>
@@ -95,7 +95,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                                             <Link 
                                                 :href="route('admin.verifications.show', user.id)" 
-                                                class="bg-yellow-300 hover:bg-yellow-200 text-black font-bold py-1 px-3 rounded pixel-outline transition-colors"
+                                                class="bg-yellow-300 hover:bg-yellow-200 text-white font-bold py-1 px-3 rounded pixel-outline transition-colors"
                                             >
                                                 Review
                                             </Link>

@@ -94,14 +94,23 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
+import { ref, onMounted } from 'vue';
+import { useForm, Link, usePage } from '@inertiajs/vue3';
 import { toast } from 'vue-sonner';
 import InputError from '@/components/InputError.vue';
 
 const props = defineProps({
     user: Object,
     documentRequired: String
+});
+
+const page = usePage();
+
+// Show success message if it exists in the session
+onMounted(() => {
+    if (page.props.flash?.success) {
+        toast.success(page.props.flash.success);
+    }
 });
 
 const fileInput = ref(null);
@@ -129,11 +138,9 @@ const uploadDocument = () => {
     form.post(route('verification.upload.store'), {
         forceFormData: true, // Ensure multipart/form-data is used
         onSuccess: () => {
+            // Backend will redirect to status page with success message
             selectedFile.value = null;
             fileInput.value.value = '';
-            
-            // Show success toast
-            toast.success('Document uploaded successfully! Your document is now pending admin verification.');
         },
         onError: (errors) => {
             console.error('Upload failed:', errors);

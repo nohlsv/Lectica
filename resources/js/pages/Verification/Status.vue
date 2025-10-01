@@ -169,10 +169,21 @@
 </template>
 
 <script setup>
-import { Link, router } from '@inertiajs/vue3';
+import { onMounted } from 'vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
+import { toast } from 'vue-sonner';
 
 const props = defineProps({
     user: Object
+});
+
+const page = usePage();
+
+// Show success message if it exists in the session
+onMounted(() => {
+    if (page.props.flash?.success) {
+        toast.success(page.props.flash.success);
+    }
 });
 
 const getStatusTitle = (status) => {
@@ -209,7 +220,10 @@ const formatDate = (dateString) => {
 };
 
 const refreshStatus = () => {
-    router.reload({ only: ['user'] });
+    toast.success('Refreshing verification status...');
+    
+    // Hard reload the entire page
+    window.location.reload();
 };
 </script>
 
