@@ -114,6 +114,11 @@ const mainNavItems: NavItem[] = [
               href: '/admin/user-roles',
               icon: Users,
           },
+          {
+              title: 'Verifications',
+              href: '/admin/verifications',
+              icon: FileIcon,
+          },
       ] : [],
 ];
 

@@ -14,14 +14,23 @@ class VerifyEmailController extends Controller
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
+        $user = $request->user();
+        
+        if ($user->hasVerifiedEmail()) {
+            // If email is already verified, check if they need document upload
+            if ($user->needsDocumentUpload() || $user->isVerificationRejected()) {
+                return redirect()->route('verification.upload');
+            }
             return redirect()->intended(route('home', absolute: false).'?verified=1');
         }
 
-        if ($request->user()->markEmailAsVerified()) {
-            /** @var \Illuminate\Contracts\Auth\MustVerifyEmail $user */
-            $user = $request->user();
+        if ($user->markEmailAsVerified()) {
             event(new Verified($user));
+        }
+
+        // After email verification, redirect to document upload
+        if ($user->needsDocumentUpload() || $user->isVerificationRejected()) {
+            return redirect()->route('verification.upload')->with('success', 'Email verified! Please upload your verification document.');
         }
 
         return redirect()->intended(route('home', absolute: false).'?verified=1');

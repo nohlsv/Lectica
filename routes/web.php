@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\FileRecommendationController;
+use App\Http\Controllers\VerificationController;
+use App\Http\Controllers\AdminVerificationController;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\TagController;
@@ -16,6 +18,18 @@ Route::get('/', function () {
 
 Route::get('home', function (Request $request) {
     $user = $request->user();
+    
+    // Check verification status and redirect if needed
+    if (!$user->hasVerifiedEmail()) {
+        return redirect()->route('verification.notice');
+    }
+    if ($user->needsDocumentUpload() || $user->isVerificationRejected()) {
+        return redirect()->route('verification.upload');
+    }
+    if ($user->hasDocumentPendingApproval()) {
+        return redirect()->route('verification.status');
+    }
+    
     $recommendationService = app(App\Services\FileRecommendationService::class);
     $streakService = app(App\Services\StudyStreakService::class);
     
@@ -154,6 +168,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/admin/user-roles', [UserController::class, 'show'])
         ->name('admin.user-roles');
+});
+
+// Verification routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/verification/upload', [VerificationController::class, 'showUpload'])
+        ->name('verification.upload');
+    Route::post('/verification/upload', [VerificationController::class, 'uploadDocument'])
+        ->name('verification.upload.store');
+    Route::get('/verification/status', [VerificationController::class, 'showStatus'])
+        ->name('verification.status');
+});
+
+// Admin verification routes
+Route::middleware(['auth'])->group(function () {
+    Route::get('/admin/verifications', [AdminVerificationController::class, 'index'])
+        ->name('admin.verifications');
+    Route::get('/admin/verifications/all', [AdminVerificationController::class, 'allVerifications'])
+        ->name('admin.verifications.all');
+    Route::get('/admin/verifications/{user}', [AdminVerificationController::class, 'show'])
+        ->name('admin.verifications.show');
+    Route::patch('/admin/verifications/{user}/approve', [AdminVerificationController::class, 'approve'])
+        ->name('admin.verifications.approve');
+    Route::patch('/admin/verifications/{user}/reject', [AdminVerificationController::class, 'reject'])
+        ->name('admin.verifications.reject');
+    Route::patch('/admin/verifications/{user}/update-details', [AdminVerificationController::class, 'updateUserDetails'])
+        ->name('admin.verifications.update-details');
 });
 
 require __DIR__ . '/settings.php';

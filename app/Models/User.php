@@ -32,6 +32,12 @@ class User extends Authenticatable implements MustVerifyEmail
         'level',
         'experience',
         'experience_to_next_level',
+        'verification_document_path',
+        'verification_status',
+        'verification_notes',
+        'document_uploaded_at',
+        'verified_at',
+        'verified_by',
     ];
 
     /**
@@ -57,6 +63,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'level' => 'integer',
             'experience' => 'integer',
             'experience_to_next_level' => 'integer',
+            'document_uploaded_at' => 'datetime',
+            'verified_at' => 'datetime',
         ];
     }
 
@@ -226,5 +234,48 @@ class User extends Authenticatable implements MustVerifyEmail
     public function copiedCollections(): HasMany
     {
         return $this->hasMany(Collection::class)->where('is_original', false);
+    }
+
+    /**
+     * Get the admin who verified this user.
+     */
+    public function verifiedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by');
+    }
+
+    /**
+     * Check if the user needs to upload verification document.
+     */
+    public function needsDocumentUpload(): bool
+    {
+        return is_null($this->verification_document_path) && 
+               $this->verification_status === 'pending';
+    }
+
+    /**
+     * Check if the user is verified and can access the full system.
+     */
+    public function isFullyVerified(): bool
+    {
+        return $this->hasVerifiedEmail() && 
+               $this->verification_status === 'approved';
+    }
+
+    /**
+     * Check if the user's verification is pending admin approval.
+     */
+    public function hasDocumentPendingApproval(): bool
+    {
+        return !is_null($this->verification_document_path) && 
+               $this->verification_status === 'pending';
+    }
+
+    /**
+     * Check if the user's verification was rejected.
+     */
+    public function isVerificationRejected(): bool
+    {
+        return $this->verification_status === 'rejected';
     }
 }

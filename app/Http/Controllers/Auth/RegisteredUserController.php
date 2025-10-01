@@ -91,6 +91,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return to_route('home')->with('success', 'Registration successful! Welcome!');
+        return to_route('verification.notice')->with('success', 'Registration successful! Please verify your email first.');
     }
 }

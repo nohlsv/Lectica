@@ -63,6 +63,16 @@ export interface User {
     created_at: string;
     updated_at: string;
     user_role: string;
+    level?: number;
+    experience?: number;
+    experience_to_next_level?: number;
+    verification_document_path?: string;
+    verification_status?: 'pending' | 'approved' | 'rejected';
+    verification_notes?: string;
+    document_uploaded_at?: string;
+    verified_at?: string;
+    verified_by?: number;
+    verifiedBy?: User;
 }
 export interface File {
     id: number;
