@@ -33,6 +33,7 @@ Route::middleware('auth')->get('/user', function (Request $request) {
 
 Route::get('/leaderboard/general', [LeaderboardController::class, 'general']);
 Route::get('/leaderboard/multiplayer', [LeaderboardController::class, 'multiplayer']);
+Route::get('/leaderboard/streaks', [LeaderboardController::class, 'streaks']);
 
 // Monster routes
 Route::get('/monsters/random', function () {

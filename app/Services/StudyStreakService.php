@@ -73,7 +73,7 @@ class StudyStreakService
             $previousDate = $activities[$i - 1];
 
             // Check if current date is exactly 1 day after previous date
-            if ($previousDate->diffInDays($currentDate) <= 1.1) {
+            if ($previousDate->diffInDays($currentDate) <= 1.01) {
                 $currentStreak++;
                 $longestStreak = max($longestStreak, $currentStreak);
             } else {

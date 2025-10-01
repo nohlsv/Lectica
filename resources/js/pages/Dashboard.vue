@@ -398,7 +398,7 @@ const getColorClasses = (color: string) => {
                 </div>
 
                 <!-- Study Streaks Section -->
-                <div class="mb-8">
+                <div class="mb-8 w-full">
                     <StudyStreakHeatmap :streak-data="streakStats" />
                 </div>
 

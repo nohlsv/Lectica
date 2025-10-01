@@ -153,44 +153,44 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 <template>
     <div class="space-y-6">
         <!-- Streak Statistics -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card class="bg-container border-2 border-gold/30">
-                <CardContent class="p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-orange-500/20 rounded-lg">
-                            <Flame class="h-6 w-6 text-orange-400" />
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 max-w-4xl mx-auto">
+            <Card class="bg-container border-2 border-gold/30 hover:border-gold/50 transition-colors">
+                <CardContent class="p-3 sm:p-4">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="p-1.5 sm:p-2 bg-orange-500/20 rounded-lg flex-shrink-0">
+                            <Flame class="h-5 w-5 sm:h-6 sm:w-6 text-orange-400" />
                         </div>
-                        <div>
-                            <p class="text-sm text-white/70 pixel-outline">Current Streak</p>
-                            <p class="text-2xl font-bold text-white pixel-outline">{{ streakData?.current_streak || 0 }} days</p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card class="bg-container border-2 border-gold/30">
-                <CardContent class="p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-yellow-500/20 rounded-lg">
-                            <Trophy class="h-6 w-6 text-gold" />
-                        </div>
-                        <div>
-                            <p class="text-sm text-white/70 pixel-outline">Best Streak</p>
-                            <p class="text-2xl font-bold text-white pixel-outline">{{ streakData?.longest_streak || 0 }} days</p>
+                        <div class="min-w-0">
+                            <p class="text-xs sm:text-sm text-white/70 pixel-outline truncate">Current Streak</p>
+                            <p class="text-xl sm:text-2xl font-bold text-white pixel-outline">{{ streakData?.current_streak || 0 }} days</p>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <Card class="bg-container border-2 border-gold/30">
-                <CardContent class="p-4">
-                    <div class="flex items-center gap-3">
-                        <div class="p-2 bg-blue-500/20 rounded-lg">
-                            <Calendar class="h-6 w-6 text-blue-400" />
+            <Card class="bg-container border-2 border-gold/30 hover:border-gold/50 transition-colors">
+                <CardContent class="p-3 sm:p-4">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="p-1.5 sm:p-2 bg-yellow-500/20 rounded-lg flex-shrink-0">
+                            <Trophy class="h-5 w-5 sm:h-6 sm:w-6 text-gold" />
                         </div>
-                        <div>
-                            <p class="text-sm text-white/70 pixel-outline">Total Days</p>
-                            <p class="text-2xl font-bold text-white pixel-outline">{{ streakData?.total_study_days || 0 }}</p>
+                        <div class="min-w-0">
+                            <p class="text-xs sm:text-sm text-white/70 pixel-outline truncate">Best Streak</p>
+                            <p class="text-xl sm:text-2xl font-bold text-white pixel-outline">{{ streakData?.longest_streak || 0 }} days</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card class="bg-container border-2 border-gold/30 hover:border-gold/50 transition-colors sm:col-span-2 lg:col-span-1">
+                <CardContent class="p-3 sm:p-4">
+                    <div class="flex items-center gap-2 sm:gap-3">
+                        <div class="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
+                            <Calendar class="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
+                        </div>
+                        <div class="min-w-0">
+                            <p class="text-xs sm:text-sm text-white/70 pixel-outline truncate">Total Days</p>
+                            <p class="text-xl sm:text-2xl font-bold text-white pixel-outline">{{ streakData?.total_study_days || 0 }}</p>
                         </div>
                     </div>
                 </CardContent>
@@ -198,36 +198,36 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
         </div>
 
         <!-- Heatmap -->
-        <Card class="bg-container border-2 border-gold/30">
-            <CardHeader>
-                <CardTitle class="text-white pixel-outline flex items-center gap-2">
-                    <Calendar class="h-5 w-5 text-gold" />
-                    Study Activity - Last 365 Days
+        <Card class="bg-container border-2 border-gold/30 hover:border-gold/50 transition-colors max-w-6xl mx-auto">
+            <CardHeader class="pb-3">
+                <CardTitle class="text-white pixel-outline flex items-center gap-2 text-sm sm:text-base">
+                    <Calendar class="h-4 w-4 sm:h-5 sm:w-5 text-gold flex-shrink-0" />
+                    <span class="truncate">Study Activity - Last 365 Days</span>
                 </CardTitle>
             </CardHeader>
-            <CardContent class="p-6">
-                        <div class="overflow-x-auto">
-                    <div class="relative min-w-[800px]">
+            <CardContent class="p-3 sm:p-4 lg:p-6">
+                <div class="overflow-x-auto heatmap-scroll">
+                    <div class="relative min-w-[280px] sm:min-w-[600px] lg:min-w-[800px] mx-auto">
                         <!-- Heatmap grid with weeks -->
-                        <div class="flex gap-1">
+                        <div class="flex gap-0.5 sm:gap-1 justify-center">
                             <!-- Day labels -->
-                            <div class="flex flex-col gap-1 mr-2 text-xs text-white/70">
-                                <div v-for="(day, index) in dayLabels" :key="day" class="h-3 flex items-center">
-                                    {{ index % 2 === 1 ? day : '' }}
+                            <div class="flex flex-col gap-0.5 sm:gap-1 mr-1 sm:mr-2 text-[10px] sm:text-xs text-white/70 flex-shrink-0">
+                                <div v-for="(day, index) in dayLabels" :key="day" class="h-3 sm:h-4 flex items-center justify-center">
+                                    {{ day }}
                                 </div>
                             </div>
 
                             <!-- Weeks container -->
-                            <div v-if="weeksData.length > 0" class="flex gap-1">
+                            <div v-if="weeksData.length > 0" class="flex gap-0.5 sm:gap-1">
                                 <div 
                                     v-for="(week, weekIndex) in weeksData" 
                                     :key="weekIndex"
-                                    class="flex flex-col gap-1"
+                                    class="flex flex-col gap-0.5 sm:gap-1"
                                 >
                                     <div
                                         v-for="(day, dayIndex) in week"
                                         :key="`${weekIndex}-${dayIndex}`"
-                                        class="w-3 h-3 rounded-sm cursor-pointer transition-all hover:scale-110"
+                                        class="w-3 h-3 sm:w-4 sm:h-4 rounded-sm cursor-pointer transition-all duration-200 hover:scale-110 hover:z-10 relative"
                                         :class="getIntensityColor(day.value)"
                                         @mouseenter="day.date ? showTooltip($event, day) : null"
                                         @mouseleave="hideTooltip"
@@ -237,18 +237,20 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
                             </div>
                             
                             <!-- Fallback if no weeks data -->
-                            <div v-else class="text-white/50 text-sm p-4">
+                            <div v-else class="text-white/50 text-xs sm:text-sm p-4 text-center">
                                 No activity data available
                             </div>
-                        </div>                        <!-- Legend -->
-                        <div class="flex items-center justify-between mt-4 text-xs text-white/70">
+                        </div>
+                        
+                        <!-- Legend -->
+                        <div class="flex items-center justify-between mt-3 sm:mt-4 text-[10px] sm:text-xs text-white/70 max-w-md mx-auto">
                             <span class="pixel-outline">Less</span>
-                            <div class="flex gap-1 items-center">
-                                <div class="h-3 w-3 rounded-sm bg-gray-800/50 border border-gray-700/50"></div>
-                                <div class="h-3 w-3 rounded-sm bg-green-900/60 border border-green-800/50"></div>
-                                <div class="h-3 w-3 rounded-sm bg-green-700/70 border border-green-600/50"></div>
-                                <div class="h-3 w-3 rounded-sm bg-green-500/80 border border-green-400/50"></div>
-                                <div class="h-3 w-3 rounded-sm bg-green-300 border border-green-200/50"></div>
+                            <div class="flex gap-0.5 sm:gap-1 items-center">
+                                <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-gray-800/50 border border-gray-700/50"></div>
+                                <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-green-900/60 border border-green-800/50"></div>
+                                <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-green-700/70 border border-green-600/50"></div>
+                                <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-green-500/80 border border-green-400/50"></div>
+                                <div class="h-2 w-2 sm:h-3 sm:w-3 rounded-sm bg-green-300 border border-green-200/50"></div>
                             </div>
                             <span class="pixel-outline">More</span>
                         </div>
@@ -286,21 +288,47 @@ const dayLabels = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
 <style scoped>
 /* Custom scrollbar for the heatmap */
-.overflow-x-auto::-webkit-scrollbar {
-    height: 6px;
+.heatmap-scroll::-webkit-scrollbar {
+    height: 4px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 3px;
+.heatmap-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb {
-    background: rgba(212, 175, 55, 0.5);
-    border-radius: 3px;
+.heatmap-scroll::-webkit-scrollbar-thumb {
+    background: rgba(212, 175, 55, 0.6);
+    border-radius: 2px;
+    transition: background-color 0.2s;
 }
 
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-    background: rgba(212, 175, 55, 0.7);
+.heatmap-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 175, 55, 0.8);
+}
+
+/* Enhanced hover effects */
+.heatmap-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(212, 175, 55, 0.6) rgba(0, 0, 0, 0.2);
+}
+
+/* Smooth scrolling on mobile */
+@media (max-width: 640px) {
+    .heatmap-scroll {
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+    }
+    
+    .heatmap-scroll::-webkit-scrollbar {
+        height: 3px;
+    }
+}
+
+/* Focus styles for accessibility */
+.heatmap-scroll:focus-within {
+    outline: 2px solid rgba(212, 175, 55, 0.5);
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 </style>
