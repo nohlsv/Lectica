@@ -8,7 +8,7 @@
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-black/50 backdrop-blur-sm border border-yellow-400/30 overflow-hidden shadow-xl sm:rounded-lg pixel-outline">
+                <div class="bg-black/70 backdrop-blur-sm border border-yellow-400/50 overflow-hidden shadow-xl sm:rounded-lg pixel-outline">
                     <div class="p-6 lg:p-8">
                         <div class="flex justify-between items-center mb-6">
                             <div>
@@ -21,8 +21,8 @@
                                     </svg>
                                     Back to Pending
                                 </Link>
-                                <h1 class="text-2xl font-bold text-yellow-400 pixel-font">All Verifications</h1>
-                                <p class="text-gray-300 mt-1">Complete history of user verifications</p>
+                                <h1 class="text-2xl font-bold text-yellow-200 pixel-font">All Verifications</h1>
+                                <p class="text-gray-100 mt-1">Complete history of user verifications</p>
                             </div>
                             
                             <!-- Status Filter -->
@@ -109,7 +109,7 @@
                                             <div class="flex items-center">
                                                 <div class="flex-shrink-0 h-10 w-10">
                                                     <div class="h-10 w-10 rounded-full bg-yellow-400 flex items-center justify-center">
-                                                        <span class="text-black font-semibold">
+                                                        <span class="text-white font-semibold">
                                                             {{ user.first_name.charAt(0) }}{{ user.last_name.charAt(0) }}
                                                         </span>
                                                     </div>
@@ -154,7 +154,7 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <Link 
                                                 :href="route('admin.verifications.show', user.id)" 
-                                                class="bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-1 px-3 rounded pixel-outline transition-colors"
+                                                class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded pixel-outline transition-colors"
                                             >
                                                 View
                                             </Link>

@@ -49,6 +49,7 @@
                     </label>
                     <input
                         id="document"
+                        name="document"
                         ref="fileInput"
                         type="file"
                         accept="image/*,.pdf"
@@ -113,13 +114,25 @@ const handleFileChange = (event) => {
     const file = event.target.files[0];
     selectedFile.value = file;
     form.document = file;
+    console.log('File selected:', file ? file.name : 'No file');
 };
 
 const uploadDocument = () => {
+    console.log('Uploading document:', form.document);
+    
+    if (!form.document) {
+        alert('Please select a file first');
+        return;
+    }
+    
     form.post(route('verification.upload.store'), {
+        forceFormData: true, // Ensure multipart/form-data is used
         onSuccess: () => {
             selectedFile.value = null;
             fileInput.value.value = '';
+        },
+        onError: (errors) => {
+            console.error('Upload failed:', errors);
         }
     });
 };

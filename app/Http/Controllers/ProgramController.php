@@ -22,7 +22,7 @@ class ProgramController extends Controller
         }
 
         // Redirect to a proper page for browser requests
-        return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
+        return redirect()->route('home')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 
     /**
@@ -43,6 +43,6 @@ class ProgramController extends Controller
         }
 
         // Redirect to a proper page for browser requests
-        return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
+        return redirect()->route('home')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 }

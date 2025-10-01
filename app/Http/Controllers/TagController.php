@@ -23,7 +23,7 @@ class TagController extends Controller
         }
 
         // Redirect to a proper page for browser requests
-        return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
+        return redirect()->route('home')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 
     /**
@@ -45,7 +45,7 @@ class TagController extends Controller
         }
 
         // Redirect to a proper page for browser requests
-        return redirect()->route('dashboard')->with('success', 'Tag created successfully.');
+        return redirect()->route('home')->with('success', 'Tag created successfully.');
     }
 
     /**
@@ -67,7 +67,7 @@ class TagController extends Controller
         }
 
         // Redirect to a proper page for browser requests
-        return redirect()->route('dashboard')->with('success', 'Tag updated successfully.');
+        return redirect()->route('home')->with('success', 'Tag updated successfully.');
     }
 
     /**
@@ -102,7 +102,7 @@ class TagController extends Controller
         }
 
         // Redirect to a proper page for browser requests
-        return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
+        return redirect()->route('home')->with('error', 'This endpoint is only available for AJAX requests.');
     }
 
     /**
@@ -129,7 +129,7 @@ class TagController extends Controller
                 return response()->json($response);
             }
 
-            return redirect()->route('dashboard')->with('success', 'Alias added successfully.');
+            return redirect()->route('home')->with('success', 'Alias added successfully.');
         } catch (\Exception $e) {
             $errorResponse = [
                 'success' => false,
@@ -140,7 +140,7 @@ class TagController extends Controller
                 return response()->json($errorResponse, 500);
             }
 
-            return redirect()->route('dashboard')->with('error', 'Failed to add alias: ' . $e->getMessage());
+            return redirect()->route('home')->with('error', 'Failed to add alias: ' . $e->getMessage());
         }
     }
 
@@ -168,7 +168,7 @@ class TagController extends Controller
                 return response()->json($response);
             }
 
-            return redirect()->route('dashboard')->with('success', 'Alias removed successfully.');
+            return redirect()->route('home')->with('success', 'Alias removed successfully.');
         } catch (\Exception $e) {
             $errorResponse = [
                 'success' => false,
@@ -179,7 +179,7 @@ class TagController extends Controller
                 return response()->json($errorResponse, 500);
             }
 
-            return redirect()->route('dashboard')->with('error', 'Failed to remove alias: ' . $e->getMessage());
+            return redirect()->route('home')->with('error', 'Failed to remove alias: ' . $e->getMessage());
         }
     }
 
@@ -223,7 +223,7 @@ class TagController extends Controller
                 return response()->json($response);
             }
 
-            return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
+            return redirect()->route('home')->with('error', 'This endpoint is only available for AJAX requests.');
         } catch (\Exception $e) {
             $errorResponse = [
                 'error' => 'Failed to fetch suggestions',
@@ -234,7 +234,7 @@ class TagController extends Controller
                 return response()->json($errorResponse, 500);
             }
 
-            return redirect()->route('dashboard')->with('error', 'Failed to fetch suggestions: ' . $e->getMessage());
+            return redirect()->route('home')->with('error', 'Failed to fetch suggestions: ' . $e->getMessage());
         }
     }
 
@@ -273,7 +273,7 @@ class TagController extends Controller
                 return response()->json($response);
             }
 
-            return redirect()->route('dashboard')->with('error', 'This endpoint is only available for AJAX requests.');
+            return redirect()->route('home')->with('error', 'This endpoint is only available for AJAX requests.');
         } catch (\Exception $e) {
             $errorResponse = [
                 'error' => 'Failed to fetch related tags',
@@ -284,7 +284,7 @@ class TagController extends Controller
                 return response()->json($errorResponse, 500);
             }
 
-            return redirect()->route('dashboard')->with('error', 'Failed to fetch related tags: ' . $e->getMessage());
+            return redirect()->route('home')->with('error', 'Failed to fetch related tags: ' . $e->getMessage());
         }
     }
 }

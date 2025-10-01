@@ -87,10 +87,10 @@
 
                                         <div v-if="user.user_role === 'student'" class="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-300 mb-1">Program</label>
+                                                <label class="block text-sm font-medium text-gray-100 mb-1">Program</label>
                                                 <select
                                                     v-model="userForm.program_id"
-                                                    class="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded pixel-outline text-white"
+                                                    class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
                                                     required
                                                 >
                                                     <option value="">Select Program</option>
@@ -101,10 +101,10 @@
                                                 <InputError :message="userForm.errors.program_id" />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-300 mb-1">Year of Study</label>
+                                                <label class="block text-sm font-medium text-gray-100 mb-1">Year of Study</label>
                                                 <select
                                                     v-model="userForm.year_of_study"
-                                                    class="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded pixel-outline text-white"
+                                                    class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
                                                     required
                                                 >
                                                     <option value="">Select Year</option>
@@ -122,7 +122,7 @@
                                         <button
                                             type="submit"
                                             :disabled="userForm.processing"
-                                            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded pixel-outline transition-colors disabled:opacity-50"
+                                            class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded pixel-outline transition-colors disabled:opacity-50"
                                         >
                                             {{ userForm.processing ? 'Updating...' : 'Update User Details' }}
                                         </button>
