@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { Flame, Trophy, Calendar } from 'lucide-vue-next';
+import { Flame, Trophy, Calendar, Filter, GraduationCap } from 'lucide-vue-next';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import axios from 'axios';
 import { onMounted, ref } from 'vue';
 
@@ -11,6 +12,7 @@ interface GeneralLeaderboardUser {
     last_name: string;
     level: number;
     experience: number;
+    college: string;
 }
 
 interface MultiplayerLeaderboardUser {
@@ -19,6 +21,7 @@ interface MultiplayerLeaderboardUser {
     last_name: string;
     level: number;
     wins: number;
+    college: string;
 }
 
 interface StreakLeaderboardUser {
@@ -26,6 +29,7 @@ interface StreakLeaderboardUser {
     first_name: string;
     last_name: string;
     level: number;
+    college: string;
     current_streak: number;
     longest_streak: number;
     total_study_days: number;
@@ -34,17 +38,56 @@ interface StreakLeaderboardUser {
 const generalLeaderboard = ref<GeneralLeaderboardUser[]>([]);
 const multiplayerLeaderboard = ref<MultiplayerLeaderboardUser[]>([]);
 const streakLeaderboard = ref<StreakLeaderboardUser[]>([]);
+const colleges = ref<string[]>([]);
 const activeTab = ref('general');
+const selectedCollege = ref('all');
+const loading = ref(false);
+
+// Load individual leaderboards
+const loadGeneralLeaderboard = async () => {
+    const params = selectedCollege.value !== 'all' ? { college: selectedCollege.value } : {};
+    const response = await axios.get('/api/leaderboard/general', { params });
+    generalLeaderboard.value = response.data;
+};
+
+const loadMultiplayerLeaderboard = async () => {
+    const params = selectedCollege.value !== 'all' ? { college: selectedCollege.value } : {};
+    const response = await axios.get('/api/leaderboard/multiplayer', { params });
+    multiplayerLeaderboard.value = response.data;
+};
+
+const loadStreakLeaderboard = async () => {
+    const params = selectedCollege.value !== 'all' ? { college: selectedCollege.value } : {};
+    const response = await axios.get('/api/leaderboard/streaks', { params });
+    streakLeaderboard.value = response.data;
+};
+
+// Load all data
+const loadData = async () => {
+    loading.value = true;
+    try {
+        await Promise.all([
+            loadGeneralLeaderboard(),
+            loadMultiplayerLeaderboard(),
+            loadStreakLeaderboard()
+        ]);
+    } finally {
+        loading.value = false;
+    }
+};
+
+// Handle college filter change
+const onCollegeChange = async () => {
+    await loadData();
+};
 
 onMounted(async () => {
-    const [generalRes, multiplayerRes, streakRes] = await Promise.all([
-        axios.get('/api/leaderboard/general'), 
-        axios.get('/api/leaderboard/multiplayer'),
-        axios.get('/api/leaderboard/streaks')
-    ]);
-    generalLeaderboard.value = generalRes.data;
-    multiplayerLeaderboard.value = multiplayerRes.data;
-    streakLeaderboard.value = streakRes.data;
+    // Load colleges first
+    const collegesRes = await axios.get('/api/leaderboard/colleges');
+    colleges.value = collegesRes.data;
+    
+    // Then load leaderboard data
+    await loadData();
 });
 </script>
 
@@ -54,6 +97,38 @@ onMounted(async () => {
         <div class="flex flex-col min-h-screen items-center px-4 py-8 bg-gradient">
             <div class="flex justify-center mb-6 mx-4">
                 <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-center text-2xl leading-tight font-bold pixel-outline">Leaderboards</h1>
+            </div>
+
+            <!-- College Filter -->
+            <div class="mb-6 flex flex-col sm:flex-row items-center gap-4 justify-center">
+                <div class="flex items-center gap-2">
+                    <Filter class="h-4 w-4 text-gold" />
+                    <span class="text-sm font-bold pixel-outline text-white">Filter by College:</span>
+                </div>
+                <Select v-model="selectedCollege" @update:modelValue="onCollegeChange">
+                    <SelectTrigger class="w-64 bg-container border-gold/30 text-white pixel-outline">
+                        <SelectValue placeholder="Select College" />
+                    </SelectTrigger>
+                    <SelectContent class="bg-container border-gold/30">
+                        <SelectItem value="all" class="text-white hover:bg-gold/20">
+                            <div class="flex items-center gap-2">
+                                <GraduationCap class="h-4 w-4" />
+                                All Colleges
+                            </div>
+                        </SelectItem>
+                        <SelectItem 
+                            v-for="college in colleges" 
+                            :key="college" 
+                            :value="college"
+                            class="text-white hover:bg-gold/20"
+                        >
+                            {{ college }}
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+                <div v-if="loading" class="text-sm text-white/70 pixel-outline">
+                    Loading...
+                </div>
             </div>
             <div class="mb-6 flex flex-wrap gap-2 sm:gap-4 justify-center">
                 <button
@@ -89,7 +164,8 @@ onMounted(async () => {
                         class="rounded border bg-container p-4 text-white pixel-outline transition-transform hover:scale-105"
                     >
                         <p class="font-bold text-gold">Rank: {{ idx + 1 }}</p>
-                        <p>Name: {{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="text-sm text-white/80">{{ user.college }}</p>
                         <p>Level: {{ user.level }}</p>
                         <p>Experience: {{ user.experience }}</p>
                     </div>
@@ -106,7 +182,8 @@ onMounted(async () => {
                         class="rounded border bg-container pixel-outline p-4 text-white transition-transform hover:scale-105"
                     >
                         <p class="font-bold text-gold">Rank: {{ idx + 1 }}</p>
-                        <p>Name: {{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="text-sm text-white/80">{{ user.college }}</p>
                         <p>Level: {{ user.level }}</p>
                         <p>Wins: {{ user.wins }}</p>
                     </div>
@@ -130,7 +207,8 @@ onMounted(async () => {
                             <Trophy v-if="idx === 0" class="h-4 w-4 text-yellow-400" />
                             <Flame v-else-if="idx < 3" class="h-4 w-4 text-orange-400" />
                         </div>
-                        <p class="mb-2">{{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="font-semibold">{{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="text-sm text-white/80 mb-2">{{ user.college }}</p>
                         <div class="text-sm space-y-1">
                             <div class="flex items-center gap-1">
                                 <Flame class="h-3 w-3 text-orange-400" />

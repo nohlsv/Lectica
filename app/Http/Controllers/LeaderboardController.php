@@ -11,30 +11,46 @@ use Illuminate\Support\Facades\DB;
 class LeaderboardController extends Controller
 {
     // General leaderboard: users ranked by level
-    public function general()
+    public function general(Request $request)
     {
-        $users = User::select('id', 'first_name', 'last_name', 'level', 'experience')
-            ->orderByDesc('level')
-            ->orderByDesc('experience')
+        $query = User::select('users.id', 'users.first_name', 'users.last_name', 'users.level', 'users.experience', 'programs.college')
+            ->join('programs', 'users.program_id', '=', 'programs.id');
+
+        // Filter by college if specified
+        if ($request->has('college') && $request->college !== 'all') {
+            $query->where('programs.college', $request->college);
+        }
+
+        $users = $query->orderByDesc('users.level')
+            ->orderByDesc('users.experience')
             ->limit(50)
             ->get();
+            
         return response()->json($users->values());
     }
 
     // Multiplayer leaderboard: users ranked by total multiplayer wins
-    public function multiplayer()
+    public function multiplayer(Request $request)
     {
-        $leaderboard = MultiplayerGame::select(
+        $query = MultiplayerGame::select(
                 'winner_id',
                 DB::raw('COUNT(*) as wins'),
                 'users.first_name',
                 'users.last_name',
                 'users.level',
-                'users.id as id'
+                'users.id as id',
+                'programs.college'
             )
             ->whereNotNull('winner_id')
             ->join('users', 'users.id', '=', 'multiplayer_games.winner_id')
-            ->groupBy('winner_id', 'users.first_name', 'users.last_name', 'users.level', 'users.id')
+            ->join('programs', 'users.program_id', '=', 'programs.id');
+
+        // Filter by college if specified
+        if ($request->has('college') && $request->college !== 'all') {
+            $query->where('programs.college', $request->college);
+        }
+
+        $leaderboard = $query->groupBy('winner_id', 'users.first_name', 'users.last_name', 'users.level', 'users.id', 'programs.college')
             ->orderByDesc('wins')
             ->limit(50)
             ->get();
@@ -43,12 +59,19 @@ class LeaderboardController extends Controller
     }
 
     // Study streaks leaderboard: users ranked by current and longest streaks
-    public function streaks()
+    public function streaks(Request $request)
     {
         $streakService = new StudyStreakService();
         
-        $users = User::select('id', 'first_name', 'last_name', 'level')
-            ->get();
+        $query = User::select('users.id', 'users.first_name', 'users.last_name', 'users.level', 'programs.college')
+            ->join('programs', 'users.program_id', '=', 'programs.id');
+
+        // Filter by college if specified
+        if ($request->has('college') && $request->college !== 'all') {
+            $query->where('programs.college', $request->college);
+        }
+
+        $users = $query->get();
             
         $streakData = [];
         
@@ -62,6 +85,7 @@ class LeaderboardController extends Controller
                     'first_name' => $user->first_name,
                     'last_name' => $user->last_name,
                     'level' => $user->level,
+                    'college' => $user->college,
                     'current_streak' => $stats['current_streak'],
                     'longest_streak' => $stats['longest_streak'],
                     'total_study_days' => $stats['total_study_days'],
@@ -84,6 +108,19 @@ class LeaderboardController extends Controller
         $streakData = array_slice($streakData, 0, 50);
         
         return response()->json(array_values($streakData));
+    }
+
+    // Get all available colleges for filtering
+    public function colleges()
+    {
+        $colleges = DB::table('programs')
+            ->select('college')
+            ->distinct()
+            ->whereNotNull('college')
+            ->orderBy('college')
+            ->pluck('college');
+
+        return response()->json($colleges->values());
     }
 }
 
