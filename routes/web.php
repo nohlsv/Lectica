@@ -134,11 +134,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $streakService = app(App\Services\StudyStreakService::class);
         $stats = $streakService->getStreakStats($user);
         
+        // Also get raw activity data for debugging
+        $recentActivities = App\Models\UserStudyActivity::where('user_id', $user->id)
+            ->orderBy('study_date', 'desc')
+            ->take(10)
+            ->pluck('study_date')
+            ->map(fn($date) => $date->format('Y-m-d'));
+        
         return response()->json([
             'current_streak' => $stats['current_streak'],
             'longest_streak' => $stats['longest_streak'], 
             'total_study_days' => $stats['total_study_days'],
             'heatmap_count' => count($stats['heatmap_data']),
+            'recent_activities' => $recentActivities,
             'sample_recent_data' => array_slice($stats['heatmap_data'], -10),
             'sample_early_data' => array_slice($stats['heatmap_data'], 0, 10)
         ]);

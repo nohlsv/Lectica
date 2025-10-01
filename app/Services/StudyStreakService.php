@@ -17,7 +17,7 @@ class StudyStreakService
         $activities = UserStudyActivity::where('user_id', $user->id)
             ->where('study_date', '>=', Carbon::now()->subDays(365))
             ->orderBy('study_date', 'desc')
-            ->get();
+            ->pluck('study_date');
 
         if ($activities->isEmpty()) {
             return 0;
@@ -26,18 +26,21 @@ class StudyStreakService
         $streak = 0;
         $currentDate = Carbon::today();
         
-        // Check if user studied today or yesterday (to account for different time zones)
+        // Check if user studied today or yesterday (to account for timezone)
         $lastActivity = $activities->first();
-        if ($lastActivity->study_date->diffInDays($currentDate) > 1) {
+        if ($lastActivity->diffInDays($currentDate) > 1) {
             return 0; // Streak is broken
         }
 
-        foreach ($activities as $activity) {
-            if ($activity->study_date->eq($currentDate) || 
-                $activity->study_date->eq($currentDate->copy()->subDay())) {
+        // Start counting from the most recent activity date
+        $expectedDate = $lastActivity->copy();
+        
+        foreach ($activities as $activityDate) {
+            if ($activityDate->eq($expectedDate)) {
                 $streak++;
-                $currentDate = $activity->study_date->copy()->subDay();
+                $expectedDate->subDay();
             } else {
+                // There's a gap in the streak
                 break;
             }
         }
@@ -58,14 +61,19 @@ class StudyStreakService
             return 0;
         }
 
+        if ($activities->count() === 1) {
+            return 1;
+        }
+
         $longestStreak = 1;
         $currentStreak = 1;
 
         for ($i = 1; $i < $activities->count(); $i++) {
-            $currentDate = Carbon::parse($activities[$i]);
-            $previousDate = Carbon::parse($activities[$i - 1]);
+            $currentDate = $activities[$i];
+            $previousDate = $activities[$i - 1];
 
-            if ($currentDate->diffInDays($previousDate) === 1) {
+            // Check if current date is exactly 1 day after previous date
+            if ($previousDate->diffInDays($currentDate) <= 1.1) {
                 $currentStreak++;
                 $longestStreak = max($longestStreak, $currentStreak);
             } else {

@@ -14,7 +14,7 @@ class SeedStudyActivityData extends Command
      *
      * @var string
      */
-    protected $signature = 'study:seed-activity {--user-id=1 : The user ID to seed data for} {--days=90 : Number of days to seed}';
+    protected $signature = 'study:seed-activity {--user-id=1 : The user ID to seed data for} {--days=90 : Number of days to seed} {--clear : Clear existing data first}';
 
     /**
      * The console command description.
@@ -37,6 +37,12 @@ class SeedStudyActivityData extends Command
             return Command::FAILURE;
         }
 
+        // Clear existing data if requested
+        if ($this->option('clear')) {
+            $this->info("Clearing existing activity data for user: {$user->name}");
+            UserStudyActivity::where('user_id', $userId)->delete();
+        }
+
         $this->info("Seeding {$days} days of study activity for user: {$user->name}");
 
         $progressBar = $this->output->createProgressBar($days);
@@ -45,9 +51,40 @@ class SeedStudyActivityData extends Command
         $currentDate = Carbon::now()->subDays($days);
         $activitiesCreated = 0;
 
+        // Create realistic study patterns with guaranteed streaks
+        $inStreak = false;
+        $streakLength = 0;
+        $targetStreakLength = 0;
+        $streakCooldown = 0; // Days after streak before starting another
+
         for ($i = 0; $i < $days; $i++) {
-            // Randomly decide if user studied this day (80% chance)
-            if (rand(1, 100) <= 80) {
+            $shouldStudy = false;
+            
+            if ($streakCooldown > 0) {
+                $streakCooldown--;
+                // Lower probability during cooldown
+                $shouldStudy = rand(1, 100) <= 30;
+            } elseif (!$inStreak && rand(1, 100) <= 20) { // 20% chance to start a streak
+                $inStreak = true;
+                $targetStreakLength = rand(7, 25); // 7-25 day streaks
+                $streakLength = 0;
+                $shouldStudy = true; // Always start streak
+                $this->line("\n  Starting streak of {$targetStreakLength} days at {$currentDate->format('Y-m-d')}");
+            } elseif ($inStreak) {
+                // GUARANTEE every day during streak
+                $shouldStudy = true;
+                $streakLength++;
+                if ($streakLength >= $targetStreakLength) {
+                    $inStreak = false;
+                    $streakCooldown = rand(3, 10); // 3-10 day break after streak
+                    $this->line("  Ending streak at {$currentDate->format('Y-m-d')} (length: {$streakLength})");
+                }
+            } else {
+                // Regular random probability outside of streaks
+                $shouldStudy = rand(1, 100) <= 70;
+            }
+
+            if ($shouldStudy) {
                 $intensity = $this->getRandomIntensity();
                 
                 UserStudyActivity::updateOrCreate(
