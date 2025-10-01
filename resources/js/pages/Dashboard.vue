@@ -173,9 +173,9 @@ const facultyActions = [
         color: 'purple'
     },
     {
-        title: 'Student Progress',
+        title: 'Student Leaderboards',
         href: '/leaderboards',
-        description: 'Monitor class performance',
+        description: 'Monitor student performance',
         icon: 'trophy',
         color: 'yellow'
     },

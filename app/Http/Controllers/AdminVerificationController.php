@@ -139,6 +139,31 @@ class AdminVerificationController extends Controller
             ->orderByRaw('document_uploaded_at IS NULL, document_uploaded_at DESC')
             ->paginate(20);
 
+        // Ensure the relationship data is properly loaded by transforming the pagination result
+        $users->through(function ($user) {
+            return [
+                'id' => $user->id,
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->email,
+                'user_role' => $user->user_role,
+                'verification_status' => $user->verification_status,
+                'verification_notes' => $user->verification_notes,
+                'document_uploaded_at' => $user->document_uploaded_at,
+                'verified_at' => $user->verified_at,
+                'verified_by' => $user->verified_by,
+                'verifiedBy' => $user->verifiedBy ? [
+                    'id' => $user->verifiedBy->id,
+                    'first_name' => $user->verifiedBy->first_name,
+                    'last_name' => $user->verifiedBy->last_name,
+                ] : null,
+                'program' => $user->program ? [
+                    'id' => $user->program->id,
+                    'name' => $user->program->name,
+                ] : null,
+            ];
+        });
+
         return Inertia::render('Admin/AllVerifications', [
             'users' => $users
         ]);
