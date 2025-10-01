@@ -17,6 +17,7 @@ import {
     PencilIcon,
     PlusIcon,
     StarIcon,
+    XCircleIcon,
 } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
@@ -38,6 +39,9 @@ const isStarred = ref(props.file.is_starred || false);
 const isStarring = ref(false);
 const isVerifying = ref(false);
 const showCollectionModal = ref(false);
+const showDenyModal = ref(false);
+const denialReason = ref('');
+const isDenying = ref(false);
 const userCollections = ref<Collection[]>([]);
 const selectedCollection = ref<number | null>(null);
 const showCreateNewCollection = ref(false);
@@ -116,6 +120,48 @@ const verifyFile = async () => {
     } catch (error) {
         isVerifying.value = false;
         toast.error('Error verifying the file.');
+    }
+};
+
+const openDenyModal = () => {
+    denialReason.value = '';
+    showDenyModal.value = true;
+};
+
+const denyFile = async () => {
+    if (!denialReason.value.trim()) {
+        toast.error('Please provide a reason for denial.');
+        return;
+    }
+
+    if (isDenying.value) return;
+
+    isDenying.value = true;
+
+    try {
+        router.patch(
+            route('files.verify.deny', { file: props.file.id }),
+            { denial_reason: denialReason.value },
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    props.file.is_denied = true;
+                    props.file.denial_reason = denialReason.value;
+                    showDenyModal.value = false;
+                    toast.success('File denied and user notified!');
+                },
+                onError: () => {
+                    toast.error('Failed to deny the file.');
+                },
+                onFinish: () => {
+                    isDenying.value = false;
+                },
+            },
+        );
+    } catch (error) {
+        isDenying.value = false;
+        toast.error('Error denying the file.');
     }
 };
 
@@ -266,13 +312,22 @@ const addToCollection = async () => {
                         {{ isStarred ? 'Starred' : 'Star' }}
                     </button>
                     <button
-                        v-if="!file.verified && canVerify"
+                        v-if="!file.verified && !file.is_denied && canVerify"
                         @click="verifyFile"
-                        class="bg-background hover:bg-accent border-border inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                        class="bg-green-600 hover:bg-green-700 text-white inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors"
                         :disabled="isVerifying"
                     >
                         <CheckCircleIcon class="mr-2 h-5 w-5" />
                         {{ isVerifying ? 'Verifying...' : 'Verify' }}
+                    </button>
+                    <button
+                        v-if="!file.verified && !file.is_denied && canVerify"
+                        @click="openDenyModal"
+                        class="bg-red-600 hover:bg-red-700 text-white inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                        :disabled="isDenying"
+                    >
+                        <XCircleIcon class="mr-2 h-5 w-5" />
+                        Deny
                     </button>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
@@ -307,6 +362,38 @@ const addToCollection = async () => {
                 <div class="space-y-4 md:col-span-1">
                     <div class="border-border rounded-lg border p-4">
                         <h2 class="mb-3 text-lg font-semibold">{{ file.name }}</h2>
+                        
+                        <!-- Verification Status -->
+                        <div class="mb-3">
+                            <span
+                                v-if="file.verified"
+                                class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
+                            >
+                                Verified
+                            </span>
+                            <span
+                                v-else-if="file.is_denied"
+                                class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
+                            >
+                                Denied
+                            </span>
+                            <span
+                                v-else
+                                class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800"
+                            >
+                                Pending Review
+                            </span>
+                        </div>
+                        
+                        <!-- Denial Reason -->
+                        <div
+                            v-if="file.is_denied && file.denial_reason"
+                            class="mb-3 rounded border border-red-300 bg-red-50 p-3"
+                        >
+                            <p class="text-xs font-medium text-red-700">Denial Reason:</p>
+                            <p class="mt-1 text-sm text-red-600">{{ file.denial_reason }}</p>
+                        </div>
+                        
                         <div v-if="file.description" class="mb-3 text-sm">
                             <p class="text-muted-foreground">{{ file.description }}</p>
                         </div>
@@ -644,6 +731,35 @@ const addToCollection = async () => {
                                 <span v-else>Create & Add</span>
                             </Button>
                         </div>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <!-- Deny File Modal -->
+            <Dialog v-model:open="showDenyModal" onOpenChange="showDenyModal = $event">
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Deny File</DialogTitle>
+                    </DialogHeader>
+                    <div class="space-y-4">
+                        <p class="text-sm text-gray-600">Please provide a reason for denying this file:</p>
+                        <textarea
+                            v-model="denialReason"
+                            placeholder="Enter reason for denial..."
+                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                            rows="4"
+                        ></textarea>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" @click="showDenyModal = false">Cancel</Button>
+                        <Button 
+                            @click="denyFile" 
+                            :disabled="!denialReason.trim() || isDenying"
+                            class="bg-red-600 hover:bg-red-700 text-white"
+                        >
+                            <span v-if="isDenying">Denying...</span>
+                            <span v-else>Deny File</span>
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

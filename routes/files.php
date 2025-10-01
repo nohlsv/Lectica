@@ -12,6 +12,7 @@ use App\Http\Controllers\PracticeRecordController;
 // Verify
 Route::get('/files/verify', [App\Http\Controllers\FileVerificationController::class, 'index'])->name('files.verify');
 Route::patch('/files/{file}/verify', [App\Http\Controllers\FileVerificationController::class, 'verify'])->name('files.verify.update');
+Route::patch('/files/{file}/deny', [App\Http\Controllers\FileVerificationController::class, 'deny'])->name('files.verify.deny');
 
 // File stars
 Route::post('/files/{file}/star', [FileStarController::class, 'toggle'])

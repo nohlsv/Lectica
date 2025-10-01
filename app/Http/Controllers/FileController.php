@@ -191,7 +191,7 @@ class FileController extends Controller
 
     public function indexPersonal(Request $request)
     {
-        $query = File::with(['tags', 'user'])
+        $query = File::with(['tags', 'user', 'verifier'])
             ->where('user_id', auth()->id())
             ->when($request->filled('search'), function ($query) use ($request) {
                 $search = $request->search;

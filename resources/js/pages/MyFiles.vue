@@ -239,6 +239,39 @@ const addToCollection = async () => {
                                         <CardDescription class="line-clamp-2">
                                             {{ file.description || 'No description provided' }}
                                         </CardDescription>
+                                        
+                                        <!-- Verification Status -->
+                                        <div class="mt-2">
+                                            <Badge
+                                                v-if="file.verified"
+                                                class="border-2 border-[#0c0a03] bg-green-500 text-xs text-white"
+                                            >
+                                                Verified
+                                            </Badge>
+                                            <Badge
+                                                v-else-if="file.is_denied"
+                                                class="border-2 border-[#0c0a03] bg-red-500 text-xs text-white"
+                                                :title="file.denial_reason"
+                                            >
+                                                Denied
+                                            </Badge>
+                                            <Badge
+                                                v-else
+                                                class="border-2 border-[#0c0a03] bg-yellow-500 text-xs text-black"
+                                            >
+                                                Pending Review
+                                            </Badge>
+                                        </div>
+                                        
+                                        <!-- Denial Reason -->
+                                        <div
+                                            v-if="file.is_denied && file.denial_reason"
+                                            class="mt-2 rounded border border-red-300 bg-red-50 p-2 text-xs dark:border-red-600 dark:bg-red-900/20"
+                                        >
+                                            <strong class="text-red-700 dark:text-red-300">Denial Reason:</strong>
+                                            <p class="mt-1 text-red-600 dark:text-red-400">{{ file.denial_reason }}</p>
+                                        </div>
+                                        
                                         <div class="mt-2 flex flex-wrap gap-1">
                                             <Badge
                                                 v-for="tag in file.tags"

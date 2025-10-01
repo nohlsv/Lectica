@@ -91,6 +91,12 @@ export interface File {
     flashcards_count?: number;
     quizzes_count?: number;
     verified: boolean;
+    is_denied?: boolean;
+    denial_reason?: string;
+    verified_at?: string;
+    denied_at?: string;
+    verified_by?: number;
+    user_notified_of_denial?: boolean;
 }
 
 export interface Flashcard {

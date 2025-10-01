@@ -14,7 +14,7 @@ class File extends Model
 {
     /** @use HasFactory<\Database\Factories\FileFactory> */
     use HasFactory;
-    protected $fillable = ['name', 'description', 'path', 'content', 'file_hash', 'user_id'];
+    protected $fillable = ['name', 'description', 'path', 'content', 'file_hash', 'user_id', 'is_denied', 'denial_reason', 'verified_at', 'denied_at', 'verified_by', 'user_notified_of_denial'];
 
     /**
      * The accessors to append to the model's array form.
@@ -75,6 +75,14 @@ class File extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the user who verified this file.
+     */
+    public function verifier(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'verified_by');
     }
 
     public function tags(): BelongsToMany

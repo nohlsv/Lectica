@@ -110,6 +110,22 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if the user is faculty
+     */
+    public function isFaculty(): bool
+    {
+        return $this->user_role === 'faculty';
+    }
+
+    /**
+     * Get the user's college through their program
+     */
+    public function getCollegeAttribute(): ?string
+    {
+        return $this->program ? $this->program->college : null;
+    }
+
+    /**
      * Get the battles for this user.
      */
     public function battles(): HasMany

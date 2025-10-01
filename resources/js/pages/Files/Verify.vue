@@ -2,8 +2,9 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type File } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { CheckCircleIcon, FileIcon } from 'lucide-vue-next';
+import { CheckCircleIcon, FileIcon, XCircleIcon } from 'lucide-vue-next';
 import { toast } from 'vue-sonner';
+import { ref } from 'vue';
 
 interface Props {
     files: {
@@ -18,6 +19,10 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const showDenyModal = ref(false);
+const selectedFileId = ref<number | null>(null);
+const denialReason = ref('');
+
 const verifyFile = (fileId: number) => {
     router.patch(
         route('files.verify.update', fileId),
@@ -29,6 +34,36 @@ const verifyFile = (fileId: number) => {
             },
             onError: () => {
                 toast.error('Failed to verify the file. Please try again.');
+            },
+        },
+    );
+};
+
+const openDenyModal = (fileId: number) => {
+    selectedFileId.value = fileId;
+    denialReason.value = '';
+    showDenyModal.value = true;
+};
+
+const denyFile = () => {
+    if (!selectedFileId.value || !denialReason.value.trim()) {
+        toast.error('Please provide a reason for denial.');
+        return;
+    }
+
+    router.patch(
+        route('files.verify.deny', selectedFileId.value),
+        { denial_reason: denialReason.value },
+        {
+            onSuccess: () => {
+                toast.success('File denied and user notified!');
+                showDenyModal.value = false;
+                selectedFileId.value = null;
+                denialReason.value = '';
+                router.reload();
+            },
+            onError: () => {
+                toast.error('Failed to deny the file. Please try again.');
             },
         },
     );
@@ -48,11 +83,17 @@ const verifyFile = (fileId: number) => {
                     <div
                         v-for="file in props.files.data"
                         :key="file.id"
-                        class="flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4"
+                        class="flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-container p-4"
                     >
                         <h2 class="pixel-outline text-xl font-semibold text-[#fdf6ee] md:text-2xl">{{ file.name }}</h2>
                         <p class="text-sm text-[#fdf6ee]/50 lg:text-base">
-                            Uploaded by: <span class="ml-1"> {{ file.user.first_name }} {{ file.user.last_name }}</span>
+                            Uploaded by: <span class="ml-1">{{ file.user.first_name }} {{ file.user.last_name }}</span>
+                        </p>
+                        <p v-if="file.user.program" class="text-sm text-[#fdf6ee]/50 lg:text-base">
+                            College: <span class="ml-1">{{ file.user.program.college }}</span>
+                        </p>
+                        <p v-if="file.user.program" class="text-sm text-[#fdf6ee]/50 lg:text-base">
+                            Program: <span class="ml-1">{{ file.user.program.name }}</span>
                         </p>
                         <p class="text-sm text-[#fdf6ee]/50 lg:text-base">
                             Description: <span class="ml-1">{{ file.description || 'No description provided' }}</span>
@@ -62,9 +103,9 @@ const verifyFile = (fileId: number) => {
                                 {{ tag.name }}
                             </span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="mt-2 flex flex-wrap items-center gap-2">
                             <button
-                                class="pixel-outline mt-2 flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#6aa7d6] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#578ec3] sm:px-4 sm:py-2 sm:text-base"
+                                class="pixel-outline flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#6aa7d6] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#578ec3] sm:px-4 sm:py-2 sm:text-base"
                             >
                                 <Link :href="route('files.show', file.id)" target="_blank" class="flex items-center">
                                     <FileIcon class="pixel-outline-icon mr-2 h-4 w-4" />
@@ -73,10 +114,17 @@ const verifyFile = (fileId: number) => {
                             </button>
                             <button
                                 @click="verifyFile(file.id)"
-                                class="pixel-outline mt-2 flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#5cae6e] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#4a9159] sm:px-4 sm:py-2 sm:text-base"
+                                class="pixel-outline flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#5cae6e] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#4a9159] sm:px-4 sm:py-2 sm:text-base"
                             >
                                 <CheckCircleIcon class="pixel-outline-icon mr-2 h-4 w-4" />
                                 <span>Verify</span>
+                            </button>
+                            <button
+                                @click="openDenyModal(file.id)"
+                                class="pixel-outline flex cursor-pointer items-center rounded-md border-2 border-[#0c0a03] bg-[#B23A48] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 hover:bg-[#9a2f3d] sm:px-4 sm:py-2 sm:text-base"
+                            >
+                                <XCircleIcon class="pixel-outline-icon mr-2 h-4 w-4" />
+                                <span>Deny</span>
                             </button>
                         </div>
                     </div>
@@ -98,6 +146,34 @@ const verifyFile = (fileId: number) => {
                             v-html="link.label"
                         ></button>
                     </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- Denial Modal -->
+        <div v-if="showDenyModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div class="bg-container mx-4 max-w-md rounded-lg p-6">
+                <h3 class="pixel-outline mb-4 text-xl font-bold text-[#fdf6ee]">Deny File</h3>
+                <p class="mb-4 text-sm text-[#fdf6ee]/70">Please provide a reason for denying this file:</p>
+                <textarea
+                    v-model="denialReason"
+                    placeholder="Enter reason for denial..."
+                    class="mb-4 w-full rounded border-2 border-[#0c0a03] bg-[#3B1A14] px-3 py-2 text-[#fdf6ee] placeholder-[#fdf6ee]/50 focus:border-[#B23A48] focus:outline-none"
+                    rows="4"
+                ></textarea>
+                <div class="flex justify-end gap-3">
+                    <button
+                        @click="showDenyModal = false"
+                        class="pixel-outline rounded border-2 border-[#0c0a03] bg-[#3B1A14] px-4 py-2 text-[#fdf6ee] duration-300 hover:bg-[#77252e]"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        @click="denyFile"
+                        class="pixel-outline rounded border-2 border-[#0c0a03] bg-[#B23A48] px-4 py-2 text-[#fdf6ee] duration-300 hover:bg-[#9a2f3d]"
+                    >
+                        Deny File
+                    </button>
                 </div>
             </div>
         </div>
