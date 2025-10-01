@@ -186,11 +186,15 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     private function levelUp(): void
     {
+        $oldLevel = $this->level;
         $this->experience -= $this->experience_to_next_level;
         $this->level++;
 
         // Calculate XP needed for next level (increases by 20% each level)
         $this->experience_to_next_level = (int) round($this->experience_to_next_level * 1.2);
+        
+        // Send level up notification
+        $this->notify(new \App\Notifications\LevelUpNotification($this->level, $oldLevel));
     }
 
     /**

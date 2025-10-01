@@ -157,6 +157,16 @@ class FileController extends Controller
             // Update quest progress for activity streak
             $this->questService->updateQuestProgress($user, 'activity_streak');
 
+            // Check for first file upload achievement
+            $userFileCount = File::where('user_id', $user->id)->count();
+            if ($userFileCount == 1) {
+                $user->notify(new \App\Notifications\AchievementUnlockedNotification(
+                    'First Upload',
+                    'Upload your first file',
+                    '📁'
+                ));
+            }
+
             return redirect()->route('files.show', $file)
                 ->with([
                     'success' => 'File uploaded successfully! You gained 20 XP!',

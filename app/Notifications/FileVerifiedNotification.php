@@ -8,20 +8,18 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class FileDeniedNotification extends Notification
+class FileVerifiedNotification extends Notification
 {
     use Queueable;
 
     public $file;
-    public $denialReason;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(File $file, string $denialReason)
+    public function __construct(File $file)
     {
         $this->file = $file;
-        $this->denialReason = $denialReason;
     }
 
     /**
@@ -31,7 +29,7 @@ class FileDeniedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -40,11 +38,11 @@ class FileDeniedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('File Upload Denied - ' . $this->file->name)
-            ->line('Your file upload "' . $this->file->name . '" has been denied.')
-            ->line('Reason: ' . $this->denialReason)
-            ->action('View My Files', url('/files'))
-            ->line('You can re-upload the file after addressing the issues mentioned above.');
+            ->subject('File Verified - ' . $this->file->name)
+            ->line('Great news! Your file upload has been verified.')
+            ->line('File: ' . $this->file->name)
+            ->action('View File', url('/files/' . $this->file->id))
+            ->line('Your file is now available to other users. Thank you for contributing!');
     }
 
     /**
@@ -57,8 +55,7 @@ class FileDeniedNotification extends Notification
         return [
             'file_id' => $this->file->id,
             'file_name' => $this->file->name,
-            'denial_reason' => $this->denialReason,
-            'message' => 'Your file "' . $this->file->name . '" has been denied: ' . $this->denialReason
+            'message' => '✅ Your file "' . $this->file->name . '" has been verified!'
         ];
     }
 }

@@ -470,25 +470,28 @@ const getColorClasses = (color: string) => {
                             <div
                                 v-for="notification in recentNotifications.slice(0, 3)"
                                 :key="notification.id"
-                                class="flex items-start space-x-3 rounded-lg border border-gray-200 p-3"
-                                :class="{ 'bg-blue-50 border-blue-200': !notification.read_at }"
+                                class="flex items-start space-x-3 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
+                                :class="{ 
+                                    'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-600': !notification.read_at,
+                                    'dark:bg-gray-800/50': notification.read_at
+                                }"
                             >
                                 <div
                                     v-if="!notification.read_at"
-                                    class="mt-2 h-2 w-2 rounded-full bg-blue-600"
+                                    class="mt-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400"
                                 ></div>
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-medium text-gray-900">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">
                                         {{ notification.data.message }}
                                     </p>
-                                    <p class="text-xs text-gray-500 mt-1">
+                                    <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">
                                         {{ new Date(notification.created_at).toLocaleDateString() }}
                                     </p>
                                     <div v-if="notification.data.file_name" class="mt-1">
                                         <Link
                                             v-if="notification.data.file_id"
                                             :href="route('files.show', notification.data.file_id)"
-                                            class="text-xs text-blue-600 hover:text-blue-800"
+                                            class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                         >
                                             View {{ notification.data.file_name }}
                                         </Link>

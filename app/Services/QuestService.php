@@ -81,6 +81,12 @@ class QuestService
             // Award XP if quest is completed
             if ($isCompleted && $quest->pivot->is_completed == false) {
                 $user->addExperience($quest->experience_reward);
+                
+                // Send quest completion notification
+                $user->notify(new \App\Notifications\QuestCompletedNotification($quest, $quest->experience_reward));
+                
+                // Check for achievement unlocks
+                $this->checkAchievementUnlocks($user);
             }
         }
     }
@@ -110,5 +116,50 @@ class QuestService
     public function checkQuestCompletion(User $user, string $category): void
     {
         $this->updateQuestProgress($user, $category, 1);
+    }
+
+    /**
+     * Check if user has unlocked any achievements and send notifications.
+     */
+    private function checkAchievementUnlocks(User $user): void
+    {
+        $totalCompleted = $user->quests()->wherePivot('is_completed', true)->count();
+        $totalXpEarned = $user->experience + (($user->level - 1) * 100); // Approximate total XP earned
+        
+        // Check for "First Quest" achievement (1 quest completed)
+        if ($totalCompleted == 1) {
+            $user->notify(new \App\Notifications\AchievementUnlockedNotification(
+                'First Quest',
+                'Complete your first quest',
+                '🎯'
+            ));
+        }
+        
+        // Check for "Quest Veteran" achievement (10 quests completed)
+        if ($totalCompleted == 10) {
+            $user->notify(new \App\Notifications\AchievementUnlockedNotification(
+                'Quest Veteran',
+                'Complete 10 quests',
+                '🏆'
+            ));
+        }
+        
+        // Check for "Quest Master" achievement (50 quests completed)
+        if ($totalCompleted == 50) {
+            $user->notify(new \App\Notifications\AchievementUnlockedNotification(
+                'Quest Master',
+                'Complete 50 quests',
+                '👑'
+            ));
+        }
+        
+        // Check for "XP Collector" achievement (1000 XP earned)
+        if ($totalXpEarned >= 1000 && ($totalXpEarned - $user->quests()->where('id', $user->quests()->latest()->first()?->id)->first()?->experience_reward ?? 0) < 1000) {
+            $user->notify(new \App\Notifications\AchievementUnlockedNotification(
+                'XP Collector',
+                'Earn 1000 experience points',
+                '⭐'
+            ));
+        }
     }
 }

@@ -2,26 +2,25 @@
 
 namespace App\Notifications;
 
-use App\Models\File;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class FileDeniedNotification extends Notification
+class LevelUpNotification extends Notification
 {
     use Queueable;
 
-    public $file;
-    public $denialReason;
+    public $newLevel;
+    public $oldLevel;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct(File $file, string $denialReason)
+    public function __construct(int $newLevel, int $oldLevel)
     {
-        $this->file = $file;
-        $this->denialReason = $denialReason;
+        $this->newLevel = $newLevel;
+        $this->oldLevel = $oldLevel;
     }
 
     /**
@@ -40,11 +39,11 @@ class FileDeniedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('File Upload Denied - ' . $this->file->name)
-            ->line('Your file upload "' . $this->file->name . '" has been denied.')
-            ->line('Reason: ' . $this->denialReason)
-            ->action('View My Files', url('/files'))
-            ->line('You can re-upload the file after addressing the issues mentioned above.');
+                    ->subject('Level Up! - Level ' . $this->newLevel)
+                    ->line('Congratulations! You have reached level ' . $this->newLevel . '!')
+                    ->line('You have progressed from level ' . $this->oldLevel . ' to level ' . $this->newLevel . '.')
+                    ->action('View Profile', url('/profile'))
+                    ->line('Keep learning to unlock more achievements!');
     }
 
     /**
@@ -55,10 +54,9 @@ class FileDeniedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            'file_id' => $this->file->id,
-            'file_name' => $this->file->name,
-            'denial_reason' => $this->denialReason,
-            'message' => 'Your file "' . $this->file->name . '" has been denied: ' . $this->denialReason
+            'new_level' => $this->newLevel,
+            'old_level' => $this->oldLevel,
+            'message' => '🎊 Level Up! You are now level ' . $this->newLevel
         ];
     }
 }

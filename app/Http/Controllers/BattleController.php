@@ -241,6 +241,22 @@ class BattleController extends Controller
         // Update quest progress for completing a battle (win only)
         if ($request->status === 'victory') {
             $this->questService->updateQuestProgress($user, 'battle_win');
+            
+            // Send battle victory notification
+            $user->notify(new \App\Notifications\BattleVictoryNotification($battle, $completionBonus));
+
+            // Check for first battle victory achievement
+            $userBattleWins = \App\Models\Battle::where('user_id', $user->id)
+                ->where('status', 'won')
+                ->count();
+            
+            if ($userBattleWins == 1) {
+                $user->notify(new \App\Notifications\AchievementUnlockedNotification(
+                    'First Victory',
+                    'Win your first battle',
+                    '⚔️'
+                ));
+            }
         }
 
         // Track study activity

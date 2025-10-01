@@ -52,6 +52,9 @@ class FileVerificationController extends Controller
 			'verified_by' => auth()->id()
 		]);
 
+		// Send verification notification to the file owner
+		$file->user->notify(new \App\Notifications\FileVerifiedNotification($file));
+
 		return redirect()->back()->with('success', 'File verified successfully!');
 	}
 
