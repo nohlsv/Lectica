@@ -195,16 +195,31 @@ class MultiplayerGameController extends Controller
             $isCurrentPlayerTurn = ($isPlayerOne && $multiplayerGame->current_turn === 1) ||
                                  ($isPlayerTwo && $multiplayerGame->current_turn === 2);
             
-            // If it's their turn but timer has expired and no submission is allowed, force timeout
-            if ($isCurrentPlayerTurn && !$this->timerService->isSubmissionAllowed($multiplayerGame->id)) {
-                \Log::info('Player refreshed after timer expired, forcing timeout', [
-                    'game_id' => $multiplayerGame->id,
-                    'user_id' => Auth::id(),
-                    'current_turn' => $multiplayerGame->current_turn
-                ]);
-                $this->timerService->forceTimeout($multiplayerGame->id);
-                // Refresh the game state after timeout
-                $multiplayerGame->refresh();
+            // Check for problematic timer states when it's the user's turn
+            if ($isCurrentPlayerTurn) {
+                $timerStatus = $this->timerService->getTimerStatus($multiplayerGame->id);
+                $submissionAllowed = $this->timerService->isSubmissionAllowed($multiplayerGame->id);
+                
+                // Case 1: Timer expired and submission not allowed
+                if (!$submissionAllowed) {
+                    \Log::info('Player refreshed after timer expired (submission blocked), forcing timeout', [
+                        'game_id' => $multiplayerGame->id,
+                        'user_id' => Auth::id(),
+                        'current_turn' => $multiplayerGame->current_turn
+                    ]);
+                    $this->timerService->forceTimeout($multiplayerGame->id);
+                    $multiplayerGame->refresh();
+                }
+                // Case 2: No timer running but it's their turn in an active game (stuck state)
+                elseif (!$timerStatus['is_running'] && $submissionAllowed) {
+                    \Log::info('Player refreshed with no timer running during their turn, recovering', [
+                        'game_id' => $multiplayerGame->id,
+                        'user_id' => Auth::id(),
+                        'current_turn' => $multiplayerGame->current_turn
+                    ]);
+                    // Start a new timer instead of timing out (this recovers from stuck state)
+                    $this->timerService->startTimer($multiplayerGame->id, false);
+                }
             }
             
             // Get the current synchronized question

@@ -90,6 +90,8 @@ class GameTimerService
     
     /**
      * Check if answer submission is allowed (including grace period)
+     * Note: This method only checks timer constraints, not turn validation
+     * Turn validation should be done separately in the controller
      */
     public function isSubmissionAllowed(int $gameId): bool
     {
@@ -97,7 +99,19 @@ class GameTimerService
         $timerData = Cache::get($timerKey);
         
         if (!$timerData) {
-            return true; // No timer running, allow submission
+            // No timer running - check if this is a problematic state
+            $game = MultiplayerGame::find($gameId);
+            if ($game && $game->isActive() && $game->current_turn > 0) {
+                // Game is active with a turn but no timer - this shouldn't happen
+                // This indicates a timeout that wasn't processed properly
+                \Log::warning('Submission blocked - active game with no timer (likely expired)', [
+                    'game_id' => $gameId,
+                    'current_turn' => $game->current_turn,
+                    'status' => $game->status->value
+                ]);
+                return false; // Block submission
+            }
+            return true; // No timer running and game is not in active turn state
         }
         
         $elapsedTime = now()->timestamp - $timerData['started_at'];
