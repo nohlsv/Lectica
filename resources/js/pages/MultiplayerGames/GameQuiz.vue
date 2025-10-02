@@ -751,20 +751,34 @@ const syncTimerStatus = async () => {
             timerDuration.value = data.timer.duration || DEFAULT_TIMER_DURATION;
             timerRunning.value = true;
             
-            // Only update local timer if there's a significant difference (> 2 seconds)
-            // This allows smooth local countdown while correcting for drift
-            if (Math.abs(timer.value - serverTime) > 2) {
+            // Always sync timer value on refresh or significant difference
+            if (timer.value === 0 || Math.abs(timer.value - serverTime) > 2) {
                 console.log(`Timer sync: adjusting from ${timer.value}s to ${serverTime}s`);
                 timer.value = serverTime;
             }
             
+            // Handle timeout immediately if server reports 0
             if (serverTime <= 0) {
+                console.log('Server reports timer expired, triggering timeout');
+                timerRunning.value = false;
                 handleTimeout();
             }
         } else {
+            console.log('Server reports no timer running');
             timerRunning.value = false;
-            // If server says timer is not running, stop local countdown
             timer.value = 0;
+            
+            // If it's my turn but no timer is running, there might be an expired timer issue
+            if (isMyTurn.value && !timedOut.value && !answerSubmitted.value) {
+                console.warn('No timer running but it\'s my turn - checking for timeout state');
+                // Force a timeout check via API
+                setTimeout(() => {
+                    if (isMyTurn.value && !timedOut.value && !answerSubmitted.value) {
+                        console.warn('Forcing timeout check due to inconsistent state');
+                        forceTimeoutViaAPI();
+                    }
+                }, 2000);
+            }
         }
     } catch (error) {
         console.error('Failed to sync timer status:', error);
@@ -1386,9 +1400,6 @@ onMounted(() => {
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
     }
 
-    // Mark player as ready (page loaded)
-    markPlayerReady();
-    
     // Start timer sync immediately if game is active
     if (gameState.value?.status === 'active') {
         startTimerSync();

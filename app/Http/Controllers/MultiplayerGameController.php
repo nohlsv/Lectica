@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 use App\Models\Collection;
 use App\Services\QuestService;
 use App\Services\GameTimerService;
@@ -188,6 +189,24 @@ class MultiplayerGameController extends Controller
 
         // If game is active and has quizzes, show the game interface
         if ($multiplayerGame->status === MultiplayerGameStatus::ACTIVE && $quizzes->count() > 0) {
+            // Check if it's the current user's turn and if timer has expired
+            $isPlayerOne = $multiplayerGame->player_one_id === Auth::id();
+            $isPlayerTwo = $multiplayerGame->player_two_id === Auth::id();
+            $isCurrentPlayerTurn = ($isPlayerOne && $multiplayerGame->current_turn === 1) ||
+                                 ($isPlayerTwo && $multiplayerGame->current_turn === 2);
+            
+            // If it's their turn but timer has expired and no submission is allowed, force timeout
+            if ($isCurrentPlayerTurn && !$this->timerService->isSubmissionAllowed($multiplayerGame->id)) {
+                \Log::info('Player refreshed after timer expired, forcing timeout', [
+                    'game_id' => $multiplayerGame->id,
+                    'user_id' => Auth::id(),
+                    'current_turn' => $multiplayerGame->current_turn
+                ]);
+                $this->timerService->forceTimeout($multiplayerGame->id);
+                // Refresh the game state after timeout
+                $multiplayerGame->refresh();
+            }
+            
             // Get the current synchronized question
             $currentQuestion = $multiplayerGame->getCurrentQuestion();
 

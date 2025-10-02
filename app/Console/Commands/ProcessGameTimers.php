@@ -44,6 +44,10 @@ class ProcessGameTimers extends Command
     {
         try {
             $timerService->processAllTimers();
+            // Also run cleanup every 10 seconds to catch stuck timers
+            if (time() % 10 === 0) {
+                $timerService->cleanupExpiredTimers();
+            }
         } catch (\Exception $e) {
             $this->error('Error processing timers: ' . $e->getMessage());
             \Log::error('Timer processing error', [
