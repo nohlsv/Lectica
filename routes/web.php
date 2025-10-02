@@ -127,6 +127,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/multiplayer-games/{multiplayerGame}/join', [App\Http\Controllers\MultiplayerGameController::class, 'join'])->name('multiplayer-games.join');
     Route::post('/multiplayer-games/{multiplayerGame}/answer', [App\Http\Controllers\MultiplayerGameController::class, 'answerQuestion'])->name('multiplayer-games.answer');
     Route::post('/multiplayer-games/{multiplayerGame}/abandon', [App\Http\Controllers\MultiplayerGameController::class, 'abandon'])->name('multiplayer-games.abandon');
+    Route::post('/multiplayer-games/{multiplayerGame}/forfeit', [App\Http\Controllers\MultiplayerGameController::class, 'forfeit'])->name('multiplayer-games.forfeit');
+    Route::post('/multiplayer-games/join-by-code', [App\Http\Controllers\MultiplayerGameController::class, 'joinByCode'])->name('multiplayer-games.join-by-code');
     Route::get('/multiplayer-games/{multiplayerGame}/state', [App\Http\Controllers\MultiplayerGameController::class, 'getGameState'])->name('multiplayer-games.state');
     Route::post('/multiplayer-games/{multiplayerGame}/ping', [App\Http\Controllers\MultiplayerGameController::class, 'pingGameState'])->name('multiplayer-games.ping');
 

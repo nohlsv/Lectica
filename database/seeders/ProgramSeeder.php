@@ -26,11 +26,6 @@ class ProgramSeeder extends Seeder
             'code' => 'EMC',
             'college' => 'College of Computer Studies',
         ],
-        // [
-        //     'name' => 'Software Engineering',
-        //     'code' => 'SE',
-        //     'college' => 'College of Engineering',
-        // ],
         [
             'name' => 'Civil Engineering',
             'code' => 'CE',

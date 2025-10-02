@@ -50,9 +50,43 @@
                 <!-- Join Games Tab -->
                 <div v-show="activeTab === 'lobby'" class="overflow-hidden mx-4 bg-container shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="mb-4 text-lg font-medium text-gray-100 pixel-outline">
-                            Available Games ({{ waitingGames.data.length }} waiting for players)
-                        </h3>
+                        <div class="mb-6 flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-gray-100 pixel-outline">
+                                Available Games ({{ waitingGames.data.length }} waiting for players)
+                            </h3>
+                            
+                            <!-- Join by Code Button -->
+                            <button
+                                @click="showJoinByCode = !showJoinByCode"
+                                class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition-colors"
+                            >
+                                Join by Code
+                            </button>
+                        </div>
+
+                        <!-- Join by Code Form -->
+                        <div v-if="showJoinByCode" class="mb-6 rounded-lg border-2 border-blue-500 bg-black/50 p-4">
+                            <h4 class="mb-3 text-md font-medium text-blue-300 pixel-outline">Join Private Game</h4>
+                            <form @submit.prevent="joinByCode" class="flex space-x-3">
+                                <input
+                                    v-model="gameCodeForm.game_code"
+                                    type="text"
+                                    placeholder="Enter game code"
+                                    class="flex-1 rounded-md border-gray-300 bg-gray-900 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                                    maxlength="8"
+                                />
+                                <button
+                                    type="submit"
+                                    :disabled="!gameCodeForm.game_code || gameCodeForm.processing"
+                                    class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                >
+                                    Join
+                                </button>
+                            </form>
+                            <div v-if="gameCodeForm.errors.game_code" class="mt-2 text-sm text-red-400">
+                                {{ gameCodeForm.errors.game_code }}
+                            </div>
+                        </div>
 
                         <!-- Games Grid -->
                         <div v-if="waitingGames.data.length > 0" class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -592,6 +626,21 @@ const joinGame = async (gameId: number) => {
     } finally {
         joiningGameId.value = null;
     }
+};
+
+// Join by code functionality
+const showJoinByCode = ref(false);
+const gameCodeForm = useForm({
+    game_code: '',
+});
+
+const joinByCode = () => {
+    gameCodeForm.post(route('multiplayer-games.join-by-code'), {
+        onSuccess: () => {
+            showJoinByCode.value = false;
+            gameCodeForm.reset();
+        },
+    });
 };
 
 // Utility functions

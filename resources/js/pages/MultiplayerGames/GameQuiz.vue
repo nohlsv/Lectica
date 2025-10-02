@@ -31,6 +31,7 @@
                     >
                         {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
                     </button>
+                    <button @click="forfeitGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">Forfeit</button>
                     <button @click="abandonGame" class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700">Abandon Game</button>
                 </div>
             </div>
@@ -56,7 +57,18 @@
                                     <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
-                                            <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_one_hp }}</span>
+                                            <!-- Health Bar -->
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-xs text-red-400 pixel-outline">HP:</span>
+                                                <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
+                                                    <div 
+                                                        :style="{ width: `${Math.max(0, gameState.player_one_hp)}%` }"
+                                                        class="h-full rounded transition-all duration-500"
+                                                        :class="gameState.player_one_hp > 50 ? 'bg-green-500' : gameState.player_one_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                    ></div>
+                                                </div>
+                                                <span class="text-xs text-white pixel-outline">{{ gameState.player_one_hp }}</span>
+                                            </div>
                                             <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_one_streak || 0 }}</span>
                                             <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
                                         </template>
@@ -68,7 +80,18 @@
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
                                     <template v-else>
-                                        <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_one_hp }}</span>
+                                        <!-- Health Bar for PVE -->
+                                        <div class="flex items-center space-x-1">
+                                            <span class="text-xs text-red-400 pixel-outline">HP:</span>
+                                            <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
+                                                <div 
+                                                    :style="{ width: `${Math.max(0, gameState.player_one_hp)}%` }"
+                                                    class="h-full rounded transition-all duration-500"
+                                                    :class="gameState.player_one_hp > 50 ? 'bg-green-500' : gameState.player_one_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                ></div>
+                                            </div>
+                                            <span class="text-xs text-white pixel-outline">{{ gameState.player_one_hp }}</span>
+                                        </div>
                                         <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
                                     </template>
                                 </div>
@@ -96,7 +119,19 @@
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
                                             <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_two_hp }}</span>
+                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <!-- Health Bar -->
+                                            <div class="flex items-center space-x-1">
+                                                <span class="text-xs text-white pixel-outline">{{ gameState.player_two_hp }}</span>
+                                                <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
+                                                    <div 
+                                                        :style="{ width: `${Math.max(0, gameState.player_two_hp)}%` }"
+                                                        class="h-full rounded transition-all duration-500"
+                                                        :class="gameState.player_two_hp > 50 ? 'bg-green-500' : gameState.player_two_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                    ></div>
+                                                </div>
+                                                <span class="text-xs text-red-400 pixel-outline">:HP</span>
+                                            </div>
                                         </template>
                                         <template v-else>
                                             <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
@@ -107,7 +142,18 @@
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
                                         <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
-                                        <span class="text-sm text-red-500 pixel-outline">❤️ {{ gameState.player_two_hp }}</span>
+                                        <!-- Health Bar for PVE -->
+                                        <div class="flex items-center space-x-1">
+                                            <span class="text-xs text-white pixel-outline">{{ gameState.player_two_hp }}</span>
+                                            <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
+                                                <div 
+                                                    :style="{ width: `${Math.max(0, gameState.player_two_hp)}%` }"
+                                                    class="h-full rounded transition-all duration-500"
+                                                    :class="gameState.player_two_hp > 50 ? 'bg-green-500' : gameState.player_two_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                ></div>
+                                            </div>
+                                            <span class="text-xs text-red-400 pixel-outline">:HP</span>
+                                        </div>
                                     </template>
                                 </div>
                             </div>
@@ -688,6 +734,12 @@ const getGameResult = (): string => {
         } else {
             return 'Defeat! The monster was too strong.';
         }
+    }
+};
+
+const forfeitGame = () => {
+    if (confirm('Are you sure you want to forfeit this game? Your opponent will win.')) {
+        router.post(route('multiplayer-games.forfeit', props.game.id));
     }
 };
 

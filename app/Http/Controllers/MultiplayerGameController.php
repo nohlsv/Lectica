@@ -130,7 +130,14 @@ class MultiplayerGameController extends Controller
             'player_two_hp' => 100,
             'player_one_score' => 0,
             'player_two_score' => 0,
+            'is_private' => $request->boolean('is_private', false),
+            'last_activity' => now(),
         ];
+
+        // Generate game code if private
+        if ($gameData['is_private']) {
+            $gameData['game_code'] = MultiplayerGame::generateGameCode();
+        }
 
         // Add file or collection
         if ($request->source_type === 'file') {
@@ -288,6 +295,7 @@ class MultiplayerGameController extends Controller
 
         $waitingGames = MultiplayerGame::with(['file', 'playerOne'])
             ->waiting()
+            ->public()
             ->where('player_one_id', '!=', Auth::id())
             ->orderBy('created_at', 'desc')
             ->paginate(10);
@@ -356,6 +364,9 @@ class MultiplayerGameController extends Controller
             if ($multiplayerGame->isFinished()) {
                 return back()->withErrors(['game' => 'Game has already ended.']);
             }
+
+            // Update last activity
+            $multiplayerGame->updateActivity();
 
             // Update question statistics
             if ($isPlayerOne) {
@@ -1077,5 +1088,65 @@ class MultiplayerGameController extends Controller
             'current_turn' => $multiplayerGame->current_turn,
             'timestamp' => now()->toISOString(),
         ]);
+    }
+
+    /**
+     * Forfeit the game.
+     */
+    public function forfeit(MultiplayerGame $multiplayerGame)
+    {
+        // Check if user is part of this game
+        if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
+            abort(403, 'You are not part of this game.');
+        }
+
+        // Check if game is active
+        if (!$multiplayerGame->isActive()) {
+            return redirect()->route('multiplayer-games.lobby')
+                ->with('info', 'Game is not active.');
+        }
+
+        try {
+            $multiplayerGame->forfeitGame(Auth::id());
+            
+            return redirect()->route('multiplayer-games.lobby')
+                ->with('success', 'Game forfeited successfully.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['forfeit' => $e->getMessage()]);
+        }
+    }
+
+    /**
+     * Join a game by code.
+     */
+    public function joinByCode(Request $request)
+    {
+        $request->validate([
+            'game_code' => 'required|string|max:8',
+        ]);
+
+        $game = MultiplayerGame::findByCode($request->game_code);
+
+        if (!$game) {
+            return back()->withErrors(['game_code' => 'Game not found with this code.']);
+        }
+
+        // Check if game is waiting for a player
+        if ($game->status !== MultiplayerGameStatus::WAITING) {
+            return back()->withErrors(['game_code' => 'This game is not available to join.']);
+        }
+
+        // Check if user is not already player one
+        if ($game->player_one_id === Auth::id()) {
+            return back()->withErrors(['game_code' => 'You cannot join your own game.']);
+        }
+
+        // Check if there's already a second player
+        if ($game->player_two_id !== null) {
+            return back()->withErrors(['game_code' => 'This game is already full.']);
+        }
+
+        // Join the game
+        return $this->join($game);
     }
 }

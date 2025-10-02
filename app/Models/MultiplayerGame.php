@@ -39,7 +39,10 @@ class MultiplayerGame extends Model
         'player_one_max_streak',
         'player_two_max_streak',
         'winner_id',
-        'pvp_mode' // Add pvp_mode to fillable
+        'pvp_mode', // Add pvp_mode to fillable
+        'last_activity',
+        'is_private',
+        'game_code'
     ];
 
     protected $casts = [
@@ -54,6 +57,8 @@ class MultiplayerGame extends Model
         'total_questions_p1' => 'integer',
         'total_questions_p2' => 'integer',
         'status' => MultiplayerGameStatus::class,
+        'last_activity' => 'datetime',
+        'is_private' => 'boolean',
     ];
 
     public function playerOne(): BelongsTo
@@ -434,5 +439,126 @@ class MultiplayerGame extends Model
             $this->current_question_index = 0;
             $this->save();
         }
+    }
+
+    /**
+     * Mark game as forfeited by a player.
+     */
+    public function forfeitGame(int $playerId): void
+    {
+        DB::transaction(function () use ($playerId) {
+            $this->lockForUpdate();
+
+            // Only forfeit if game is active
+            if (!$this->isActive()) {
+                throw new \Exception('Cannot forfeit an inactive game');
+            }
+
+            // Set the winner as the opponent of the player who forfeited
+            if ($this->player_one_id === $playerId) {
+                $winnerId = $this->player_two_id;
+            } elseif ($this->player_two_id === $playerId) {
+                $winnerId = $this->player_one_id;
+            } else {
+                throw new \Exception('Player is not part of this game');
+            }
+
+            $this->update([
+                'status' => MultiplayerGameStatus::FORFEITED,
+                'winner_id' => $winnerId,
+            ]);
+
+            // Broadcast the forfeit to notify the other player
+            broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_forfeited', [
+                'forfeited_by' => $playerId,
+                'winner_id' => $winnerId,
+            ]));
+        });
+    }
+
+    /**
+     * Check if the game has been forfeited.
+     */
+    public function isForfeited(): bool
+    {
+        return $this->status === MultiplayerGameStatus::FORFEITED;
+    }
+
+    /**
+     * Check if a player has been disconnected for too long and auto-forfeit.
+     */
+    public function checkForAutoForfeit(int $minutesThreshold = 2): bool
+    {
+        if (!$this->isActive() || !$this->last_activity) {
+            return false;
+        }
+
+        $minutesSinceActivity = $this->last_activity->diffInMinutes(now());
+        
+        if ($minutesSinceActivity >= $minutesThreshold) {
+            // Auto-forfeit the game - determine who was inactive
+            // For now, we'll forfeit the current turn player as they were expected to act
+            if ($this->current_turn === 1 && $this->player_one_id) {
+                $this->forfeitGame($this->player_one_id);
+                return true;
+            } elseif ($this->current_turn === 2 && $this->player_two_id) {
+                $this->forfeitGame($this->player_two_id);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Update last activity timestamp.
+     */
+    public function updateActivity(): void
+    {
+        $this->update(['last_activity' => now()]);
+    }
+
+    /**
+     * Generate a unique game code for private games.
+     */
+    public static function generateGameCode(): string
+    {
+        do {
+            $code = strtoupper(substr(md5(uniqid()), 0, 8));
+        } while (self::where('game_code', $code)->exists());
+
+        return $code;
+    }
+
+    /**
+     * Check if this is a private game.
+     */
+    public function isPrivate(): bool
+    {
+        return $this->is_private;
+    }
+
+    /**
+     * Find game by code.
+     */
+    public static function findByCode(string $code): ?self
+    {
+        return self::where('game_code', strtoupper($code))->first();
+    }
+
+    /**
+     * Scope to get public games only.
+     */
+    public function scopePublic($query)
+    {
+        return $query->where('is_private', false);
+    }
+
+    /**
+     * Scope to get private games only.
+     */
+    public function scopePrivate($query)
+    {
+        return $query->where('is_private', true);
     }
 }

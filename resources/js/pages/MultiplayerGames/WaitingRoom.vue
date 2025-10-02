@@ -100,6 +100,27 @@
                             <p class="text-sm text-gray-400 pixel-outline">Questions will be drawn from this source</p>
                         </div>
 
+                        <!-- Private Game Code (if applicable) -->
+                        <div v-if="game.is_private && game.game_code" class="mt-6 rounded-lg bg-black/50 p-4 border-2 border-blue-500">
+                            <h4 class="mb-2 font-medium text-blue-300 pixel-outline">🔐 Private Game</h4>
+                            <div class="flex items-center space-x-3">
+                                <div class="flex-1">
+                                    <p class="text-blue-200 pixel-outline mb-1">Game Code:</p>
+                                    <code class="text-lg font-mono font-bold text-blue-100 bg-blue-900/30 px-2 py-1 rounded">{{ game.game_code }}</code>
+                                </div>
+                                <button
+                                    @click="copyGameCode"
+                                    :class="[
+                                        'px-3 py-2 text-sm rounded-md transition-colors',
+                                        copied ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+                                    ]"
+                                >
+                                    {{ copied ? '✓ Copied!' : 'Copy Code' }}
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-blue-400 pixel-outline">Share this code with your opponent to let them join the game</p>
+                        </div>
+
                         <!-- Game Rules -->
                         <div class="mt-6 rounded-lg border border-blue-800 border-2 bg-blue-900/20 p-4">
                             <h4 class="mb-2 font-medium text-blue-100 pixel-outline">
@@ -200,6 +221,8 @@ interface Game {
         image_path?: string;
     };
     source_name: string;
+    is_private?: boolean;
+    game_code?: string;
 }
 
 const props = defineProps<{
@@ -229,6 +252,29 @@ const copyGameUrl = async () => {
         // Fallback for older browsers
         const textArea = document.createElement('textarea');
         textArea.value = gameUrl.value;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        copied.value = true;
+        setTimeout(() => {
+            copied.value = false;
+        }, 2000);
+    }
+};
+
+const copyGameCode = async () => {
+    try {
+        await navigator.clipboard.writeText(props.game.game_code || '');
+        copied.value = true;
+        setTimeout(() => {
+            copied.value = false;
+        }, 2000);
+    } catch (error) {
+        console.error('Failed to copy game code:', error);
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = props.game.game_code || '';
         document.body.appendChild(textArea);
         textArea.select();
         document.execCommand('copy');

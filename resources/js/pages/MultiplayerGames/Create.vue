@@ -174,6 +174,24 @@
                                 </div>
                             </div>
 
+                            <!-- Game Privacy Settings -->
+                            <div class="mb-6">
+                                <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300">Game Privacy</label>
+                                <div class="space-y-3">
+                                    <label class="flex items-center">
+                                        <input
+                                            v-model="form.is_private"
+                                            type="checkbox"
+                                            class="rounded border-gray-300 text-indigo-600 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
+                                        />
+                                        <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Make this a private game</span>
+                                    </label>
+                                    <p class="text-xs text-gray-500">
+                                        Private games won't appear in the public lobby. Players will need a game code to join.
+                                    </p>
+                                </div>
+                            </div>
+
                             <!-- Game Info -->
                             <!-- PvP Game Info -->
                             <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
@@ -264,6 +282,7 @@ const form = useForm({
     collection_id: '',
     game_mode: 'pvp', // Always PvP now
     pvp_mode: 'accuracy', // Default PvP mode
+    is_private: false, // Default to public games
 });
 
 const canSubmit = computed(() => {
