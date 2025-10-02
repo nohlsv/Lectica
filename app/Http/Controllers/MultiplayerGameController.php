@@ -371,14 +371,9 @@ class MultiplayerGameController extends Controller
             'is_correct' => 'required|boolean',
         ]);
 
-        // Variables to hold data for post-transaction broadcast
+        // Variables to hold data for broadcast
         $broadcastData = null;
         $gameEnded = false;
-
-        // Use database transaction to prevent race conditions
-        DB::transaction(function () use ($request, $multiplayerGame, &$broadcastData, &$gameEnded) {
-            // Lock the game record to prevent concurrent access
-            $multiplayerGame = MultiplayerGame::where('id', $multiplayerGame->id)->lockForUpdate()->first();
 
             // Check if user is part of this game
             if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
@@ -502,16 +497,12 @@ class MultiplayerGameController extends Controller
                     ]
                 ];
             }
-            // At the end of the transaction, return a value to avoid warning
-            return null;
-        });
-
         // Update quest progress for answering a multiplayer question
         $this->questService->updateQuestProgress(Auth::user(), 'multiplayer_questions');
         // Update quest progress for activity streak
         $this->questService->updateQuestProgress(Auth::user(), 'activity_streak');
 
-        // Broadcast AFTER transaction is committed
+        // Broadcast game update
         if ($broadcastData) {
             // Refresh the model to get the committed data
             $freshGame = $multiplayerGame->fresh();
@@ -969,27 +960,23 @@ class MultiplayerGameController extends Controller
      */
     public function handlePlayerTimeout(MultiplayerGame $multiplayerGame, int $playerId)
     {
-        return DB::transaction(function () use ($multiplayerGame, $playerId) {
-            $multiplayerGame = $multiplayerGame->lockForUpdate();
+        // Only handle timeouts for active games
+        if (!$multiplayerGame->isActive()) {
+            return;
+        }
 
-            // Only handle timeouts for active games
-            if (!$multiplayerGame->isActive()) {
-                return;
-            }
+        // Check if the player is part of this game
+        if ($multiplayerGame->player_one_id !== $playerId && $multiplayerGame->player_two_id !== $playerId) {
+            return;
+        }
 
-            // Check if the player is part of this game
-            if ($multiplayerGame->player_one_id !== $playerId && $multiplayerGame->player_two_id !== $playerId) {
-                return;
-            }
+        // Mark the game as forfeited due to timeout
+        $multiplayerGame->update([
+            'status' => MultiplayerGameStatus::FORFEITED
+        ]);
 
-            // Mark the game as forfeited due to timeout
-            $multiplayerGame->update([
-                'status' => MultiplayerGameStatus::FORFEITED
-            ]);
-
-            // Broadcast the forfeit to remaining player
-            broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'player_timeout'));
-        });
+        // Broadcast the forfeit to remaining player
+        broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'player_timeout'));
     }
 
     /**
@@ -1159,11 +1146,7 @@ class MultiplayerGameController extends Controller
         $turnChanged = false;
         $gameFixed = false;
 
-        DB::transaction(function () use ($multiplayerGame, $request, &$shouldRefresh, &$turnChanged, &$gameFixed) {
-            // Lock the game for update to prevent race conditions
-            $multiplayerGame = MultiplayerGame::where('id', $multiplayerGame->id)->lockForUpdate()->first();
-            
-            $originalTurn = $multiplayerGame->current_turn;
+        $originalTurn = $multiplayerGame->current_turn;
             
             // Check if game is stale (inactive for too long)
             if ($multiplayerGame->isStale(5)) { // 5 minutes threshold for ping checks
@@ -1214,7 +1197,6 @@ class MultiplayerGameController extends Controller
                 
                 $shouldRefresh = true;
             }
-        });
 
         return response()->json([
             'should_refresh' => $shouldRefresh,

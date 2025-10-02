@@ -193,17 +193,13 @@ class MultiplayerGame extends Model
      */
     public function markAsFinished(): void
     {
-        DB::transaction(function () {
-            $this->lockForUpdate();
+        // Only mark as finished if not already finished
+        if (!$this->isFinished()) {
+            $this->update(['status' => MultiplayerGameStatus::FINISHED]);
 
-            // Only mark as finished if not already finished
-            if (!$this->isFinished()) {
-                $this->update(['status' => MultiplayerGameStatus::FINISHED]);
-
-                // Broadcast the game update to notify all connected clients
-                broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_ended'));
-            }
-        });
+            // Broadcast the game update to notify all connected clients
+            broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_ended'));
+        }
     }
 
 
@@ -213,23 +209,19 @@ class MultiplayerGame extends Model
      */
     public function startGame(): void
     {
-        DB::transaction(function () {
-            $this->lockForUpdate();
+        // Validate that we can start the game
+        if (!$this->isWaiting()) {
+            throw new \Exception('Game is not in waiting state');
+        }
 
-            // Validate that we can start the game
-            if (!$this->isWaiting()) {
-                throw new \Exception('Game is not in waiting state');
-            }
+        if (!$this->player_two_id) {
+            throw new \Exception('Cannot start game without second player');
+        }
 
-            if (!$this->player_two_id) {
-                throw new \Exception('Cannot start game without second player');
-            }
-
-            $this->update([
-                'status' => MultiplayerGameStatus::ACTIVE,
-                'current_turn' => 1 // Player one starts
-            ]);
-        });
+        $this->update([
+            'status' => MultiplayerGameStatus::ACTIVE,
+            'current_turn' => 1 // Player one starts
+        ]);
     }
 
     /**
@@ -400,8 +392,14 @@ class MultiplayerGame extends Model
     {
         $quizzes = $this->getAvailableQuizzes();
 
-        if ($quizzes->isEmpty() || $this->current_question_index >= $quizzes->count()) {
+        if ($quizzes->isEmpty()) {
             return null;
+        }
+
+        // If index is out of bounds, get a random question instead
+        if ($this->current_question_index >= $quizzes->count()) {
+            $randomIndex = rand(0, $quizzes->count() - 1);
+            return $quizzes->get($randomIndex);
         }
 
         return $quizzes->get($this->current_question_index);
@@ -419,8 +417,9 @@ class MultiplayerGame extends Model
             $this->current_question_index = $this->current_question_index + 1;
             $this->save();
         } else {
-            // Reset to beginning if we've reached the end
-            $this->current_question_index = 0;
+            // When we reach the end, shuffle the questions by randomizing the index
+            // This prevents repetition while keeping the game going
+            $this->current_question_index = rand(0, max(0, $totalQuestions - 1));
             $this->save();
         }
     }
@@ -430,34 +429,30 @@ class MultiplayerGame extends Model
      */
     public function forfeitGame(int $playerId): void
     {
-        DB::transaction(function () use ($playerId) {
-            $this->lockForUpdate();
+        // Only forfeit if game is active
+        if (!$this->isActive()) {
+            throw new \Exception('Cannot forfeit an inactive game');
+        }
 
-            // Only forfeit if game is active
-            if (!$this->isActive()) {
-                throw new \Exception('Cannot forfeit an inactive game');
-            }
+        // Set the winner as the opponent of the player who forfeited
+        if ($this->player_one_id === $playerId) {
+            $winnerId = $this->player_two_id;
+        } elseif ($this->player_two_id === $playerId) {
+            $winnerId = $this->player_one_id;
+        } else {
+            throw new \Exception('Player is not part of this game');
+        }
 
-            // Set the winner as the opponent of the player who forfeited
-            if ($this->player_one_id === $playerId) {
-                $winnerId = $this->player_two_id;
-            } elseif ($this->player_two_id === $playerId) {
-                $winnerId = $this->player_one_id;
-            } else {
-                throw new \Exception('Player is not part of this game');
-            }
+        $this->update([
+            'status' => MultiplayerGameStatus::FORFEITED,
+            'winner_id' => $winnerId,
+        ]);
 
-            $this->update([
-                'status' => MultiplayerGameStatus::FORFEITED,
-                'winner_id' => $winnerId,
-            ]);
-
-            // Broadcast the forfeit to notify the other player
-            broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_forfeited', [
-                'forfeited_by' => $playerId,
-                'winner_id' => $winnerId,
-            ]));
-        });
+        // Broadcast the forfeit to notify the other player
+        broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_forfeited', [
+            'forfeited_by' => $playerId,
+            'winner_id' => $winnerId,
+        ]));
     }
 
     /**
