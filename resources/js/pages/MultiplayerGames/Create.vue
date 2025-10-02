@@ -6,7 +6,7 @@
             <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Create Multiplayer Battle</h2>
         </template>
 
-        <div class="py-12 min-h-screen bg-gradient">
+        <div class="bg-gradient min-h-screen py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg dark:bg-gray-800">
                     <div class="p-6 text-gray-900 dark:text-gray-100">
@@ -195,16 +195,15 @@
                             <!-- Game Info -->
                             <!-- PvP Game Info -->
                             <div class="rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20">
-                                <h3 class="mb-2 text-lg font-medium text-red-900 dark:text-red-100">
-                                    How PvP (Versus) Battles Work
-                                </h3>
+                                <h3 class="mb-2 text-lg font-medium text-red-900 dark:text-red-100">How PvP (Versus) Battles Work</h3>
                                 <ul class="space-y-1 text-sm text-red-700 dark:text-red-300">
                                     <li>• You and another player take turns answering questions</li>
                                     <li>• Correct answers deal damage to your opponent</li>
                                     <li>• Wrong answers cause damage to yourself</li>
                                     <li>• Be the last player standing to win!</li>
                                 </ul>
-                            </div>                            <!-- Submit Button -->
+                            </div>
+                            <!-- Submit Button -->
                             <div class="flex items-center justify-between">
                                 <Link
                                     :href="route('multiplayer-games.index')"

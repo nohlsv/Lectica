@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, Eye, EyeOff } from 'lucide-vue-next';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-vue-next';
 import { ref } from 'vue';
 
 defineProps<{
@@ -77,7 +77,7 @@ const submit = () => {
                         <button
                             type="button"
                             @click="togglePasswordVisibility"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                             :tabindex="3"
                         >
                             <Eye v-if="!showPassword" class="h-4 w-4" />

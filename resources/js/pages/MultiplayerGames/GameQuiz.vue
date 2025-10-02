@@ -2,11 +2,11 @@
     <Head title="Multiplayer Game" />
 
     <AppLayout>
-        <div class="py-12 bg-gradient min-h-screen">
+        <div class="bg-gradient min-h-screen py-12">
             <!-- Custom Header -->
-            <div class="mb-6 mx-4 bg-container shadow-sm rounded-lg p-4">
+            <div class="bg-container mx-4 mb-6 rounded-lg p-4 shadow-sm">
                 <div class="flex items-center justify-between">
-                    <h2 class="text-xl leading-tight font-semibold text-gray-100 pixel-outline">
+                    <h2 class="pixel-outline text-xl leading-tight font-semibold text-gray-100">
                         {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
                     </h2>
                     <div class="flex items-center space-x-4">
@@ -27,29 +27,31 @@
                         <button
                             @click="toggleSound"
                             :class="[
-                                'rounded-md px-3 py-1 text-sm text-white transition-colors pixel-outline',
-                                soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
+                                'pixel-outline rounded-md px-3 py-1 text-sm text-white transition-colors',
+                                soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700',
                             ]"
                         >
                             {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
                         </button>
-                        <button @click="forfeitGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700 pixel-outline">Forfeit</button>
+                        <button @click="forfeitGame" class="pixel-outline rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
+                            Forfeit
+                        </button>
                     </div>
                 </div>
             </div>
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Status Bar -->
-                <div class="mb-6 mx-4 rounded-lg bg-black/50 p-4 shadow-sm border-2 border-green-500">
+                <div class="mx-4 mb-6 rounded-lg border-2 border-green-500 bg-black/50 p-4 shadow-sm">
                     <div class="flex items-center justify-between">
                         <!-- Player 1 -->
                         <div class="flex items-center space-x-3">
-                            <div class="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
-                                <span class="font-bold text-blue-300 pixel-outline">
+                            <div class="hidden h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 sm:flex">
+                                <span class="pixel-outline font-bold text-blue-300">
                                     {{ gameState.playerOne.first_name.charAt(0) }}
                                 </span>
                             </div>
                             <div>
-                                <p class="font-medium text-green-300 pixel-outline">
+                                <p class="pixel-outline font-medium text-green-300">
                                     {{ gameState.playerOne.first_name }} {{ gameState.playerOne.last_name }}
                                 </p>
                                 <div class="flex items-center space-x-2">
@@ -58,40 +60,52 @@
                                         <template v-if="gameState.pvp_mode === 'hp'">
                                             <!-- Health Bar -->
                                             <div class="flex items-center space-x-1">
-                                                <span class="text-xs text-red-400 pixel-outline">HP:</span>
-                                                <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
-                                                    <div 
+                                                <span class="pixel-outline text-xs text-red-400">HP:</span>
+                                                <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                                    <div
                                                         :style="{ width: `${Math.max(0, gameState.player_one_hp)}%` }"
                                                         class="h-full rounded transition-all duration-500"
-                                                        :class="gameState.player_one_hp > 50 ? 'bg-green-500' : gameState.player_one_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                        :class="
+                                                            gameState.player_one_hp > 50
+                                                                ? 'bg-green-500'
+                                                                : gameState.player_one_hp > 25
+                                                                  ? 'bg-yellow-500'
+                                                                  : 'bg-red-500'
+                                                        "
                                                     ></div>
                                                 </div>
-                                                <span class="text-xs text-white pixel-outline">{{ gameState.player_one_hp }}</span>
+                                                <span class="pixel-outline text-xs text-white">{{ gameState.player_one_hp }}</span>
                                             </div>
-                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
+                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
                                         </template>
                                         <template v-else>
-                                            <span class="text-sm text-blue-500 pixel-outline">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
-                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
+                                            <span class="pixel-outline text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
+                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
                                         </template>
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
                                     <template v-else>
                                         <!-- Health Bar for PVE -->
                                         <div class="flex items-center space-x-1">
-                                            <span class="text-xs text-red-400 pixel-outline">HP:</span>
-                                            <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
-                                                <div 
+                                            <span class="pixel-outline text-xs text-red-400">HP:</span>
+                                            <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                                <div
                                                     :style="{ width: `${Math.max(0, gameState.player_one_hp)}%` }"
                                                     class="h-full rounded transition-all duration-500"
-                                                    :class="gameState.player_one_hp > 50 ? 'bg-green-500' : gameState.player_one_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                    :class="
+                                                        gameState.player_one_hp > 50
+                                                            ? 'bg-green-500'
+                                                            : gameState.player_one_hp > 25
+                                                              ? 'bg-yellow-500'
+                                                              : 'bg-red-500'
+                                                    "
                                                 ></div>
                                             </div>
-                                            <span class="text-xs text-white pixel-outline">{{ gameState.player_one_hp }}</span>
+                                            <span class="pixel-outline text-xs text-white">{{ gameState.player_one_hp }}</span>
                                         </div>
-                                        <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_one_score }}</span>
+                                        <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
                                     </template>
                                 </div>
                             </div>
@@ -100,63 +114,75 @@
                         <!-- Turn Indicator -->
                         <div class="text-center">
                             <div v-if="isMyTurn" class="rounded-full bg-green-900/20 px-4 py-2">
-                                <p class="text-sm sm:text-md font-medium text-green-300 pixel-outline">Your Turn!</p>
+                                <p class="sm:text-md pixel-outline text-sm font-medium text-green-300">Your Turn!</p>
                             </div>
                             <div v-else class="rounded-full bg-red-900/20 px-4 py-2">
-                                <p class="text-sm sm:text-md font-medium text-red-500 pixel-outline">Opponent's Turn</p>
+                                <p class="sm:text-md pixel-outline text-sm font-medium text-red-500">Opponent's Turn</p>
                             </div>
                         </div>
 
                         <!-- Player 2 -->
                         <div class="flex items-center space-x-3">
                             <div>
-                                <p class="text-right font-medium text-green-300 pixel-outline">
+                                <p class="pixel-outline text-right font-medium text-green-300">
                                     {{ gameState.playerTwo.first_name }} {{ gameState.playerTwo.last_name }}
                                 </p>
                                 <div class="flex items-center justify-end space-x-2">
                                     <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
-                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
                                             <!-- Health Bar -->
                                             <div class="flex items-center space-x-1">
-                                                <span class="text-xs text-white pixel-outline">{{ gameState.player_two_hp }}</span>
-                                                <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
-                                                    <div 
+                                                <span class="pixel-outline text-xs text-white">{{ gameState.player_two_hp }}</span>
+                                                <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                                    <div
                                                         :style="{ width: `${Math.max(0, gameState.player_two_hp)}%` }"
                                                         class="h-full rounded transition-all duration-500"
-                                                        :class="gameState.player_two_hp > 50 ? 'bg-green-500' : gameState.player_two_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                        :class="
+                                                            gameState.player_two_hp > 50
+                                                                ? 'bg-green-500'
+                                                                : gameState.player_two_hp > 25
+                                                                  ? 'bg-yellow-500'
+                                                                  : 'bg-red-500'
+                                                        "
                                                     ></div>
                                                 </div>
-                                                <span class="text-xs text-red-400 pixel-outline">:HP</span>
+                                                <span class="pixel-outline text-xs text-red-400">:HP</span>
                                             </div>
                                         </template>
                                         <template v-else>
-                                            <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="text-sm text-purple-500 pixel-outline">🔥 {{ gameState.player_two_streak || 0 }}</span>
-                                            <span class="text-sm text-blue-500 pixel-outline">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="pixel-outline text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
                                         </template>
                                     </template>
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
-                                        <span class="text-sm text-yellow-500 pixel-outline">⭐ {{ gameState.player_two_score }}</span>
+                                        <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
                                         <!-- Health Bar for PVE -->
                                         <div class="flex items-center space-x-1">
-                                            <span class="text-xs text-white pixel-outline">{{ gameState.player_two_hp }}</span>
-                                            <div class="w-16 h-2 bg-gray-700 rounded border border-gray-600">
-                                                <div 
+                                            <span class="pixel-outline text-xs text-white">{{ gameState.player_two_hp }}</span>
+                                            <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                                <div
                                                     :style="{ width: `${Math.max(0, gameState.player_two_hp)}%` }"
                                                     class="h-full rounded transition-all duration-500"
-                                                    :class="gameState.player_two_hp > 50 ? 'bg-green-500' : gameState.player_two_hp > 25 ? 'bg-yellow-500' : 'bg-red-500'"
+                                                    :class="
+                                                        gameState.player_two_hp > 50
+                                                            ? 'bg-green-500'
+                                                            : gameState.player_two_hp > 25
+                                                              ? 'bg-yellow-500'
+                                                              : 'bg-red-500'
+                                                    "
                                                 ></div>
                                             </div>
-                                            <span class="text-xs text-red-400 pixel-outline">:HP</span>
+                                            <span class="pixel-outline text-xs text-red-400">:HP</span>
                                         </div>
                                     </template>
                                 </div>
                             </div>
-                            <div class="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
+                            <div class="hidden h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 sm:flex">
                                 <span class="font-bold text-green-300">
                                     {{ gameState.playerTwo.first_name.charAt(0) }}
                                 </span>
@@ -166,14 +192,24 @@
                 </div>
 
                 <!-- Quiz Question -->
-                <div v-if="currentQuiz && isMyTurn" class="mb-6 mx-4 rounded-lg p-6 shadow-sm border-2 border-blue-500" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
+                <div
+                    v-if="currentQuiz && isMyTurn"
+                    class="mx-4 mb-6 rounded-lg border-2 border-blue-500 p-6 shadow-sm"
+                    style="
+                        background-image:
+                            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                            url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
+                        background-size: cover;
+                        background-position: center;
+                    "
+                >
                     <div class="mb-4">
                         <div class="mb-2 flex items-center justify-between">
-                            <span class="text-sm text-gray-400 pixel-outline">{{ quizTypes[currentQuiz.type] || 'Question' }}</span>
-                            <span class="text-sm text-gray-400 pixel-outline ml-6 sm:ml-0">Source: {{ game.source_name }}</span>
+                            <span class="pixel-outline text-sm text-gray-400">{{ quizTypes[currentQuiz.type] || 'Question' }}</span>
+                            <span class="pixel-outline ml-6 text-sm text-gray-400 sm:ml-0">Source: {{ game.source_name }}</span>
                         </div>
-                        <div class="items-center p-4 -mx-6.5 border-2 border-blue-500 bg-black/50">
-                            <h3 class="text-md sm:text-lg font-medium text-center text-blue-200 pixel-outline">
+                        <div class="-mx-6.5 items-center border-2 border-blue-500 bg-black/50 p-4">
+                            <h3 class="text-md pixel-outline text-center font-medium text-blue-200 sm:text-lg">
                                 {{ currentQuiz.question }}
                             </h3>
                         </div>
@@ -182,30 +218,22 @@
                     <!-- Timer Constraint -->
                     <div class="mb-4 flex items-center justify-between">
                         <div class="flex items-center space-x-2">
-                            <span 
+                            <span
                                 :class="[
-                                    'text-sm font-semibold pixel-outline',
-                                    timer > 10 ? 'text-blue-500' : timer > 5 ? 'text-yellow-500' : 'text-red-500'
-                                ]"
-                            > 
-                                ⏱️ Time left: {{ timer }}s
-                            </span>
-                            <div 
-                                :class="[
-                                    'w-16 h-2 bg-gray-700 rounded-full overflow-hidden',
-                                    timer <= 5 ? 'animate-pulse' : ''
+                                    'pixel-outline text-sm font-semibold',
+                                    timer > 10 ? 'text-blue-500' : timer > 5 ? 'text-yellow-500' : 'text-red-500',
                                 ]"
                             >
-                                <div 
-                                    :class="[
-                                        'h-full transition-all duration-1000 ease-linear',
-                                        getTimerColor(timer, timerDuration)
-                                    ]"
+                                ⏱️ Time left: {{ timer }}s
+                            </span>
+                            <div :class="['h-2 w-16 overflow-hidden rounded-full bg-gray-700', timer <= 5 ? 'animate-pulse' : '']">
+                                <div
+                                    :class="['h-full transition-all duration-1000 ease-linear', getTimerColor(timer, timerDuration)]"
                                     :style="{ width: `${(timer / timerDuration) * 100}%` }"
                                 ></div>
                             </div>
                         </div>
-                        <span v-if="timer === 0" class="text-sm text-red-500 pixel-outline animate-pulse">⏰ Time's up!</span>
+                        <span v-if="timer === 0" class="pixel-outline animate-pulse text-sm text-red-500">⏰ Time's up!</span>
                     </div>
 
                     <!-- Multiple Choice -->
@@ -218,8 +246,8 @@
                             :class="[
                                 'w-full rounded-lg border p-3 text-left transition-colors',
                                 selectedAnswer === option
-                                    ? 'bg-black/50 border-2 border-blue-500 text-white shadow-md hover:scale-105 transition-transform duration-500 pixel-outline'
-                                    : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500 pixel-outline',
+                                    ? 'pixel-outline border-2 border-blue-500 bg-black/50 text-white shadow-md transition-transform duration-500 hover:scale-105'
+                                    : 'pixel-outline border-2 border-gray-500 bg-black/50 text-gray-300 transition-transform duration-500 hover:scale-105',
                                 (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
@@ -235,8 +263,8 @@
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'True'
-                                    ? 'bg-green-900/20 border-2 border-green-500 text-white shadow-md hover:scale-105 transition-transform duration-500 pixel-outline'
-                                    : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500 pixel-outline',
+                                    ? 'pixel-outline border-2 border-green-500 bg-green-900/20 text-white shadow-md transition-transform duration-500 hover:scale-105'
+                                    : 'pixel-outline border-2 border-gray-500 bg-black/50 text-gray-300 transition-transform duration-500 hover:scale-105',
                                 (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
@@ -248,8 +276,8 @@
                             :class="[
                                 'flex-1 rounded-lg border p-3 transition-colors',
                                 selectedAnswer === 'False'
-                                    ? 'bg-red-900/20 border-2 border-red-500 text-white shadow-md hover:scale-105 transition-transform duration-500 pixel-outline'
-                                    : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500 pixel-outline',
+                                    ? 'pixel-outline border-2 border-red-500 bg-red-900/20 text-white shadow-md transition-transform duration-500 hover:scale-105'
+                                    : 'pixel-outline border-2 border-gray-500 bg-black/50 text-gray-300 transition-transform duration-500 hover:scale-105',
                                 (answerSubmitted || timedOut) && 'cursor-not-allowed opacity-75',
                             ]"
                         >
@@ -259,7 +287,7 @@
 
                     <!-- Enumeration -->
                     <div v-else-if="currentQuiz.type === 'enumeration'" class="space-y-3">
-                        <p class="mb-2 font-bold text-blue-500 pixel-outline">Please provide {{ currentQuiz.answers.length }} answers:</p>
+                        <p class="pixel-outline mb-2 font-bold text-blue-500">Please provide {{ currentQuiz.answers.length }} answers:</p>
                         <div v-for="idx in currentQuiz.answers.length" :key="idx" class="mb-2">
                             <input
                                 type="text"
@@ -267,7 +295,7 @@
                                 v-model="selectedAnswer[idx]"
                                 @input="updateEnumerationAnswer(idx, selectedAnswer[idx])"
                                 :disabled="answerSubmitted || timedOut"
-                                class="w-full rounded-lg border border-blue-500 p-2 bg-black/50 pixel-outline text-gray-400"
+                                class="pixel-outline w-full rounded-lg border border-blue-500 bg-black/50 p-2 text-gray-400"
                             />
                         </div>
                     </div>
@@ -278,8 +306,8 @@
                             @click="() => submitAnswer()"
                             :disabled="!selectedAnswer || answerSubmitted || submitting || timedOut"
                             :class="[
-                                'inline-flex items-center pixel-outline rounded-md px-4 py-2 text-sm font-medium text-white transition-colors focus:ring-2 focus:ring-offset-2 disabled:opacity-50',
-                                timedOut ? 'bg-red-600' : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                                'pixel-outline inline-flex items-center rounded-md px-4 py-2 text-sm font-medium text-white transition-colors focus:ring-2 focus:ring-offset-2 disabled:opacity-50',
+                                timedOut ? 'bg-red-600' : 'bg-green-600 hover:bg-green-700 focus:ring-green-500',
                             ]"
                         >
                             <span v-if="submitting" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
@@ -291,12 +319,22 @@
                 </div>
 
                 <!-- Waiting for Opponent -->
-                <div v-else-if="!isMyTurn" class="mx-4 rounded-lg p-8 border-red-500 border-2 text-center" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
-                    <div class="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-red-200 border-t-red-600 pixel-outline-icon"></div>
-                    <div class="items-center -mx-8.5 mb-2 bg-black/50 border-2 border-red-500 p-4">
-                        <h3 class="text-lg font-medium text-center text-red-500 pixel-outline">Waiting for opponent...</h3>
-                    </div> 
-                    <p class="text-gray-400 pixel-outline">Your opponent is answering their question.</p>
+                <div
+                    v-else-if="!isMyTurn"
+                    class="mx-4 rounded-lg border-2 border-red-500 p-8 text-center"
+                    style="
+                        background-image:
+                            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                            url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
+                        background-size: cover;
+                        background-position: center;
+                    "
+                >
+                    <div class="pixel-outline-icon mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-red-200 border-t-red-600"></div>
+                    <div class="-mx-8.5 mb-2 items-center border-2 border-red-500 bg-black/50 p-4">
+                        <h3 class="pixel-outline text-center text-lg font-medium text-red-500">Waiting for opponent...</h3>
+                    </div>
+                    <p class="pixel-outline text-gray-400">Your opponent is answering their question.</p>
                 </div>
 
                 <!-- Game Over -->
@@ -381,8 +419,8 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import axios from 'axios';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
 interface Quiz {
     id: number;
@@ -457,11 +495,14 @@ let timeoutForceAttempted = false; // Track if we've already attempted to force 
 
 // Helper function to get warning thresholds based on timer duration
 const getWarningThresholds = (duration: number) => {
-    if (duration >= 120) { // 2+ minutes
+    if (duration >= 120) {
+        // 2+ minutes
         return { first: 60, second: 30 };
-    } else if (duration >= 60) { // 1-2 minutes
+    } else if (duration >= 60) {
+        // 1-2 minutes
         return { first: 30, second: 15 };
-    } else { // Less than 1 minute
+    } else {
+        // Less than 1 minute
         return { first: 10, second: 5 };
     }
 };
@@ -495,13 +536,16 @@ watch(isMyTurn, (newVal) => {
 });
 
 // Watch for game status changes
-watch(() => gameState.value?.status, (newStatus) => {
-    if (newStatus === 'active') {
-        startTimerSync();
-    } else {
-        stopTimerSync();
-    }
-});
+watch(
+    () => gameState.value?.status,
+    (newStatus) => {
+        if (newStatus === 'active') {
+            startTimerSync();
+        } else {
+            stopTimerSync();
+        }
+    },
+);
 
 // Watch timeout state for better debugging and flow understanding
 watch([timedOut, awaitingTimeoutResponse, isMyTurn], ([newTimedOut, newAwaiting, newIsMyTurn], [oldTimedOut, oldAwaiting, oldIsMyTurn]) => {
@@ -510,7 +554,7 @@ watch([timedOut, awaitingTimeoutResponse, isMyTurn], ([newTimedOut, newAwaiting,
     } else if (!newTimedOut && oldTimedOut) {
         console.log('Timeout state cleared');
     }
-    
+
     if (newAwaiting && !oldAwaiting) {
         console.log('Now awaiting timeout response from server');
     } else if (!newAwaiting && oldAwaiting) {
@@ -642,7 +686,7 @@ const defeatSfx = new Audio('/sfx/defeat.wav');
 const damageSfx = new Audio('/sfx/damage.wav');
 // Use existing sound files for timer warnings
 const warningSfx = new Audio('/sfx/turn_start.wav'); // Repurpose existing sound
-const urgentWarningSfx = new Audio('/sfx/incorrect.wav'); // Use incorrect sound for urgency  
+const urgentWarningSfx = new Audio('/sfx/incorrect.wav'); // Use incorrect sound for urgency
 const countdownSfx = new Audio('/sfx/damage.wav'); // Use damage sound for countdown
 
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
@@ -696,13 +740,13 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
 // Timer is now managed by server - these functions handle WebSocket updates
 const startTimerSync = () => {
     stopTimerSync();
-    
+
     // Start local countdown and sync with server every few seconds
     timerSyncInterval = window.setInterval(() => {
         // Decrease timer locally for smooth countdown
         if (timer.value > 0 && timerRunning.value && !timedOut.value) {
             timer.value--;
-            
+
             // Check for client-side timeout
             if (timer.value <= 0) {
                 timerRunning.value = false; // Stop the countdown immediately
@@ -713,7 +757,7 @@ const startTimerSync = () => {
                     syncTimerStatus();
                 }, 1000);
             }
-            
+
             // Play warning sounds based on local timer
             if (soundEnabled.value) {
                 const warningThresholds = getWarningThresholds(timerDuration.value);
@@ -726,13 +770,13 @@ const startTimerSync = () => {
                 }
             }
         }
-        
+
         // Sync with server every 3 seconds to ensure accuracy (but not if timed out)
         if (Math.floor(Date.now() / 1000) % 3 === 0 && !timedOut.value) {
             syncTimerStatus();
         }
     }, 1000);
-    
+
     // Also sync immediately
     syncTimerStatus();
 };
@@ -748,12 +792,16 @@ const stopTimerSync = () => {
 // Mark player as ready (page loaded and ready to play)
 const markPlayerReady = async () => {
     if (!gameState.value?.id || playerReady.value) return;
-    
+
     try {
-        await router.post(route('multiplayer-games.ready', gameState.value.id), {}, {
-            preserveState: true,
-            preserveScroll: true,
-        });
+        await router.post(
+            route('multiplayer-games.ready', gameState.value.id),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
         playerReady.value = true;
         console.log('Player marked as ready');
     } catch (error) {
@@ -764,22 +812,22 @@ const markPlayerReady = async () => {
 // Sync with server timer status
 const syncTimerStatus = async () => {
     if (!gameState.value?.id) return;
-    
+
     try {
         const response = await fetch(route('multiplayer-games.timer', gameState.value.id));
         const data = await response.json();
-        
+
         if (data.timer.is_running) {
             const serverTime = data.timer.remaining_time;
             timerDuration.value = data.timer.duration || DEFAULT_TIMER_DURATION;
             timerRunning.value = true;
-            
+
             // Always sync timer value on refresh or significant difference
             if (timer.value === 0 || Math.abs(timer.value - serverTime) > 2) {
                 console.log(`Timer sync: adjusting from ${timer.value}s to ${serverTime}s`);
                 timer.value = serverTime;
             }
-            
+
             // Handle timeout immediately if server reports 0
             if (serverTime <= 0 && !timedOut.value) {
                 console.log('Server reports timer expired, triggering timeout');
@@ -793,10 +841,10 @@ const syncTimerStatus = async () => {
             console.log('Server reports no timer running');
             timerRunning.value = false;
             timer.value = 0;
-            
+
             // If it's my turn but no timer is running AND I'm not in timeout state, check for issues
             if (isMyTurn.value && !timedOut.value && !answerSubmitted.value && !awaitingTimeoutResponse.value) {
-                console.warn('No timer running but it\'s my turn - checking for timeout state');
+                console.warn("No timer running but it's my turn - checking for timeout state");
                 // Force a timeout check via API
                 setTimeout(() => {
                     if (isMyTurn.value && !timedOut.value && !answerSubmitted.value && !awaitingTimeoutResponse.value) {
@@ -805,7 +853,7 @@ const syncTimerStatus = async () => {
                     }
                 }, 2000);
             }
-            
+
             // If I'm already timed out and server has no timer, this is expected - wait for turn change
             if (timedOut.value && isMyTurn.value) {
                 console.log('Server has no timer running after timeout - waiting for turn change via WebSocket');
@@ -822,21 +870,21 @@ const handleTimeout = () => {
     if (!answerSubmitted.value && isMyTurn.value && timer.value <= 0 && !timedOut.value) {
         timedOut.value = true;
         awaitingTimeoutResponse.value = true;
-        
+
         // Play timeout sound immediately
         if (soundEnabled.value) {
             incorrectSfx.currentTime = 0;
             incorrectSfx.play();
         }
-        
+
         // Show immediate feedback
-        lastAction.value = { 
-            type: 'error', 
-            message: "⏰ Time's up! Your answer will be marked as incorrect..." 
+        lastAction.value = {
+            type: 'error',
+            message: "⏰ Time's up! Your answer will be marked as incorrect...",
         };
-        
+
         console.log('Client-side timeout detected, forcing server timeout immediately');
-        
+
         // Force timeout immediately via API instead of waiting for WebSocket
         forceTimeoutViaAPI();
     }
@@ -848,43 +896,43 @@ const forceTimeoutViaAPI = async () => {
         console.warn('Cannot force timeout - invalid game state, not my turn, or not timed out');
         return;
     }
-    
+
     console.log('Forcing timeout via API...');
-    
+
     try {
         // Use axios which handles CSRF properly
         const response = await axios.post(route('multiplayer-games.force-timeout', gameState.value.id));
-        
+
         console.log('Timeout forced successfully:', response.data);
-        
+
         if (response.data.success) {
-            lastAction.value = { 
-                type: 'error', 
-                message: response.data.message || "⏰ Timeout processed! Turn ended." 
+            lastAction.value = {
+                type: 'error',
+                message: response.data.message || '⏰ Timeout processed! Turn ended.',
             };
-            
+
             // Clear the awaiting flag since we got a response
             awaitingTimeoutResponse.value = false;
-            
+
             // WebSocket should update the game state shortly
         } else {
             throw new Error(response.data.message || 'Timeout processing failed');
         }
     } catch (error: any) {
         console.error('Force timeout failed:', error);
-        
-        let errorMessage = "⏰ Timer expired! Please wait for the next question.";
-        
+
+        let errorMessage = '⏰ Timer expired! Please wait for the next question.';
+
         // Handle axios error response
         if (error.response?.data?.message) {
             errorMessage = error.response.data.message;
         } else if (error.message) {
             errorMessage = error.message;
         }
-        
-        lastAction.value = { 
-            type: 'error', 
-            message: errorMessage
+
+        lastAction.value = {
+            type: 'error',
+            message: errorMessage,
         };
         awaitingTimeoutResponse.value = false;
     }
@@ -900,11 +948,11 @@ const resetForNextQuestion = () => {
     timedOut.value = false;
     awaitingTimeoutResponse.value = false; // Clear the timeout response flag
     timeoutForceAttempted = false; // Reset force timeout attempt flag
-    
+
     // Reset timer - the server will provide the correct duration via WebSocket or sync
     timer.value = 0;
     timerRunning.value = false;
-    
+
     console.log('Reset for next question - waiting for timer to start');
 };
 
@@ -984,14 +1032,14 @@ const handleImageError = (event: Event) => {
 const fetchFreshGameState = async () => {
     try {
         console.log('Fetching fresh game state from server...');
-        
+
         const response = await fetch(route('multiplayer-games.state', props.game.id), {
             method: 'GET',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'X-Requested-With': 'XMLHttpRequest',
             },
-            credentials: 'same-origin'
+            credentials: 'same-origin',
         });
 
         if (!response.ok) {
@@ -999,31 +1047,31 @@ const fetchFreshGameState = async () => {
         }
 
         const data = await response.json();
-        
+
         if (data.game) {
             // Store previous state for comparison
             const wasMyTurn = isMyTurn.value;
             const previousTurn = gameState.value.current_turn;
-            
+
             // Update game state
             Object.assign(gameState.value, data.game);
             Object.assign(props.game, data.game);
-            
+
             // Update current question if provided
             if (data.currentQuestion !== undefined) {
                 currentQuestion.value = data.currentQuestion;
             }
-            
+
             console.log('Fresh game state fetched successfully:', {
                 previousTurn,
                 newTurn: gameState.value.current_turn,
                 wasMyTurn,
-                isMyTurnNow: isMyTurn.value
+                isMyTurnNow: isMyTurn.value,
             });
-            
+
             // Clear timeout flags since we have fresh state
             awaitingTimeoutResponse.value = false;
-            
+
             // Handle turn changes
             if (!wasMyTurn && isMyTurn.value) {
                 resetForNextQuestion();
@@ -1035,23 +1083,21 @@ const fetchFreshGameState = async () => {
                 awaitingTimeoutResponse.value = false;
                 console.log('My turn ended after state sync, stopping timer');
             }
-            
+
             // If we were stuck with a timeout but the turn hasn't changed,
             // this is expected since we force timeout immediately now
             if (wasMyTurn && isMyTurn.value && timedOut.value) {
                 console.log('Timeout state active - waiting for server processing to complete');
             }
-            
+
             // If game ended, handle it
             if (gameState.value.status === 'finished') {
                 gameOver.value = true;
                 console.log('Game ended according to fresh state');
             }
-            
         } else {
             console.error('Invalid response format from game state API');
         }
-        
     } catch (error) {
         console.error('Failed to fetch fresh game state:', error);
         lastAction.value = { type: 'error', message: 'Connection issue. Please check your internet connection.' };
@@ -1061,10 +1107,10 @@ const fetchFreshGameState = async () => {
 // Force synchronization by checking if the game progressed correctly
 const forceSyncGameState = async () => {
     console.log('Forcing game state synchronization...');
-    
+
     // First try to fetch fresh state
     await fetchFreshGameState();
-    
+
     // If it's still showing as our turn after timeout, there might be a server-side issue
     // Let's try to "ping" the server to check if our timeout was processed
     if (isMyTurn.value && timedOut.value) {
@@ -1072,22 +1118,22 @@ const forceSyncGameState = async () => {
             const response = await fetch(route('multiplayer-games.ping', props.game.id), {
                 method: 'POST',
                 headers: {
-                    'Accept': 'application/json',
+                    Accept: 'application/json',
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
                 },
                 credentials: 'same-origin',
                 body: JSON.stringify({
                     check_stale: true,
-                    last_action: 'timeout'
-                })
+                    last_action: 'timeout',
+                }),
             });
-            
+
             if (response.ok) {
                 const data = await response.json();
                 console.log('Ping response:', data);
-                
+
                 // If server says game should have progressed, fetch state again
                 if (data.should_refresh || data.turn_changed) {
                     setTimeout(() => fetchFreshGameState(), 1000);
@@ -1124,12 +1170,12 @@ const stopStateCheckInterval = () => {
 
 onMounted(() => {
     console.log('DEBUG: gameState.value.pvp_mode =', gameState.value.pvp_mode);
-    
+
     // Initialize selectedAnswer for enumeration questions on mount
     if (currentQuiz.value && currentQuiz.value.type === 'enumeration') {
         selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
     }
-    
+
     if (window.Echo) {
         echo = window.Echo.private(`multiplayer-game.${props.game.id}`)
             .listen('MultiplayerGameUpdated', (e: any) => {
@@ -1195,14 +1241,14 @@ onMounted(() => {
                     timerRunning.value = true;
                     timedOut.value = false;
                     awaitingTimeoutResponse.value = false;
-                    
+
                     console.log(`Timer started: ${duration}s for question type:`, e.additional_data?.question_type);
                     startTimerSync();
                 } else if (e.event_type === 'timer_delayed') {
                     // Timer is delayed waiting for players to load
-                    lastAction.value = { 
-                        type: 'success', 
-                        message: e.additional_data?.message || 'Waiting for players to load...' 
+                    lastAction.value = {
+                        type: 'success',
+                        message: e.additional_data?.message || 'Waiting for players to load...',
                     };
                 } else if (e.event_type === 'timer_stopped') {
                     timerRunning.value = false;
@@ -1216,7 +1262,7 @@ onMounted(() => {
                         console.log(`Timer warning sync: adjusting from ${timer.value}s to ${serverTime}s`);
                         timer.value = serverTime;
                     }
-                    
+
                     // Play warning sound based on warning point
                     if (soundEnabled.value && e.additional_data.warning_point) {
                         if (e.additional_data.warning_point === 10) {
@@ -1230,35 +1276,34 @@ onMounted(() => {
                 } else if (e.event_type === 'timer_timeout' && e.additional_data) {
                     // Server handled timeout, update UI
                     stopTimerSync(); // Stop timer immediately
-                    
+
                     if (e.additional_data.timed_out_player === props.game.currentUser.id) {
                         timedOut.value = true;
                         answerSubmitted.value = true; // Mark as submitted
                         submitting.value = false; // Stop submitting state
-                        
+
                         // Play timeout sound
                         if (soundEnabled.value) {
                             incorrectSfx.currentTime = 0;
                             incorrectSfx.play();
                         }
-                        
-                        lastAction.value = { 
-                            type: 'error', 
-                            message: "⏰ Time's up! Your answer was automatically submitted as incorrect." 
+
+                        lastAction.value = {
+                            type: 'error',
+                            message: "⏰ Time's up! Your answer was automatically submitted as incorrect.",
                         };
-                        
+
                         console.log('Player timed out - answer auto-submitted as wrong');
-                        
                     } else {
                         // Show opponent timeout message
-                        lastAction.value = { 
-                            type: 'error', 
-                            message: `${e.additional_data.timed_out_player_name} timed out and lost their turn!` 
+                        lastAction.value = {
+                            type: 'error',
+                            message: `${e.additional_data.timed_out_player_name} timed out and lost their turn!`,
                         };
-                        
+
                         console.log(`Opponent ${e.additional_data.timed_out_player_name} timed out`);
                     }
-                    
+
                     // Clear timeout message after showing it - let turn change handle the reset
                     setTimeout(() => {
                         lastAction.value = null;
@@ -1370,9 +1415,9 @@ onMounted(() => {
                     }
                     // Ensure we're in a clean waiting state
                     submitting.value = false;
-                    console.log("No longer my turn, entering waiting state");
+                    console.log('No longer my turn, entering waiting state');
                 }
-                
+
                 // If it's still my turn after a timeout (meaning the game didn't progress properly),
                 // try to sync the game state after a short delay
                 if (wasMyTurn && isMyTurn.value && timedOut.value) {
@@ -1392,7 +1437,7 @@ onMounted(() => {
             .error((error: any) => {
                 console.error('WebSocket error:', error);
                 lastAction.value = { type: 'error', message: 'Connection lost. Trying to reconnect...' };
-                
+
                 // If WebSocket fails, increase the frequency of state checks as a fallback
                 stopStateCheckInterval();
                 stateCheckInterval = window.setInterval(() => {

@@ -130,7 +130,7 @@ onMounted(() => {
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 ctx.restore();
-            }
+            },
         };
         new Chart(ctx, {
             type: 'line',

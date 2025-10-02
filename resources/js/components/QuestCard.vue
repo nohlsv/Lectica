@@ -1,7 +1,7 @@
 <template>
     <div class="rounded-lg border border-indigo-500 bg-black/50 p-6 transition-all hover:shadow-md">
-        <div class="flex items-center justify-between flex-wrap">
-            <div class="flex flex-col space-y-4 flex-grow">
+        <div class="flex flex-wrap items-center justify-between">
+            <div class="flex flex-grow flex-col space-y-4">
                 <div class="flex items-start space-x-4">
                     <!-- Quest Icon -->
                     <div class="flex-shrink-0">
@@ -13,27 +13,30 @@
                     <!-- Quest Info -->
                     <div class="min-w-0 flex-1">
                         <div class="mb-1 flex items-center space-x-2">
-                            <h4 class="text-lg font-semibold text-gray-100 pixel-outline">
+                            <h4 class="pixel-outline text-lg font-semibold text-gray-100">
                                 {{ quest.title }}
                             </h4>
-                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium pixel-outline" :class="getCategoryBadgeColor()">
+                            <span
+                                class="pixel-outline inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                                :class="getCategoryBadgeColor()"
+                            >
                                 {{ getCategoryText() }}
                             </span>
                         </div>
 
-                        <p class="mb-3 text-sm text-gray-400 pixel-outline">
+                        <p class="pixel-outline mb-3 text-sm text-gray-400">
                             {{ quest.description }}
                         </p>
 
                         <!-- Progress Bar (only if quest is assigned to user) -->
                         <div v-if="quest.user_progress" class="mb-3">
                             <div class="mb-1 flex items-center justify-between">
-                                <span class="text-sm font-medium text-gray-300 pixel-outline">Progress</span>
-                                <span class="text-sm text-gray-400 pixel-outline">
+                                <span class="pixel-outline text-sm font-medium text-gray-300">Progress</span>
+                                <span class="pixel-outline text-sm text-gray-400">
                                     {{ quest.user_progress.progress }}/{{ quest.user_progress.target }}
                                 </span>
                             </div>
-                            <div class="h-2 w-full rounded-full bg-gray-800 pixel-outline-icon">
+                            <div class="pixel-outline-icon h-2 w-full rounded-full bg-gray-800">
                                 <div
                                     class="h-2 rounded-full transition-all duration-300"
                                     :class="quest.user_progress.is_completed ? 'bg-green-600' : 'bg-blue-600'"
@@ -43,7 +46,7 @@
                         </div>
 
                         <!-- Quest Requirements -->
-                        <div class="mb-2 text-xs text-gray-400 pixel-outline">
+                        <div class="pixel-outline mb-2 text-xs text-gray-400">
                             <span v-if="quest.requirements?.count">
                                 Required: {{ quest.requirements.count }} {{ quest.requirements.unit || 'times' }}
                             </span>
@@ -57,7 +60,7 @@
                     <div v-if="quest.user_progress">
                         <span
                             v-if="quest.user_progress.is_completed"
-                            class="inline-flex pixel-outline items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300"
+                            class="pixel-outline inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-300"
                         >
                             <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -70,7 +73,7 @@
                         </span>
                         <span
                             v-else-if="quest.user_progress.progress > 0"
-                            class="inline-flex pixel-outline items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
+                            class="pixel-outline inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300"
                         >
                             <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -83,7 +86,7 @@
                         </span>
                         <span
                             v-else
-                            class="inline-flex pixel-outline items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                            class="pixel-outline inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-900 dark:text-gray-300"
                         >
                             <svg class="mr-1 h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
                                 <path
@@ -98,12 +101,12 @@
 
                     <!-- XP Reward -->
                     <div class="flex items-center space-x-1 text-sm">
-                        <span class="text-yellow-500 pixel-outline">⭐</span>
+                        <span class="pixel-outline text-yellow-500">⭐</span>
                         <span class="font-semibold text-gray-900 dark:text-gray-100">{{ quest.experience_reward }} XP</span>
                     </div>
 
                     <!-- Quest Type Badge -->
-                    <span class="inline-flex items-center rounded px-2 py-1 text-xs font-medium pixel-outline" :class="getTypeBadgeColor()">
+                    <span class="pixel-outline inline-flex items-center rounded px-2 py-1 text-xs font-medium" :class="getTypeBadgeColor()">
                         {{ getTypeText() }}
                     </span>
                 </div>
@@ -113,9 +116,9 @@
         <!-- Completion Date (if completed) -->
         <div
             v-if="quest.user_progress?.is_completed && quest.user_progress?.completed_at"
-            class="mt-4 border-t border-gray-200 pt-4 dark:border-gray-600 pixel-outline"
+            class="pixel-outline mt-4 border-t border-gray-200 pt-4 dark:border-gray-600"
         >
-            <div class="flex items-center pixel-outline justify-between text-xs text-gray-500 dark:text-gray-400">
+            <div class="pixel-outline flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                 <span>Completed on {{ formatDate(quest.user_progress.completed_at) }}</span>
                 <span>+{{ quest.experience_reward }} XP earned</span>
             </div>

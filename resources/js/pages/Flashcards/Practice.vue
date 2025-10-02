@@ -277,84 +277,73 @@ function finishPractice() {
                     </div>
                 </div>
                 <!--Flashcard Layout-->
-                <Card class="relative min-h-[320px] sm:min-h-[360px] md:min-h-[420px] w-full max-w-sm
-                          sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl border-[6px] border-yellow-500 rounded-xl bg-gradient-to-br 
-                          from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] hover:scale-105 
-                          hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] transition-transform duration-500 
-                          font-pixel overflow-hidden mx-auto">
-                  <CardContent class="flex flex-col items-center justify-between min-h-[320px] perspective p-6">
-                    <!--Flip Flashcard-->
-                    <div
-                      class="relative flex-1 w-full flex items-center justify-center transition-transform duration-700 transform-style-preserve-3d"
-                      :class="{ 'rotate-y-180': showAnswer }">
-                      <!--Front (Question)-->
-                      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6 backface-hidden">
-                        <p class="text-sm sm:text-base md:text-lg lg:text-2xl font-pixel text-white text-center break-words leading-relaxed">
-                          {{ (currentFlashcard as Flashcard).question }}
-                        </p>
-                      </div>
-                      <!--Back (Answer)-->
-                      <div class="absolute inset-0 flex items-center justify-center p-4 sm:p-6 backface-hidden rotate-y-180">
-                        <p class="text-sm sm:text-base md:text-lg lg:text-xl font-pixel text-yellow-300 text-center px-2 sm:px-4 animate-soft-bounce">
-                          {{ (currentFlashcard as Flashcard).answer }}
-                        </p>
-                      </div>
-                    </div>
-                    <!--Middle Button (Flip Trigger)-->
-                    <div
-                      @click="toggleAnswer"
-                      class="relative mt-6 sm:mt-8 cursor-pointer group flex items-center justify-center 
-                          w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-black 
-                          bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)] 
-                          hover:scale-110 transition-transform duration-300">
-                      <!--Glow-->
-                      <div
-                        class="absolute w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white blur-xl opacity-20
-                            group-hover:animate-ping"> 
-                      </div>
-                      <!--Show star when on question-->
-                      <span v-if="!showAnswer" 
-                        class="relative z-10 text-xl sm:text-2xl md:text-3xl animate-pulse">⭐
-                      </span>
-                      <!--Show moon when on answer-->
-                      <span v-else 
-                        class="relative z-10 text-xl sm:text-2xl md:text-3xl animate-pulse">🌙
-                      </span>
-                    </div>
-                  </CardContent>
+                <Card
+                    class="font-pixel relative mx-auto min-h-[320px] w-full max-w-sm overflow-hidden rounded-xl border-[6px] border-yellow-500 bg-gradient-to-br from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-transform duration-500 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] sm:min-h-[360px] sm:max-w-lg md:min-h-[420px] md:max-w-xl lg:max-w-3xl xl:max-w-4xl"
+                >
+                    <CardContent class="perspective flex min-h-[320px] flex-col items-center justify-between p-6">
+                        <!--Flip Flashcard-->
+                        <div
+                            class="transform-style-preserve-3d relative flex w-full flex-1 items-center justify-center transition-transform duration-700"
+                            :class="{ 'rotate-y-180': showAnswer }"
+                        >
+                            <!--Front (Question)-->
+                            <div class="absolute inset-0 flex items-center justify-center p-4 backface-hidden sm:p-6">
+                                <p class="font-pixel text-center text-sm leading-relaxed break-words text-white sm:text-base md:text-lg lg:text-2xl">
+                                    {{ (currentFlashcard as Flashcard).question }}
+                                </p>
+                            </div>
+                            <!--Back (Answer)-->
+                            <div class="absolute inset-0 flex rotate-y-180 items-center justify-center p-4 backface-hidden sm:p-6">
+                                <p
+                                    class="font-pixel animate-soft-bounce px-2 text-center text-sm text-yellow-300 sm:px-4 sm:text-base md:text-lg lg:text-xl"
+                                >
+                                    {{ (currentFlashcard as Flashcard).answer }}
+                                </p>
+                            </div>
+                        </div>
+                        <!--Middle Button (Flip Trigger)-->
+                        <div
+                            @click="toggleAnswer"
+                            class="group relative mt-6 flex h-16 w-16 cursor-pointer items-center justify-center rounded-full border-4 border-black bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-transform duration-300 hover:scale-110 sm:mt-8 sm:h-20 sm:w-20"
+                        >
+                            <!--Glow-->
+                            <div class="absolute h-20 w-20 rounded-full bg-white opacity-20 blur-xl group-hover:animate-ping sm:h-24 sm:w-24"></div>
+                            <!--Show star when on question-->
+                            <span v-if="!showAnswer" class="relative z-10 animate-pulse text-xl sm:text-2xl md:text-3xl">⭐ </span>
+                            <!--Show moon when on answer-->
+                            <span v-else class="relative z-10 animate-pulse text-xl sm:text-2xl md:text-3xl">🌙 </span>
+                        </div>
+                    </CardContent>
 
-                  <!--Footer with navigation buttons-->
-                  <CardFooter class="flex justify-between px-4 py-3 bg-yellow-500 border-t-4 border-black">
-                    <!--Redirects to previous flashcard-->
-                    <Button
-                      class="bg-blue-500 text-[#fdf6ee] hover:bg-blue-600 border-blue-700 border-2 pixel-outline">
-                      <ChevronLeft class="h-4 w-4 mr-2" />
-                      Previous
-                    </Button>
-                    <!--Reset Button (from shuffle)-->
-                    <Button
-                      @click="next"
-                      variant="default"
-                      class="bg-orange-500 text-[#fdf6ee] hover:bg-orange-600 border-orange-700 border-2 pixel-outline">
-                          Skip
-                      <ChevronRight class="h-4 w-4 ml-2" />
-                    </Button>
-                  </CardFooter>
+                    <!--Footer with navigation buttons-->
+                    <CardFooter class="flex justify-between border-t-4 border-black bg-yellow-500 px-4 py-3">
+                        <!--Redirects to previous flashcard-->
+                        <Button class="pixel-outline border-2 border-blue-700 bg-blue-500 text-[#fdf6ee] hover:bg-blue-600">
+                            <ChevronLeft class="mr-2 h-4 w-4" />
+                            Previous
+                        </Button>
+                        <!--Reset Button (from shuffle)-->
+                        <Button
+                            @click="next"
+                            variant="default"
+                            class="pixel-outline border-2 border-orange-700 bg-orange-500 text-[#fdf6ee] hover:bg-orange-600"
+                        >
+                            Skip
+                            <ChevronRight class="ml-2 h-4 w-4" />
+                        </Button>
+                    </CardFooter>
                 </Card>
-                
+
                 <!--Next Card Button (after flipping)-->
                 <div v-if="showAnswer" class="flex justify-center">
-                  <Button 
-                    @click="next" 
-                    :disabled="currentIndex === cards.length - 1"
-                    class="bg-green-500 border-4 border-green-700 text-white font-bold
-                        shadow-[4px_4px_0px_rgba(0,0,0,0.4)]
-                        hover:bg-green-600 hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)]
-                        active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]
-                        transition-all duration-150 ease-in-out pixel-outline">
-                    Next Card
-                    <ChevronRight class="h-4 w-4 ml-2" />
-                  </Button>
+                    <Button
+                        @click="next"
+                        :disabled="currentIndex === cards.length - 1"
+                        class="pixel-outline border-4 border-green-700 bg-green-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-green-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                    >
+                        Next Card
+                        <ChevronRight class="ml-2 h-4 w-4" />
+                    </Button>
                 </div>
             </div>
         </AppLayout>

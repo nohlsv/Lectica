@@ -152,9 +152,9 @@ const submit = () => {
 <template>
     <Head title="Upload File" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient min-h-screen flex flex-col gap-6 p-6">
+        <div class="bg-gradient flex min-h-screen flex-col gap-6 p-6">
             <!-- Header -->
-            <div class="mx-auto max-w-md flex items-center justify-center gap-4">
+            <div class="mx-auto flex max-w-md items-center justify-center gap-4">
                 <h1 class="welcome-banner animate-soft-bounce pixel-outline px-10 py-2 text-center text-2xl font-bold">Upload New File</h1>
             </div>
 
@@ -165,7 +165,7 @@ const submit = () => {
                     <div class="space-y-2">
                         <label for="file" class="pixel-outline block text-sm font-medium">File</label>
                         <div
-                            class="hover:border-primary flex cursor-pointer flex-col items-center bg-black/50 justify-center rounded-md border-2 border-dashed border-yellow-300 p-6 transition-colors"
+                            class="hover:border-primary flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed border-yellow-300 bg-black/50 p-6 transition-colors"
                             :class="{ 'border-primary bg-primary/5': fileSelected }"
                             @click="fileInputRef?.click()"
                             @dragover="handleDragOver"
@@ -246,12 +246,12 @@ const submit = () => {
 
                     <!-- Collections -->
                     <div class="space-y-2">
-                        <label class="text-foreground block text-sm font-medium pixel-outline">Collections</label>
+                        <label class="text-foreground pixel-outline block text-sm font-medium">Collections</label>
                         <div class="flex flex-col gap-2">
                             <div
                                 v-for="collection in userCollections"
                                 :key="collection.id"
-                                class="border-indigo-500 pixel-outline-icon bg-black/30 flex cursor-pointer items-center gap-3 rounded-md border p-3 text-sm transition-colors"
+                                class="pixel-outline-icon flex cursor-pointer items-center gap-3 rounded-md border border-indigo-500 bg-black/30 p-3 text-sm transition-colors"
                                 :class="{ 'bg-accent': selectedCollections.includes(collection.id) }"
                                 @click="toggleCollection(collection.id)"
                             >
@@ -261,10 +261,10 @@ const submit = () => {
                                     :checked="selectedCollections.includes(collection.id)"
                                     class="text-primary focus:ring-primary h-4 w-4 rounded border-yellow-300"
                                 />
-                                <label :for="`collection-${collection.id}`" class="text-foreground flex-1 font-medium pixel-outline">
+                                <label :for="`collection-${collection.id}`" class="text-foreground pixel-outline flex-1 font-medium">
                                     {{ collection.name }}
                                 </label>
-                                <span class="text-muted-foreground text-xs pixel-outline"> {{ collection.file_count }} file(s) </span>
+                                <span class="text-muted-foreground pixel-outline text-xs"> {{ collection.file_count }} file(s) </span>
                             </div>
                         </div>
                         <p class="text-muted-foreground text-xs">

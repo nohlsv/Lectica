@@ -3,8 +3,8 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type File } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { CheckCircleIcon, FileIcon, XCircleIcon } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 interface Props {
     files: {
@@ -29,9 +29,9 @@ const verifyFile = (fileId: number) => {
     if (verifyingFiles.value.has(fileId)) {
         return;
     }
-    
+
     verifyingFiles.value.add(fileId);
-    
+
     router.patch(
         route('files.verify.update', fileId),
         {},
@@ -84,7 +84,7 @@ const denyFile = () => {
     <Head title="Verify Files" />
     <AppLayout>
         <div class="bg-gradient min-h-screen space-y-6 p-6">
-            <div class="mx-auto max-w-md flex justify-center">
+            <div class="mx-auto flex max-w-md justify-center">
                 <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-10 py-2 text-center text-2xl font-bold">Verify Files</h1>
             </div>
             <div class="bg-container p-6">
@@ -93,7 +93,7 @@ const denyFile = () => {
                     <div
                         v-for="file in props.files.data"
                         :key="file.id"
-                        class="flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-container p-4"
+                        class="bg-container flex h-full flex-col rounded-lg border-2 border-[#0c0a03] p-4"
                     >
                         <h2 class="pixel-outline text-xl font-semibold text-[#fdf6ee] md:text-2xl">{{ file.name }}</h2>
                         <p class="text-sm text-[#fdf6ee]/50 lg:text-base">
@@ -127,9 +127,9 @@ const denyFile = () => {
                                 :disabled="verifyingFiles.has(file.id)"
                                 :class="[
                                     'pixel-outline flex items-center rounded-md border-2 border-[#0c0a03] px-3 py-1.5 text-sm text-[#fdf6ee] duration-300 sm:px-4 sm:py-2 sm:text-base',
-                                    verifyingFiles.has(file.id) 
-                                        ? 'bg-gray-500 cursor-not-allowed opacity-50' 
-                                        : 'bg-[#5cae6e] cursor-pointer hover:bg-[#4a9159]'
+                                    verifyingFiles.has(file.id)
+                                        ? 'cursor-not-allowed bg-gray-500 opacity-50'
+                                        : 'cursor-pointer bg-[#5cae6e] hover:bg-[#4a9159]',
                                 ]"
                             >
                                 <CheckCircleIcon class="pixel-outline-icon mr-2 h-4 w-4" />
@@ -167,7 +167,7 @@ const denyFile = () => {
         </div>
 
         <!-- Denial Modal -->
-        <div v-if="showDenyModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div v-if="showDenyModal" class="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
             <div class="bg-container mx-4 max-w-md rounded-lg p-6">
                 <h3 class="pixel-outline mb-4 text-xl font-bold text-[#fdf6ee]">Deny File</h3>
                 <p class="mb-4 text-sm text-[#fdf6ee]/70">Please provide a reason for denying this file:</p>

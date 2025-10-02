@@ -4,9 +4,9 @@ import StudyStreakHeatmap from '@/components/StudyStreakHeatmap.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { GraduationCapIcon, TagsIcon, TrendingUpIcon, UsersIcon, Bell, X } from 'lucide-vue-next';
-import { computed, reactive, ref, onMounted } from 'vue';
 import axios from 'axios';
+import { Bell, GraduationCapIcon, TagsIcon, TrendingUpIcon, UsersIcon } from 'lucide-vue-next';
+import { computed, onMounted, reactive, ref } from 'vue';
 
 const scrollContainers = reactive<Record<string, HTMLElement | null>>({});
 
@@ -148,43 +148,43 @@ const studentActions = [
         href: '/files/create',
         description: 'Share your study materials',
         icon: 'upload',
-        color: 'blue'
+        color: 'blue',
     },
     {
         title: 'Browse Files',
         href: '/files',
         description: 'Find study resources',
         icon: 'browse',
-        color: 'green'
+        color: 'green',
     },
     {
         title: 'Game Battles',
         href: '/battles',
         description: 'Challenge yourself',
         icon: 'sword',
-        color: 'red'
+        color: 'red',
     },
     {
         title: 'Multiplayer',
         href: '/multiplayer-games',
         description: 'Play with friends',
         icon: 'users',
-        color: 'purple'
+        color: 'purple',
     },
     {
         title: 'Quests',
         href: '/quests',
         description: 'Complete challenges',
         icon: 'target',
-        color: 'orange'
+        color: 'orange',
     },
     {
         title: 'My Progress',
         href: '/history',
         description: 'View your stats',
         icon: 'chart',
-        color: 'indigo'
-    }
+        color: 'indigo',
+    },
 ];
 
 const facultyActions = [
@@ -193,43 +193,43 @@ const facultyActions = [
         href: '/files/verify',
         description: 'Review student uploads',
         icon: 'check',
-        color: 'green'
+        color: 'green',
     },
     {
         title: 'My Files',
         href: '/myfiles',
         description: 'Manage your content',
         icon: 'folder',
-        color: 'blue'
+        color: 'blue',
     },
     {
         title: 'Upload Resource',
         href: '/files/create',
         description: 'Share teaching materials',
         icon: 'upload',
-        color: 'indigo'
+        color: 'indigo',
     },
     {
         title: 'Collections',
         href: '/collections',
         description: 'Organize file sets',
         icon: 'collection',
-        color: 'purple'
+        color: 'purple',
     },
     {
         title: 'Student Leaderboards',
         href: '/leaderboards',
         description: 'Monitor student performance',
         icon: 'trophy',
-        color: 'yellow'
+        color: 'yellow',
     },
     {
         title: 'Browse All Files',
         href: '/files',
         description: 'Explore all resources',
         icon: 'browse',
-        color: 'gray'
-    }
+        color: 'gray',
+    },
 ];
 
 const adminActions = [
@@ -238,50 +238,50 @@ const adminActions = [
         href: '/admin/user-roles',
         description: 'Manage user roles',
         icon: 'users',
-        color: 'red'
+        color: 'red',
     },
     {
         title: 'System Statistics',
         href: '/statistics',
         description: 'View platform analytics',
         icon: 'chart',
-        color: 'blue'
+        color: 'blue',
     },
     {
         title: 'Verify Files',
         href: '/files/verify',
         description: 'Moderate content',
         icon: 'check',
-        color: 'green'
+        color: 'green',
     },
     {
         title: 'All Files',
         href: '/files',
         description: 'System-wide file access',
         icon: 'browse',
-        color: 'indigo'
+        color: 'indigo',
     },
     {
         title: 'Collections',
         href: '/collections',
         description: 'Manage file collections',
         icon: 'collection',
-        color: 'purple'
+        color: 'purple',
     },
     {
         title: 'Leaderboards',
         href: '/leaderboards',
         description: 'Platform engagement',
         icon: 'trophy',
-        color: 'yellow'
+        color: 'yellow',
     },
     {
         title: 'FAQ',
         href: '/faq',
         description: 'Help & Guidelines',
         icon: 'help',
-        color: 'blue'
-    }
+        color: 'blue',
+    },
 ];
 
 // Get current user's actions based on role
@@ -375,12 +375,16 @@ const getColorClasses = (color: string) => {
                 <!-- Quick Actions -->
                 <div class="mb-8">
                     <div class="mb-6 flex items-center justify-between">
-                        <h2 class="wave text-lg sm:text-xl font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                            <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span><span>t</span
-                            ><span>i</span><span>o</span><span>n</span><span>s</span>
+                        <h2
+                            class="wave text-lg font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-xl"
+                        >
+                            <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span
+                            ><span>t</span><span>i</span><span>o</span><span>n</span><span>s</span>
                         </h2>
                         <div class="hidden sm:block">
-                            <span class="rounded-full border-2 border-yellow-400 bg-yellow-500 px-3 py-1 text-xs font-bold text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)]">
+                            <span
+                                class="rounded-full border-2 border-yellow-400 bg-yellow-500 px-3 py-1 text-xs font-bold text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)]"
+                            >
                                 {{ isAdmin ? 'ADMIN' : isFaculty ? 'FACULTY' : 'STUDENT' }}
                             </span>
                         </div>
@@ -393,8 +397,8 @@ const getColorClasses = (color: string) => {
                             :key="action.title"
                             :href="action.href"
                             :class="[
-                                'group relative flex flex-col items-center justify-center rounded-xl border-2 p-4 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all duration-200 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] hover:translate-y-[-2px]',
-                                getColorClasses(action.color)
+                                'group relative flex flex-col items-center justify-center rounded-xl border-2 p-4 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)]',
+                                getColorClasses(action.color),
                             ]"
                         >
                             <!-- Icon -->
@@ -414,19 +418,21 @@ const getColorClasses = (color: string) => {
                                     <path :d="getIconSvg(action.icon)" />
                                 </svg>
                             </div>
-                            
+
                             <!-- Title -->
                             <span class="mb-1 text-center text-sm font-semibold text-gray-800 dark:text-gray-200">
                                 {{ action.title }}
                             </span>
-                            
+
                             <!-- Description -->
                             <span class="text-center text-xs text-gray-600 dark:text-gray-400">
                                 {{ action.description }}
                             </span>
 
                             <!-- Hover effect -->
-                            <div class="absolute inset-0 rounded-xl bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100"></div>
+                            <div
+                                class="absolute inset-0 rounded-xl bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                            ></div>
                         </Link>
                     </div>
 
@@ -462,29 +468,27 @@ const getColorClasses = (color: string) => {
                                 View All
                             </Link>
                         </div>
-                        
+
                         <div v-if="recentNotifications.length === 0" class="py-8 text-center">
                             <Bell class="mx-auto h-8 w-8 text-gray-400 dark:text-gray-500" />
                             <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No notifications yet</p>
-                        </div>                        <div v-else class="space-y-3">
+                        </div>
+                        <div v-else class="space-y-3">
                             <div
                                 v-for="notification in recentNotifications.slice(0, 3)"
                                 :key="notification.id"
-                                class="flex items-start space-x-3 rounded-lg border border-gray-200 dark:border-gray-700 p-3"
-                                :class="{ 
-                                    'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-600': !notification.read_at,
-                                    'dark:bg-gray-800/50': notification.read_at
+                                class="flex items-start space-x-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700"
+                                :class="{
+                                    'border-blue-200 bg-blue-50 dark:border-blue-600 dark:bg-blue-900/20': !notification.read_at,
+                                    'dark:bg-gray-800/50': notification.read_at,
                                 }"
                             >
-                                <div
-                                    v-if="!notification.read_at"
-                                    class="mt-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400"
-                                ></div>
-                                <div class="flex-1 min-w-0">
+                                <div v-if="!notification.read_at" class="mt-2 h-2 w-2 rounded-full bg-blue-600 dark:bg-blue-400"></div>
+                                <div class="min-w-0 flex-1">
                                     <p class="text-sm font-medium text-gray-900 dark:text-white">
                                         {{ notification.data.message }}
                                     </p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-300 mt-1">
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-300">
                                         {{ new Date(notification.created_at).toLocaleDateString() }}
                                     </p>
                                     <div v-if="notification.data.file_name" class="mt-1">
@@ -579,7 +583,6 @@ const getColorClasses = (color: string) => {
                             <p class="text-muted-foreground">No recommendations available at the moment. Check back later!</p>
                         </div>
                     </div>
-                
                 </div>
             </div>
             <!--Footer-->

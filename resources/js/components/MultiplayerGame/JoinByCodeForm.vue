@@ -1,6 +1,6 @@
 <template>
     <div class="rounded-lg border-2 border-blue-500 bg-black/50 p-4">
-        <h4 class="mb-3 text-md font-medium text-blue-300 pixel-outline">Join Private Game</h4>
+        <h4 class="text-md pixel-outline mb-3 font-medium text-blue-300">Join Private Game</h4>
         <form @submit.prevent="handleSubmit" class="flex space-x-3">
             <input
                 v-model="gameCode"
@@ -13,7 +13,7 @@
             <button
                 type="submit"
                 :disabled="!gameCode || processing"
-                class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
             >
                 <span v-if="processing">Joining...</span>
                 <span v-else>Join</span>
@@ -51,6 +51,6 @@ const handleSubmit = () => {
 defineExpose({
     clear: () => {
         gameCode.value = '';
-    }
+    },
 });
 </script>

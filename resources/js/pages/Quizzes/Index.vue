@@ -46,7 +46,7 @@ const isOwner = computed(() => {
     <Head title="Quizzes" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient min-h-screen mx-auto w-full space-y-6 p-6 sm:px-6 lg:px-8">
+        <div class="bg-gradient mx-auto min-h-screen w-full space-y-6 p-6 sm:px-6 lg:px-8">
             <div class="flex justify-between">
                 <div class="flex flex-wrap space-x-2">
                     <Link :href="route('files.show', file.id)">

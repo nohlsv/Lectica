@@ -160,14 +160,18 @@ function returnToLobby() {
 
 function forfeitGame() {
     if (confirm('Are you sure you want to forfeit this game? Your opponent will win.')) {
-        router.post(route('games.forfeit', gameState.value.id), {}, {
-            onSuccess: () => {
-                toast.success('Game forfeited successfully.');
+        router.post(
+            route('games.forfeit', gameState.value.id),
+            {},
+            {
+                onSuccess: () => {
+                    toast.success('Game forfeited successfully.');
+                },
+                onError: () => {
+                    toast.error('Failed to forfeit game.');
+                },
             },
-            onError: () => {
-                toast.error('Failed to forfeit game.');
-            },
-        });
+        );
     }
 }
 </script>
@@ -183,7 +187,7 @@ function forfeitGame() {
                 </div>
             </div>
         </template>
-        
+
         <div class="mx-auto max-w-2xl p-6">
             <div v-if="gamePhase === 'waiting'" class="text-muted py-8 text-center text-lg">
                 Waiting for another player to join...

@@ -18,6 +18,10 @@ import UserMenuContent from '@/components/UserMenuContent.vue';
 import { getInitials } from '@/composables/useInitials';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
+import { Link, usePage } from '@inertiajs/vue3';
+import axios from 'axios';
+import { Bell, ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Swords, Target, Users } from 'lucide-vue-next';
+import { computed, onMounted, ref } from 'vue';
 
 interface Notification {
     id: string;
@@ -34,10 +38,6 @@ interface Notification {
     created_at: string;
     updated_at: string;
 }
-import { Link, usePage } from '@inertiajs/vue3';
-import { ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Swords, Target, Users, Bell } from 'lucide-vue-next';
-import { computed, ref, onMounted } from 'vue';
-import axios from 'axios';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -158,23 +158,25 @@ const mainNavItems: NavItem[] = [
               },
           ]
         : []),
-    ...(auth.value.user.user_role === 'admin') ? [
-        {
-            title: 'Statistics',
-            href: '/statistics',
-            icon: ChartArea,
-        },
-          {
-              title: 'User Roles',
-              href: '/admin/user-roles',
-              icon: Users,
-          },
-          {
-              title: 'Verifications',
-              href: '/admin/verifications',
-              icon: FileIcon,
-          },
-      ] : [],
+    ...(auth.value.user.user_role === 'admin'
+        ? [
+              {
+                  title: 'Statistics',
+                  href: '/statistics',
+                  icon: ChartArea,
+              },
+              {
+                  title: 'User Roles',
+                  href: '/admin/user-roles',
+                  icon: Users,
+              },
+              {
+                  title: 'Verifications',
+                  href: '/admin/verifications',
+                  icon: FileIcon,
+              },
+          ]
+        : []),
 ];
 
 const rightNavItems: NavItem[] = [
@@ -209,7 +211,7 @@ const getExperienceProgress = () => {
 <template>
     <div>
         <div class="border-sidebar-border/80 border-b bg-[#4d0a02]">
-            <div class="mx-auto flex h-16 items-center px-4 md:max-w-8xl">
+            <div class="md:max-w-8xl mx-auto flex h-16 items-center px-4">
                 <!-- Mobile Menu -->
                 <div class="2xl:hidden">
                     <Sheet>
@@ -309,7 +311,7 @@ const getExperienceProgress = () => {
 
                     <!-- Level and XP Display -->
                     <div
-                        class="flex items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 sm:active dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20"
+                        class="sm:active flex items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20"
                     >
                         <!-- Level Badge -->
                         <div class="flex items-center space-x-1">
@@ -339,7 +341,7 @@ const getExperienceProgress = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                class="relative size-10 rounded-full p-2 focus-within:ring-2 focus-within:ring-primary"
+                                class="focus-within:ring-primary relative size-10 rounded-full p-2 focus-within:ring-2"
                             >
                                 <Bell class="h-5 w-5" />
                                 <span
@@ -352,32 +354,32 @@ const getExperienceProgress = () => {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" class="w-80">
                             <div class="p-4">
-                                <div class="flex items-center justify-between mb-3">
+                                <div class="mb-3 flex items-center justify-between">
                                     <h3 class="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                                    <Link :href="route('notifications.index')" class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                    <Link
+                                        :href="route('notifications.index')"
+                                        class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                    >
                                         View all
                                     </Link>
                                 </div>
-                                <div v-if="recentNotifications.length === 0" class="text-sm text-gray-500 dark:text-gray-400 py-4 text-center">
+                                <div v-if="recentNotifications.length === 0" class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                     No notifications
                                 </div>
                                 <div v-else class="space-y-3">
                                     <div
                                         v-for="notification in recentNotifications"
                                         :key="notification.id"
-                                        class="border-b border-gray-100 dark:border-gray-700 pb-3 last:border-b-0"
+                                        class="border-b border-gray-100 pb-3 last:border-b-0 dark:border-gray-700"
                                     >
                                         <div class="flex items-start justify-between space-x-3">
-                                            <div class="flex items-start space-x-3 flex-1 min-w-0">
-                                                <div
-                                                    v-if="!notification.read_at"
-                                                    class="mt-2 h-2 w-2 rounded-full bg-blue-600"
-                                                ></div>
-                                                <div class="flex-1 min-w-0">
+                                            <div class="flex min-w-0 flex-1 items-start space-x-3">
+                                                <div v-if="!notification.read_at" class="mt-2 h-2 w-2 rounded-full bg-blue-600"></div>
+                                                <div class="min-w-0 flex-1">
                                                     <p class="text-sm font-medium text-gray-900 dark:text-white">
                                                         {{ notification.data.message }}
                                                     </p>
-                                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                                         {{ new Date(notification.created_at).toLocaleDateString() }}
                                                     </p>
                                                 </div>
@@ -385,7 +387,7 @@ const getExperienceProgress = () => {
                                             <button
                                                 v-if="!notification.read_at"
                                                 @click="markNotificationAsRead(notification.id)"
-                                                class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                                                class="rounded px-2 py-1 text-xs text-blue-600 transition-colors hover:bg-gray-100 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-gray-800 dark:hover:text-blue-300"
                                             >
                                                 Mark as read
                                             </button>

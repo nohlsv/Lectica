@@ -16,18 +16,18 @@
             </div>
         </template>
 
-        <div class="py-12 bg-gradient min-h-screen">
+        <div class="bg-gradient min-h-screen py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Status Banner -->
-                <div class="mb-6 mx-4 overflow-hidden rounded-lg shadow-sm" :class="getGameResultBanner()">
+                <div class="mx-4 mb-6 overflow-hidden rounded-lg shadow-sm" :class="getGameResultBanner()">
                     <div class="p-6">
                         <div class="text-center">
                             <div class="mb-4">
                                 <div
                                     v-if="getGameResult().type === 'victory'"
-                                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/50 border-2 border-green-500"
+                                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-green-500 bg-black/50"
                                 >
-                                    <svg class="h-8 w-8 text-green-600 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="pixel-outline-icon h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
@@ -38,14 +38,17 @@
                                 </div>
                                 <div
                                     v-else-if="getGameResult().type === 'defeat'"
-                                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/50 border-2 border-red-500"
+                                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-red-500 bg-black/50"
                                 >
-                                    <svg class="h-8 w-8 text-red-600 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="pixel-outline-icon h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                     </svg>
                                 </div>
-                                <div v-else class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-black/50 border-2 border-blue-500">
-                                    <svg class="h-8 w-8 text-blue-600 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div
+                                    v-else
+                                    class="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-2 border-blue-500 bg-black/50"
+                                >
+                                    <svg class="pixel-outline-icon h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path
                                             stroke-linecap="round"
                                             stroke-linejoin="round"
@@ -55,47 +58,59 @@
                                     </svg>
                                 </div>
                             </div>
-                            <h3 class="mb-2 text-2xl font-bold pixel-outline" :class="getGameResult().textColor">
+                            <h3 class="pixel-outline mb-2 text-2xl font-bold" :class="getGameResult().textColor">
                                 {{ getGameResult().title }}
                             </h3>
-                            <p class="text-lg pixel-outline" :class="getGameResult().textColor">
+                            <p class="pixel-outline text-lg" :class="getGameResult().textColor">
                                 {{ getGameResult().description }}
                             </p>
                         </div>
                     </div>
                 </div>
-            
+
                 <!-- Game Info -->
-                <div class="mb-6 mx-4 p-6 grid grid-cols-1 gap-6 border-2 border-indigo-500 rounded-lg" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
+                <div
+                    class="mx-4 mb-6 grid grid-cols-1 gap-6 rounded-lg border-2 border-indigo-500 p-6"
+                    style="
+                        background-image:
+                            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                            url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
+                        background-size: cover;
+                        background-position: center;
+                    "
+                >
                     <!-- Game Details -->
-                    <div class="rounded-lg bg-black/50 border-2 border-indigo-500 p-6 shadow-sm">
-                        <div class="p-4 mb-4 -mx-6.5 items-center bg-black/50 border-2 border-indigo-500">
-                            <h4 class="text-lg font-medium text-gray-100 pixel-outline text-center">Game Details</h4>
+                    <div class="rounded-lg border-2 border-indigo-500 bg-black/50 p-6 shadow-sm">
+                        <div class="-mx-6.5 mb-4 items-center border-2 border-indigo-500 bg-black/50 p-4">
+                            <h4 class="pixel-outline text-center text-lg font-medium text-gray-100">Game Details</h4>
                         </div>
                         <div class="space-y-3">
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline mr-4 sm:mr-0">Game Mode:</span>
-                                <span class="font-medium text-gray-100 pixel-outline">
+                                <span class="pixel-outline mr-4 text-gray-400 sm:mr-0">Game Mode:</span>
+                                <span class="pixel-outline font-medium text-gray-100">
                                     {{ game.game_mode === 'pvp' ? 'PvP (Player vs Player)' : 'PvE (Co-op vs Monster)' }}
                                 </span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline mr-4 sm:mr-0">Study Material:</span>
-                                <span class="font-medium text-gray-100 pixel-outline">{{ source_name }}</span>
+                                <span class="pixel-outline mr-4 text-gray-400 sm:mr-0">Study Material:</span>
+                                <span class="pixel-outline font-medium text-gray-100">{{ source_name }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Duration:</span>
-                                <span class="font-medium text-gray-100 pixel-outline">{{ getGameDuration() }}</span>
+                                <span class="pixel-outline text-gray-400">Duration:</span>
+                                <span class="pixel-outline font-medium text-gray-100">{{ getGameDuration() }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Status:</span>
-                                <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium pixel-outline" :class="getStatusBadgeClass()">
+                                <span class="pixel-outline text-gray-400">Status:</span>
+                                <span
+                                    class="pixel-outline inline-flex items-center rounded-full px-2 py-1 text-xs font-medium"
+                                    :class="getStatusBadgeClass()"
+                                >
                                     {{ getStatusLabel() }}
                                 </span>
                             </div>
                             <div v-if="game.game_mode === 'pvp'" class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Win Condition:</span>
-                                <span class="font-medium text-gray-100 pixel-outline">
+                                <span class="pixel-outline text-gray-400">Win Condition:</span>
+                                <span class="pixel-outline font-medium text-gray-100">
                                     {{ game.pvp_mode === 'hp' ? 'Most HP Wins' : 'Most Accurate Wins' }}
                                 </span>
                             </div>
@@ -103,9 +118,9 @@
                     </div>
 
                     <!-- Opponent Info -->
-                    <div class="rounded-lg bg-black/50 border-2 border-red-500 p-6 shadow-sm">
-                        <div class="p-4 mb-4 -mx-6.5 items-center bg-black/50 border-2 border-red-500">
-                            <h4 class="text-lg text-center font-medium text-gray-100 pixel-outline">
+                    <div class="rounded-lg border-2 border-red-500 bg-black/50 p-6 shadow-sm">
+                        <div class="-mx-6.5 mb-4 items-center border-2 border-red-500 bg-black/50 p-4">
+                            <h4 class="pixel-outline text-center text-lg font-medium text-gray-100">
                                 {{ game.game_mode === 'pvp' ? 'Opponent' : 'Monster Defeated' }}
                             </h4>
                         </div>
@@ -114,120 +129,124 @@
                             <img
                                 :src="monster.image_path || '/images/default-monster.png'"
                                 :alt="monster.name"
-                                class="h-16 w-16 rounded-full object-cover pixel-outline-icon"
+                                class="pixel-outline-icon h-16 w-16 rounded-full object-cover"
                                 @error="handleImageError"
                             />
                             <div>
-                                <h5 class="font-medium text-gray-100 pixel-outline">{{ monster.name }}</h5>
-                                <p class="text-sm text-gray-400 pixel-outline">Original HP: {{ monster.hp }}</p>
-                                <p class="text-sm text-gray-400 pixel-outline">Final HP: {{ game.monster_hp }}</p>
+                                <h5 class="pixel-outline font-medium text-gray-100">{{ monster.name }}</h5>
+                                <p class="pixel-outline text-sm text-gray-400">Original HP: {{ monster.hp }}</p>
+                                <p class="pixel-outline text-sm text-gray-400">Final HP: {{ game.monster_hp }}</p>
                             </div>
                         </div>
 
                         <div v-else-if="game.game_mode === 'pvp'" class="space-y-3">
                             <div class="flex items-center space-x-3">
-                                <div class="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
-                                    <span class="font-bold text-green-300 pixel-outline">
+                                <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50">
+                                    <span class="pixel-outline font-bold text-green-300">
                                         {{ getOpponent()?.first_name.charAt(0) }}
                                     </span>
                                 </div>
                                 <div>
-                                    <p class="font-medium text-green-300 pixel-outline">
+                                    <p class="pixel-outline font-medium text-green-300">
                                         {{ getOpponent()?.first_name }} {{ getOpponent()?.last_name }}
                                     </p>
-                                    <p class="text-sm text-gray-400 pixel-outline">Final HP: {{ getOpponentHp() }}</p>
+                                    <p class="pixel-outline text-sm text-gray-400">Final HP: {{ getOpponentHp() }}</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Player Statistics -->
-                <div class="mb-6 mx-4 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                <div class="mx-4 mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
                     <!-- Player 1 Stats -->
-                    <div class="bg-green-900/50 border-2 border-green-500 py-6 px-8 rounded-lg shadow-sm">
-                        <div class="mb-4 flex justify-center items-center space-x-3 bg-black/50 border-2 border-green-500 -mx-8.5 p-4">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
-                                <span class="font-bold text-green-300 pixel-outline">
+                    <div class="rounded-lg border-2 border-green-500 bg-green-900/50 px-8 py-6 shadow-sm">
+                        <div class="-mx-8.5 mb-4 flex items-center justify-center space-x-3 border-2 border-green-500 bg-black/50 p-4">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50">
+                                <span class="pixel-outline font-bold text-green-300">
                                     {{ playerOne.first_name.charAt(0) }}
                                 </span>
                             </div>
                             <div>
-                                <h4 class="font-medium text-green-300 pixel-outline">{{ playerOne.first_name }} {{ playerOne.last_name }}</h4>
-                                <p class="text-sm text-gray-400 pixel-outline">Player 1</p>
+                                <h4 class="pixel-outline font-medium text-green-300">{{ playerOne.first_name }} {{ playerOne.last_name }}</h4>
+                                <p class="pixel-outline text-sm text-gray-400">Player 1</p>
                             </div>
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Final HP:</span>
-                                <span class="font-medium text-red-500 pixel-outline">❤️ {{ game.player_one_hp }}</span>
+                                <span class="pixel-outline text-gray-400">Final HP:</span>
+                                <span class="pixel-outline font-medium text-red-500">❤️ {{ game.player_one_hp }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Score:</span>
-                                <span class="font-medium text-yellow-500 pixel-outline">⭐ {{ game.player_one_score }}</span>
+                                <span class="pixel-outline text-gray-400">Score:</span>
+                                <span class="pixel-outline font-medium text-yellow-500">⭐ {{ game.player_one_score }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Correct Answers:</span>
-                                <span class="font-medium text-green-600 pixel-outline">{{ game.correct_answers_p1 || 0 }}</span>
+                                <span class="pixel-outline text-gray-400">Correct Answers:</span>
+                                <span class="pixel-outline font-medium text-green-600">{{ game.correct_answers_p1 || 0 }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Total Questions:</span>
-                                <span class="font-medium text-blue-300 pixel-outline">{{ game.total_questions_p1 || 0 }}</span>
+                                <span class="pixel-outline text-gray-400">Total Questions:</span>
+                                <span class="pixel-outline font-medium text-blue-300">{{ game.total_questions_p1 || 0 }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Accuracy:</span>
-                                <span class="font-medium text-purple-600 pixel-outline">{{ getAccuracy(game.correct_answers_p1, game.total_questions_p1) }}%</span>
+                                <span class="pixel-outline text-gray-400">Accuracy:</span>
+                                <span class="pixel-outline font-medium text-purple-600"
+                                    >{{ getAccuracy(game.correct_answers_p1, game.total_questions_p1) }}%</span
+                                >
                             </div>
                         </div>
                     </div>
 
                     <!-- Player 2 Stats -->
-                    <div v-if="playerTwo" class="bg-green-900/50 border-2 border-green-500 py-6 px-8 shadow-sm rounded-lg">
-                        <div class="mb-4 flex justify-center items-center space-x-3 bg-black/50 border-2 border-green-500 -mx-8.5 p-4">
-                            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-green-500">
-                                <span class="font-bold text-green-300 pixel-outline">
+                    <div v-if="playerTwo" class="rounded-lg border-2 border-green-500 bg-green-900/50 px-8 py-6 shadow-sm">
+                        <div class="-mx-8.5 mb-4 flex items-center justify-center space-x-3 border-2 border-green-500 bg-black/50 p-4">
+                            <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50">
+                                <span class="pixel-outline font-bold text-green-300">
                                     {{ playerTwo.first_name.charAt(0) }}
                                 </span>
                             </div>
                             <div>
-                                <h4 class="font-medium text-green-300 pixel-outline">{{ playerTwo.first_name }} {{ playerTwo.last_name }}</h4>
-                                <p class="text-sm text-gray-400 pixel-outline">Player 2</p>
+                                <h4 class="pixel-outline font-medium text-green-300">{{ playerTwo.first_name }} {{ playerTwo.last_name }}</h4>
+                                <p class="pixel-outline text-sm text-gray-400">Player 2</p>
                             </div>
                         </div>
 
                         <div class="space-y-3">
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Final HP:</span>
-                                <span class="font-medium text-red-500 pixel-outline">❤️ {{ game.player_two_hp }}</span>
+                                <span class="pixel-outline text-gray-400">Final HP:</span>
+                                <span class="pixel-outline font-medium text-red-500">❤️ {{ game.player_two_hp }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Score:</span>
-                                <span class="font-medium text-yellow-500 pixel-outline">⭐ {{ game.player_two_score }}</span>
+                                <span class="pixel-outline text-gray-400">Score:</span>
+                                <span class="pixel-outline font-medium text-yellow-500">⭐ {{ game.player_two_score }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Correct Answers:</span>
-                                <span class="font-medium text-green-600 pixel-outline">{{ game.correct_answers_p2 || 0 }}</span>
+                                <span class="pixel-outline text-gray-400">Correct Answers:</span>
+                                <span class="pixel-outline font-medium text-green-600">{{ game.correct_answers_p2 || 0 }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Total Questions:</span>
-                                <span class="font-medium text-blue-300 pixel-outline">{{ game.total_questions_p2 || 0 }}</span>
+                                <span class="pixel-outline text-gray-400">Total Questions:</span>
+                                <span class="pixel-outline font-medium text-blue-300">{{ game.total_questions_p2 || 0 }}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-gray-400 pixel-outline">Accuracy:</span>
-                                <span class="font-medium text-purple-600 pixel-outline">{{ getAccuracy(game.correct_answers_p2, game.total_questions_p2) }}%</span>
+                                <span class="pixel-outline text-gray-400">Accuracy:</span>
+                                <span class="pixel-outline font-medium text-purple-600"
+                                    >{{ getAccuracy(game.correct_answers_p2, game.total_questions_p2) }}%</span
+                                >
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-col gap-4 mx-4 justify-center sm:flex-row">
+                <div class="mx-4 flex flex-col justify-center gap-4 sm:flex-row">
                     <Link
                         :href="route('multiplayer-games.lobby')"
-                        class="flex pixel-outline items-center justify-center rounded-md bg-green-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        class="pixel-outline flex items-center justify-center rounded-md bg-green-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
-                        <svg class="mr-2 h-4 w-4 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="pixel-outline-icon mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
                         Create New Game
@@ -235,9 +254,9 @@
 
                     <Link
                         :href="route('multiplayer-games.lobby')"
-                        class="flex pixel-outline items-center justify-center rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                        class="pixel-outline flex items-center justify-center rounded-md bg-blue-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                     >
-                        <svg class="mr-2 h-4 w-4 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="pixel-outline-icon mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
@@ -250,9 +269,9 @@
 
                     <Link
                         :href="route('multiplayer-games.lobby')"
-                        class="flex pixel-outline items-center justify-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                        class="pixel-outline flex items-center justify-center rounded-md bg-indigo-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                     >
-                        <svg class="mr-2 h-4 w-4 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="pixel-outline-icon mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"

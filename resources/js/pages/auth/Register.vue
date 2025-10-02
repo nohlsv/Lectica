@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import type { Program } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
-import { LoaderCircle, Eye, EyeOff } from 'lucide-vue-next';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 
 interface Props {
@@ -60,7 +60,7 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-6">
             <div class="grid gap-6">
                 <div class="grid gap-1">
-                    <Label class="text-base pixel-outline tracking-wide" for="user_role">Role</Label>
+                    <Label class="pixel-outline text-base tracking-wide" for="user_role">Role</Label>
                     <select
                         id="user_role"
                         v-model="form.user_role"
@@ -93,7 +93,7 @@ const submit = () => {
                     </div>
 
                     <div class="grid gap-1">
-                        <Label class="text-base pixel-outline tracking-wide" for="last_name">Last Name</Label>
+                        <Label class="pixel-outline text-base tracking-wide" for="last_name">Last Name</Label>
                         <Input
                             id="last_name"
                             type="text"
@@ -109,7 +109,7 @@ const submit = () => {
                 </div>
 
                 <div v-if="form.user_role === 'student'" class="grid gap-1">
-                    <Label class="text-base pixel-outline tracking-wide" for="college">College</Label>
+                    <Label class="pixel-outline text-base tracking-wide" for="college">College</Label>
                     <select
                         id="college"
                         v-model="selectedCollege"
@@ -123,7 +123,7 @@ const submit = () => {
                 </div>
 
                 <div v-if="form.user_role === 'student'" class="grid gap-1">
-                    <Label class="text-base pixel-outline tracking-wide" for="program">Program</Label>
+                    <Label class="pixel-outline text-base tracking-wide" for="program">Program</Label>
                     <select
                         id="program"
                         v-model="form.program_id"
@@ -160,7 +160,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-1">
-                    <Label class="text-base pixel-outline tracking-wide" for="email">Email address</Label>
+                    <Label class="pixel-outline text-base tracking-wide" for="email">Email address</Label>
                     <Input
                         id="email"
                         type="email"
@@ -175,7 +175,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-1">
-                    <Label class="text-base pixel-outline tracking-wide" for="password">Password</Label>
+                    <Label class="pixel-outline text-base tracking-wide" for="password">Password</Label>
                     <div class="relative">
                         <Input
                             id="password"
@@ -190,7 +190,7 @@ const submit = () => {
                         <button
                             type="button"
                             @click="togglePasswordVisibility"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                             :tabindex="8"
                         >
                             <Eye v-if="!showPassword" class="h-4 w-4" />
@@ -201,7 +201,7 @@ const submit = () => {
                 </div>
 
                 <div class="grid gap-1">
-                    <Label class="text-base pixel-outline tracking-wide" for="password_confirmation">Confirm password</Label>
+                    <Label class="pixel-outline text-base tracking-wide" for="password_confirmation">Confirm password</Label>
                     <div class="relative">
                         <Input
                             id="password_confirmation"
@@ -216,7 +216,7 @@ const submit = () => {
                         <button
                             type="button"
                             @click="togglePasswordConfirmationVisibility"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
+                            class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-500 hover:text-gray-700 focus:outline-none"
                             :tabindex="10"
                         >
                             <Eye v-if="!showPasswordConfirmation" class="h-4 w-4" />

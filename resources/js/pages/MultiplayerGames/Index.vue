@@ -141,7 +141,6 @@
                                 >
                                     {{ game.status === 'active' ? 'Continue Game' : 'View Details' }} →
                                 </Link>
-
                             </div>
                         </div>
                     </div>
@@ -186,7 +185,7 @@
 <script setup lang="ts">
 import Pagination from '@/components/Pagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 
 interface User {
     id: number;

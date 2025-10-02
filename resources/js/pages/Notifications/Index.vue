@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { Bell, CheckCircle, X } from 'lucide-vue-next';
+import { Bell, CheckCircle } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -43,7 +40,7 @@ const formatDate = (dateString: string) => {
         month: 'long',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
     });
 };
 
@@ -67,7 +64,7 @@ const markAllAsRead = async () => {
 };
 
 const unreadCount = computed(() => {
-    return props.notifications.data.filter(n => !n.read_at).length;
+    return props.notifications.data.filter((n) => !n.read_at).length;
 });
 </script>
 
@@ -81,16 +78,14 @@ const unreadCount = computed(() => {
                     <div class="flex items-center space-x-4">
                         <Bell class="h-8 w-8 text-yellow-300" />
                         <div>
-                            <h1 class="text-3xl font-bold text-yellow-200 pixel-font">Notifications</h1>
-                            <p class="text-gray-100">
-                                {{ unreadCount }} unread notification{{ unreadCount !== 1 ? 's' : '' }}
-                            </p>
+                            <h1 class="pixel-font text-3xl font-bold text-yellow-200">Notifications</h1>
+                            <p class="text-gray-100">{{ unreadCount }} unread notification{{ unreadCount !== 1 ? 's' : '' }}</p>
                         </div>
                     </div>
-                    <button 
+                    <button
                         v-if="unreadCount > 0"
                         @click="markAllAsRead"
-                        class="flex items-center space-x-2 bg-yellow-300 hover:bg-yellow-200 text-black font-bold py-2 px-4 rounded pixel-outline transition-colors"
+                        class="pixel-outline flex items-center space-x-2 rounded bg-yellow-300 px-4 py-2 font-bold text-black transition-colors hover:bg-yellow-200"
                     >
                         <CheckCircle class="h-4 w-4" />
                         <span>Mark all as read</span>
@@ -99,10 +94,7 @@ const unreadCount = computed(() => {
 
                 <!-- Notifications List -->
                 <div class="space-y-4">
-                    <div
-                        v-if="props.notifications.data.length === 0"
-                        class="text-center py-12"
-                    >
+                    <div v-if="props.notifications.data.length === 0" class="py-12 text-center">
                         <Bell class="mx-auto h-12 w-12 text-gray-400" />
                         <h3 class="mt-2 text-sm font-medium text-gray-100">No notifications</h3>
                         <p class="mt-1 text-sm text-gray-200">You're all caught up!</p>
@@ -112,17 +104,14 @@ const unreadCount = computed(() => {
                         v-for="notification in props.notifications.data"
                         :key="notification.id"
                         :class="[
-                            'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-6 transition-all duration-200 hover:shadow-md',
-                            !notification.read_at ? 'border-l-4 border-l-blue-500' : ''
+                            'rounded-lg border border-gray-200 bg-white p-6 transition-all duration-200 hover:shadow-md dark:border-gray-700 dark:bg-gray-800',
+                            !notification.read_at ? 'border-l-4 border-l-blue-500' : '',
                         ]"
                     >
                         <div class="flex items-start justify-between space-x-4">
-                            <div class="flex items-start space-x-3 flex-1">
-                                <div
-                                    v-if="!notification.read_at"
-                                    class="mt-2 h-3 w-3 rounded-full bg-blue-600"
-                                ></div>
-                                <div class="flex-1 min-w-0">
+                            <div class="flex flex-1 items-start space-x-3">
+                                <div v-if="!notification.read_at" class="mt-2 h-3 w-3 rounded-full bg-blue-600"></div>
+                                <div class="min-w-0 flex-1">
                                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                                         {{ notification.type === 'App\\Notifications\\FileDeniedNotification' ? 'File Denied' : 'Notification' }}
                                     </h3>
@@ -130,19 +119,14 @@ const unreadCount = computed(() => {
                                         {{ formatDate(notification.created_at) }}
                                     </p>
                                     <p class="mt-2 text-gray-700 dark:text-gray-300">{{ notification.data.message }}</p>
-                                    
+
                                     <!-- File-specific information -->
                                     <div
                                         v-if="notification.data.file_name"
-                                        class="mt-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 p-3"
+                                        class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3 dark:border-gray-600 dark:bg-gray-700"
                                     >
-                                        <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                            File: {{ notification.data.file_name }}
-                                        </p>
-                                        <p
-                                            v-if="notification.data.denial_reason"
-                                            class="mt-1 text-sm text-gray-600 dark:text-gray-300"
-                                        >
+                                        <p class="text-sm font-medium text-gray-900 dark:text-white">File: {{ notification.data.file_name }}</p>
+                                        <p v-if="notification.data.denial_reason" class="mt-1 text-sm text-gray-600 dark:text-gray-300">
                                             <strong>Reason:</strong> {{ notification.data.denial_reason }}
                                         </p>
                                     </div>
@@ -151,7 +135,7 @@ const unreadCount = computed(() => {
                                     <div v-if="notification.data.file_id" class="mt-3">
                                         <Link
                                             :href="route('files.show', notification.data.file_id)"
-                                            class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline transition-colors"
+                                            class="inline-flex items-center text-sm text-blue-600 underline transition-colors hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                                         >
                                             View File
                                         </Link>
@@ -161,10 +145,10 @@ const unreadCount = computed(() => {
                             <div class="flex flex-col items-end space-y-2">
                                 <span
                                     :class="[
-                                        'text-xs px-2 py-1 rounded whitespace-nowrap',
-                                        notification.read_at 
-                                            ? 'bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300' 
-                                            : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 font-semibold'
+                                        'rounded px-2 py-1 text-xs whitespace-nowrap',
+                                        notification.read_at
+                                            ? 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300'
+                                            : 'bg-blue-100 font-semibold text-blue-800 dark:bg-blue-900 dark:text-blue-200',
                                     ]"
                                 >
                                     {{ notification.read_at ? 'Read' : 'Unread' }}
@@ -172,7 +156,7 @@ const unreadCount = computed(() => {
                                 <button
                                     v-if="!notification.read_at"
                                     @click="markAsRead(notification.id)"
-                                    class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 px-2 py-1 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                                    class="rounded px-2 py-1 text-xs text-blue-600 transition-colors hover:bg-blue-50 hover:text-blue-800 dark:text-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300"
                                 >
                                     Mark as read
                                 </button>
@@ -193,7 +177,7 @@ const unreadCount = computed(() => {
                             :class="{
                                 'border-blue-500 bg-blue-600 text-white': link.active,
                                 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50': !link.active && link.url,
-                                'border-gray-200 bg-gray-100 text-gray-400 cursor-not-allowed': !link.url
+                                'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400': !link.url,
                             }"
                             v-html="link.label"
                         ></button>
@@ -212,7 +196,7 @@ const unreadCount = computed(() => {
 }
 
 .pixel-outline {
-    box-shadow: 
+    box-shadow:
         0 0 0 1px currentColor,
         2px 2px 0 0 rgba(0, 0, 0, 0.5);
 }

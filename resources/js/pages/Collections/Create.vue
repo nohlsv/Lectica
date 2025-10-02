@@ -6,17 +6,19 @@
             <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Create New Collection</h2>
         </template>
 
-        <div class="py-12 bg-gradient min-h-screen">
-            <div class="mx-auto max-w-md flex justify-center sm:order-2 sm:flex-1 mb-6 mx-4">
-                <h1 class="welcome-banner animate-soft-bounce px-6 py-2 text-center text-2xl leading-tight font-bold pixel-outline">Create Collection</h1>
+        <div class="bg-gradient min-h-screen py-12">
+            <div class="mx-4 mx-auto mb-6 flex max-w-md justify-center sm:order-2 sm:flex-1">
+                <h1 class="welcome-banner animate-soft-bounce pixel-outline px-6 py-2 text-center text-2xl leading-tight font-bold">
+                    Create Collection
+                </h1>
             </div>
             <div class="mx-full sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-container shadow-sm sm:rounded-lg">
+                <div class="bg-container overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-100">
                         <form @submit.prevent="submit">
                             <!-- Collection Name -->
                             <div class="mb-6">
-                                <label for="name" class="mb-2 block text-md font-medium text-gray-300 pixel-outline"> Collection Name * </label>
+                                <label for="name" class="text-md pixel-outline mb-2 block font-medium text-gray-300"> Collection Name * </label>
                                 <input
                                     id="name"
                                     v-model="form.name"
@@ -25,14 +27,14 @@
                                     placeholder="Enter collection name..."
                                     required
                                 />
-                                <div v-if="form.errors.name" class="mt-2 text-sm text-red-600 pixel-outline">
+                                <div v-if="form.errors.name" class="pixel-outline mt-2 text-sm text-red-600">
                                     {{ form.errors.name }}
                                 </div>
                             </div>
 
                             <!-- Description -->
                             <div class="mb-6">
-                                <label for="description" class="mb-2 block text-md font-medium text-gray-300 pixel-outline"> Description </label>
+                                <label for="description" class="text-md pixel-outline mb-2 block font-medium text-gray-300"> Description </label>
                                 <textarea
                                     id="description"
                                     v-model="form.description"
@@ -47,20 +49,25 @@
 
                             <!-- Privacy Setting -->
                             <div class="mb-6">
-                                <label class="mb-2 block text-md font-medium text-gray-300 pixel-outline"> Visibility </label>
+                                <label class="text-md pixel-outline mb-2 block font-medium text-gray-300"> Visibility </label>
                                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                     <button
                                         type="button"
                                         @click="form.is_public = false"
                                         :class="
                                             !form.is_public
-                                                ? 'border-gray-500 bg-black/50 hover:scale-105 transition-transform duration-500 ring-2 ring-indigo-500'
-                                                : 'border-gray-300 bg-black/30 hover:scale-105 transition-transform duration-500 hover:border-indigo-300'
+                                                ? 'border-gray-500 bg-black/50 ring-2 ring-indigo-500 transition-transform duration-500 hover:scale-105'
+                                                : 'border-gray-300 bg-black/30 transition-transform duration-500 hover:scale-105 hover:border-indigo-300'
                                         "
                                         class="rounded-lg border p-4 text-left transition-colors"
                                     >
                                         <div class="flex items-center">
-                                            <svg class="mr-3 h-5 w-5 text-indigo-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg
+                                                class="pixel-outline-icon mr-3 h-5 w-5 text-indigo-500"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
                                                 <path
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
@@ -69,8 +76,8 @@
                                                 ></path>
                                             </svg>
                                             <div>
-                                                <h3 class="font-medium pixel-outline">Private</h3>
-                                                <p class="text-sm text-gray-500 pixel-outline">Only you can see this collection</p>
+                                                <h3 class="pixel-outline font-medium">Private</h3>
+                                                <p class="pixel-outline text-sm text-gray-500">Only you can see this collection</p>
                                             </div>
                                         </div>
                                     </button>
@@ -80,13 +87,18 @@
                                         @click="form.is_public = true"
                                         :class="
                                             form.is_public
-                                                ? 'border-green-500 hover:scale-105 transition-transform duration-500 bg-black/50 ring-2 ring-green-500'
-                                                : 'border-gray-600 hover:scale-105 transition-transform duration-500 bg-black/30 hover:border-green-300'
+                                                ? 'border-green-500 bg-black/50 ring-2 ring-green-500 transition-transform duration-500 hover:scale-105'
+                                                : 'border-gray-600 bg-black/30 transition-transform duration-500 hover:scale-105 hover:border-green-300'
                                         "
                                         class="rounded-lg border p-4 text-left transition-colors"
                                     >
                                         <div class="flex items-center">
-                                            <svg class="mr-3 h-5 w-5 text-green-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg
+                                                class="pixel-outline-icon mr-3 h-5 w-5 text-green-500"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                            >
                                                 <path
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
@@ -95,8 +107,8 @@
                                                 ></path>
                                             </svg>
                                             <div>
-                                                <h3 class="font-medium pixel-outline">Public</h3>
-                                                <p class="text-sm text-gray-500 pixel-outline">Others can discover and copy this collection</p>
+                                                <h3 class="pixel-outline font-medium">Public</h3>
+                                                <p class="pixel-outline text-sm text-gray-500">Others can discover and copy this collection</p>
                                             </div>
                                         </div>
                                     </button>
@@ -105,16 +117,16 @@
 
                             <!-- Tags -->
                             <div class="mb-6">
-                                <label for="tags" class="mb-2 block text-md font-medium text-gray-300 pixel-outline"> Tags </label>
+                                <label for="tags" class="text-md pixel-outline mb-2 block font-medium text-gray-300"> Tags </label>
                                 <div class="mb-2 flex flex-wrap gap-2">
                                     <span
                                         v-for="(tag, index) in form.tags"
                                         :key="index"
-                                        class="inline-flex items-center rounded-full bg-blue-900 px-2 py-1 text-sm text-blue-200 pixel-outline"
+                                        class="pixel-outline inline-flex items-center rounded-full bg-blue-900 px-2 py-1 text-sm text-blue-200"
                                     >
                                         {{ tag }}
                                         <button type="button" @click="removeTag(index)" class="ml-1 text-blue-600 hover:text-blue-800">
-                                            <svg class="h-3 w-3 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <svg class="pixel-outline-icon h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
                                         </button>
@@ -124,14 +136,14 @@
                                     <input
                                         v-model="newTag"
                                         type="text"
-                                        class="flex-1 rounded-l-md border-gray-300 shadow-sm bg-black/60 px-3 py-2"
+                                        class="flex-1 rounded-l-md border-gray-300 bg-black/60 px-3 py-2 shadow-sm"
                                         placeholder="Add a tag..."
                                         @keyup.enter="addTag"
                                     />
                                     <button
                                         type="button"
                                         @click="addTag"
-                                        class="rounded-r-md bg-indigo-600 pixel-outline px-4 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                        class="pixel-outline rounded-r-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                                     >
                                         Add
                                     </button>
@@ -143,8 +155,8 @@
 
                             <!-- File Selection -->
                             <div class="mb-6">
-                                <label class="mb-2 block text-md font-medium text-gray-300 pixel-outline"> Select Files </label>
-                                <p class="mb-4 text-sm text-gray-400 pixel-outline">
+                                <label class="text-md pixel-outline mb-2 block font-medium text-gray-300"> Select Files </label>
+                                <p class="pixel-outline mb-4 text-sm text-gray-400">
                                     Choose files to include in your collection. You can reorder them later.
                                 </p>
 
@@ -158,12 +170,8 @@
                                     </p>
                                 </div>
 
-                                <div v-else class="max-h-48 space-y-2 overflow-y-auto rounded-md border border-green-500 p-2 bg-black/50">
-                                    <label
-                                        v-for="file in userFiles"
-                                        :key="file.id"
-                                        class="flex cursor-pointer items-center space-x-3 rounded p-2"
-                                    >
+                                <div v-else class="max-h-48 space-y-2 overflow-y-auto rounded-md border border-green-500 bg-black/50 p-2">
+                                    <label v-for="file in userFiles" :key="file.id" class="flex cursor-pointer items-center space-x-3 rounded p-2">
                                         <input
                                             type="checkbox"
                                             :value="file.id"
@@ -172,35 +180,32 @@
                                         />
                                         <div class="flex-1">
                                             <div class="flex items-center justify-between">
-                                                <span class="text-sm font-medium text-gray-100 pixel-outline">
+                                                <span class="pixel-outline text-sm font-medium text-gray-100">
                                                     {{ file.title || file.name }}
                                                 </span>
-                                                <span class="text-xs text-gray-500 pixel-outline text-center"> {{ file.quizzes_count || 0 }} questions </span>
+                                                <span class="pixel-outline text-center text-xs text-gray-500">
+                                                    {{ file.quizzes_count || 0 }} questions
+                                                </span>
                                             </div>
-                                            <p v-if="file.description" class="text-xs text-gray-400 pixel-outline">
+                                            <p v-if="file.description" class="pixel-outline text-xs text-gray-400">
                                                 {{ file.description }}
                                             </p>
                                         </div>
                                     </label>
                                 </div>
-                                <div v-if="form.errors.file_ids" class="mt-2 text-sm text-red-600 pixel-outline">
+                                <div v-if="form.errors.file_ids" class="pixel-outline mt-2 text-sm text-red-600">
                                     {{ form.errors.file_ids }}
                                 </div>
                             </div>
 
                             <!-- Submit Button -->
                             <div class="flex items-center justify-between">
-                                <Link
-                                    :href="route('collections.index')"
-                                    class="text-red-400 pixel-outline"
-                                >
-                                    ← Back to Collections
-                                </Link>
+                                <Link :href="route('collections.index')" class="pixel-outline text-red-400"> ← Back to Collections </Link>
 
                                 <button
                                     type="submit"
                                     :disabled="form.processing"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-green-700 focus:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none active:bg-green-900 disabled:opacity-50 dark:focus:ring-offset-gray-800 pixel-outline"
+                                    class="pixel-outline inline-flex items-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-green-700 focus:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none active:bg-green-900 disabled:opacity-50 dark:focus:ring-offset-gray-800"
                                 >
                                     <svg
                                         v-if="form.processing"

@@ -32,9 +32,18 @@ const submit = () => {
         <div class="space-y-6">
             <form @submit.prevent="submit">
                 <div class="grid gap-2">
-                    <Label for="email" class="pixel-outline tracking-wide text-base">Email address</Label>
-                    <Input id="email" type="email" name="email" autocomplete="off" v-model="form.email" autofocus placeholder="email@example.com" class="py-4" />
-                    <InputError :message="form.errors.email" class="pixel-outline"/>
+                    <Label for="email" class="pixel-outline text-base tracking-wide">Email address</Label>
+                    <Input
+                        id="email"
+                        type="email"
+                        name="email"
+                        autocomplete="off"
+                        v-model="form.email"
+                        autofocus
+                        placeholder="email@example.com"
+                        class="py-4"
+                    />
+                    <InputError :message="form.errors.email" class="pixel-outline" />
                 </div>
 
                 <div class="my-6 flex items-center justify-center">

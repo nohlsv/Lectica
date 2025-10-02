@@ -1,66 +1,68 @@
 <template>
     <AppLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-200 leading-tight pixel-font">
-                Verification Details
-            </h2>
+            <h2 class="pixel-font text-xl leading-tight font-semibold text-gray-200">Verification Details</h2>
         </template>
 
         <div class="py-12">
-            <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                <div class="bg-black/70 backdrop-blur-sm border border-yellow-400/50 overflow-hidden shadow-xl sm:rounded-lg pixel-outline">
+            <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
+                <div class="pixel-outline overflow-hidden border border-yellow-400/50 bg-black/70 shadow-xl backdrop-blur-sm sm:rounded-lg">
                     <div class="p-6 lg:p-8">
                         <!-- Header with Back Button -->
-                        <div class="flex justify-between items-center mb-6">
+                        <div class="mb-6 flex items-center justify-between">
                             <div>
-                                <Link 
-                                    :href="route('admin.verifications')" 
-                                    class="inline-flex items-center text-blue-400 hover:text-blue-300 mb-2"
-                                >
-                                    <svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z" clip-rule="evenodd"/>
+                                <Link :href="route('admin.verifications')" class="mb-2 inline-flex items-center text-blue-400 hover:text-blue-300">
+                                    <svg class="mr-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                                            clip-rule="evenodd"
+                                        />
                                     </svg>
                                     Back to Pending Verifications
                                 </Link>
-                                <h1 class="text-2xl font-bold text-yellow-200 pixel-font">Verification Review</h1>
-                                <p class="text-gray-100 mt-1">Review and verify user documents</p>
+                                <h1 class="pixel-font text-2xl font-bold text-yellow-200">Verification Review</h1>
+                                <p class="mt-1 text-gray-100">Review and verify user documents</p>
                             </div>
                             <div class="text-right">
-                                <span class="inline-flex px-3 py-1 text-sm font-semibold rounded-full pixel-outline" :class="{
-                                    'bg-yellow-900 text-yellow-200 border-yellow-400': user.verification_status === 'pending',
-                                    'bg-green-900 text-green-200 border-green-400': user.verification_status === 'approved',
-                                    'bg-red-900 text-red-200 border-red-400': user.verification_status === 'rejected'
-                                }">
+                                <span
+                                    class="pixel-outline inline-flex rounded-full px-3 py-1 text-sm font-semibold"
+                                    :class="{
+                                        'border-yellow-400 bg-yellow-900 text-yellow-200': user.verification_status === 'pending',
+                                        'border-green-400 bg-green-900 text-green-200': user.verification_status === 'approved',
+                                        'border-red-400 bg-red-900 text-red-200': user.verification_status === 'rejected',
+                                    }"
+                                >
                                     {{ user.verification_status.charAt(0).toUpperCase() + user.verification_status.slice(1) }}
                                 </span>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
                             <!-- User Information -->
                             <div class="space-y-6">
                                 <!-- User Details Card -->
-                                <div class="bg-red-950/40 p-6 rounded-lg pixel-outline border border-red-400/50">
-                                    <h3 class="text-lg font-semibold text-yellow-200 mb-4 pixel-font">User Information</h3>
-                                    
+                                <div class="pixel-outline rounded-lg border border-red-400/50 bg-red-950/40 p-6">
+                                    <h3 class="pixel-font mb-4 text-lg font-semibold text-yellow-200">User Information</h3>
+
                                     <form @submit.prevent="updateUserDetails" class="space-y-4">
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-100 mb-1">First Name</label>
+                                                <label class="mb-1 block text-sm font-medium text-gray-100">First Name</label>
                                                 <input
                                                     v-model="userForm.first_name"
                                                     type="text"
-                                                    class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
+                                                    class="pixel-outline w-full rounded border border-red-400/50 bg-black/60 px-3 py-2 text-white"
                                                     required
                                                 />
                                                 <InputError :message="userForm.errors.first_name" />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-100 mb-1">Last Name</label>
+                                                <label class="mb-1 block text-sm font-medium text-gray-100">Last Name</label>
                                                 <input
                                                     v-model="userForm.last_name"
                                                     type="text"
-                                                    class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
+                                                    class="pixel-outline w-full rounded border border-red-400/50 bg-black/60 px-3 py-2 text-white"
                                                     required
                                                 />
                                                 <InputError :message="userForm.errors.last_name" />
@@ -68,29 +70,29 @@
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-100 mb-1">Email</label>
+                                            <label class="mb-1 block text-sm font-medium text-gray-100">Email</label>
                                             <input
                                                 v-model="userForm.email"
                                                 type="email"
-                                                class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
+                                                class="pixel-outline w-full rounded border border-red-400/50 bg-black/60 px-3 py-2 text-white"
                                                 required
                                             />
                                             <InputError :message="userForm.errors.email" />
                                         </div>
 
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-100 mb-1">Role</label>
-                                            <div class="px-3 py-2 bg-red-900/50 border border-red-400/30 rounded pixel-outline text-gray-100">
+                                            <label class="mb-1 block text-sm font-medium text-gray-100">Role</label>
+                                            <div class="pixel-outline rounded border border-red-400/30 bg-red-900/50 px-3 py-2 text-gray-100">
                                                 {{ user.user_role.charAt(0).toUpperCase() + user.user_role.slice(1) }}
                                             </div>
                                         </div>
 
                                         <div v-if="user.user_role === 'student'" class="grid grid-cols-2 gap-4">
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-100 mb-1">Program</label>
+                                                <label class="mb-1 block text-sm font-medium text-gray-100">Program</label>
                                                 <select
                                                     v-model="userForm.program_id"
-                                                    class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
+                                                    class="pixel-outline w-full rounded border border-red-400/50 bg-black/60 px-3 py-2 text-white"
                                                     required
                                                 >
                                                     <option value="">Select Program</option>
@@ -101,10 +103,10 @@
                                                 <InputError :message="userForm.errors.program_id" />
                                             </div>
                                             <div>
-                                                <label class="block text-sm font-medium text-gray-100 mb-1">Year of Study</label>
+                                                <label class="mb-1 block text-sm font-medium text-gray-100">Year of Study</label>
                                                 <select
                                                     v-model="userForm.year_of_study"
-                                                    class="w-full px-3 py-2 bg-black/60 border border-red-400/50 rounded pixel-outline text-white"
+                                                    class="pixel-outline w-full rounded border border-red-400/50 bg-black/60 px-3 py-2 text-white"
                                                     required
                                                 >
                                                     <option value="">Select Year</option>
@@ -122,7 +124,7 @@
                                         <button
                                             type="submit"
                                             :disabled="userForm.processing"
-                                            class="w-full bg-red-700 hover:bg-red-600 text-white font-bold py-2 px-4 rounded pixel-outline transition-colors disabled:opacity-50"
+                                            class="pixel-outline w-full rounded bg-red-700 px-4 py-2 font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
                                         >
                                             {{ userForm.processing ? 'Updating...' : 'Update User Details' }}
                                         </button>
@@ -130,24 +132,28 @@
                                 </div>
 
                                 <!-- Timeline -->
-                                <div class="bg-gray-800/50 p-6 rounded-lg pixel-outline border border-gray-600">
-                                    <h3 class="text-lg font-semibold text-yellow-400 mb-4 pixel-font">Timeline</h3>
+                                <div class="pixel-outline rounded-lg border border-gray-600 bg-gray-800/50 p-6">
+                                    <h3 class="pixel-font mb-4 text-lg font-semibold text-yellow-400">Timeline</h3>
                                     <div class="space-y-3">
                                         <div class="flex items-center text-sm">
-                                            <div class="w-2 h-2 bg-green-400 rounded-full mr-3"></div>
+                                            <div class="mr-3 h-2 w-2 rounded-full bg-green-400"></div>
                                             <span class="text-gray-300">Email verified: {{ formatDate(user.email_verified_at) }}</span>
                                         </div>
                                         <div class="flex items-center text-sm">
-                                            <div class="w-2 h-2 bg-blue-400 rounded-full mr-3"></div>
+                                            <div class="mr-3 h-2 w-2 rounded-full bg-blue-400"></div>
                                             <span class="text-gray-300">Document uploaded: {{ formatDate(user.document_uploaded_at) }}</span>
                                         </div>
                                         <div v-if="user.verified_at" class="flex items-center text-sm">
-                                            <div class="w-2 h-2 rounded-full mr-3" :class="{
-                                                'bg-green-400': user.verification_status === 'approved',
-                                                'bg-red-400': user.verification_status === 'rejected'
-                                            }"></div>
+                                            <div
+                                                class="mr-3 h-2 w-2 rounded-full"
+                                                :class="{
+                                                    'bg-green-400': user.verification_status === 'approved',
+                                                    'bg-red-400': user.verification_status === 'rejected',
+                                                }"
+                                            ></div>
                                             <span class="text-gray-300">
-                                                {{ user.verification_status === 'approved' ? 'Approved' : 'Rejected' }}: {{ formatDate(user.verified_at) }}
+                                                {{ user.verification_status === 'approved' ? 'Approved' : 'Rejected' }}:
+                                                {{ formatDate(user.verified_at) }}
                                                 <span v-if="user.verifiedBy" class="text-gray-400">
                                                     by {{ user.verifiedBy.first_name }} {{ user.verifiedBy.last_name }}
                                                 </span>
@@ -160,70 +166,90 @@
                             <!-- Document and Actions -->
                             <div class="space-y-6">
                                 <!-- Document Display -->
-                                <div class="bg-gray-800/50 p-6 rounded-lg pixel-outline border border-gray-600">
-                                    <h3 class="text-lg font-semibold text-yellow-400 mb-4 pixel-font">
+                                <div class="pixel-outline rounded-lg border border-gray-600 bg-gray-800/50 p-6">
+                                    <h3 class="pixel-font mb-4 text-lg font-semibold text-yellow-400">
                                         {{ user.user_role === 'student' ? 'COR Document' : 'ID Document' }}
                                     </h3>
-                                    
+
                                     <div v-if="documentUrl" class="space-y-4">
-                                        <div class="border border-gray-600 rounded overflow-hidden">
-                                            <img 
+                                        <div class="overflow-hidden rounded border border-gray-600">
+                                            <img
                                                 v-if="isImage(documentUrl)"
-                                                :src="documentUrl" 
+                                                :src="documentUrl"
                                                 :alt="user.user_role === 'student' ? 'COR Document' : 'ID Document'"
-                                                class="w-full h-auto max-h-96 object-contain bg-white"
+                                                class="h-auto max-h-96 w-full bg-white object-contain"
                                             />
-                                            <div v-else class="p-8 text-center bg-gray-700">
-                                                <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clip-rule="evenodd"/>
+                                            <div v-else class="bg-gray-700 p-8 text-center">
+                                                <svg class="mx-auto mb-4 h-12 w-12 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path
+                                                        fill-rule="evenodd"
+                                                        d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z"
+                                                        clip-rule="evenodd"
+                                                    />
                                                 </svg>
-                                                <p class="text-gray-300 mb-2">PDF Document</p>
-                                                <a 
-                                                    :href="documentUrl" 
-                                                    target="_blank" 
-                                                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                                                <p class="mb-2 text-gray-300">PDF Document</p>
+                                                <a
+                                                    :href="documentUrl"
+                                                    target="_blank"
+                                                    class="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                                                 >
-                                                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                                    <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path
+                                                            fill-rule="evenodd"
+                                                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                                                            clip-rule="evenodd"
+                                                        />
                                                     </svg>
                                                     Open PDF
                                                 </a>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="flex justify-center">
-                                            <a 
-                                                :href="documentUrl" 
-                                                target="_blank" 
-                                                class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+                                            <a
+                                                :href="documentUrl"
+                                                target="_blank"
+                                                class="inline-flex items-center rounded bg-gray-600 px-4 py-2 text-white transition-colors hover:bg-gray-700"
                                             >
-                                                <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path fill-rule="evenodd" d="M10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
-                                                    <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                                                <svg class="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" />
+                                                    <path
+                                                        fill-rule="evenodd"
+                                                        d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                                                        clip-rule="evenodd"
+                                                    />
                                                 </svg>
                                                 View Full Size
                                             </a>
                                         </div>
                                     </div>
-                                    <div v-else class="text-center py-8">
-                                        <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 48 48">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5l7-7 7 7M5 20l7-7 7 7"/>
+                                    <div v-else class="py-8 text-center">
+                                        <svg class="mx-auto mb-4 h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 48 48">
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M9 12h6m-6 4h6m2 5l7-7 7 7M5 20l7-7 7 7"
+                                            />
                                         </svg>
                                         <p class="text-gray-400">No document uploaded</p>
                                     </div>
                                 </div>
 
                                 <!-- Verification Actions -->
-                                <div v-if="user.verification_status === 'pending'" class="bg-gray-800/50 p-6 rounded-lg pixel-outline border border-gray-600">
-                                    <h3 class="text-lg font-semibold text-yellow-400 mb-4 pixel-font">Verification Decision</h3>
-                                    
+                                <div
+                                    v-if="user.verification_status === 'pending'"
+                                    class="pixel-outline rounded-lg border border-gray-600 bg-gray-800/50 p-6"
+                                >
+                                    <h3 class="pixel-font mb-4 text-lg font-semibold text-yellow-400">Verification Decision</h3>
+
                                     <form @submit.prevent="submitDecision" class="space-y-4">
                                         <div>
-                                            <label class="block text-sm font-medium text-gray-300 mb-2">Admin Notes</label>
+                                            <label class="mb-2 block text-sm font-medium text-gray-300">Admin Notes</label>
                                             <textarea
                                                 v-model="verificationForm.notes"
                                                 rows="3"
-                                                class="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded pixel-outline text-white"
+                                                class="pixel-outline w-full rounded border border-gray-600 bg-black/50 px-3 py-2 text-white"
                                                 placeholder="Add notes about the verification decision..."
                                             ></textarea>
                                             <InputError :message="verificationForm.errors.notes" />
@@ -234,7 +260,7 @@
                                                 @click="decision = 'approve'"
                                                 type="submit"
                                                 :disabled="verificationForm.processing"
-                                                class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded pixel-outline transition-colors disabled:opacity-50"
+                                                class="pixel-outline flex-1 rounded bg-green-600 px-4 py-3 font-bold text-white transition-colors hover:bg-green-700 disabled:opacity-50"
                                             >
                                                 {{ verificationForm.processing && decision === 'approve' ? 'Approving...' : 'Approve' }}
                                             </button>
@@ -242,7 +268,7 @@
                                                 @click="decision = 'reject'"
                                                 type="submit"
                                                 :disabled="verificationForm.processing"
-                                                class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded pixel-outline transition-colors disabled:opacity-50"
+                                                class="pixel-outline flex-1 rounded bg-red-600 px-4 py-3 font-bold text-white transition-colors hover:bg-red-700 disabled:opacity-50"
                                             >
                                                 {{ verificationForm.processing && decision === 'reject' ? 'Rejecting...' : 'Reject' }}
                                             </button>
@@ -251,24 +277,24 @@
                                 </div>
 
                                 <!-- Previous Decision Display -->
-                                <div v-else class="bg-gray-800/50 p-6 rounded-lg pixel-outline border border-gray-600">
-                                    <h3 class="text-lg font-semibold text-yellow-400 mb-4 pixel-font">Verification Decision</h3>
+                                <div v-else class="pixel-outline rounded-lg border border-gray-600 bg-gray-800/50 p-6">
+                                    <h3 class="pixel-font mb-4 text-lg font-semibold text-yellow-400">Verification Decision</h3>
                                     <div class="space-y-2">
                                         <p class="text-sm text-gray-300">
-                                            Status: 
-                                            <span :class="{
-                                                'text-green-400': user.verification_status === 'approved',
-                                                'text-red-400': user.verification_status === 'rejected'
-                                            }">
+                                            Status:
+                                            <span
+                                                :class="{
+                                                    'text-green-400': user.verification_status === 'approved',
+                                                    'text-red-400': user.verification_status === 'rejected',
+                                                }"
+                                            >
                                                 {{ user.verification_status.charAt(0).toUpperCase() + user.verification_status.slice(1) }}
                                             </span>
                                         </p>
-                                        <p v-if="user.verification_notes" class="text-sm text-gray-300">
-                                            Notes: {{ user.verification_notes }}
-                                        </p>
+                                        <p v-if="user.verification_notes" class="text-sm text-gray-300">Notes: {{ user.verification_notes }}</p>
                                         <p v-if="user.verifiedBy" class="text-xs text-gray-400">
-                                            Verified by {{ user.verifiedBy.first_name }} {{ user.verifiedBy.last_name }}
-                                            on {{ formatDate(user.verified_at) }}
+                                            Verified by {{ user.verifiedBy.first_name }} {{ user.verifiedBy.last_name }} on
+                                            {{ formatDate(user.verified_at) }}
                                         </p>
                                     </div>
                                 </div>
@@ -282,15 +308,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
-import { useForm, Link } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import InputError from '@/components/InputError.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
     user: Object,
     documentUrl: String,
-    programs: Array
+    programs: Array,
 });
 
 const decision = ref('');
@@ -300,11 +326,11 @@ const userForm = useForm({
     last_name: props.user.last_name,
     email: props.user.email,
     program_id: props.user.program_id,
-    year_of_study: props.user.year_of_study
+    year_of_study: props.user.year_of_study,
 });
 
 const verificationForm = useForm({
-    notes: ''
+    notes: '',
 });
 
 const updateUserDetails = () => {
@@ -342,7 +368,7 @@ const formatDate = (dateString) => {
 }
 
 .pixel-outline {
-    box-shadow: 
+    box-shadow:
         0 0 0 1px currentColor,
         2px 2px 0 0 rgba(0, 0, 0, 0.5);
 }

@@ -6,10 +6,10 @@
             <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Multiplayer Games</h2>
         </template>
 
-        <div class="py-12 bg-gradient min-h-screen">
+        <div class="bg-gradient min-h-screen py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- Tab Navigation -->
-                <div class="mb-6 mx-4">
+                <div class="mx-4 mb-6">
                     <nav class="flex space-x-6" aria-label="Tabs">
                         <button
                             @click="activeTab = 'lobby'"
@@ -48,17 +48,17 @@
                 </div>
 
                 <!-- Join Games Tab -->
-                <div v-show="activeTab === 'lobby'" class="overflow-hidden mx-4 bg-container shadow-sm sm:rounded-lg">
+                <div v-show="activeTab === 'lobby'" class="bg-container mx-4 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <div class="mb-6 flex items-center justify-between">
-                            <h3 class="text-lg font-medium text-gray-100 pixel-outline">
+                            <h3 class="pixel-outline text-lg font-medium text-gray-100">
                                 Available Games ({{ waitingGames.data.length }} waiting for players)
                             </h3>
-                            
+
                             <!-- Join by Code Button -->
                             <button
                                 @click="showJoinByCode = !showJoinByCode"
-                                class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 transition-colors"
+                                class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
                             >
                                 Join by Code
                             </button>
@@ -66,7 +66,7 @@
 
                         <!-- Join by Code Form -->
                         <div v-if="showJoinByCode" class="mb-6 rounded-lg border-2 border-blue-500 bg-black/50 p-4">
-                            <h4 class="mb-3 text-md font-medium text-blue-300 pixel-outline">Join Private Game</h4>
+                            <h4 class="text-md pixel-outline mb-3 font-medium text-blue-300">Join Private Game</h4>
                             <form @submit.prevent="joinByCode" class="flex space-x-3">
                                 <input
                                     v-model="gameCodeForm.game_code"
@@ -78,7 +78,7 @@
                                 <button
                                     type="submit"
                                     :disabled="!gameCodeForm.game_code || gameCodeForm.processing"
-                                    class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                                    class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
                                 >
                                     Join
                                 </button>
@@ -96,41 +96,48 @@
                                 class="rounded-lg border-2 border-green-500 bg-black/50 p-4 transition-all hover:shadow-md"
                             >
                                 <div class="mb-3 flex items-center justify-between">
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium pixel-outline bg-red-900/20 text-red-300">
+                                    <span
+                                        class="pixel-outline inline-flex items-center rounded-full bg-red-900/20 px-2.5 py-0.5 text-xs font-medium text-red-300"
+                                    >
                                         PvP
                                     </span>
-                                    <span class="text-xs text-gray-400 pixel-outline">{{ formatTimeAgo(game.created_at) }}</span>
+                                    <span class="pixel-outline text-xs text-gray-400">{{ formatTimeAgo(game.created_at) }}</span>
                                 </div>
 
                                 <!-- Creator Info -->
                                 <div class="mb-3 flex items-center">
-                                    <div class="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-black/50 border-green-500 border-2">
-                                        <span class="text-sm font-bold text-green-300 pixel-outline">
+                                    <div class="mr-3 flex h-8 w-8 items-center justify-center rounded-full border-2 border-green-500 bg-black/50">
+                                        <span class="pixel-outline text-sm font-bold text-green-300">
                                             {{ getInitials(game.player_one.first_name + ' ' + game.player_one.last_name) }}
                                         </span>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-green-300 pixel-outline">
+                                        <p class="pixel-outline font-medium text-green-300">
                                             {{ game.player_one.first_name }} {{ game.player_one.last_name }}
                                         </p>
-                                        <p class="text-xs text-gray-400 pixel-outline">Game Creator</p>
+                                        <p class="pixel-outline text-xs text-gray-400">Game Creator</p>
                                     </div>
                                 </div>
 
                                 <!-- Source Info -->
                                 <div class="mb-3">
-                                    <p class="text-sm font-medium text-gray-100 pixel-outline">
+                                    <p class="pixel-outline text-sm font-medium text-gray-100">
                                         {{ game.file ? game.file.title || game.file.name : game.collection?.name }}
                                     </p>
-                                    <p class="text-xs text-gray-400 pixel-outline">
+                                    <p class="pixel-outline text-xs text-gray-400">
                                         {{ game.file ? 'Single File' : 'Collection' }}
                                     </p>
                                 </div>
 
                                 <!-- PvP Info -->
-                                <div class="mb-4 rounded-md bg-black/50 border-2 border-red-500 p-2">
+                                <div class="mb-4 rounded-md border-2 border-red-500 bg-black/50 p-2">
                                     <div class="flex items-center">
-                                        <svg class="mr-2 h-4 w-4 text-red-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg
+                                            class="pixel-outline-icon mr-2 h-4 w-4 text-red-500"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
@@ -138,7 +145,7 @@
                                                 d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
                                             ></path>
                                         </svg>
-                                        <p class="text-sm font-medium text-red-700 pixel-outline">Player vs Player Battle</p>
+                                        <p class="pixel-outline text-sm font-medium text-red-700">Player vs Player Battle</p>
                                     </div>
                                 </div>
 
@@ -146,10 +153,10 @@
                                 <button
                                     @click="joinGame(game.id)"
                                     :disabled="joiningGameId === game.id"
-                                    class="w-full rounded-md bg-green-500 pixel-outline px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-gray-800"
+                                    class="pixel-outline w-full rounded-md bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-gray-800"
                                 >
                                     <span v-if="joiningGameId === game.id" class="flex items-center justify-center">
-                                        <svg class="mr-2 h-4 w-4 animate-spin pixel-outline-icon" fill="none" viewBox="0 0 24 24">
+                                        <svg class="pixel-outline-icon mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path
                                                 class="opacity-75"
@@ -166,7 +173,7 @@
 
                         <!-- Empty State -->
                         <div v-else class="py-12 text-center">
-                            <svg class="mx-auto h-12 w-12 text-blue-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="pixel-outline-icon mx-auto h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -174,12 +181,14 @@
                                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                                 ></path>
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-100 pixel-outline">No games available</h3>
-                            <p class="mt-1 text-sm text-gray-400 pixel-outline">No one has created a multiplayer game yet. Be the first to start a battle!</p>
+                            <h3 class="pixel-outline mt-2 text-sm font-medium text-gray-100">No games available</h3>
+                            <p class="pixel-outline mt-1 text-sm text-gray-400">
+                                No one has created a multiplayer game yet. Be the first to start a battle!
+                            </p>
                             <div class="mt-6">
                                 <button
                                     @click="activeTab = 'create'"
-                                    class="inline-flex items-center pixel-outline rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
+                                    class="pixel-outline inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                                 >
                                     Create New Game
                                 </button>
@@ -211,14 +220,14 @@
                 </div>
 
                 <!-- Create Game Tab -->
-                <div v-show="activeTab === 'create'" class="overflow-hidden bg-container mx-4 shadow-sm sm:rounded-lg">
+                <div v-show="activeTab === 'create'" class="bg-container mx-4 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="mb-4 text-lg font-medium text-gray-100 pixel-outline">Create a New Multiplayer Game</h3>
+                        <h3 class="pixel-outline mb-4 text-lg font-medium text-gray-100">Create a New Multiplayer Game</h3>
 
                         <!-- General Error Display -->
                         <div
                             v-if="form.errors.general || Object.keys(form.errors).length > 0"
-                            class="mb-6 rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 pixel-outline"
+                            class="pixel-outline mb-6 rounded-md border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20"
                         >
                             <div class="flex">
                                 <div class="flex-shrink-0">
@@ -231,7 +240,9 @@
                                     </svg>
                                 </div>
                                 <div class="ml-3">
-                                    <h3 class="text-sm font-medium text-red-800 dark:text-red-200 pixel-outline">There were errors with your submission</h3>
+                                    <h3 class="pixel-outline text-sm font-medium text-red-800 dark:text-red-200">
+                                        There were errors with your submission
+                                    </h3>
                                     <div class="mt-2 text-sm text-red-700 dark:text-red-300">
                                         <ul class="list-inside list-disc space-y-1">
                                             <li v-if="form.errors.general">{{ form.errors.general }}</li>
@@ -247,31 +258,27 @@
                         <!-- Game Mode Selection -->
                         <!-- Game Mode Selection (PvP Only) -->
                         <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300 pixel-outline"> Game Mode </label>
+                            <label class="pixel-outline mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"> Game Mode </label>
                             <div class="rounded-lg border-2 border-purple-500 bg-black/50 p-4">
                                 <div class="flex items-center">
                                     <svg class="mr-3 h-5 w-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path
-                                            stroke-linecap="round"
-                                            stroke-linejoin="round"
-                                            stroke-width="2"
-                                            d="M13 10V3L4 14h7v7l9-11h-7z"
-                                        ></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                                     </svg>
                                     <div>
-                                        <h3 class="font-medium text-white pixel-outline">PvP (Player vs Player)</h3>
-                                        <p class="text-sm text-gray-300 pixel-outline">Battle against another player</p>
+                                        <h3 class="pixel-outline font-medium text-white">PvP (Player vs Player)</h3>
+                                        <p class="pixel-outline text-sm text-gray-300">Battle against another player</p>
                                     </div>
                                 </div>
                             </div>
-                        </div>                        <!-- PvP Win Condition Toggle -->
+                        </div>
+                        <!-- PvP Win Condition Toggle -->
                         <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium text-gray-300 pixel-outline">PvP Win Condition</label>
+                            <label class="pixel-outline mb-2 block text-sm font-medium text-gray-300">PvP Win Condition</label>
                             <div class="flex space-x-4">
                                 <button
                                     type="button"
                                     @click="form.pvp_mode = 'accuracy'"
-                                    :class="form.pvp_mode === 'accuracy' ? 'bg-blue-600 text-white pixel-outline' : 'bg-gray-100 text-gray-700'"
+                                    :class="form.pvp_mode === 'accuracy' ? 'pixel-outline bg-blue-600 text-white' : 'bg-gray-100 text-gray-700'"
                                     class="rounded-md px-4 py-2 text-sm font-medium"
                                 >
                                     Most Accurate Wins
@@ -279,26 +286,26 @@
                                 <button
                                     type="button"
                                     @click="form.pvp_mode = 'hp'"
-                                    :class="form.pvp_mode === 'hp' ? 'bg-green-600 text-white pixel-outline' : 'bg-gray-100 text-gray-700'"
+                                    :class="form.pvp_mode === 'hp' ? 'pixel-outline bg-green-600 text-white' : 'bg-gray-100 text-gray-700'"
                                     class="rounded-md px-4 py-2 text-sm font-medium"
                                 >
                                     Most HP Wins
                                 </button>
                             </div>
-                            <p class="mt-2 text-xs text-gray-400 pixel-outline">Choose how the winner is determined in PvP mode.</p>
+                            <p class="pixel-outline mt-2 text-xs text-gray-400">Choose how the winner is determined in PvP mode.</p>
                         </div>
 
                         <!-- Source Selection -->
                         <div class="mb-6">
-                            <span class="block text-sm font-medium text-gray-300 pixel-outline">Select Source</span>
+                            <span class="pixel-outline block text-sm font-medium text-gray-300">Select Source</span>
                             <div class="mt-2 flex space-x-4">
                                 <button
                                     @click="form.source_type = 'file'"
                                     :class="[
-                                        'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all pixel-outline',
+                                        'pixel-outline flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                                         form.source_type === 'file'
-                                            ? 'bg-black/50 border-2 border-purple-500 text-white shadow-md hover:scale-105 transition-transform duration-500'
-                                            : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500',
+                                            ? 'border-2 border-purple-500 bg-black/50 text-white shadow-md transition-transform duration-500 hover:scale-105'
+                                            : 'border-2 border-gray-500 bg-black/50 text-gray-300 transition-transform duration-500 hover:scale-105',
                                     ]"
                                 >
                                     Single File
@@ -306,10 +313,10 @@
                                 <button
                                     @click="form.source_type = 'collection'"
                                     :class="[
-                                        'flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all pixel-outline',
+                                        'pixel-outline flex-1 rounded-md px-4 py-2 text-sm font-medium transition-all',
                                         form.source_type === 'collection'
-                                            ? 'bg-black/50 border-2 border-purple-500 text-white shadow-md hover:scale-105 transition-transform duration-500'
-                                            : 'bg-black/50 border-2 border-gray-500 text-gray-300 hover:scale-105 transition-transform duration-500',
+                                            ? 'border-2 border-purple-500 bg-black/50 text-white shadow-md transition-transform duration-500 hover:scale-105'
+                                            : 'border-2 border-gray-500 bg-black/50 text-gray-300 transition-transform duration-500 hover:scale-105',
                                     ]"
                                 >
                                     Collection
@@ -320,11 +327,11 @@
                         <!-- File/Collection Selection -->
                         <div class="mb-6">
                             <div v-if="form.source_type === 'file'" class="flex flex-col">
-                                <label class="mb-2 text-sm font-medium text-gray-300 pixel-outline" for="file_id"> Select File </label>
+                                <label class="pixel-outline mb-2 text-sm font-medium text-gray-300" for="file_id"> Select File </label>
                                 <select
                                     v-model="form.file_id"
                                     id="file_id"
-                                    class="rounded-md border border-gray-300 bg-black/50 px-3 py-2 text-sm shadow-sm pixel-outline"
+                                    class="pixel-outline rounded-md border border-gray-300 bg-black/50 px-3 py-2 text-sm shadow-sm"
                                 >
                                     <option value="">-- Select a file --</option>
                                     <option v-for="file in props.files" :key="file.id" :value="file.id" class="bg-black text-white">
@@ -333,16 +340,19 @@
                                 </select>
                             </div>
                             <div v-else-if="form.source_type === 'collection'" class="flex flex-col">
-                                <label class="mb-2 text-sm font-medium text-gray-300 pixel-outline" for="collection_id">
-                                    Select Collection
-                                </label>
+                                <label class="pixel-outline mb-2 text-sm font-medium text-gray-300" for="collection_id"> Select Collection </label>
                                 <select
                                     v-model="form.collection_id"
                                     id="collection_id"
-                                    class="rounded-md border border-gray-300 bg-black/50 px-3 py-2 text-sm shadow-sm pixel-outline"
+                                    class="pixel-outline rounded-md border border-gray-300 bg-black/50 px-3 py-2 text-sm shadow-sm"
                                 >
                                     <option value="">-- Select a collection --</option>
-                                    <option v-for="collection in props.collections" :key="collection.id" :value="collection.id" class="bg-black text-white">
+                                    <option
+                                        v-for="collection in props.collections"
+                                        :key="collection.id"
+                                        :value="collection.id"
+                                        class="bg-black text-white"
+                                    >
                                         {{ collection.name }}
                                     </option>
                                 </select>
@@ -351,12 +361,12 @@
 
                         <!-- Private Game Option -->
                         <div class="mb-6">
-                            <label class="mb-2 block text-sm font-medium text-gray-300 pixel-outline">Game Visibility</label>
+                            <label class="pixel-outline mb-2 block text-sm font-medium text-gray-300">Game Visibility</label>
                             <div class="flex space-x-4">
                                 <button
                                     type="button"
                                     @click="form.is_private = false"
-                                    :class="form.is_private === false ? 'bg-green-600 text-white pixel-outline' : 'bg-gray-100 text-gray-700'"
+                                    :class="form.is_private === false ? 'pixel-outline bg-green-600 text-white' : 'bg-gray-100 text-gray-700'"
                                     class="rounded-md px-4 py-2 text-sm font-medium"
                                 >
                                     Public Game
@@ -364,23 +374,21 @@
                                 <button
                                     type="button"
                                     @click="form.is_private = true"
-                                    :class="form.is_private === true ? 'bg-purple-600 text-white pixel-outline' : 'bg-gray-100 text-gray-700'"
+                                    :class="form.is_private === true ? 'pixel-outline bg-purple-600 text-white' : 'bg-gray-100 text-gray-700'"
                                     class="rounded-md px-4 py-2 text-sm font-medium"
                                 >
                                     Private Game
                                 </button>
                             </div>
-                            <p class="mt-2 text-xs text-gray-400 pixel-outline">
+                            <p class="pixel-outline mt-2 text-xs text-gray-400">
                                 Public games appear in the lobby for others to join. Private games can only be joined via code.
                             </p>
                         </div>
 
                         <!-- PvP Game Info -->
-                        <div class="mb-6 rounded-lg border border-red-800 bg-red-900/20 border-2 p-4">
-                            <h3 class="mb-2 text-lg font-medium text-red-100 pixel-outline">
-                                How PvP (Versus) Battles Work
-                            </h3>
-                            <ul class="space-y-1 text-sm text-red-300 pixel-outline">
+                        <div class="mb-6 rounded-lg border border-2 border-red-800 bg-red-900/20 p-4">
+                            <h3 class="pixel-outline mb-2 text-lg font-medium text-red-100">How PvP (Versus) Battles Work</h3>
+                            <ul class="pixel-outline space-y-1 text-sm text-red-300">
                                 <li>• You and another player take turns answering questions</li>
                                 <li>• Correct answers deal damage to your opponent</li>
                                 <li>• Wrong answers cause damage to yourself</li>
@@ -389,11 +397,9 @@
                         </div>
 
                         <!-- Private Game Info (when private is selected) -->
-                        <div v-if="form.is_private" class="mb-6 rounded-lg border border-purple-800 bg-purple-900/20 border-2 p-4">
-                            <h3 class="mb-2 text-lg font-medium text-purple-100 pixel-outline">
-                                Private Game Features
-                            </h3>
-                            <ul class="space-y-1 text-sm text-purple-300 pixel-outline">
+                        <div v-if="form.is_private" class="mb-6 rounded-lg border border-2 border-purple-800 bg-purple-900/20 p-4">
+                            <h3 class="pixel-outline mb-2 text-lg font-medium text-purple-100">Private Game Features</h3>
+                            <ul class="pixel-outline space-y-1 text-sm text-purple-300">
                                 <li>• Your game won't appear in the public lobby</li>
                                 <li>• Players can only join using the game code</li>
                                 <li>• You'll receive a unique game code to share</li>
@@ -406,10 +412,10 @@
                             <button
                                 @click="submit"
                                 :disabled="!canSubmit || form.processing"
-                                class="inline-flex items-center pixel-outline rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-gray-800"
+                                class="pixel-outline inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50 dark:focus:ring-offset-gray-800"
                             >
                                 <span v-if="form.processing" class="flex items-center justify-center">
-                                    <svg class="mr-2 h-4 w-4 animate-spin pixel-outline-icon" fill="none" viewBox="0 0 24 24">
+                                    <svg class="pixel-outline-icon mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                         <path
                                             class="opacity-75"
@@ -426,16 +432,16 @@
                 </div>
 
                 <!-- My Games Tab -->
-                <div v-show="activeTab === 'mygames'" class="overflow-hidden bg-container mx-4 shadow-sm sm:rounded-lg">
+                <div v-show="activeTab === 'mygames'" class="bg-container mx-4 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <h3 class="mb-4 text-lg font-medium text-gray-100 pixel-outline">My Multiplayer Games</h3>
+                        <h3 class="pixel-outline mb-4 text-lg font-medium text-gray-100">My Multiplayer Games</h3>
 
                         <!-- Games Grid -->
                         <div v-if="myGames.data.length > 0" class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             <div
                                 v-for="game in myGames.data"
                                 :key="game.id"
-                                class="overflow-hidden bg-black/50 border-2 border-green-500 shadow-sm transition-shadow hover:shadow-lg sm:rounded-lg"
+                                class="overflow-hidden border-2 border-green-500 bg-black/50 shadow-sm transition-shadow hover:shadow-lg sm:rounded-lg"
                             >
                                 <div class="p-4">
                                     <!-- Game Header -->
@@ -443,13 +449,18 @@
                                         <div class="flex-1">
                                             <span
                                                 :class="getStatusBadgeClass(game.status)"
-                                                class="inline-flex items-center justify-end rounded-full px-2 py-1 text-xs font-medium pixel-outline"
-                                                    >
+                                                class="pixel-outline inline-flex items-center justify-end rounded-full px-2 py-1 text-xs font-medium"
+                                            >
                                                 {{ getStatusLabel(game.status) }}
                                             </span>
-                                            <div class="mb-2 flex items-center gap-2 justify-center">
+                                            <div class="mb-2 flex items-center justify-center gap-2">
                                                 <div class="flex h-8 w-8 items-center justify-center rounded-full bg-red-900/20">
-                                                    <svg class="h-4 w-4 text-red-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <svg
+                                                        class="pixel-outline-icon h-4 w-4 text-red-500"
+                                                        fill="none"
+                                                        stroke="currentColor"
+                                                        viewBox="0 0 24 24"
+                                                    >
                                                         <path
                                                             stroke-linecap="round"
                                                             stroke-linejoin="round"
@@ -458,11 +469,9 @@
                                                         ></path>
                                                     </svg>
                                                 </div>
-                                                <h3 class="text-lg font-medium text-red-700 pixel-outline">
-                                                    PvP Battle
-                                                </h3>
+                                                <h3 class="pixel-outline text-lg font-medium text-red-700">PvP Battle</h3>
                                             </div>
-                                            <p class="mb-3 text-sm text-gray-600 dark:text-gray-400 pixel-outline text-center">
+                                            <p class="pixel-outline mb-3 text-center text-sm text-gray-600 dark:text-gray-400">
                                                 {{ getSourceName(game) }}
                                             </p>
                                         </div>
@@ -470,26 +479,30 @@
 
                                     <!-- Players -->
                                     <div class="mb-4">
-                                        <div class="flex items-center justify-between text-sm bg-black/50 border-2 border-green-500 -mx-5 p-4">
+                                        <div class="-mx-5 flex items-center justify-between border-2 border-green-500 bg-black/50 p-4 text-sm">
                                             <div class="flex items-center space-x-2">
                                                 <div class="flex-shrink-0">
                                                     <div
-                                                        class="flex h-6 w-6 items-center justify-center rounded-full bg-black/50 border-green-500 border-2 text-green-300 pixel-outline"
+                                                        class="pixel-outline flex h-6 w-6 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 text-green-300"
                                                     >
                                                         {{ game.player_one.first_name.charAt(0) }}
                                                     </div>
                                                 </div>
-                                                <span class="text-green-300 pixel-outline">{{ game.player_one.first_name }} {{ game.player_one.last_name }}</span>
+                                                <span class="pixel-outline text-green-300"
+                                                    >{{ game.player_one.first_name }} {{ game.player_one.last_name }}</span
+                                                >
                                                 <span v-if="game.status !== 'waiting'" class="text-red-500">{{ game.player_one_hp }}❤️</span>
                                             </div>
-                                            <span class="text-gray-400 mx-3">&</span>
+                                            <span class="mx-3 text-gray-400">&</span>
                                             <div class="flex items-center space-x-2">
                                                 <span v-if="game.status !== 'waiting'" class="text-red-500">{{ game.player_two_hp }}❤️</span>
-                                                <span v-if="game.player_two" class="text-green-300 pixel-outline">{{ game.player_two.first_name }} {{ game.player_two.last_name }}</span>
-                                                <span v-else class="text-gray-500 italic pixel-outline">Waiting for player</span>
+                                                <span v-if="game.player_two" class="pixel-outline text-green-300"
+                                                    >{{ game.player_two.first_name }} {{ game.player_two.last_name }}</span
+                                                >
+                                                <span v-else class="pixel-outline text-gray-500 italic">Waiting for player</span>
                                                 <div v-if="game.player_two" class="flex-shrink-0">
                                                     <div
-                                                        class="flex h-6 w-6 items-center justify-center rounded-full bg-black/50 border-2 border-green-500 text-xs font-medium text-green-300 pixel-outline"
+                                                        class="pixel-outline flex h-6 w-6 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 text-xs font-medium text-green-300"
                                                     >
                                                         {{ game.player_two.first_name.charAt(0) }}
                                                     </div>
@@ -514,14 +527,14 @@
                                         <Link
                                             v-if="game.status === 'waiting' || game.status === 'active'"
                                             :href="route('multiplayer-games.show', game.id)"
-                                            class="inline-flex items-center pixel-outline rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                                            class="pixel-outline inline-flex items-center rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                                         >
                                             {{ game.status === 'waiting' ? 'Enter Waiting Room' : 'Continue Game' }}
                                         </Link>
                                         <Link
                                             v-else
                                             :href="route('multiplayer-games.show', game.id)"
-                                            class="inline-flex items-center pixel-outline rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+                                            class="pixel-outline inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
                                         >
                                             View Results
                                         </Link>
@@ -532,7 +545,7 @@
 
                         <!-- Empty State for My Games -->
                         <div v-else class="py-12 text-center">
-                            <svg class="mx-auto h-12 w-12 text-blue-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="pixel-outline-icon mx-auto h-12 w-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
@@ -540,12 +553,12 @@
                                     d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                                 ></path>
                             </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-100 pixel-outline">No games yet</h3>
-                            <p class="mt-1 text-sm text-gray-500 pixel-outline">You haven't created or joined any multiplayer games yet.</p>
+                            <h3 class="pixel-outline mt-2 text-sm font-medium text-gray-100">No games yet</h3>
+                            <p class="pixel-outline mt-1 text-sm text-gray-500">You haven't created or joined any multiplayer games yet.</p>
                             <div class="mt-6">
                                 <button
                                     @click="activeTab = 'create'"
-                                    class="inline-flex items-center pixel-outline rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
+                                    class="pixel-outline inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                                 >
                                     Create Your First Game
                                 </button>

@@ -35,7 +35,7 @@
                         'rounded-lg border p-4 text-left transition-colors',
                         sourceType === 'file'
                             ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:bg-blue-900/20'
-                            : 'border-gray-300 hover:border-blue-300 dark:border-gray-600'
+                            : 'border-gray-300 hover:border-blue-300 dark:border-gray-600',
                     ]"
                 >
                     <div class="flex items-center">
@@ -61,7 +61,7 @@
                         'rounded-lg border p-4 text-left transition-colors',
                         sourceType === 'collection'
                             ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-500 dark:bg-blue-900/20'
-                            : 'border-gray-300 hover:border-blue-300 dark:border-gray-600'
+                            : 'border-gray-300 hover:border-blue-300 dark:border-gray-600',
                     ]"
                 >
                     <div class="flex items-center">
@@ -156,9 +156,7 @@
                     />
                     <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Make this a private game</span>
                 </label>
-                <p class="text-xs text-gray-500">
-                    Private games won't appear in the public lobby. Players will need a game code to join.
-                </p>
+                <p class="text-xs text-gray-500">Private games won't appear in the public lobby. Players will need a game code to join.</p>
             </div>
         </div>
     </div>

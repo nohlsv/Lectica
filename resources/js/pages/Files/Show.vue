@@ -314,7 +314,7 @@ const addToCollection = async () => {
                     <button
                         v-if="!file.verified && !file.is_denied && canVerify"
                         @click="verifyFile"
-                        class="bg-green-600 hover:bg-green-700 text-white inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                        class="inline-flex items-center justify-center rounded-md border bg-green-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
                         :disabled="isVerifying"
                     >
                         <CheckCircleIcon class="mr-2 h-5 w-5" />
@@ -323,7 +323,7 @@ const addToCollection = async () => {
                     <button
                         v-if="!file.verified && !file.is_denied && canVerify"
                         @click="openDenyModal"
-                        class="bg-red-600 hover:bg-red-700 text-white inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors"
+                        class="inline-flex items-center justify-center rounded-md border bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
                         :disabled="isDenying"
                     >
                         <XCircleIcon class="mr-2 h-5 w-5" />
@@ -362,7 +362,7 @@ const addToCollection = async () => {
                 <div class="space-y-4 md:col-span-1">
                     <div class="border-border rounded-lg border p-4">
                         <h2 class="mb-3 text-lg font-semibold">{{ file.name }}</h2>
-                        
+
                         <!-- Verification Status -->
                         <div class="mb-3">
                             <span
@@ -384,16 +384,13 @@ const addToCollection = async () => {
                                 Pending Review
                             </span>
                         </div>
-                        
+
                         <!-- Denial Reason -->
-                        <div
-                            v-if="file.is_denied && file.denial_reason"
-                            class="mb-3 rounded border border-red-300 bg-red-50 p-3"
-                        >
+                        <div v-if="file.is_denied && file.denial_reason" class="mb-3 rounded border border-red-300 bg-red-50 p-3">
                             <p class="text-xs font-medium text-red-700">Denial Reason:</p>
                             <p class="mt-1 text-sm text-red-600">{{ file.denial_reason }}</p>
                         </div>
-                        
+
                         <div v-if="file.description" class="mb-3 text-sm">
                             <p class="text-muted-foreground">{{ file.description }}</p>
                         </div>
@@ -746,17 +743,13 @@ const addToCollection = async () => {
                         <textarea
                             v-model="denialReason"
                             placeholder="Enter reason for denial..."
-                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
                             rows="4"
                         ></textarea>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" @click="showDenyModal = false">Cancel</Button>
-                        <Button 
-                            @click="denyFile" 
-                            :disabled="!denialReason.trim() || isDenying"
-                            class="bg-red-600 hover:bg-red-700 text-white"
-                        >
+                        <Button @click="denyFile" :disabled="!denialReason.trim() || isDenying" class="bg-red-600 text-white hover:bg-red-700">
                             <span v-if="isDenying">Denying...</span>
                             <span v-else>Deny File</span>
                         </Button>

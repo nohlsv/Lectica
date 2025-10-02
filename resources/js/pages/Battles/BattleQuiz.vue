@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -94,12 +93,12 @@ const monsterHpPercent = computed(() => {
 
 const battleResult = computed(() => {
     if (playerHp.value <= 0) return 'defeat';
-    
+
     // If all questions completed and player still has health, it's victory
     if (battleFinished.value && playerHp.value > 0) {
         return 'victory';
     }
-    
+
     return null;
 });
 
@@ -231,7 +230,7 @@ watch(
             initBattleState();
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 const currentQuestion = computed(() => {
@@ -265,7 +264,7 @@ const checkAnswer = () => {
         correctAnswers.value++;
         // Correct answer: Monster dies instantly
         attackMessages.value.unshift(`You defeated ${currentMonster.value.name} with the correct answer!`);
-        
+
         // Trigger monster shake animation
         triggerMonsterShake();
     } else {
@@ -321,7 +320,7 @@ async function next() {
     if (Array.isArray(props.quizzes) && currentIndex.value < props.quizzes.length - 1) {
         currentIndex.value++;
         showFeedback.value = false;
-        
+
         // Spawn a new monster for the next question
         currentMonster.value = await getRandomMonster();
         attackMessages.value.unshift(`A wild ${currentMonster.value.name} appears!`);
@@ -357,25 +356,25 @@ function finishBattle() {
     <Head :title="`Monster Arena Challenge`" />
     <AppLayout>
         <!-- Error state when quizzes is not an array -->
-        <div v-if="!Array.isArray(quizzes) || quizzes.length === 0" class="flex min-h-screen items-center justify-center bg-gradient">
+        <div v-if="!Array.isArray(quizzes) || quizzes.length === 0" class="bg-gradient flex min-h-screen items-center justify-center">
             <div class="text-center">
-                <h1 class="text-2xl font-bold text-white mb-4">Battle Error</h1>
-                <p class="text-white mb-6">No quiz questions are available for this battle.</p>
-                <Link :href="route('battles.index')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                <h1 class="mb-4 text-2xl font-bold text-white">Battle Error</h1>
+                <p class="mb-6 text-white">No quiz questions are available for this battle.</p>
+                <Link :href="route('battles.index')" class="rounded bg-blue-600 px-4 py-2 font-bold text-white hover:bg-blue-700">
                     Back to Battles
                 </Link>
             </div>
         </div>
 
-        <div v-else class="flex min-h-screen w-full flex-col overflow-hidden bg-gradient min-h-screen">
+        <div v-else class="bg-gradient flex min-h-screen w-full flex-col overflow-hidden">
             <!--             style="background-image: url('/images/game-background.png');">-->
 
             <!-- Battle Header -->
             <div class="flex flex-col justify-between p-4">
-                <div class="flex justify-between items-start mb-4">
+                <div class="mb-4 flex items-start justify-between">
                     <Link :href="route('files.quizzes.index', file.id)">
                         <Button
-                            class="border-4 border-red-700 pixel-outline bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                            class="pixel-outline border-4 border-red-700 bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
                         >
                             Escape Battle
                         </Button>
@@ -383,52 +382,63 @@ function finishBattle() {
                     <Button
                         @click="toggleSound"
                         :class="[
-                            'border-4 pixel-outline font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]',
-                            soundEnabled ? 'border-green-700 bg-green-500 hover:bg-green-600' : 'border-gray-700 bg-gray-500 hover:bg-gray-600'
+                            'pixel-outline border-4 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]',
+                            soundEnabled ? 'border-green-700 bg-green-500 hover:bg-green-600' : 'border-gray-700 bg-gray-500 hover:bg-gray-600',
                         ]"
                     >
                         {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
                     </Button>
                 </div>
-                <div class="flex grid text-center rounded-lg p-2 text-xl md:text-3xl font-bold welcome-banner mb-4 animate-soft-bounce pixel-outline">
+                <div class="welcome-banner animate-soft-bounce pixel-outline mb-4 flex grid rounded-lg p-2 text-center text-xl font-bold md:text-3xl">
                     {{ file.name }}
                 </div>
                 <hr class="-mx-4 h-2 border-2 border-black bg-red-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
             </div>
 
             <!-- Battle Arena -->
-            <div class="flex flex-1 flex-col -my-4" style="background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png'); background-size: cover; background-position: center;">
+            <div
+                class="-my-4 flex flex-1 flex-col"
+                style="
+                    background-image:
+                        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+                        url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
+                    background-size: cover;
+                    background-position: center;
+                "
+            >
                 <!-- Monster Area -->
                 <div class="mb-4 flex flex-col items-center">
-                    <div class="border-red-500 border-2 my-4 flex w-full max-w-md items-center rounded-lg bg-black/50 pixel-outline p-2">
+                    <div class="pixel-outline my-4 flex w-full max-w-md items-center rounded-lg border-2 border-red-500 bg-black/50 p-2">
                         <div class="mr-2 font-bold text-white">{{ currentMonster.name }}</div>
                         <div class="flex-1">
                             <Progress :value="monsterHpPercent" class="h-4 bg-red-900">
-                                <div class="h-full bg-red-300 pixel-outline-icon" :style="`width: ${monsterHpPercent}%`"></div>
+                                <div class="pixel-outline-icon h-full bg-red-300" :style="`width: ${monsterHpPercent}%`"></div>
                             </Progress>
                         </div>
                         <div class="ml-2 font-bold text-white">{{ currentMonster.hp }}/{{ currentMonster.hp }}</div>
                     </div>
-                    <div class="relative bg-black/70 p-4 w-full flex items-center justify-center">
+                    <div class="relative flex w-full items-center justify-center bg-black/70 p-4">
                         <img
                             :src="currentMonster.image_path"
                             :class="[
-                                'h-30 sm:h-40 pixel-outline-icon transition-all duration-300',
-                                monsterShaking ? 'animate-shake' : 'animate-floating'
+                                'pixel-outline-icon h-30 transition-all duration-300 sm:h-40',
+                                monsterShaking ? 'animate-shake' : 'animate-floating',
                             ]"
                             :alt="currentMonster.name"
                             @error="$event.target.style.display = 'none'"
                         />
-                        <div class="flex flex-col p-4 rounded-lg">
-                            <div class="text-sm pixel-outline sm:text-base md:text-lg text-left font-bold text-yellow-300 mb-2">
+                        <div class="flex flex-col rounded-lg p-4">
+                            <div class="pixel-outline mb-2 text-left text-sm font-bold text-yellow-300 sm:text-base md:text-lg">
                                 {{ quizTypes[currentQuiz.type] }}
                             </div>
-                            <div 
+                            <div
                                 :class="[
-                                    'text-base pixel-outline sm:text-lg md:text-xl font-bold transition-all duration-300',
-                                    answerEffectType === 'correct' ? 'text-green-300 animate-pulse' : 
-                                    answerEffectType === 'incorrect' ? 'text-red-300 animate-pulse' : 
-                                    'text-white'
+                                    'pixel-outline text-base font-bold transition-all duration-300 sm:text-lg md:text-xl',
+                                    answerEffectType === 'correct'
+                                        ? 'animate-pulse text-green-300'
+                                        : answerEffectType === 'incorrect'
+                                          ? 'animate-pulse text-red-300'
+                                          : 'text-white',
                                 ]"
                             >
                                 {{ currentQuiz.question }}
@@ -439,29 +449,29 @@ function finishBattle() {
 
                 <!-- Player Area -->
                 <div class="mb-4 flex items-center justify-center">
-                    <div class="border-green-500 border-2 mb-2 flex w-full max-w-md items-center rounded-lg bg-black/50 p-2">
-                        <div class="mr-2 font-bold text-white pixel-outline">You</div>
-                        <div class="flex-1 flex justify-center items-center space-x-1">
+                    <div class="mb-2 flex w-full max-w-md items-center rounded-lg border-2 border-green-500 bg-black/50 p-2">
+                        <div class="pixel-outline mr-2 font-bold text-white">You</div>
+                        <div class="flex flex-1 items-center justify-center space-x-1">
                             <span v-for="n in 3" :key="n" class="text-2xl">
                                 {{ n <= playerHp ? '❤️' : '🖤' }}
                             </span>
                         </div>
-                        <div class="ml-2 font-bold text-white pixel-outline">{{ playerHp }}/3</div>
+                        <div class="pixel-outline ml-2 font-bold text-white">{{ playerHp }}/3</div>
                     </div>
                 </div>
 
                 <!-- Battle Log -->
-                <div class="mx-4 mb-4 max-w-auto max-h-7.5 overflow-y-auto rounded-lg bg-blue-600 p-2">
-                    <div v-for="(message, index) in attackMessages" :key="index" class="text-sm text-white pixel-outline">
+                <div class="max-w-auto mx-4 mb-4 max-h-7.5 overflow-y-auto rounded-lg bg-blue-600 p-2">
+                    <div v-for="(message, index) in attackMessages" :key="index" class="pixel-outline text-sm text-white">
                         {{ message }}
                     </div>
-                    <div v-if="attackMessages.length === 0" class="text-sm text-gray-200 pixel-outline">
+                    <div v-if="attackMessages.length === 0" class="pixel-outline text-sm text-gray-200">
                         The monster arena challenge is about to begin! Answer correctly to defeat each monster!
                     </div>
                 </div>
 
                 <!-- Quiz Question -->
-                <Card class="mx-4 mb-10 bg-black/50 border-blue-500 border-2" v-if="currentQuiz && !battleFinished">
+                <Card class="mx-4 mb-10 border-2 border-blue-500 bg-black/50" v-if="currentQuiz && !battleFinished">
                     <CardContent>
                         <!-- Multiple Choice Question -->
                         <div v-if="currentQuiz.type === 'multiple_choice'" class="w-full">
@@ -469,7 +479,7 @@ function finishBattle() {
                                 <div v-for="(option, index) in currentQuiz.options" :key="index" class="h-full w-full">
                                     <Label
                                         :for="`option-${index}`"
-                                        class="flex h-full w-full transform cursor-pointer items-center justify-center rounded-lg border-4 border-blue-700 pixel-outline bg-blue-500 px-6 py-3 text-center text-lg font-bold text-balance text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out select-none hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                                        class="pixel-outline flex h-full w-full transform cursor-pointer items-center justify-center rounded-lg border-4 border-blue-700 bg-blue-500 px-6 py-3 text-center text-lg font-bold text-balance text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out select-none hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
                                         :class="{
                                             'border-blue-800 bg-blue-600': !showFeedback && userAnswers[currentIndex] === option,
                                             'border-green-800 bg-green-700': showFeedback && option === currentQuiz.answers[0],
@@ -489,7 +499,7 @@ function finishBattle() {
                             <RadioGroup v-model="userAnswers[currentIndex]" class="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
                                 <Label
                                     for="answer-true"
-                                    class="flex h-full w-full pixel-outline cursor-pointer items-center justify-center rounded-lg border-4 border-green-700 bg-green-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
+                                    class="pixel-outline flex h-full w-full cursor-pointer items-center justify-center rounded-lg border-4 border-green-700 bg-green-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
                                     :class="{
                                         'border-green-800 bg-green-600': !showFeedback && userAnswers[currentIndex] === 'true',
                                         'border-green-800 bg-green-700': showFeedback && 'true' === currentQuiz.answers[0],
@@ -501,7 +511,7 @@ function finishBattle() {
                                 </Label>
                                 <Label
                                     for="answer-false"
-                                    class="flex h-full w-full pixel-outline cursor-pointer items-center justify-center rounded-lg border-4 border-red-700 bg-red-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
+                                    class="pixel-outline flex h-full w-full cursor-pointer items-center justify-center rounded-lg border-4 border-red-700 bg-red-500 px-6 py-3 text-lg font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
                                     :class="{
                                         'border-red-800 bg-red-600': !showFeedback && userAnswers[currentIndex] === 'false',
                                         'border-green-800 bg-green-700': showFeedback && 'false' === currentQuiz.answers[0],
@@ -517,7 +527,7 @@ function finishBattle() {
                         <!-- Enumeration Question -->
                         <div v-else-if="currentQuiz.type === 'enumeration'" class="w-full space-y-4">
                             <p
-                                class="rounded-lg border-4 border-blue-700 bg-blue-500 px-4 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] pixel-outline"
+                                class="pixel-outline rounded-lg border-4 border-blue-700 bg-blue-500 px-4 py-2 text-sm font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)]"
                             >
                                 Enter {{ currentQuiz.answers.length }} answers
                             </p>
@@ -538,7 +548,7 @@ function finishBattle() {
                                         v-model="userAnswers[currentIndex][index]"
                                         :placeholder="`Answer ${index + 1}`"
                                         :disabled="showFeedback"
-                                        class="flex-1 bg-transparent border-none text-center text-white pixel-outline"
+                                        class="pixel-outline flex-1 border-none bg-transparent text-center text-white"
                                     />
                                 </div>
                             </div>
@@ -553,16 +563,16 @@ function finishBattle() {
                             <div class="flex items-center">
                                 <div v-if="isCurrentAnswerCorrect" class="flex-shrink-0">
                                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
-                                        <CheckIcon class="h-6 w-6 text-green-600 dark:text-green-300 pixel-outline-icon" />
+                                        <CheckIcon class="pixel-outline-icon h-6 w-6 text-green-600 dark:text-green-300" />
                                     </div>
                                 </div>
                                 <div v-else class="flex-shrink-0">
                                     <div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 dark:bg-red-900">
-                                        <XIcon class="h-6 w-6 text-red-600 dark:text-red-300 pixel-outline-icon" />
+                                        <XIcon class="pixel-outline-icon h-6 w-6 text-red-600 dark:text-red-300" />
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <h3 class="text-muted-foreground text-lg font-medium pixel-outline">
+                                    <h3 class="text-muted-foreground pixel-outline text-lg font-medium">
                                         {{ isCurrentAnswerCorrect ? 'Correct! You attacked the monster!' : 'Incorrect! The monster attacked you!' }}
                                     </h3>
                                 </div>
@@ -590,51 +600,52 @@ function finishBattle() {
                 </Card>
 
                 <!-- Battle Result -->
-                <Card class="mx-4 mb-10 bg-black/50 " v-if="battleFinished">
+                <Card class="mx-4 mb-10 bg-black/50" v-if="battleFinished">
                     <CardHeader>
-                        <CardTitle class="text-center pixel-outline">
+                        <CardTitle class="pixel-outline text-center">
                             {{ battleResult === 'victory' ? '🏆 Victory!' : '💀 Defeat!' }}
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="text-center">
-                        <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500 pixel-outline">
+                        <div v-if="battleResult === 'victory'" class="pixel-outline mb-4 text-2xl text-green-500">
                             🎉 You conquered the monster gauntlet! 🎉
                         </div>
-                        <div v-else class="mb-4 text-2xl text-red-500 pixel-outline">
-                            ⚔️ The monsters proved too powerful! ⚔️
-                        </div>
-                        
+                        <div v-else class="pixel-outline mb-4 text-2xl text-red-500">⚔️ The monsters proved too powerful! ⚔️</div>
+
                         <!-- Battle Summary -->
                         <div class="mt-6 space-y-4">
                             <div class="grid grid-cols-2 gap-4 text-sm">
-                                <div class="bg-black/30 rounded-lg p-3">
-                                    <div class="text-green-400 font-bold pixel-outline">Questions Correct</div>
-                                    <div class="text-2xl font-bold text-green-300 pixel-outline">{{ correctAnswers }}</div>
-                                    <div class="text-gray-400 pixel-outline">out of {{ totalAnswered }}</div>
+                                <div class="rounded-lg bg-black/30 p-3">
+                                    <div class="pixel-outline font-bold text-green-400">Questions Correct</div>
+                                    <div class="pixel-outline text-2xl font-bold text-green-300">{{ correctAnswers }}</div>
+                                    <div class="pixel-outline text-gray-400">out of {{ totalAnswered }}</div>
                                 </div>
-                                <div class="bg-black/30 rounded-lg p-3">
-                                    <div class="text-blue-400 font-bold pixel-outline">Accuracy</div>
-                                    <div class="text-2xl font-bold text-blue-300 pixel-outline">{{ Math.round((correctAnswers / totalAnswered) * 100) }}%</div>
-                                    <div class="text-gray-400 pixel-outline">success rate</div>
+                                <div class="rounded-lg bg-black/30 p-3">
+                                    <div class="pixel-outline font-bold text-blue-400">Accuracy</div>
+                                    <div class="pixel-outline text-2xl font-bold text-blue-300">
+                                        {{ Math.round((correctAnswers / totalAnswered) * 100) }}%
+                                    </div>
+                                    <div class="pixel-outline text-gray-400">success rate</div>
                                 </div>
                             </div>
-                            
-                            <div class="bg-black/30 rounded-lg p-3">
-                                <div class="text-red-400 font-bold pixel-outline mb-2">Hearts Status</div>
-                                <div class="flex justify-center items-center space-x-1">
+
+                            <div class="rounded-lg bg-black/30 p-3">
+                                <div class="pixel-outline mb-2 font-bold text-red-400">Hearts Status</div>
+                                <div class="flex items-center justify-center space-x-1">
                                     <span v-for="n in 3" :key="n" class="text-3xl">
                                         {{ n <= playerHp ? '❤️' : '🖤' }}
                                     </span>
                                 </div>
-                                <div class="text-gray-400 pixel-outline mt-1">{{ playerHp }}/3 remaining</div>
+                                <div class="pixel-outline mt-1 text-gray-400">{{ playerHp }}/3 remaining</div>
                             </div>
-                            
-                            <div class="bg-black/30 rounded-lg p-3">
-                                <div class="text-yellow-400 font-bold pixel-outline mb-2">🏟️ Challenge Complete</div>
-                                <div class="text-gray-300 pixel-outline">
-                                    {{ battleResult === 'victory' 
-                                        ? `You defeated ${correctAnswers} monsters and survived the arena!`
-                                        : `You defeated ${correctAnswers} monsters before falling in battle.`
+
+                            <div class="rounded-lg bg-black/30 p-3">
+                                <div class="pixel-outline mb-2 font-bold text-yellow-400">🏟️ Challenge Complete</div>
+                                <div class="pixel-outline text-gray-300">
+                                    {{
+                                        battleResult === 'victory'
+                                            ? `You defeated ${correctAnswers} monsters and survived the arena!`
+                                            : `You defeated ${correctAnswers} monsters before falling in battle.`
                                     }}
                                 </div>
                             </div>
@@ -673,13 +684,21 @@ function finishBattle() {
 }
 
 @keyframes shake {
-    0%, 100% {
+    0%,
+    100% {
         transform: translateX(0);
     }
-    10%, 30%, 50%, 70%, 90% {
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
         transform: translateX(-10px);
     }
-    20%, 40%, 60%, 80% {
+    20%,
+    40%,
+    60%,
+    80% {
         transform: translateX(10px);
     }
 }

@@ -36,11 +36,11 @@ const programAcronyms: { [key: string]: string } = {
     'Electrical Engineering': 'EE',
     'Mechanical Engineering': 'ME',
     'Industrial Engineering': 'IE',
-    'Architecture': 'ARC',
+    Architecture: 'ARC',
     'Business Administration': 'BA',
     'Industrial Technology': 'ITECH',
-    'Nursing': 'NUR',
-    'Midwifery': 'MID',
+    Nursing: 'NUR',
+    Midwifery: 'MID',
 };
 
 // Use program code or college acronym if available, else fallback to acronym from first letters
@@ -48,7 +48,10 @@ const simplifyName = (name: string): string => {
     if (programAcronyms[name]) return programAcronyms[name];
     if (collegeAcronyms[name]) return collegeAcronyms[name];
     if (name.length > 20) {
-        return name.split(' ').map(word => word.charAt(0).toUpperCase()).join('');
+        return name
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase())
+            .join('');
     }
     return name;
 };
@@ -130,18 +133,15 @@ onMounted(async () => {
                 borderWidth: 1,
                 displayColors: false,
                 callbacks: {
-                    label: function(context: any) {
+                    label: function (context: any) {
                         const label = context.dataset.label || '';
                         const value = context.parsed.y;
                         const total = context.dataset.data.reduce((a: number, b: number) => a + b, 0);
                         const percentage = ((value / total) * 100).toFixed(1);
-                        return [
-                            `${label}: ${value}`,
-                            `Percentage: ${percentage}%`
-                        ];
-                    }
-                }
-            }
+                        return [`${label}: ${value}`, `Percentage: ${percentage}%`];
+                    },
+                },
+            },
         },
         scales: {
             x: {
@@ -256,7 +256,7 @@ onMounted(async () => {
 <template>
     <Head title="Usage and Statistics" />
     <AppLayout>
-        <div class="bg-gradient min-h-screen py-10 stats-readable-font">
+        <div class="bg-gradient stats-readable-font min-h-screen py-10">
             <div class="mb-8 flex items-center justify-between px-6">
                 <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">Usage & Statistics Dashboard</h1>
                 <span class="text-sm text-gray-500 dark:text-gray-400">Updated: {{ new Date().toLocaleDateString() }}</span>

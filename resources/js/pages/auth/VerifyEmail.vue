@@ -17,7 +17,11 @@ const submit = () => {
 </script>
 
 <template>
-    <AuthLayout title="Verify email" description="Please verify your email address by clicking on the link we just emailed to you." class="bg-lectica min-h-full">
+    <AuthLayout
+        title="Verify email"
+        description="Please verify your email address by clicking on the link we just emailed to you."
+        class="bg-lectica min-h-full"
+    >
         <Head title="Email verification" />
 
         <div v-if="status === 'verification-link-sent'" class="mb-4 text-center text-sm font-medium text-green-600">

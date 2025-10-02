@@ -8,17 +8,19 @@
             </div>
         </template>
 
-        <div class="py-12 bg-gradient min-h-screen">
+        <div class="bg-gradient min-h-screen py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Info Card -->
-                <div class="mb-6 mx-4 overflow-hidden bg-container shadow-sm sm:rounded-lg">
+                <div class="bg-container mx-4 mb-6 overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <div class="text-center">
                             <!-- Loading Animation -->
-                            <div class="mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600 pixel-outline-icon"></div>
+                            <div
+                                class="pixel-outline-icon mx-auto mb-6 h-16 w-16 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"
+                            ></div>
 
-                            <h3 class="mb-2 text-xl font-medium text-gray-100 pixel-outline">Game Created Successfully!</h3>
-                            <p class="mb-6 text-gray-400 pixel-outline">Waiting for another player to join your battle...</p>
+                            <h3 class="pixel-outline mb-2 text-xl font-medium text-gray-100">Game Created Successfully!</h3>
+                            <p class="pixel-outline mb-6 text-gray-400">Waiting for another player to join your battle...</p>
 
                             <!-- Game Mode Badge -->
                             <div class="mb-6 flex justify-center">
@@ -26,8 +28,8 @@
                                     class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium"
                                     :class="
                                         game.game_mode === 'pvp'
-                                            ? 'bg-red-900/20 text-red-300 pixel-outline'
-                                            : 'bg-green-900/20 text-green-300 pixel-outline'
+                                            ? 'pixel-outline bg-red-900/20 text-red-300'
+                                            : 'pixel-outline bg-green-900/20 text-green-300'
                                     "
                                 >
                                     {{ game.game_mode === 'pvp' ? 'PvP (Player vs Player)' : 'PvE (Co-op vs Monster)' }}
@@ -37,26 +39,26 @@
 
                         <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <!-- Game Creator Info -->
-                            <div class="rounded-lg border border-green-500 p-4 border-2 bg-black/50">
-                                <h4 class="mb-3 font-medium text-gray-100 pixel-outline">Game Creator</h4>
+                            <div class="rounded-lg border border-2 border-green-500 bg-black/50 p-4">
+                                <h4 class="pixel-outline mb-3 font-medium text-gray-100">Game Creator</h4>
                                 <div class="flex items-center space-x-3">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-green-500 border-2">
-                                        <span class="font-bold text-green-300 pixel-outline">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50">
+                                        <span class="pixel-outline font-bold text-green-300">
                                             {{ game.playerOne.first_name.charAt(0) }}
                                         </span>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-green-300 pixel-outline">
+                                        <p class="pixel-outline font-medium text-green-300">
                                             {{ game.playerOne.first_name }} {{ game.playerOne.last_name }}
                                         </p>
-                                        <p class="text-sm text-gray-400 pixel-outline">Ready to battle!</p>
+                                        <p class="pixel-outline text-sm text-gray-400">Ready to battle!</p>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Monster/Opponent Info -->
-                            <div class="rounded-lg border border-red-500 p-4 border-2 bg-black/50">
-                                <h4 class="mb-3 font-medium text-gray-100 pixel-outline">
+                            <div class="rounded-lg border border-2 border-red-500 bg-black/50 p-4">
+                                <h4 class="pixel-outline mb-3 font-medium text-gray-100">
                                     {{ game.game_mode === 'pvp' ? 'Battle Type' : 'Your Opponent' }}
                                 </h4>
 
@@ -64,18 +66,20 @@
                                     <img
                                         :src="game.monster.image_path || '/images/default-monster.png'"
                                         :alt="game.monster.name"
-                                        class="h-10 w-10 rounded-full object-cover pixel-outline-icon"
+                                        class="pixel-outline-icon h-10 w-10 rounded-full object-cover"
                                         @error="handleImageError"
                                     />
                                     <div>
-                                        <p class="font-medium text-red-700 pixel-outline">{{ game.monster.name }}</p>
-                                        <p class="text-sm text-gray-400 pixel-outline">HP: {{ game.monster.hp }} | Attack: {{ game.monster.attack }}</p>
+                                        <p class="pixel-outline font-medium text-red-700">{{ game.monster.name }}</p>
+                                        <p class="pixel-outline text-sm text-gray-400">
+                                            HP: {{ game.monster.hp }} | Attack: {{ game.monster.attack }}
+                                        </p>
                                     </div>
                                 </div>
 
                                 <div v-else-if="game.game_mode === 'pvp'" class="flex items-center space-x-3">
-                                    <div class="flex h-10 w-10 items-center justify-center rounded-full bg-black/50 border-2 border-red-500">
-                                        <svg class="h-5 w-5 text-red-500 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-full border-2 border-red-500 bg-black/50">
+                                        <svg class="pixel-outline-icon h-5 w-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 stroke-linecap="round"
                                                 stroke-linejoin="round"
@@ -85,47 +89,49 @@
                                         </svg>
                                     </div>
                                     <div>
-                                        <p class="font-medium text-gray-100 pixel-outline">Direct Combat</p>
-                                        <p class="text-sm text-gray-400 pixel-outline">Battle another player head-to-head</p>
+                                        <p class="pixel-outline font-medium text-gray-100">Direct Combat</p>
+                                        <p class="pixel-outline text-sm text-gray-400">Battle another player head-to-head</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Study Material Info -->
-                        <div class="mt-6 rounded-lg bg-black/50 p-4 border-2 border-yellow-500">
-                            <h4 class="mb-2 font-medium text-gray-100 pixel-outline">Study Material</h4>
-                            <p class="text-yellow-300 pixel-outline">{{ game.source_name }}</p>
-                            <p class="text-sm text-gray-400 pixel-outline">Questions will be drawn from this source</p>
+                        <div class="mt-6 rounded-lg border-2 border-yellow-500 bg-black/50 p-4">
+                            <h4 class="pixel-outline mb-2 font-medium text-gray-100">Study Material</h4>
+                            <p class="pixel-outline text-yellow-300">{{ game.source_name }}</p>
+                            <p class="pixel-outline text-sm text-gray-400">Questions will be drawn from this source</p>
                         </div>
 
                         <!-- Private Game Code (if applicable) -->
-                        <div v-if="game.is_private && game.game_code" class="mt-6 rounded-lg bg-black/50 p-4 border-2 border-blue-500">
-                            <h4 class="mb-2 font-medium text-blue-300 pixel-outline">🔐 Private Game</h4>
+                        <div v-if="game.is_private && game.game_code" class="mt-6 rounded-lg border-2 border-blue-500 bg-black/50 p-4">
+                            <h4 class="pixel-outline mb-2 font-medium text-blue-300">🔐 Private Game</h4>
                             <div class="flex items-center space-x-3">
                                 <div class="flex-1">
-                                    <p class="text-blue-200 pixel-outline mb-1">Game Code:</p>
-                                    <code class="text-lg font-mono font-bold text-blue-100 bg-blue-900/30 px-2 py-1 rounded">{{ game.game_code }}</code>
+                                    <p class="pixel-outline mb-1 text-blue-200">Game Code:</p>
+                                    <code class="rounded bg-blue-900/30 px-2 py-1 font-mono text-lg font-bold text-blue-100">{{
+                                        game.game_code
+                                    }}</code>
                                 </div>
                                 <button
                                     @click="copyGameCode"
                                     :class="[
-                                        'px-3 py-2 text-sm rounded-md transition-colors',
-                                        copied ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700'
+                                        'rounded-md px-3 py-2 text-sm transition-colors',
+                                        copied ? 'bg-green-600 text-white' : 'bg-blue-600 text-white hover:bg-blue-700',
                                     ]"
                                 >
                                     {{ copied ? '✓ Copied!' : 'Copy Code' }}
                                 </button>
                             </div>
-                            <p class="mt-2 text-xs text-blue-400 pixel-outline">Share this code with your opponent to let them join the game</p>
+                            <p class="pixel-outline mt-2 text-xs text-blue-400">Share this code with your opponent to let them join the game</p>
                         </div>
 
                         <!-- Game Rules -->
-                        <div class="mt-6 rounded-lg border border-blue-800 border-2 bg-blue-900/20 p-4">
-                            <h4 class="mb-2 font-medium text-blue-100 pixel-outline">
+                        <div class="mt-6 rounded-lg border border-2 border-blue-800 bg-blue-900/20 p-4">
+                            <h4 class="pixel-outline mb-2 font-medium text-blue-100">
                                 {{ game.game_mode === 'pvp' ? 'PvP Rules' : 'PvE Rules' }}
                             </h4>
-                            <ul class="space-y-1 text-sm text-blue-300 pixel-outline">
+                            <ul class="pixel-outline space-y-1 text-sm text-blue-300">
                                 <template v-if="game.game_mode === 'pve'">
                                     <li>• Players take turns answering questions</li>
                                     <li>• Correct answers deal damage to the monster</li>
@@ -143,16 +149,19 @@
 
                         <!-- Share Game Link -->
                         <div class="mt-6 text-center">
-                            <p class="mb-3 text-sm text-gray-300 pixel-outline">
+                            <p class="pixel-outline mb-3 text-sm text-gray-300">
                                 Share this game with a friend or wait for someone to join from the lobby!
                             </p>
                             <div class="flex items-center space-x-2">
                                 <input
                                     :value="gameUrl"
                                     readonly
-                                    class="flex-1 rounded-md border-2 border-gray-600 bg-black/50 px-3 py-2 text-sm pixel-outline"
+                                    class="pixel-outline flex-1 rounded-md border-2 border-gray-600 bg-black/50 px-3 py-2 text-sm"
                                 />
-                                <button @click="copyGameUrl" class="rounded-md bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700 pixel-outline">
+                                <button
+                                    @click="copyGameUrl"
+                                    class="pixel-outline rounded-md bg-blue-600 px-3 py-2 text-sm text-white hover:bg-blue-700"
+                                >
                                     {{ copied ? 'Copied!' : 'Copy' }}
                                 </button>
                             </div>
@@ -160,18 +169,18 @@
 
                         <!-- Wait Time Display -->
                         <div class="mt-6 text-center">
-                            <p class="text-sm text-gray-400 pixel-outline">Waiting for {{ waitTime }} seconds...</p>
+                            <p class="pixel-outline text-sm text-gray-400">Waiting for {{ waitTime }} seconds...</p>
                         </div>
                     </div>
                 </div>
 
                 <!-- Quick Actions -->
-                <div class="grid grid-cols-2 gap-4 mx-4">
+                <div class="mx-4 grid grid-cols-2 gap-4">
                     <Link
                         :href="route('multiplayer-games.lobby')"
-                        class="flex items-center pixel-outline justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
+                        class="pixel-outline flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-700 disabled:opacity-50"
                     >
-                        <svg class="mr-2 h-4 w-4 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="pixel-outline-icon mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                         </svg>
                         Back to Lobby
@@ -180,9 +189,15 @@
                     <button
                         @click="refreshLobby"
                         :disabled="refreshing"
-                        class="flex items-center pixel-outline justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
+                        class="pixel-outline flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 disabled:opacity-50"
                     >
-                        <svg class="mr-2 h-4 w-4 pixel-outline-icon" :class="refreshing ? 'animate-spin' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg
+                            class="pixel-outline-icon mr-2 h-4 w-4"
+                            :class="refreshing ? 'animate-spin' : ''"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
                             <path
                                 stroke-linecap="round"
                                 stroke-linejoin="round"
