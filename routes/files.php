@@ -21,6 +21,9 @@ Route::post('/files/{file}/star', [FileStarController::class, 'toggle'])
 Route::get('/files/{file}/download', [FileController::class, 'download'])
     ->name('files.download');
 
+Route::get('/files/{file}/serve', [FileController::class, 'serve'])
+    ->name('files.serve');
+
 // Recommendations
 Route::get('/recommendations', [FileRecommendationController::class, 'index'])
     ->name('recommendations.index');

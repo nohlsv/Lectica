@@ -192,7 +192,7 @@ class FileController extends Controller
             'fileInfo' => [
                 'extension' => $extension,
                 'exists' => $fileExists,
-                'url' => $fileExists ? Storage::url($file->path) : null,
+                'url' => $fileExists ? route('files.serve', $file->id) : null,
                 'size' => $fileExists ? Storage::size($file->path) : null,
                 'lastModified' => $fileExists ? Storage::lastModified($file->path) : null,
             ],
@@ -340,6 +340,26 @@ class FileController extends Controller
         }
 
         return Storage::download($filePath, $fileName); // Use Storage::download for proper handling
+    }
+
+    public function serve(File $file)
+    {
+        $filePath = $file->path;
+
+        if (!Storage::exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        // Get file info
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        $mimeType = Storage::mimeType($filePath);
+        
+        // Return file response with proper headers for inline viewing
+        return response(Storage::get($filePath), 200, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $file->name . '.' . $extension . '"',
+            'Cache-Control' => 'private, max-age=3600',
+        ]);
     }
 
     public function generateFlashcards(Request $request, File $file)
