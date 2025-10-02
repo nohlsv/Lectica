@@ -267,6 +267,15 @@ class MultiplayerGameController extends Controller
             'player_two_name' => Auth::user()->first_name,
         ]));
 
+        // Check if this is an AJAX request
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => route('multiplayer-games.show', $multiplayerGame),
+                'message' => 'Successfully joined the game! The battle begins!'
+            ]);
+        }
+
         return redirect()->route('multiplayer-games.show', $multiplayerGame)
             ->with('success', 'Successfully joined the game! The battle begins!');
     }

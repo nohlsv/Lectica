@@ -265,15 +265,11 @@ class GameTimerService
         if ($elapsedTime > $gracePeriodEnd) {
             $this->handleTimeout($game);
         } else if ($remainingTime <= 0 && !$timerData['grace_period_used']) {
-            // Timer expired but still in grace period - notify players
+            // Timer expired but still in grace period - activate grace period silently
             $timerData['grace_period_used'] = true;
             Cache::put($timerKey, $timerData, now()->addSeconds(self::TIMER_GRACE_PERIOD + 10));
             
-            broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_grace_period', [
-                'grace_seconds_remaining' => $gracePeriodEnd - $elapsedTime,
-                'message' => 'Timer expired - grace period active',
-                'current_turn' => $game->current_turn,
-            ]));
+            // Don't broadcast grace period UI - handle timeout silently after grace expires
         }
     }
     
