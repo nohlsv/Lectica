@@ -109,7 +109,7 @@ const formatTimeAgo = (dateString: string) => {
                         My Games
                     </Link>
                     <Link
-                        :href="route('multiplayer-games.create')"
+                        :href="route('multiplayer-games.lobby')"
                         class="inline-flex items-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-purple-700 focus:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none active:bg-purple-900 dark:focus:ring-offset-gray-800"
                     >
                         <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -255,7 +255,7 @@ const formatTimeAgo = (dateString: string) => {
                             </p>
                             <div class="mt-6">
                                 <Link
-                                    :href="route('multiplayer-games.create')"
+                                    :href="route('multiplayer-games.lobby')"
                                     class="inline-flex items-center rounded-md border border-transparent bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none"
                                 >
                                     <svg class="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

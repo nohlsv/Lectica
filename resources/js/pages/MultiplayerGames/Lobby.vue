@@ -349,7 +349,31 @@
                             </div>
                         </div>
 
-                        <!-- Monster Selection (Removed - PvP only) -->
+                        <!-- Private Game Option -->
+                        <div class="mb-6">
+                            <label class="mb-2 block text-sm font-medium text-gray-300 pixel-outline">Game Visibility</label>
+                            <div class="flex space-x-4">
+                                <button
+                                    type="button"
+                                    @click="form.is_private = false"
+                                    :class="form.is_private === false ? 'bg-green-600 text-white pixel-outline' : 'bg-gray-100 text-gray-700'"
+                                    class="rounded-md px-4 py-2 text-sm font-medium"
+                                >
+                                    Public Game
+                                </button>
+                                <button
+                                    type="button"
+                                    @click="form.is_private = true"
+                                    :class="form.is_private === true ? 'bg-purple-600 text-white pixel-outline' : 'bg-gray-100 text-gray-700'"
+                                    class="rounded-md px-4 py-2 text-sm font-medium"
+                                >
+                                    Private Game
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-400 pixel-outline">
+                                Public games appear in the lobby for others to join. Private games can only be joined via code.
+                            </p>
+                        </div>
 
                         <!-- PvP Game Info -->
                         <div class="mb-6 rounded-lg border border-red-800 bg-red-900/20 border-2 p-4">
@@ -361,6 +385,19 @@
                                 <li>• Correct answers deal damage to your opponent</li>
                                 <li>• Wrong answers cause damage to yourself</li>
                                 <li>• Be the last player standing to win!</li>
+                            </ul>
+                        </div>
+
+                        <!-- Private Game Info (when private is selected) -->
+                        <div v-if="form.is_private" class="mb-6 rounded-lg border border-purple-800 bg-purple-900/20 border-2 p-4">
+                            <h3 class="mb-2 text-lg font-medium text-purple-100 pixel-outline">
+                                Private Game Features
+                            </h3>
+                            <ul class="space-y-1 text-sm text-purple-300 pixel-outline">
+                                <li>• Your game won't appear in the public lobby</li>
+                                <li>• Players can only join using the game code</li>
+                                <li>• You'll receive a unique game code to share</li>
+                                <li>• Perfect for challenging specific friends!</li>
                             </ul>
                         </div>
 
@@ -572,6 +609,7 @@ const props = defineProps<{
     collections: Collection[];
     waitingGames: PaginatedGames;
     myGames: PaginatedGames;
+    collection_id?: number;
 }>();
 
 // Tab state
@@ -579,15 +617,23 @@ const activeTab = ref<'lobby' | 'create' | 'mygames'>('lobby');
 
 // Game creation form
 const form = useForm({
-    source_type: 'file',
-    file_id: null,
-    collection_id: null,
+    source_type: 'file' as 'file' | 'collection',
+    file_id: null as number | null,
+    collection_id: null as number | null,
     game_mode: 'pvp',
     pvp_mode: 'accuracy', // 'accuracy' or 'hp'
+    is_private: false as boolean,
 });
 
 // Game joining state
 const joiningGameId = ref<number | null>(null);
+
+// Initialize form with URL parameters
+if (props.collection_id) {
+    activeTab.value = 'create';
+    form.source_type = 'collection';
+    form.collection_id = props.collection_id;
+}
 
 // Form validation
 const canSubmit = computed(() => {
@@ -600,8 +646,8 @@ const canSubmit = computed(() => {
 watch(
     () => form.source_type,
     () => {
-        form.file_id = '';
-        form.collection_id = '';
+        form.file_id = null;
+        form.collection_id = null;
     },
 );
 

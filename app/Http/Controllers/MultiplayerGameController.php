@@ -28,23 +28,6 @@ class MultiplayerGameController extends Controller
     }
 
     /**
-     * Show the form for creating a new multiplayer game.
-     */
-    public function create()
-    {
-        $files = File::where('user_id', Auth::id())->get();
-        $collections = Collection::where('user_id', Auth::id())
-            ->with(['files'])
-            ->where('file_count', '>', 0)
-            ->get();
-
-        return Inertia::render('MultiplayerGames/Create', [
-            'files' => $files,
-            'collections' => $collections
-        ]);
-    }
-
-    /**
      * Store a newly created multiplayer game.
      */
     public function store(Request $request)
@@ -285,7 +268,7 @@ class MultiplayerGameController extends Controller
     /**
      * Show available games to join.
      */
-    public function lobby()
+    public function lobby(Request $request)
     {
         $files = File::where('user_id', Auth::id())->get();
         $collections = Collection::where('user_id', Auth::id())
@@ -308,12 +291,19 @@ class MultiplayerGameController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('MultiplayerGames/Lobby', [
+        $data = [
             'files' => $files,
             'collections' => $collections,
             'waitingGames' => $waitingGames,
             'myGames' => $myGames
-        ]);
+        ];
+
+        // Pass collection_id if provided for pre-selection
+        if ($request->has('collection_id')) {
+            $data['collection_id'] = (int) $request->input('collection_id');
+        }
+
+        return Inertia::render('MultiplayerGames/Lobby', $data);
     }
 
     /**

@@ -120,7 +120,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Multiplayer Game routes - battle-like multiplayer system
     Route::get('/multiplayer-games', [App\Http\Controllers\MultiplayerGameController::class, 'index'])->name('multiplayer-games.index');
-    Route::get('/multiplayer-games/create', [App\Http\Controllers\MultiplayerGameController::class, 'create'])->name('multiplayer-games.create');
     Route::post('/multiplayer-games', [App\Http\Controllers\MultiplayerGameController::class, 'store'])->name('multiplayer-games.store');
     Route::get('/multiplayer-games/lobby', [App\Http\Controllers\MultiplayerGameController::class, 'lobby'])->name('multiplayer-games.lobby');
     Route::get('/multiplayer-games/{multiplayerGame}', [App\Http\Controllers\MultiplayerGameController::class, 'show'])->name('multiplayer-games.show');

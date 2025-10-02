@@ -143,7 +143,7 @@
                         Solo Battle
                     </Link>
                     <Link
-                        :href="route('multiplayer-games.create', { collection_id: collection.id })"
+                        :href="route('multiplayer-games.lobby', { collection_id: collection.id })"
                         class="inline-flex items-center pixel-outline rounded-md border border-transparent bg-purple-600 px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out hover:bg-purple-700 focus:bg-purple-700 focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:outline-none active:bg-purple-900"
                     >
                         <svg class="mr-2 h-4 w-4 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">

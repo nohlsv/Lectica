@@ -224,7 +224,7 @@
                 <!-- Action Buttons -->
                 <div class="flex flex-col gap-4 mx-4 justify-center sm:flex-row">
                     <Link
-                        :href="route('multiplayer-games.create')"
+                        :href="route('multiplayer-games.lobby')"
                         class="flex pixel-outline items-center justify-center rounded-md bg-green-600 px-6 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
                     >
                         <svg class="mr-2 h-4 w-4 pixel-outline-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
