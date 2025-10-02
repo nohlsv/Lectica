@@ -501,6 +501,28 @@ watch(() => gameState.value?.status, (newStatus) => {
     }
 });
 
+// Watch for critical state mismatches that indicate sync issues
+watch([() => gameState.value?.current_turn, timer, isMyTurn], ([newTurn, newTimer, newIsMyTurn], [oldTurn, oldTimer, oldIsMyTurn]) => {
+    // If timer is 0 but it's still my turn after 5 seconds, force sync
+    if (newTimer === 0 && newIsMyTurn && !timedOut.value && !answerSubmitted.value) {
+        setTimeout(() => {
+            if (timer.value === 0 && isMyTurn.value && !timedOut.value && !answerSubmitted.value) {
+                console.warn('Timer at 0 but still my turn - forcing state sync');
+                fetchFreshGameState();
+                syncTimerStatus();
+            }
+        }, 5000);
+    }
+    
+    // If turn changed but timer state seems inconsistent, sync
+    if (newTurn !== oldTurn && newIsMyTurn !== oldIsMyTurn) {
+        setTimeout(() => {
+            console.log('Turn changed, ensuring timer sync...');
+            syncTimerStatus();
+        }, 1000);
+    }
+}, { deep: true });
+
 // Methods
 const selectAnswer = (answer: string) => {
     if (!answerSubmitted.value && !timedOut.value) {
@@ -689,6 +711,12 @@ const startTimerSync = () => {
             // Check for client-side timeout
             if (timer.value <= 0) {
                 handleTimeout();
+                // Force immediate state sync when timer reaches 0
+                console.log('Timer reached 0, forcing immediate state sync...');
+                setTimeout(() => {
+                    syncTimerStatus();
+                    fetchFreshGameState();
+                }, 500);
             }
             
             // Play warning sounds based on local timer
@@ -762,6 +790,11 @@ const syncTimerStatus = async () => {
                 console.log('Server reports timer expired, triggering timeout');
                 timerRunning.value = false;
                 handleTimeout();
+                // Force additional state sync after server-side timeout
+                setTimeout(() => {
+                    console.log('Additional state sync after server timeout...');
+                    fetchFreshGameState();
+                }, 1000);
             }
         } else {
             console.log('Server reports no timer running');
@@ -1108,12 +1141,12 @@ let stateCheckInterval: number | undefined;
 const startStateCheckInterval = () => {
     // Check game state every 30 seconds to catch any missed updates
     stateCheckInterval = window.setInterval(() => {
-        // Only check if game is active and not during transitions
+        // More aggressive state checking - every 3 seconds
         if (gameState.value.status === 'active' && !submitting.value && !awaitingTimeoutResponse.value) {
             console.log('Periodic state check...');
             fetchFreshGameState();
         }
-    }, 30000);
+    }, 3000); // Much more frequent - every 3 seconds
 };
 
 const stopStateCheckInterval = () => {
@@ -1265,6 +1298,13 @@ onMounted(() => {
                         lastAction.value = null;
                         resetForNextQuestion();
                     }, 4000); // Show message a bit longer for timeout
+                    
+                    // Force immediate state check after timeout to ensure UI updates
+                    setTimeout(() => {
+                        console.log('Forcing state check after timeout...');
+                        fetchFreshGameState();
+                        syncTimerStatus();
+                    }, 1000);
                 }
 
                 // Update game state from websocket - use gameState instead of props.game
@@ -1375,6 +1415,21 @@ onMounted(() => {
                         }
                     }, 3000);
                 }
+                
+                // Force additional state synchronization after any significant game update
+                // to ensure both players have consistent view
+                setTimeout(() => {
+                    console.log('Post-WebSocket state synchronization check...');
+                    syncTimerStatus();
+                }, 1000);
+                
+                // Extra aggressive check for critical state changes (turn changes, timeouts)
+                if (wasMyTurn !== isMyTurn.value || e.event_type === 'timeout' || e.event_type === 'answer_submitted') {
+                    setTimeout(() => {
+                        console.log('Critical state change detected, forcing extra sync...');
+                        fetchFreshGameState();
+                    }, 2000);
+                }
             })
             .listenForWhisper('answer-submitted', (e: any) => {
                 console.log('Answer whisper received from opponent:', e);
@@ -1407,6 +1462,18 @@ onMounted(() => {
 
     // Start periodic state checking
     startStateCheckInterval();
+});
+
+onUnmounted(() => {
+    // Clean up intervals and WebSocket connections
+    stopTimerSync();
+    stopStateCheckInterval();
+    
+    if (echo) {
+        echo.leave();
+    }
+    
+    console.log('GameQuiz component unmounted, cleaned up intervals and connections');
 });
 
 // Play sfx for game start animation
