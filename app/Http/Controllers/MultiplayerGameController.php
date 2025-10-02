@@ -13,10 +13,14 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\Collection;
 use App\Services\QuestService;
+use App\Services\GameTimerService;
 
 class MultiplayerGameController extends Controller
 {
-    public function __construct(private QuestService $questService) {}
+    public function __construct(
+        private QuestService $questService,
+        private GameTimerService $timerService
+    ) {}
 
     /**
      * Display a listing of multiplayer games.
@@ -252,6 +256,10 @@ class MultiplayerGameController extends Controller
 
         // Start the game
         $multiplayerGame->startGame();
+        
+        // Initialize activity tracking and start first timer
+        $this->timerService->updateActivity($multiplayerGame->id);
+        $this->timerService->startTimer($multiplayerGame->id);
 
         // Broadcast the game start to both players
         broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_started', [
@@ -360,6 +368,12 @@ class MultiplayerGameController extends Controller
 
             // Update last activity
             $multiplayerGame->updateActivity();
+            
+            // Update timer service activity
+            $this->timerService->updateActivity($multiplayerGame->id);
+            
+            // Stop the current timer since player answered
+            $this->timerService->stopTimer($multiplayerGame->id);
 
             // Update question statistics
             if ($isPlayerOne) {
@@ -393,6 +407,9 @@ class MultiplayerGameController extends Controller
                 $multiplayerGame->switchTurn();
                 // Advance to the next question for both players
                 $multiplayerGame->advanceToNextQuestion();
+                
+                // Start timer for the next player's turn
+                $this->timerService->startTimer($multiplayerGame->id);
 
                 // Refresh to get the latest accuracy and streak data for broadcast
                 $multiplayerGame->refresh();
@@ -855,6 +872,21 @@ class MultiplayerGameController extends Controller
     }
 
 
+
+    /**
+     * Get timer status for a game
+     */
+    public function getTimerStatus(MultiplayerGame $multiplayerGame)
+    {
+        // Update activity when checking timer status (shows player is active)
+        $this->timerService->updateActivity($multiplayerGame->id);
+        
+        return response()->json([
+            'timer' => $this->timerService->getTimerStatus($multiplayerGame->id),
+            'game_status' => $multiplayerGame->status->value,
+            'current_turn' => $multiplayerGame->current_turn,
+        ]);
+    }
 
     /**
      * Handle player disconnection and timeout scenarios

@@ -438,12 +438,13 @@ const gameStartAnimation = ref(false);
 const gameEndAnimation = ref(false);
 const soundEnabled = ref(true);
 
-// Timer constraint
-const TIMER_DURATION = 30; // seconds per question
-const timer = ref(TIMER_DURATION);
-let timerInterval: number | undefined;
+// Timer constraint - now managed by server
+const TIMER_DURATION = 30; // seconds per question (for display purposes)
+const timer = ref(0);
+const timerRunning = ref(false);
 const timedOut = ref(false);
 const awaitingTimeoutResponse = ref(false); // Track if we're waiting for a timeout response
+let timerSyncInterval: number | undefined;
 
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
@@ -452,12 +453,21 @@ const isMyTurn = computed(() => {
     return (isPlayerOne && gameState.value.current_turn === 1) || (!isPlayerOne && gameState.value.current_turn === 2);
 });
 
-// Watch for turn changes to start/reset timer
+// Watch for turn changes and game state
 watch(isMyTurn, (newVal) => {
-    if (newVal) {
-        startTimer();
+    if (newVal && gameState.value?.status === 'active') {
+        startTimerSync();
     } else {
-        stopTimer();
+        stopTimerSync();
+    }
+});
+
+// Watch for game status changes
+watch(() => gameState.value?.status, (newStatus) => {
+    if (newStatus === 'active') {
+        startTimerSync();
+    } else {
+        stopTimerSync();
     }
 });
 
@@ -636,69 +646,63 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     }, 3000);
 };
 
-const startTimer = () => {
-    timer.value = TIMER_DURATION;
-    timedOut.value = false;
-    stopTimer();
-    timerInterval = window.setInterval(() => {
-        timer.value = Math.max(timer.value - 1, 0);
-        
-        // Warning sounds at 10, 5, and countdown from 3
-        if (soundEnabled.value) {
-            if (timer.value === 10) {
-                playWarningSound();
-            } else if (timer.value === 5) {
-                playUrgentWarningSound();
-            } else if (timer.value <= 3 && timer.value > 0) {
-                playCountdownSound();
-            }
-        }
-        
-        if (timer.value <= 0) {
-            stopTimer();
-            handleTimeout();
-        }
+// Timer is now managed by server - these functions handle WebSocket updates
+const startTimerSync = () => {
+    stopTimerSync();
+    // Poll timer status every second for smooth countdown display
+    timerSyncInterval = window.setInterval(() => {
+        syncTimerStatus();
     }, 1000);
 };
 
-const stopTimer = () => {
-    if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = undefined;
+const stopTimerSync = () => {
+    if (timerSyncInterval) {
+        clearInterval(timerSyncInterval);
+        timerSyncInterval = undefined;
+    }
+    timerRunning.value = false;
+};
+
+// Sync with server timer status
+const syncTimerStatus = async () => {
+    if (!gameState.value?.id) return;
+    
+    try {
+        const response = await fetch(route('multiplayer-games.timer', gameState.value.id));
+        const data = await response.json();
+        
+        if (data.timer.is_running) {
+            timer.value = data.timer.remaining_time;
+            timerRunning.value = true;
+            
+            // Play warning sounds
+            if (soundEnabled.value) {
+                if (timer.value === 10) {
+                    playWarningSound();
+                } else if (timer.value === 5) {
+                    playUrgentWarningSound();
+                } else if (timer.value <= 3 && timer.value > 0) {
+                    playCountdownSound();
+                }
+            }
+            
+            if (timer.value <= 0) {
+                handleTimeout();
+            }
+        } else {
+            timerRunning.value = false;
+        }
+    } catch (error) {
+        console.error('Failed to sync timer status:', error);
     }
 };
 
 const handleTimeout = () => {
-    if (!answerSubmitted.value && isMyTurn.value) {
+    // Timer timeout is now handled by server
+    // This is kept as a fallback for client-side display only
+    if (!answerSubmitted.value && isMyTurn.value && timer.value <= 0) {
         timedOut.value = true;
-        awaitingTimeoutResponse.value = true;
-        
-        // Ensure selectedAnswer is set to an empty value appropriate for the quiz type
-        if (currentQuiz.value?.type === 'enumeration') {
-            selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
-        } else {
-            selectedAnswer.value = '';
-        }
-        
-        // Submit the timeout answer
-        submitAnswer(true); // Pass isTimeout = true to allow submission
-        lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
-        
-        // Fallback 1: If WebSocket doesn't update game state within 8 seconds, fetch fresh state
-        setTimeout(() => {
-            if (awaitingTimeoutResponse.value && !gameOver.value) {
-                console.warn('WebSocket update not received after timeout, fetching fresh game state');
-                fetchFreshGameState();
-            }
-        }, 8000);
-
-        // Fallback 2: If it's still my turn after 15 seconds (indicating game stuck), force state sync
-        setTimeout(() => {
-            if (isMyTurn.value && timedOut.value && !gameOver.value) {
-                console.warn('Game appears stuck after timeout, forcing state synchronization');
-                forceSyncGameState();
-            }
-        }, 15000);
+        lastAction.value = { type: 'error', message: "Time's up! Waiting for server..." };
     }
 };
 
@@ -712,10 +716,8 @@ const resetForNextQuestion = () => {
     timedOut.value = false;
     awaitingTimeoutResponse.value = false; // Clear the timeout response flag
     timer.value = TIMER_DURATION;
-    stopTimer();
-    if (isMyTurn.value) {
-        startTimer();
-    }
+    // Timer is now managed by server, just sync status
+    syncTimerStatus();
 };
 
 // Watch for question change to reset enumeration fields
@@ -729,7 +731,7 @@ watch(currentQuiz, (newQuiz) => {
 
 // Clean up timer and intervals on unmount
 onUnmounted(() => {
-    stopTimer();
+    stopTimerSync();
     stopStateCheckInterval();
 });
 
@@ -839,8 +841,8 @@ const fetchFreshGameState = async () => {
                 resetForNextQuestion();
                 console.log('Turn switched after state sync, resetting for next question');
             } else if (wasMyTurn && !isMyTurn.value) {
-                // My turn ended, stop timer and reset timeout flags
-                stopTimer();
+                // My turn ended, stop timer sync and reset timeout flags
+                stopTimerSync();
                 timedOut.value = false;
                 awaitingTimeoutResponse.value = false;
                 console.log('My turn ended after state sync, stopping timer');
@@ -996,6 +998,47 @@ onMounted(() => {
                             showOpponentAction.value = false;
                         }, 4000);
                     }
+                } else if (e.event_type === 'timer_started') {
+                    timer.value = e.additional_data?.timer_duration || 30;
+                    timerRunning.value = true;
+                    timedOut.value = false;
+                    startTimerSync();
+                } else if (e.event_type === 'timer_stopped') {
+                    timerRunning.value = false;
+                    stopTimerSync();
+                } else if (e.event_type === 'timer_warning' && e.additional_data) {
+                    timer.value = e.additional_data.remaining_time;
+                    // Play warning sound based on warning point
+                    if (soundEnabled.value && e.additional_data.warning_point) {
+                        if (e.additional_data.warning_point === 10) {
+                            playWarningSound();
+                        } else if (e.additional_data.warning_point === 5) {
+                            playUrgentWarningSound();
+                        } else if (e.additional_data.warning_point <= 3) {
+                            playCountdownSound();
+                        }
+                    }
+                } else if (e.event_type === 'timer_timeout' && e.additional_data) {
+                    // Server handled timeout, update UI
+                    if (e.additional_data.timed_out_player === props.game.currentUser.id) {
+                        timedOut.value = true;
+                        lastAction.value = { type: 'error', message: "Time's up! Answer auto-submitted." };
+                    } else {
+                        // Show opponent timeout message
+                        lastAction.value = { 
+                            type: 'error', 
+                            message: `${e.additional_data.timed_out_player_name} timed out!` 
+                        };
+                    }
+                    
+                    // Clear timeout after a few seconds
+                    setTimeout(() => {
+                        timedOut.value = false;
+                        lastAction.value = null;
+                    }, 3000);
+                    
+                    // Reset for next question
+                    resetForNextQuestion();
                 }
 
                 // Update game state from websocket - use gameState instead of props.game
@@ -1131,9 +1174,9 @@ onMounted(() => {
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
     }
 
-    // Start timer immediately if it's my turn on mount (host first question)
-    if (isMyTurn.value) {
-        startTimer();
+    // Start timer sync immediately if game is active
+    if (gameState.value?.status === 'active') {
+        startTimerSync();
     }
 
     // Start periodic state checking
