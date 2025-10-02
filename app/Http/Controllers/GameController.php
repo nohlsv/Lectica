@@ -37,7 +37,7 @@ class GameController extends Controller
         ]);
         \broadcast(new \App\Events\MultiplayerGameLobbyUpdate($game));
         // Otherwise, redirect to lobby
-        return to_route('games.lobby');
+        return redirect()->route('multiplayer-games.lobby');
     }
 
     // List games without player two
@@ -71,7 +71,7 @@ class GameController extends Controller
         $game->save();
         $this->startQuizGame($id);
         broadcast(new \App\Events\MultiplayerGameUpdated($game));
-        return redirect()->route('games.show', ['id' => $game->id]);
+        return redirect()->route('multiplayer-games.show', $game->id);
     }
 
     private function _startQuizGame($id) {
@@ -167,7 +167,7 @@ class GameController extends Controller
         }
 
         // Redirect to game show for browser requests
-        return redirect()->route('games.show', ['id' => $game->id]);
+        return redirect()->route('multiplayer-games.show', $game->id);
     }
 
     // Answer a question
@@ -177,7 +177,7 @@ class GameController extends Controller
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json(['error' => 'MultiplayerGame not active'], 400);
             }
-            return redirect()->route('games.show', ['id' => $id])->with('error', 'Game is not active.');
+            return redirect()->route('multiplayer-games.show', $id)->with('error', 'Game is not active.');
         }
 
         $validated = $request->validate([
@@ -260,7 +260,7 @@ class GameController extends Controller
         }
 
         // Redirect to game show for browser requests
-        return redirect()->route('games.show', ['id' => $id]);
+        return redirect()->route('multiplayer-games.show', $id);
     }
 
     // Render the game lobby, but forcefully redirect to the user's active game if they are already in one
@@ -271,7 +271,7 @@ class GameController extends Controller
               ->orWhere('player_two_id', $userId);
         })->where('status', '!=', 'finished')->first();
         if ($activeGame) {
-            return redirect()->route('games.show', ['id' => $activeGame->id]);
+            return redirect()->route('multiplayer-games.show', $activeGame->id);
         }
         $games = MultiplayerGame::whereNull('player_two_id')->get();
         return inertia('Games/GameLobby', [
@@ -285,13 +285,11 @@ class GameController extends Controller
         $userId = $request->user()->id;
         // Only allow access if the user is a participant
         if ($game->player_one_id !== $userId && $game->player_two_id !== $userId) {
-            return to_route('games.lobby');
+            return redirect()->route('multiplayer-games.lobby');
         }
-        return inertia('Games/GameShow', [
-            'game' => $game,
-            'playerOne' => $game->playerOne,
-            'playerTwo' => $game->playerTwo,
-        ]);
+        
+        // Redirect to the new multiplayer games system which has GameQuiz
+        return redirect()->route('multiplayer-games.show', $game->id);
     }
 
     public function finish(Request $request, $id) {
@@ -311,6 +309,51 @@ class GameController extends Controller
         }
 
         // Redirect to game lobby for browser requests
-        return redirect()->route('games.lobby')->with('success', 'Game finished successfully.');
+        return redirect()->route('multiplayer-games.lobby')->with('success', 'Game finished successfully.');
+    }
+
+    public function forfeit(Request $request, $id) {
+        $game = MultiplayerGame::findOrFail($id);
+        
+        // Check if user is part of this game
+        if ($game->player_one_id !== auth()->id() && $game->player_two_id !== auth()->id()) {
+            abort(403, 'You are not part of this game.');
+        }
+
+        // Check if game is not already finished
+        if ($game->status === 'finished') {
+            return redirect()->route('games.lobby')->with('info', 'Game is already finished.');
+        }
+
+        // Determine winner (opponent of the forfeiting player)
+        $forfeitingPlayerId = auth()->id();
+        $winnerId = $game->player_one_id === $forfeitingPlayerId ? $game->player_two_id : $game->player_one_id;
+        
+        // Update game status
+        $game->status = 'finished';
+        $game->game_end_reason = 'forfeit';
+        
+        // Set winner's score to winning score if not already
+        if ($game->player_one_id === $winnerId && $game->player_one_score < 5) {
+            $game->player_one_score = 5;
+        } elseif ($game->player_two_id === $winnerId && $game->player_two_score < 5) {
+            $game->player_two_score = 5;
+        }
+        
+        $game->save();
+        
+        // Broadcast the game update
+        broadcast(new \App\Events\MultiplayerGameUpdated($game));
+
+        // Return JSON for AJAX requests, redirect to appropriate page for browser requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Game forfeited successfully.',
+                'game' => $game
+            ]);
+        }
+
+        return redirect()->route('multiplayer-games.lobby')->with('success', 'Game forfeited successfully.');
     }
 }

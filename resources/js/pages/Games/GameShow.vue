@@ -153,17 +153,38 @@ function returnToLobby() {
         },
         {
             preserveScroll: true,
-            onFinish: () => router.visit(route('games.lobby')),
+            onFinish: () => router.visit(route('multiplayer-games.lobby')),
         },
     );
+}
+
+function forfeitGame() {
+    if (confirm('Are you sure you want to forfeit this game? Your opponent will win.')) {
+        router.post(route('games.forfeit', gameState.value.id), {}, {
+            onSuccess: () => {
+                toast.success('Game forfeited successfully.');
+            },
+            onError: () => {
+                toast.error('Failed to forfeit game.');
+            },
+        });
+    }
 }
 </script>
 
 <template>
     <Head :title="`Game #${gameState.id}`" />
     <AppLayout>
+        <template #header>
+            <div class="flex items-center justify-between">
+                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Quiz Game #{{ gameState.id }}</h2>
+                <div v-if="gamePhase === 'playing'" class="flex items-center space-x-4">
+                    <button @click="forfeitGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">Forfeit</button>
+                </div>
+            </div>
+        </template>
+        
         <div class="mx-auto max-w-2xl p-6">
-            <h1 class="mb-6 text-2xl font-bold">Quiz Game</h1>
             <div v-if="gamePhase === 'waiting'" class="text-muted py-8 text-center text-lg">
                 Waiting for another player to join...
                 <br />

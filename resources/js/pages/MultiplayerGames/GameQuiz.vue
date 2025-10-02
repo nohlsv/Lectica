@@ -2,42 +2,41 @@
     <Head title="Multiplayer Game" />
 
     <AppLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">
-                    {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
-                </h2>
-                <div class="flex items-center space-x-4">
-                    <div
-                        v-if="gameState.game_mode === 'pve' && gameState.monster"
-                        class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20"
-                    >
-                        <img
-                            :src="gameState.monster.image_path || '/images/default-monster.png'"
-                            :alt="gameState.monster.name"
-                            class="h-6 w-6 rounded-full object-cover"
-                            @error="handleImageError"
-                        />
-                        <span class="text-sm font-medium text-red-800 dark:text-red-300">
-                            {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
-                        </span>
+        <div class="py-12 bg-gradient min-h-screen">
+            <!-- Custom Header -->
+            <div class="mb-6 mx-4 bg-container shadow-sm rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl leading-tight font-semibold text-gray-100 pixel-outline">
+                        {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <div
+                            v-if="gameState.game_mode === 'pve' && gameState.monster"
+                            class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20"
+                        >
+                            <img
+                                :src="gameState.monster.image_path || '/images/default-monster.png'"
+                                :alt="gameState.monster.name"
+                                class="h-6 w-6 rounded-full object-cover"
+                                @error="handleImageError"
+                            />
+                            <span class="text-sm font-medium text-red-800 dark:text-red-300">
+                                {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
+                            </span>
+                        </div>
+                        <button
+                            @click="toggleSound"
+                            :class="[
+                                'rounded-md px-3 py-1 text-sm text-white transition-colors pixel-outline',
+                                soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
+                            ]"
+                        >
+                            {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
+                        </button>
+                        <button @click="forfeitGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700 pixel-outline">Forfeit</button>
                     </div>
-                    <button
-                        @click="toggleSound"
-                        :class="[
-                            'rounded-md px-3 py-1 text-sm text-white transition-colors',
-                            soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700'
-                        ]"
-                    >
-                        {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
-                    </button>
-                    <button @click="forfeitGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">Forfeit</button>
-                    <button @click="abandonGame" class="rounded-md bg-gray-600 px-3 py-1 text-sm text-white hover:bg-gray-700">Abandon Game</button>
                 </div>
             </div>
-        </template>
-
-        <div class="py-12 bg-gradient min-h-screen">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Status Bar -->
                 <div class="mb-6 mx-4 rounded-lg bg-black/50 p-4 shadow-sm border-2 border-green-500">

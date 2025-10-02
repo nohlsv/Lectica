@@ -143,6 +143,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/games/{id}', [GameController::class, 'show'])->name('games.show');
     Route::post('/games/{id}/start', [GameController::class, 'startQuizGame'])->name('games.start');
     Route::post('/games/{id}/finish', [GameController::class, 'finish'])->name('games.finish');
+    Route::post('/games/{id}/forfeit', [GameController::class, 'forfeit'])->name('games.forfeit');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
