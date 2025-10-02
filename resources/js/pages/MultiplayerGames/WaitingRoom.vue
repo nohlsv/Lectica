@@ -5,7 +5,6 @@
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Waiting for Player to Join</h2>
-                <button @click="abandonGame" class="rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">Cancel Game</button>
             </div>
         </template>
 
@@ -300,19 +299,13 @@ const refreshLobby = () => {
     });
 };
 
-const abandonGame = () => {
-    if (confirm('Are you sure you want to cancel this game? This action cannot be undone.')) {
-        router.post(route('multiplayer-games.abandon', props.game.id));
-    }
-};
-
 const handleImageError = (event: Event) => {
     const img = event.target as HTMLImageElement;
     img.src = '/images/default-monster.png';
 };
 
 // Wait time counter
-let waitInterval: NodeJS.Timeout;
+let waitInterval: number;
 
 const startWaitTimer = () => {
     waitTime.value = 0;

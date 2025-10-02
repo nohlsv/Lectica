@@ -206,23 +206,7 @@ class MultiplayerGame extends Model
         });
     }
 
-    /**
-     * Mark game as abandoned.
-     */
-    public function markAsAbandoned(): void
-    {
-        DB::transaction(function () {
-            $this->lockForUpdate();
 
-            // Only mark as abandoned if not already finished
-            if (!$this->isFinished()) {
-                $this->update(['status' => MultiplayerGameStatus::ABANDONED]);
-
-                // Broadcast the abandonment to notify remaining player
-                broadcast(new \App\Events\MultiplayerGameUpdated($this->fresh(), 'game_abandoned'));
-            }
-        });
-    }
 
     /**
      * Start the game when second player joins.

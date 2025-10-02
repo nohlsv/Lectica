@@ -854,34 +854,7 @@ class MultiplayerGameController extends Controller
         return $winnerId;
     }
 
-    /**
-     * Abandon a multiplayer game.
-     */
-    public function abandon(MultiplayerGame $multiplayerGame)
-    {
-        // Use transaction to ensure atomic abandonment
-        return DB::transaction(function () use ($multiplayerGame) {
-            // Lock the game to prevent race conditions
-            $multiplayerGame = $multiplayerGame->lockForUpdate();
 
-            // Check if user is part of this game
-            if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
-                abort(403, 'You are not part of this game.');
-            }
-
-            // Check if game is already finished
-            if ($multiplayerGame->isFinished()) {
-                return redirect()->route('multiplayer-games.lobby')
-                    ->with('info', 'Game was already finished.');
-            }
-
-            // Mark as abandoned and broadcast to other player
-            $multiplayerGame->markAsAbandoned();
-
-            return redirect()->route('multiplayer-games.lobby')
-                ->with('success', 'Game abandoned.');
-        });
-    }
 
     /**
      * Handle player disconnection and timeout scenarios
@@ -901,13 +874,12 @@ class MultiplayerGameController extends Controller
                 return;
             }
 
-            // Mark the game as abandoned due to timeout
+            // Mark the game as forfeited due to timeout
             $multiplayerGame->update([
-                'status' => MultiplayerGameStatus::ABANDONED
-                // Removed abandoned_reason since it doesn't exist in database schema
+                'status' => MultiplayerGameStatus::FORFEITED
             ]);
 
-            // Broadcast the abandonment to remaining player
+            // Broadcast the forfeit to remaining player
             broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'player_timeout'));
         });
     }

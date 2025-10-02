@@ -141,15 +141,7 @@
                                 >
                                     {{ game.status === 'active' ? 'Continue Game' : 'View Details' }} →
                                 </Link>
-                                <div class="flex space-x-2">
-                                    <button
-                                        v-if="game.status === 'active'"
-                                        @click="abandonGame(game)"
-                                        class="text-sm text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
-                                    >
-                                        Abandon
-                                    </button>
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -238,21 +230,21 @@ const props = defineProps<{
 }>();
 
 const getStatusLabel = (status: string) => {
-    const labels = {
+    const labels: Record<string, string> = {
         waiting: 'Waiting',
         active: 'Active',
         finished: 'Finished',
-        abandoned: 'Abandoned',
+        forfeited: 'Forfeited',
     };
     return labels[status] || status;
 };
 
 const getStatusBadgeClass = (status: string) => {
-    const classes = {
+    const classes: Record<string, string> = {
         waiting: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
         active: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
         finished: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-        abandoned: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+        forfeited: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
     };
     return classes[status] || classes.finished;
 };
@@ -275,11 +267,5 @@ const formatTimeAgo = (dateString: string) => {
 
     const diffInDays = Math.floor(diffInHours / 24);
     return `${diffInDays}d ago`;
-};
-
-const abandonGame = (game: MultiplayerGame) => {
-    if (confirm('Are you sure you want to abandon this game?')) {
-        router.post(route('multiplayer-games.abandon', game.id));
-    }
 };
 </script>

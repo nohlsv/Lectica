@@ -721,8 +721,8 @@ const getStatusBadgeClass = (status: string) => {
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
         case 'finished':
             return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-        case 'abandoned':
-            return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+        case 'forfeited':
+            return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
         default:
             return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
     }
@@ -736,8 +736,8 @@ const getStatusLabel = (status: string) => {
             return 'Active';
         case 'finished':
             return 'Finished';
-        case 'abandoned':
-            return 'Abandoned';
+        case 'forfeited':
+            return 'Forfeited';
         default:
             return 'Unknown';
     }

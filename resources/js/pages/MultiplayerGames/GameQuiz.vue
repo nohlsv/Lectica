@@ -181,8 +181,31 @@
 
                     <!-- Timer Constraint -->
                     <div class="mb-4 flex items-center justify-between">
-                        <span class="text-sm font-semibold text-blue-500 pixel-outline"> Time left: {{ timer }}s </span>
-                        <span v-if="timer === 0" class="text-sm text-red-500 pixel-outline">Time's up!</span>
+                        <div class="flex items-center space-x-2">
+                            <span 
+                                :class="[
+                                    'text-sm font-semibold pixel-outline',
+                                    timer > 10 ? 'text-blue-500' : timer > 5 ? 'text-yellow-500' : 'text-red-500'
+                                ]"
+                            > 
+                                ⏱️ Time left: {{ timer }}s 
+                            </span>
+                            <div 
+                                :class="[
+                                    'w-16 h-2 bg-gray-700 rounded-full overflow-hidden',
+                                    timer <= 5 ? 'animate-pulse' : ''
+                                ]"
+                            >
+                                <div 
+                                    :class="[
+                                        'h-full transition-all duration-1000 ease-linear',
+                                        timer > 20 ? 'bg-green-500' : timer > 10 ? 'bg-yellow-500' : 'bg-red-500'
+                                    ]"
+                                    :style="{ width: `${(timer / TIMER_DURATION) * 100}%` }"
+                                ></div>
+                            </div>
+                        </div>
+                        <span v-if="timer === 0" class="text-sm text-red-500 pixel-outline animate-pulse">⏰ Time's up!</span>
                     </div>
 
                     <!-- Multiple Choice -->
@@ -252,7 +275,7 @@
                     <!-- Submit Button -->
                     <div class="mt-4 flex justify-end">
                         <button
-                            @click="submitAnswer"
+                            @click="() => submitAnswer()"
                             :disabled="!selectedAnswer || answerSubmitted || submitting || timedOut"
                             class="inline-flex items-center pixel-outline rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
                         >
@@ -560,6 +583,10 @@ const streakSfx = new Audio('/sfx/streak.wav');
 const victorySfx = new Audio('/sfx/victory.wav');
 const defeatSfx = new Audio('/sfx/defeat.wav');
 const damageSfx = new Audio('/sfx/damage.wav');
+// Use existing sound files for timer warnings
+const warningSfx = new Audio('/sfx/turn_start.wav'); // Repurpose existing sound
+const urgentWarningSfx = new Audio('/sfx/incorrect.wav'); // Use incorrect sound for urgency  
+const countdownSfx = new Audio('/sfx/damage.wav'); // Use damage sound for countdown
 
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
     // Play sound effect (if enabled)
@@ -615,6 +642,18 @@ const startTimer = () => {
     stopTimer();
     timerInterval = window.setInterval(() => {
         timer.value = Math.max(timer.value - 1, 0);
+        
+        // Warning sounds at 10, 5, and countdown from 3
+        if (soundEnabled.value) {
+            if (timer.value === 10) {
+                playWarningSound();
+            } else if (timer.value === 5) {
+                playUrgentWarningSound();
+            } else if (timer.value <= 3 && timer.value > 0) {
+                playCountdownSound();
+            }
+        }
+        
         if (timer.value <= 0) {
             stopTimer();
             handleTimeout();
@@ -739,12 +778,6 @@ const getGameResult = (): string => {
 const forfeitGame = () => {
     if (confirm('Are you sure you want to forfeit this game? Your opponent will win.')) {
         router.post(route('multiplayer-games.forfeit', props.game.id));
-    }
-};
-
-const abandonGame = () => {
-    if (confirm('Are you sure you want to abandon this game?')) {
-        router.post(route('multiplayer-games.abandon', props.game.id));
     }
 };
 
@@ -1157,6 +1190,28 @@ watch(gameOver, (val) => {
 function playDamageSfx() {
     damageSfx.currentTime = 0;
     damageSfx.play();
+}
+
+// Play warning sounds for timer
+function playWarningSound() {
+    if (soundEnabled.value) {
+        warningSfx.currentTime = 0;
+        warningSfx.play().catch(() => {}); // Fallback gracefully if audio fails
+    }
+}
+
+function playUrgentWarningSound() {
+    if (soundEnabled.value) {
+        urgentWarningSfx.currentTime = 0;
+        urgentWarningSfx.play().catch(() => {}); // Fallback gracefully if audio fails
+    }
+}
+
+function playCountdownSound() {
+    if (soundEnabled.value) {
+        countdownSfx.currentTime = 0;
+        countdownSfx.play().catch(() => {}); // Fallback gracefully if audio fails
+    }
 }
 </script>
 

@@ -324,12 +324,12 @@ const currentUser = computed(() => page.props.auth.user);
 
 // Methods
 const getGameResult = () => {
-    if (props.game.status === 'abandoned') {
+    if (props.game.status === 'forfeited') {
         return {
-            type: 'abandoned',
-            title: 'Game Abandoned',
-            description: 'This game was abandoned before completion.',
-            textColor: 'text-gray-800 dark:text-gray-200',
+            type: 'forfeited',
+            title: 'Game Forfeited',
+            description: 'This game was forfeited before completion.',
+            textColor: 'text-red-800 dark:text-red-200',
         };
     }
 
@@ -466,8 +466,8 @@ const getStatusBadgeClass = () => {
     switch (props.game.status) {
         case 'finished':
             return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
-        case 'abandoned':
-            return 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
+        case 'forfeited':
+            return 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300';
         default:
             return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300';
     }
@@ -477,8 +477,8 @@ const getStatusLabel = () => {
     switch (props.game.status) {
         case 'finished':
             return 'Completed';
-        case 'abandoned':
-            return 'Abandoned';
+        case 'forfeited':
+            return 'Forfeited';
         default:
             return 'Unknown';
     }
