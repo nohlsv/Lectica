@@ -106,7 +106,7 @@
                                     />
                                     <div>
                                         <div class="font-semibold text-gray-900 dark:text-gray-100 flex items-center space-x-2">
-                                            <span>vs {{ battle.monster?.name || 'Unknown Monster' }}</span>
+                                            <span>🏟️ Monster Arena Challenge</span>
                                             <span :class="getStatusBadge(battle.status)" class="rounded-full px-2 py-1 text-xs font-medium">
                                                 {{ battle.status.charAt(0).toUpperCase() + battle.status.slice(1) }}
                                             </span>

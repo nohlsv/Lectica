@@ -354,7 +354,7 @@ function finishBattle() {
 </script>
 
 <template>
-    <Head :title="`Battle: ${battle.monster.name}`" />
+    <Head :title="`Monster Arena Challenge`" />
     <AppLayout>
         <!-- Error state when quizzes is not an array -->
         <div v-if="!Array.isArray(quizzes) || quizzes.length === 0" class="flex min-h-screen items-center justify-center bg-gradient">
@@ -456,7 +456,7 @@ function finishBattle() {
                         {{ message }}
                     </div>
                     <div v-if="attackMessages.length === 0" class="text-sm text-gray-200 pixel-outline">
-                        The battle is about to begin! Answer correctly to defeat the monster!
+                        The monster arena challenge is about to begin! Answer correctly to defeat each monster!
                     </div>
                 </div>
 
@@ -593,24 +593,56 @@ function finishBattle() {
                 <Card class="mx-4 mb-10 bg-black/50 " v-if="battleFinished">
                     <CardHeader>
                         <CardTitle class="text-center pixel-outline">
-                            {{ battleResult === 'victory' ? 'Victory!' : 'Defeat!' }}
+                            {{ battleResult === 'victory' ? '🏆 Victory!' : '💀 Defeat!' }}
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="text-center">
                         <div v-if="battleResult === 'victory'" class="mb-4 text-2xl text-green-500 pixel-outline">
-                            You survived all the monsters and completed the challenge!
+                            🎉 You conquered the monster gauntlet! 🎉
                         </div>
                         <div v-else class="mb-4 text-2xl text-red-500 pixel-outline">
-                            The monsters defeated you! You ran out of hearts.
+                            ⚔️ The monsters proved too powerful! ⚔️
                         </div>
-                        <div class="mt-4">
-                            <p class="pixel-outline">You answered {{ correctAnswers }} out of {{ totalAnswered }} questions correctly.</p>
-                            <p class="pixel-outline">Hearts remaining: {{ playerHp }}/3</p>
+                        
+                        <!-- Battle Summary -->
+                        <div class="mt-6 space-y-4">
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div class="bg-black/30 rounded-lg p-3">
+                                    <div class="text-green-400 font-bold pixel-outline">Questions Correct</div>
+                                    <div class="text-2xl font-bold text-green-300 pixel-outline">{{ correctAnswers }}</div>
+                                    <div class="text-gray-400 pixel-outline">out of {{ totalAnswered }}</div>
+                                </div>
+                                <div class="bg-black/30 rounded-lg p-3">
+                                    <div class="text-blue-400 font-bold pixel-outline">Accuracy</div>
+                                    <div class="text-2xl font-bold text-blue-300 pixel-outline">{{ Math.round((correctAnswers / totalAnswered) * 100) }}%</div>
+                                    <div class="text-gray-400 pixel-outline">success rate</div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <div class="text-red-400 font-bold pixel-outline mb-2">Hearts Status</div>
+                                <div class="flex justify-center items-center space-x-1">
+                                    <span v-for="n in 3" :key="n" class="text-3xl">
+                                        {{ n <= playerHp ? '❤️' : '🖤' }}
+                                    </span>
+                                </div>
+                                <div class="text-gray-400 pixel-outline mt-1">{{ playerHp }}/3 remaining</div>
+                            </div>
+                            
+                            <div class="bg-black/30 rounded-lg p-3">
+                                <div class="text-yellow-400 font-bold pixel-outline mb-2">🏟️ Challenge Complete</div>
+                                <div class="text-gray-300 pixel-outline">
+                                    {{ battleResult === 'victory' 
+                                        ? `You defeated ${correctAnswers} monsters and survived the arena!`
+                                        : `You defeated ${correctAnswers} monsters before falling in battle.`
+                                    }}
+                                </div>
+                            </div>
                         </div>
                     </CardContent>
                     <CardFooter class="flex justify-center">
                         <Link :href="route('battles.index')">
-                            <Button>Return to Battles</Button>
+                            <Button class="pixel-outline">Return to Battles</Button>
                         </Link>
                     </CardFooter>
                 </Card>

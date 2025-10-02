@@ -1,5 +1,5 @@
 <template>
-    <Head :title="`Battle Results: ${monster?.name || 'Monster'}`" />
+    <Head title="Monster Arena Challenge Results" />
 
     <AppLayout>
         <template #header>
@@ -16,17 +16,17 @@
                             <div v-if="battle.status === 'won'" class="text-green-600">
                                 <div class="mb-4 text-6xl pixel-outline">🏆</div>
                                 <h2 class="mb-2 text-3xl font-bold pixel-outline ">Victory!</h2>
-                                <p class="text-gray-600 dark:text-gray-400 pixel-outline">You have defeated {{ monster?.name }}!</p>
+                                <p class="text-gray-600 dark:text-gray-400 pixel-outline">You conquered the monster gauntlet!</p>
                             </div>
                             <div v-else-if="battle.status === 'lost'" class="text-red-600">
                                 <div class="mb-4 text-6xl pixel-outline">💀</div>
                                 <h2 class="mb-2 text-3xl font-bold pixel-outline">Defeat</h2>
-                                <p class="text-gray-600 dark:text-gray-400 pixel-outline">{{ monster?.name }} has defeated you!</p>
+                                <p class="text-gray-600 dark:text-gray-400 pixel-outline">The monsters proved too powerful!</p>
                             </div>
                             <div v-else-if="battle.status === 'active'" class="text-blue-600">
                                 <div class="mb-4 text-6xl pixel-outline">⚔️</div>
                                 <h2 class="mb-2 text-3xl font-bold pixel-outline">Battle in Progress</h2>
-                                <p class="text-gray-600 dark:text-gray-400 pixel-outline">The battle continues!</p>
+                                <p class="text-gray-600 dark:text-gray-400 pixel-outline">The monster arena awaits!</p>
                             </div>
                             <div v-else class="text-gray-600">
                                 <div class="mb-4 text-6xl pixel-outline">🚪</div>
@@ -60,36 +60,28 @@
                                 </div>
                             </div>
 
-                            <!-- Monster Stats -->
+                            <!-- Battle Challenge Stats -->
                             <div class="rounded-lg bg-black/50 p-4 border-2 border-red-500">
-                                <h3 class="mb-3 text-lg font-semibold text-gray-100 pixel-outline">{{ monster?.name || 'Monster' }}</h3>
+                                <h3 class="mb-3 text-lg font-semibold text-gray-100 pixel-outline">🏟️ Monster Arena Challenge</h3>
                                 <div class="mb-3 flex justify-center">
-                                    <img
-                                        v-if="monster?.image_path"
-                                        :src="monster.image_path"
-                                        :alt="monster.name"
-                                        class="h-16 w-16 rounded-lg object-cover pixel-outline-icon"
-                                        @error="$event.target.style.display = 'none'"
-                                    />
-                                    <div v-else class="text-sm text-red-500 pixel-outline">No image_path found</div>
+                                    <div class="text-4xl pixel-outline">⚔️</div>
                                 </div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
-                                        <span class="text-gray-400 pixel-outline">Health:</span>
-                                        <span class="font-semibold pixel-outline">{{ battle.monster_hp }}/{{ monster?.hp || 0 }}</span>
+                                        <span class="text-gray-400 pixel-outline">Monsters Faced:</span>
+                                        <span class="font-semibold pixel-outline">{{ battle.total_questions || 0 }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-gray-400 pixel-outline">Attack:</span>
-                                        <span class="font-semibold pixel-outline">{{ monster?.attack || 0 }}</span>
+                                        <span class="text-gray-400 pixel-outline">Monsters Defeated:</span>
+                                        <span class="font-semibold text-green-400 pixel-outline">{{ battle.correct_answers || 0 }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span class="text-gray-400 pixel-outline">Defense:</span>
-                                        <span class="font-semibold pixel-outline">{{ monster?.defense || 0 }}</span>
+                                        <span class="text-gray-400 pixel-outline">Success Rate:</span>
+                                        <span class="font-semibold pixel-outline">{{ accuracy }}%</span>
                                     </div>
-                                    <div class="flex justify-between">
-                                        <span class="text-gray-400 pixel-outline">Difficulty:</span>
-                                        <span class="font-semibold pixel-outline">{{ getDifficultyText(monster?.difficulty) }}</span>
-                                    </div>
+                                </div>
+                                <div class="mt-3 text-center text-sm text-gray-400 pixel-outline">
+                                    Each correct answer defeated a random monster!
                                 </div>
                             </div>
                         </div>

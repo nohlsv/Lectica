@@ -47,7 +47,7 @@
                                             @error="$event.target.style.display = 'none'"
                                         />
                                         <div>
-                                            <h3 class="text-lg font-semibold pixel-outline">vs {{ battle.monster?.name || 'Unknown Monster' }}</h3>
+                                            <h3 class="text-lg font-semibold pixel-outline">🏟️ Monster Arena Challenge</h3>
                                             <p class="text-sm text-gray-300 pixel-outline">
                                                 File: {{ battle.file?.title || battle.file?.name }}
                                             </p>
