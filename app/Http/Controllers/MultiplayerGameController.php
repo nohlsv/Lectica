@@ -766,9 +766,13 @@ class MultiplayerGameController extends Controller
             $quizzes = $multiplayerGame->getAvailableQuizzes();
             $totalQuestions = $quizzes->count();
 
-            // End game when both players have answered all questions
-            if ($multiplayerGame->total_questions_p1 >= $totalQuestions &&
-                $multiplayerGame->total_questions_p2 >= $totalQuestions) {
+            // End game when both players have answered enough questions
+            // We consider the battle complete when each player has answered at least the total number of available questions
+            // This ensures all questions have been seen at least once by both players, preventing infinite battles
+            $minQuestionsPerPlayer = max($totalQuestions, 10); // At least 10 questions or total available questions
+            
+            if ($multiplayerGame->total_questions_p1 >= $minQuestionsPerPlayer &&
+                $multiplayerGame->total_questions_p2 >= $minQuestionsPerPlayer) {
                 // Calculate and set winner_id before marking as finished
                 $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                 $multiplayerGame->markAsFinished();
@@ -847,7 +851,7 @@ class MultiplayerGameController extends Controller
                 }
             }
         } else {
-            // PVE win conditions (unchanged)
+            // PVE win conditions
             if ($multiplayerGame->monster_hp <= 0) {
                 // Both players win against the monster - no single winner in PVE
                 $multiplayerGame->markAsFinished();
@@ -880,6 +884,73 @@ class MultiplayerGameController extends Controller
                 $multiplayerGame->markAsFinished();
                 return true;
             }
+
+            // End PvE battle when both players have answered enough questions (all available questions at least once)
+            $quizzes = $multiplayerGame->getAvailableQuizzes();
+            $totalQuestions = $quizzes->count();
+            $minQuestionsPerPlayer = max($totalQuestions, 8); // At least 8 questions or total available questions
+            
+            if ($multiplayerGame->total_questions_p1 >= $minQuestionsPerPlayer &&
+                $multiplayerGame->total_questions_p2 >= $minQuestionsPerPlayer) {
+                // Determine winner based on performance
+                $winnerId = null;
+                if ($multiplayerGame->player_one_hp > $multiplayerGame->player_two_hp) {
+                    $winnerId = $multiplayerGame->player_one_id;
+                } elseif ($multiplayerGame->player_two_hp > $multiplayerGame->player_one_hp) {
+                    $winnerId = $multiplayerGame->player_two_id;
+                }
+                
+                if ($winnerId) {
+                    $multiplayerGame->update(['winner_id' => $winnerId]);
+                    $winner = User::find($winnerId);
+                    $loserId = ($winnerId == $multiplayerGame->player_one_id) ? $multiplayerGame->player_two_id : $multiplayerGame->player_one_id;
+                    $loser = User::find($loserId);
+                    if ($winner) $winner->addExperience(40);
+                    if ($loser) $loser->addExperience(25);
+                } else {
+                    // Tie in PvE
+                    $playerOne = User::find($multiplayerGame->player_one_id);
+                    $playerTwo = User::find($multiplayerGame->player_two_id);
+                    if ($playerOne) $playerOne->addExperience(35);
+                    if ($playerTwo) $playerTwo->addExperience(35);
+                }
+                
+                $multiplayerGame->markAsFinished();
+                return true;
+            }
+        }
+
+        // Fallback: End game if it's been going too long (prevent infinite games)
+        $quizzes = $multiplayerGame->getAvailableQuizzes();
+        $totalQuestions = $quizzes->count();
+        $totalQuestionsAnswered = ($multiplayerGame->total_questions_p1 ?? 0) + ($multiplayerGame->total_questions_p2 ?? 0);
+        $maxQuestions = max($totalQuestions * 3, 30); // 3x the available questions or 30 questions max
+        
+        if ($totalQuestionsAnswered >= $maxQuestions) {
+            // Force end the game based on current performance
+            if ($multiplayerGame->isPvp()) {
+                $winnerId = $this->calculateAndSetWinner($multiplayerGame);
+                if ($winnerId) {
+                    $multiplayerGame->update(['winner_id' => $winnerId]);
+                }
+            } else {
+                // PvE: determine winner by HP
+                if ($multiplayerGame->player_one_hp > $multiplayerGame->player_two_hp) {
+                    $multiplayerGame->update(['winner_id' => $multiplayerGame->player_one_id]);
+                } elseif ($multiplayerGame->player_two_hp > $multiplayerGame->player_one_hp) {
+                    $multiplayerGame->update(['winner_id' => $multiplayerGame->player_two_id]);
+                }
+            }
+            
+            $multiplayerGame->markAsFinished();
+            
+            // Award participation XP
+            $playerOne = User::find($multiplayerGame->player_one_id);
+            $playerTwo = User::find($multiplayerGame->player_two_id);
+            if ($playerOne) $playerOne->addExperience(25);
+            if ($playerTwo) $playerTwo->addExperience(25);
+            
+            return true;
         }
 
         return false;
