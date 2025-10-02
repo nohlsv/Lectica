@@ -689,12 +689,6 @@ const startTimerSync = () => {
             // Check for client-side timeout
             if (timer.value <= 0) {
                 handleTimeout();
-                // Force immediate state sync when timer reaches 0
-                console.log('Timer reached 0, forcing immediate state sync...');
-                setTimeout(() => {
-                    syncTimerStatus();
-                    fetchFreshGameState();
-                }, 500);
             }
             
             // Play warning sounds based on local timer
@@ -768,11 +762,6 @@ const syncTimerStatus = async () => {
                 console.log('Server reports timer expired, triggering timeout');
                 timerRunning.value = false;
                 handleTimeout();
-                // Force additional state sync after server-side timeout
-                setTimeout(() => {
-                    console.log('Additional state sync after server timeout...');
-                    fetchFreshGameState();
-                }, 1000);
             }
         } else {
             console.log('Server reports no timer running');
@@ -1119,11 +1108,12 @@ let stateCheckInterval: number | undefined;
 const startStateCheckInterval = () => {
     // Check game state every 30 seconds to catch any missed updates
     stateCheckInterval = window.setInterval(() => {
+        // Only check if game is active and not during transitions
         if (gameState.value.status === 'active' && !submitting.value && !awaitingTimeoutResponse.value) {
             console.log('Periodic state check...');
             fetchFreshGameState();
         }
-    }, 30000); // Every 30 seconds
+    }, 30000);
 };
 
 const stopStateCheckInterval = () => {
@@ -1275,13 +1265,6 @@ onMounted(() => {
                         lastAction.value = null;
                         resetForNextQuestion();
                     }, 4000); // Show message a bit longer for timeout
-                    
-                    // Force immediate state check after timeout to ensure UI updates
-                    setTimeout(() => {
-                        console.log('Forcing state check after timeout...');
-                        fetchFreshGameState();
-                        syncTimerStatus();
-                    }, 1000);
                 }
 
                 // Update game state from websocket - use gameState instead of props.game
@@ -1392,15 +1375,6 @@ onMounted(() => {
                         }
                     }, 3000);
                 }
-                
-                // Only force additional synchronization for timeout events
-                if (e.event_type === 'timeout') {
-                    setTimeout(() => {
-                        console.log('Timeout event detected, forcing extra sync...');
-                        fetchFreshGameState();
-                        syncTimerStatus();
-                    }, 1000);
-                }
             })
             .listenForWhisper('answer-submitted', (e: any) => {
                 console.log('Answer whisper received from opponent:', e);
@@ -1410,7 +1384,7 @@ onMounted(() => {
                 console.error('WebSocket error:', error);
                 lastAction.value = { type: 'error', message: 'Connection lost. Trying to reconnect...' };
                 
-                // If WebSocket fails, use standard fallback frequency
+                // If WebSocket fails, increase the frequency of state checks as a fallback
                 stopStateCheckInterval();
                 stateCheckInterval = window.setInterval(() => {
                     if (gameState.value.status === 'active' && !gameOver.value) {
@@ -1433,18 +1407,6 @@ onMounted(() => {
 
     // Start periodic state checking
     startStateCheckInterval();
-});
-
-onUnmounted(() => {
-    // Clean up intervals and WebSocket connections
-    stopTimerSync();
-    stopStateCheckInterval();
-    
-    if (echo) {
-        echo.leave();
-    }
-    
-    console.log('GameQuiz component unmounted, cleaned up intervals and connections');
 });
 
 // Play sfx for game start animation
