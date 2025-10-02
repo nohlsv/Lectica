@@ -25,7 +25,7 @@ const faqSections = [
         questions: [
             {
                 question: 'What is Lectica?',
-                answer: 'Lectica is a gamified learning platform that helps you study through interactive quizzes, flashcards, and competitive battles. Upload your study materials and transform them into engaging learning experiences.'
+                answer: 'Lectica is a gamified learning platform designed as a hub for students to review and study through interactive quizzes, flashcards, and competitive battles. Upload your study materials and transform them into engaging learning experiences. The platform focuses on student review and practice rather than classroom management or faculty assignment tools.'
             },
             {
                 question: 'How do I upload my first file?',
@@ -43,20 +43,28 @@ const faqSections = [
     },
     {
         id: 'basic-features',
-        title: 'Basic Features',
+        title: 'Files, Collections & Quiz Types',
         icon: FileText,
         questions: [
             {
                 question: 'What are Collections?',
-                answer: 'Collections are groups of related files that you can organize together. This is useful for studying multiple topics at once, like combining all files from a specific course or subject area.'
+                answer: 'Collections allow you to compile multiple verified files of your choosing into one organized study set. You can create collections from your uploaded files and choose to make them either public or private. Public collections can be seen and duplicated by other users, enabling them to use your collection for their own study sessions in battles or multiplayer games.'
+            },
+            {
+                question: 'How do I create and manage Collections?',
+                answer: 'To create a collection, select multiple files from your verified uploads and group them together. You can then set the collection as public (visible and copyable by others) or private (only for your use). Collections are perfect for organizing files from the same course or subject area, and they can be used in both battles and multiplayer sessions to quiz across multiple topics simultaneously.'
             },
             {
                 question: 'How do Flashcards work?',
                 answer: 'Flashcards are generated from your uploaded content to help with memorization. You can review them in spaced repetition mode, which shows cards you struggle with more frequently.'
             },
             {
-                question: 'What are the different quiz types?',
-                answer: 'Lectica offers multiple quiz formats: Multiple Choice, True/False, Fill-in-the-blank, and Short Answer questions. The system automatically generates questions based on your content.'
+                question: 'What are the different quiz types and difficulty levels?',
+                answer: 'Lectica offers multiple quiz formats with varying difficulty levels: Easy (True/False questions), Medium (Multiple Choice questions), and Hard (Enumeration/Fill-in-the-blank questions). The system automatically generates questions based on your content, and difficulty affects the challenge and point values in battles.'
+            },
+            {
+                question: 'What\'s the difference between Practice Quiz and Battles?',
+                answer: 'Practice Quiz provides immediate feedback for each answer and unlimited attempts, making it ideal for learning. Battles, however, provide no direct feedback for correct answers and limit your attempts through a heart system. Battles are more challenging and competitive, testing your knowledge without guidance, while Practice Quiz focuses on learning and improvement.'
             },
             {
                 question: 'How do I organize my files?',
@@ -75,11 +83,11 @@ const faqSections = [
             },
             {
                 question: 'How do I start a Battle?',
-                answer: 'Go to "Battles" → "Create Battle". Choose your files or collections, select difficulty settings, and decide if you want to play solo or invite others to compete.'
+                answer: 'Go to "Battles" → "Create Battle". Choose from your individual files or collections (which combine multiple topics), select difficulty settings that determine question types, and decide if you want to play solo or invite others to compete. Remember that battles use a heart system for limited attempts and provide no immediate feedback.'
             },
             {
                 question: 'What are Multiplayer Games?',
-                answer: 'Multiplayer games are real-time competitive sessions where multiple players answer questions simultaneously. Join lobbies or create your own games to challenge friends and other users.'
+                answer: 'Multiplayer games are real-time competitive sessions where multiple players answer questions simultaneously from individual files or collections. You can join existing lobbies or create your own games using your collections or public collections created by other users. This allows for competitive studying across multiple topics at once.'
             },
             {
                 question: 'How does matchmaking work?',
