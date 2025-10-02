@@ -382,6 +382,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import axios from 'axios';
 
 interface Quiz {
     id: number;
@@ -452,6 +453,7 @@ const timedOut = ref(false);
 const awaitingTimeoutResponse = ref(false); // Track if we're waiting for a timeout response
 let timerSyncInterval: number | undefined;
 const playerReady = ref(false);
+let timeoutForceAttempted = false; // Track if we've already attempted to force timeout
 
 // Helper function to get warning thresholds based on timer duration
 const getWarningThresholds = (duration: number) => {
@@ -498,6 +500,21 @@ watch(() => gameState.value?.status, (newStatus) => {
         startTimerSync();
     } else {
         stopTimerSync();
+    }
+});
+
+// Watch timeout state for better debugging and flow understanding
+watch([timedOut, awaitingTimeoutResponse, isMyTurn], ([newTimedOut, newAwaiting, newIsMyTurn], [oldTimedOut, oldAwaiting, oldIsMyTurn]) => {
+    if (newTimedOut && !oldTimedOut) {
+        console.log('Timeout state activated - waiting for server processing');
+    } else if (!newTimedOut && oldTimedOut) {
+        console.log('Timeout state cleared');
+    }
+    
+    if (newAwaiting && !oldAwaiting) {
+        console.log('Now awaiting timeout response from server');
+    } else if (!newAwaiting && oldAwaiting) {
+        console.log('Timeout response received or cleared');
     }
 });
 
@@ -683,18 +700,18 @@ const startTimerSync = () => {
     // Start local countdown and sync with server every few seconds
     timerSyncInterval = window.setInterval(() => {
         // Decrease timer locally for smooth countdown
-        if (timer.value > 0 && timerRunning.value) {
+        if (timer.value > 0 && timerRunning.value && !timedOut.value) {
             timer.value--;
             
             // Check for client-side timeout
             if (timer.value <= 0) {
+                timerRunning.value = false; // Stop the countdown immediately
                 handleTimeout();
-                // Force immediate state sync when timer reaches 0
-                console.log('Timer reached 0, forcing immediate state sync...');
+                // Single sync call after timeout to check server state
+                console.log('Timer reached 0, syncing with server...');
                 setTimeout(() => {
                     syncTimerStatus();
-                    fetchFreshGameState();
-                }, 500);
+                }, 1000);
             }
             
             // Play warning sounds based on local timer
@@ -710,8 +727,8 @@ const startTimerSync = () => {
             }
         }
         
-        // Sync with server every 5 seconds to ensure accuracy
-        if (Math.floor(Date.now() / 1000) % 3 === 0) {
+        // Sync with server every 3 seconds to ensure accuracy (but not if timed out)
+        if (Math.floor(Date.now() / 1000) % 3 === 0 && !timedOut.value) {
             syncTimerStatus();
         }
     }, 1000);
@@ -764,31 +781,34 @@ const syncTimerStatus = async () => {
             }
             
             // Handle timeout immediately if server reports 0
-            if (serverTime <= 0) {
+            if (serverTime <= 0 && !timedOut.value) {
                 console.log('Server reports timer expired, triggering timeout');
                 timerRunning.value = false;
                 handleTimeout();
-
-                setTimeout(() => {
-                    syncTimerStatus();
-                    fetchFreshGameState();
-                }, 500);
+            } else if (serverTime <= 0 && timedOut.value) {
+                console.log('Server confirms timer expired - already in timeout state');
+                timerRunning.value = false;
             }
         } else {
             console.log('Server reports no timer running');
             timerRunning.value = false;
             timer.value = 0;
             
-            // If it's my turn but no timer is running, there might be an expired timer issue
-            if (isMyTurn.value && !timedOut.value && !answerSubmitted.value) {
+            // If it's my turn but no timer is running AND I'm not in timeout state, check for issues
+            if (isMyTurn.value && !timedOut.value && !answerSubmitted.value && !awaitingTimeoutResponse.value) {
                 console.warn('No timer running but it\'s my turn - checking for timeout state');
                 // Force a timeout check via API
                 setTimeout(() => {
-                    if (isMyTurn.value && !timedOut.value && !answerSubmitted.value) {
+                    if (isMyTurn.value && !timedOut.value && !answerSubmitted.value && !awaitingTimeoutResponse.value) {
                         console.warn('Forcing timeout check due to inconsistent state');
                         forceTimeoutViaAPI();
                     }
                 }, 2000);
+            }
+            
+            // If I'm already timed out and server has no timer, this is expected - wait for turn change
+            if (timedOut.value && isMyTurn.value) {
+                console.log('Server has no timer running after timeout - waiting for turn change via WebSocket');
             }
         }
     } catch (error) {
@@ -815,85 +835,56 @@ const handleTimeout = () => {
             message: "⏰ Time's up! Your answer will be marked as incorrect..." 
         };
         
-        console.log('Client-side timeout detected, waiting for server confirmation');
+        console.log('Client-side timeout detected, forcing server timeout immediately');
         
-        // If server doesn't respond within 5 seconds, try to sync state and force timeout
-        setTimeout(() => {
-            if (awaitingTimeoutResponse.value && timedOut.value) {
-                console.warn('Server timeout confirmation delayed, trying fallback methods');
-                
-                // First try to fetch fresh state
-                fetchFreshGameState();
-                
-                // If still waiting after another 3 seconds, force timeout via API
-                setTimeout(() => {
-                    if (awaitingTimeoutResponse.value && timedOut.value && isMyTurn.value) {
-                        console.warn('Forcing timeout via API as final fallback');
-                        forceTimeoutViaAPI();
-                    }
-                }, 3000);
-            }
-        }, 5000);
+        // Force timeout immediately via API instead of waiting for WebSocket
+        forceTimeoutViaAPI();
     }
 };
 
-// Force timeout via API as final fallback
+// Force timeout via API immediately when timer expires
 const forceTimeoutViaAPI = async () => {
-    if (!gameState.value?.id || !isMyTurn.value) {
-        console.warn('Cannot force timeout - invalid game state or not my turn');
+    if (!gameState.value?.id || !isMyTurn.value || !timedOut.value) {
+        console.warn('Cannot force timeout - invalid game state, not my turn, or not timed out');
         return;
     }
     
+    console.log('Forcing timeout via API...');
+    
     try {
-        console.log('Attempting to force timeout via API...');
+        // Use axios which handles CSRF properly
+        const response = await axios.post(route('multiplayer-games.force-timeout', gameState.value.id));
         
-        const response = await fetch(route('multiplayer-games.force-timeout', gameState.value.id), {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
-            },
-            credentials: 'same-origin',
-        });
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log('Force timeout API response:', data);
-            
-            if (data.success) {
-                lastAction.value = { 
-                    type: 'error', 
-                    message: "⏰ Timeout processed! Your turn has ended." 
-                };
-                
-                // The timeout should trigger WebSocket events, but clear flags just in case
-                setTimeout(() => {
-                    awaitingTimeoutResponse.value = false;
-                    if (data.fallback) {
-                        // If fallback was used, reset manually since WebSocket might not fire
-                        resetForNextQuestion();
-                    }
-                }, 2000);
-            }
-        } else {
-            console.error('Force timeout API failed:', response.status, response.statusText);
-            
-            // Final fallback - just show timeout completed message
+        console.log('Timeout forced successfully:', response.data);
+        
+        if (response.data.success) {
             lastAction.value = { 
                 type: 'error', 
-                message: "⏰ Timer expired! Please wait for the next question." 
+                message: response.data.message || "⏰ Timeout processed! Turn ended." 
             };
+            
+            // Clear the awaiting flag since we got a response
             awaitingTimeoutResponse.value = false;
+            
+            // WebSocket should update the game state shortly
+        } else {
+            throw new Error(response.data.message || 'Timeout processing failed');
         }
-    } catch (error) {
-        console.error('Force timeout API call failed:', error);
+    } catch (error: any) {
+        console.error('Force timeout failed:', error);
         
-        // Final fallback - just show timeout completed message
+        let errorMessage = "⏰ Timer expired! Please wait for the next question.";
+        
+        // Handle axios error response
+        if (error.response?.data?.message) {
+            errorMessage = error.response.data.message;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
         lastAction.value = { 
             type: 'error', 
-            message: "⏰ Timer expired! Please wait for the next question." 
+            message: errorMessage
         };
         awaitingTimeoutResponse.value = false;
     }
@@ -908,6 +899,7 @@ const resetForNextQuestion = () => {
     answerSubmitted.value = false;
     timedOut.value = false;
     awaitingTimeoutResponse.value = false; // Clear the timeout response flag
+    timeoutForceAttempted = false; // Reset force timeout attempt flag
     
     // Reset timer - the server will provide the correct duration via WebSocket or sync
     timer.value = 0;
@@ -1045,13 +1037,9 @@ const fetchFreshGameState = async () => {
             }
             
             // If we were stuck with a timeout but the turn hasn't changed,
-            // and it's been more than a minute, the backend might need a nudge
+            // this is expected since we force timeout immediately now
             if (wasMyTurn && isMyTurn.value && timedOut.value) {
-                const timeoutAge = Date.now() - (timer.value < timerDuration.value ? (timerDuration.value - timer.value) * 1000 : 60000);
-                if (timeoutAge > 60000) { // Timeout was more than 1 minute ago
-                    console.warn('Timeout persisted after state sync, game may need server-side correction');
-                    // Don't reset the flags yet, let the next ping attempt to fix it
-                }
+                console.log('Timeout state active - waiting for server processing to complete');
             }
             
             // If game ended, handle it
@@ -1261,27 +1249,20 @@ onMounted(() => {
                         
                         console.log('Player timed out - answer auto-submitted as wrong');
                         
-                        // For timed out player, clear message after showing but don't reset until turn changes
-                        setTimeout(() => {
-                            lastAction.value = null;
-                        }, 4000);
-                        
                     } else {
-                        // Show opponent timeout message for non-timed-out player
+                        // Show opponent timeout message
                         lastAction.value = { 
                             type: 'error', 
                             message: `${e.additional_data.timed_out_player_name} timed out and lost their turn!` 
                         };
                         
                         console.log(`Opponent ${e.additional_data.timed_out_player_name} timed out`);
-                        
-                        // For non-timed-out player, clear message and reset normally
-                        setTimeout(() => {
-                            timedOut.value = false;
-                            lastAction.value = null;
-                            resetForNextQuestion();
-                        }, 4000);
                     }
+                    
+                    // Clear timeout message after showing it - let turn change handle the reset
+                    setTimeout(() => {
+                        lastAction.value = null;
+                    }, 4000);
                 }
 
                 // Update game state from websocket - use gameState instead of props.game
@@ -1375,17 +1356,21 @@ onMounted(() => {
                     console.log('Timeout response received via WebSocket');
                 }
 
-                // If it became my turn, reset for next question
+                // Handle turn changes consistently for both players
                 if (!wasMyTurn && isMyTurn.value) {
+                    // It became my turn - reset for next question
                     resetForNextQuestion();
                     console.log("It's now my turn, resetting for next question");
-                }
-                
-                // If I was timed out but it's now not my turn anymore, clear the timeout state
-                if (wasMyTurn && !isMyTurn.value && timedOut.value) {
-                    console.log('Turn changed away from timed out player, clearing timeout state');
-                    timedOut.value = false;
-                    awaitingTimeoutResponse.value = false;
+                } else if (wasMyTurn && !isMyTurn.value) {
+                    // It's no longer my turn - clear any timeout states and prepare for waiting
+                    if (timedOut.value) {
+                        console.log('Turn changed away from timed out player, clearing timeout state');
+                        timedOut.value = false;
+                        awaitingTimeoutResponse.value = false;
+                    }
+                    // Ensure we're in a clean waiting state
+                    submitting.value = false;
+                    console.log("No longer my turn, entering waiting state");
                 }
                 
                 // If it's still my turn after a timeout (meaning the game didn't progress properly),
