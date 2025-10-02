@@ -229,7 +229,7 @@ class MultiplayerGameController extends Controller
     /**
      * Join an existing multiplayer game.
      */
-    public function join(MultiplayerGame $multiplayerGame)
+    public function join(Request $request, MultiplayerGame $multiplayerGame)
     {
         // Check if game is waiting for a player
         if ($multiplayerGame->status !== MultiplayerGameStatus::WAITING) {
