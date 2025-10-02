@@ -286,45 +286,75 @@ class GameTimerService
      */
     protected function handleTimeout(MultiplayerGame $game): void
     {
+        \Log::info('Processing timeout for game', [
+            'game_id' => $game->id,
+            'current_turn' => $game->current_turn,
+            'status' => $game->status->value
+        ]);
+        
         try {
-            DB::transaction(function () use ($game) {
-                $game = $game->lockForUpdate();
-                
-                // Stop the timer
-                $this->stopTimer($game->id);
-                
-                if (!$game->isActive()) {
-                    return;
-                }
-                
-                $currentPlayer = $game->getCurrentPlayer();
-                if (!$currentPlayer) {
-                    return;
-                }
-                
-                // Record timeout as incorrect answer
-                if ($game->current_turn === 1) {
-                    $game->increment('total_questions_p1');
-                    $game->player_one_streak = 0; // Break streak
-                } else {
-                    $game->increment('total_questions_p2');
-                    $game->player_two_streak = 0; // Break streak
-                }
-                
-                // Update accuracies
-                $game->player_one_accuracy = $game->getPlayerOneAccuracy();
-                $game->player_two_accuracy = $game->getPlayerTwoAccuracy();
-                $game->save();
-                
-                // Switch turn
-                $game->switchTurn();
-                
-                // Broadcast timeout event with retry mechanism
-                $this->broadcastTimeoutEvent($game->fresh(), $currentPlayer);
-                
-                // Start timer for next turn
+            // Get current player info directly from the game data
+            $currentPlayerId = $game->current_turn === 1 ? $game->player_one_id : $game->player_two_id;
+            $currentPlayerName = $game->current_turn === 1 ? 'Player 1' : 'Player 2';
+            
+            \Log::info('Processing timeout', [
+                'game_id' => $game->id,
+                'current_turn' => $game->current_turn,
+                'current_player_id' => $currentPlayerId
+            ]);
+            
+            // Stop the timer first
+            $this->stopTimer($game->id);
+            
+            // Update game state directly without transaction for now to avoid relationship issues
+            $gameId = $game->id;
+            $currentTurn = $game->current_turn;
+            
+            // Record timeout as incorrect answer
+            if ($currentTurn === 1) {
+                MultiplayerGame::where('id', $gameId)->increment('total_questions_p1');
+                MultiplayerGame::where('id', $gameId)->update(['player_one_streak' => 0]);
+            } else {
+                MultiplayerGame::where('id', $gameId)->increment('total_questions_p2');
+                MultiplayerGame::where('id', $gameId)->update(['player_two_streak' => 0]);
+            }
+            
+            // Switch turn
+            $newTurn = $currentTurn === 1 ? 2 : 1;
+            MultiplayerGame::where('id', $gameId)->update(['current_turn' => $newTurn]);
+            
+            // Refresh game model
+            $game->refresh();
+            
+            // Update accuracies
+            $game->player_one_accuracy = $game->getPlayerOneAccuracy();
+            $game->player_two_accuracy = $game->getPlayerTwoAccuracy();
+            $game->save();
+            
+            \Log::info('Timeout processed successfully', [
+                'game_id' => $gameId,
+                'old_turn' => $currentTurn,
+                'new_turn' => $game->current_turn
+            ]);
+            
+            // Broadcast timeout event
+            $this->broadcastSimpleTimeoutEvent($game, $currentPlayerId, $currentPlayerName);
+            
+            // Only start timer for next turn if game is still active and has available questions
+            if ($game->isActive() && $game->getAvailableQuizzes()->count() > 0) {
+                \Log::info('Starting new timer after timeout for next turn', [
+                    'game_id' => $game->id,
+                    'new_turn' => $game->current_turn,
+                    'available_quizzes' => $game->getAvailableQuizzes()->count()
+                ]);
                 $this->startTimer($game->id);
-            });
+            } else {
+                \Log::info('Game ended after timeout, not starting new timer', [
+                    'game_id' => $game->id,
+                    'status' => $game->status->value,
+                    'available_quizzes' => $game->getAvailableQuizzes()->count()
+                ]);
+            }
         } catch (\Exception $e) {
             \Log::error('Timer timeout handling failed', [
                 'game_id' => $game->id,
@@ -390,7 +420,38 @@ class GameTimerService
     }
     
     /**
-     * Broadcast timeout event with retry mechanism
+     * Broadcast timeout event with simplified player data
+     */
+    protected function broadcastSimpleTimeoutEvent(MultiplayerGame $game, int $playerId, string $playerName): void
+    {
+        try {
+            $timeoutData = [
+                'timed_out_player' => $playerId,
+                'timed_out_player_name' => $playerName,
+                'current_turn' => $game->current_turn,
+                'message' => $playerName . ' timed out!',
+                'timestamp' => now()->timestamp,
+            ];
+
+            // Primary broadcast
+            broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_timeout', $timeoutData));
+            
+            \Log::info('Timeout event broadcasted', [
+                'game_id' => $game->id,
+                'timed_out_player' => $playerId,
+                'current_turn' => $game->current_turn
+            ]);
+            
+        } catch (\Exception $e) {
+            \Log::error('Timeout broadcast failed', [
+                'game_id' => $game->id,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Broadcast timeout event with retry mechanism (legacy method)
      */
     protected function broadcastTimeoutEvent(MultiplayerGame $game, $currentPlayer): void
     {
@@ -532,16 +593,26 @@ class GameTimerService
             $timerData = Cache::get($timerKey);
             
             if (!$timerData) {
-                // No timer data but game is active with a turn - this is a stuck state
-                if ($game->current_turn > 0) {
-                    \Log::warning('Found game with no timer during active turn, recovering', [
-                        'game_id' => $gameId,
-                        'current_turn' => $game->current_turn,
-                        'status' => $game->status->value
-                    ]);
+                // No timer data but game is active with a turn - check if this is really stuck
+                if ($game->current_turn > 0 && $game->getAvailableQuizzes()->count() > 0) {
+                    // Check if this might be a recent timeout being processed
+                    $activityKey = "game_activity_{$gameId}";
+                    $lastActivity = Cache::get($activityKey);
+                    $timeSinceLastActivity = $lastActivity ? (now()->timestamp - $lastActivity) : 0;
                     
-                    // Start timer to recover from stuck state
-                    $this->startTimer($gameId, false);
+                    // Only recover if it's been stuck for more than 30 seconds
+                    // This prevents interfering with normal timeout processing
+                    if ($timeSinceLastActivity > 30) {
+                        \Log::warning('Found genuinely stuck game, recovering', [
+                            'game_id' => $gameId,
+                            'current_turn' => $game->current_turn,
+                            'status' => $game->status->value,
+                            'time_since_activity' => $timeSinceLastActivity
+                        ]);
+                        
+                        // Start timer to recover from stuck state
+                        $this->startTimer($gameId, false);
+                    }
                 }
                 
                 // Clean up activity cache
