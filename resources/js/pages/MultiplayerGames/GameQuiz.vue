@@ -689,6 +689,12 @@ const startTimerSync = () => {
             // Check for client-side timeout
             if (timer.value <= 0) {
                 handleTimeout();
+                // Force immediate state sync when timer reaches 0
+                console.log('Timer reached 0, forcing immediate state sync...');
+                setTimeout(() => {
+                    syncTimerStatus();
+                    fetchFreshGameState();
+                }, 500);
             }
             
             // Play warning sounds based on local timer
@@ -762,6 +768,11 @@ const syncTimerStatus = async () => {
                 console.log('Server reports timer expired, triggering timeout');
                 timerRunning.value = false;
                 handleTimeout();
+
+                setTimeout(() => {
+                    syncTimerStatus();
+                    fetchFreshGameState();
+                }, 500);
             }
         } else {
             console.log('Server reports no timer running');
