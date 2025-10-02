@@ -185,12 +185,14 @@
                             <span 
                                 :class="[
                                     'text-sm font-semibold pixel-outline',
-                                    timer > 10 ? 'text-blue-500' : timer > 5 ? 'text-yellow-500' : 'text-red-500'
+                                    inGracePeriod ? 'text-orange-500' : timer > 10 ? 'text-blue-500' : timer > 5 ? 'text-yellow-500' : 'text-red-500'
                                 ]"
                             > 
-                                ⏱️ Time left: {{ timer }}s 
+                                <span v-if="inGracePeriod">⚡ Grace period</span>
+                                <span v-else>⏱️ Time left: {{ timer }}s</span>
                             </span>
                             <div 
+                                v-if="!inGracePeriod"
                                 :class="[
                                     'w-16 h-2 bg-gray-700 rounded-full overflow-hidden',
                                     timer <= 5 ? 'animate-pulse' : ''
@@ -199,13 +201,20 @@
                                 <div 
                                     :class="[
                                         'h-full transition-all duration-1000 ease-linear',
-                                        timer > 20 ? 'bg-green-500' : timer > 10 ? 'bg-yellow-500' : 'bg-red-500'
+                                        getTimerColor(timer, timerDuration)
                                     ]"
-                                    :style="{ width: `${(timer / TIMER_DURATION) * 100}%` }"
+                                    :style="{ width: `${(timer / timerDuration) * 100}%` }"
                                 ></div>
                             </div>
+                            <div 
+                                v-else
+                                class="w-16 h-2 bg-gray-700 rounded-full overflow-hidden animate-pulse"
+                            >
+                                <div class="h-full bg-orange-500 animate-pulse"></div>
+                            </div>
                         </div>
-                        <span v-if="timer === 0" class="text-sm text-red-500 pixel-outline animate-pulse">⏰ Time's up!</span>
+                        <span v-if="timer === 0 && !inGracePeriod" class="text-sm text-red-500 pixel-outline animate-pulse">⏰ Time's up!</span>
+                        <span v-else-if="inGracePeriod" class="text-sm text-orange-500 pixel-outline animate-bounce">⚡ Submit quickly!</span>
                     </div>
 
                     <!-- Multiple Choice -->
@@ -276,11 +285,16 @@
                     <div class="mt-4 flex justify-end">
                         <button
                             @click="() => submitAnswer()"
-                            :disabled="!selectedAnswer || answerSubmitted || submitting || timedOut"
-                            class="inline-flex items-center pixel-outline rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 disabled:opacity-50"
+                            :disabled="!selectedAnswer || answerSubmitted || submitting || (timedOut && !inGracePeriod)"
+                            :class="[
+                                'inline-flex items-center pixel-outline rounded-md px-4 py-2 text-sm font-medium text-white transition-colors focus:ring-2 focus:ring-offset-2 disabled:opacity-50',
+                                inGracePeriod ? 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500 animate-pulse' : 'bg-green-600 hover:bg-green-700 focus:ring-green-500'
+                            ]"
                         >
                             <span v-if="submitting" class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></span>
-                            {{ submitting ? 'Submitting...' : 'Submit Answer' }}
+                            <span v-if="submitting">Submitting...</span>
+                            <span v-else-if="inGracePeriod">⚡ Submit Now!</span>
+                            <span v-else>Submit Answer</span>
                         </button>
                     </div>
                 </div>
@@ -439,12 +453,38 @@ const gameEndAnimation = ref(false);
 const soundEnabled = ref(true);
 
 // Timer constraint - now managed by server
-const TIMER_DURATION = 30; // seconds per question (for display purposes)
+const DEFAULT_TIMER_DURATION = 30; // default seconds per question (for display purposes)
 const timer = ref(0);
+const timerDuration = ref(DEFAULT_TIMER_DURATION); // actual duration for current question
 const timerRunning = ref(false);
 const timedOut = ref(false);
+const inGracePeriod = ref(false);
 const awaitingTimeoutResponse = ref(false); // Track if we're waiting for a timeout response
 let timerSyncInterval: number | undefined;
+const playerReady = ref(false);
+
+// Helper function to get warning thresholds based on timer duration
+const getWarningThresholds = (duration: number) => {
+    if (duration >= 120) { // 2+ minutes
+        return { first: 60, second: 30 };
+    } else if (duration >= 60) { // 1-2 minutes
+        return { first: 30, second: 15 };
+    } else { // Less than 1 minute
+        return { first: 10, second: 5 };
+    }
+};
+
+// Helper function to get timer color based on remaining time and total duration
+const getTimerColor = (remaining: number, total: number) => {
+    const percentage = (remaining / total) * 100;
+    if (percentage > 66) {
+        return 'bg-green-500';
+    } else if (percentage > 33) {
+        return 'bg-yellow-500';
+    } else {
+        return 'bg-red-500';
+    }
+};
 
 // Computed properties
 const currentQuiz = computed(() => currentQuestion.value);
@@ -663,6 +703,22 @@ const stopTimerSync = () => {
     timerRunning.value = false;
 };
 
+// Mark player as ready (page loaded and ready to play)
+const markPlayerReady = async () => {
+    if (!gameState.value?.id || playerReady.value) return;
+    
+    try {
+        await router.post(route('multiplayer-games.ready', gameState.value.id), {}, {
+            preserveState: true,
+            preserveScroll: true,
+        });
+        playerReady.value = true;
+        console.log('Player marked as ready');
+    } catch (error) {
+        console.error('Failed to mark player as ready:', error);
+    }
+};
+
 // Sync with server timer status
 const syncTimerStatus = async () => {
     if (!gameState.value?.id) return;
@@ -673,13 +729,16 @@ const syncTimerStatus = async () => {
         
         if (data.timer.is_running) {
             timer.value = data.timer.remaining_time;
+            timerDuration.value = data.timer.duration || DEFAULT_TIMER_DURATION; // Update actual duration
             timerRunning.value = true;
+            inGracePeriod.value = false;
             
-            // Play warning sounds
+            // Play warning sounds based on dynamic timer duration
             if (soundEnabled.value) {
-                if (timer.value === 10) {
+                const warningThresholds = getWarningThresholds(timerDuration.value);
+                if (timer.value === warningThresholds.first) {
                     playWarningSound();
-                } else if (timer.value === 5) {
+                } else if (timer.value === warningThresholds.second) {
                     playUrgentWarningSound();
                 } else if (timer.value <= 3 && timer.value > 0) {
                     playCountdownSound();
@@ -715,7 +774,7 @@ const resetForNextQuestion = () => {
     answerSubmitted.value = false;
     timedOut.value = false;
     awaitingTimeoutResponse.value = false; // Clear the timeout response flag
-    timer.value = TIMER_DURATION;
+    timer.value = timerDuration.value;
     // Timer is now managed by server, just sync status
     syncTimerStatus();
 };
@@ -851,7 +910,7 @@ const fetchFreshGameState = async () => {
             // If we were stuck with a timeout but the turn hasn't changed,
             // and it's been more than a minute, the backend might need a nudge
             if (wasMyTurn && isMyTurn.value && timedOut.value) {
-                const timeoutAge = Date.now() - (timer.value < TIMER_DURATION ? (TIMER_DURATION - timer.value) * 1000 : 60000);
+                const timeoutAge = Date.now() - (timer.value < timerDuration.value ? (timerDuration.value - timer.value) * 1000 : 60000);
                 if (timeoutAge > 60000) { // Timeout was more than 1 minute ago
                     console.warn('Timeout persisted after state sync, game may need server-side correction');
                     // Don't reset the flags yet, let the next ping attempt to fix it
@@ -999,13 +1058,31 @@ onMounted(() => {
                         }, 4000);
                     }
                 } else if (e.event_type === 'timer_started') {
-                    timer.value = e.additional_data?.timer_duration || 30;
+                    const duration = e.additional_data?.timer_duration || DEFAULT_TIMER_DURATION;
+                    timer.value = duration;
+                    timerDuration.value = duration;
                     timerRunning.value = true;
                     timedOut.value = false;
+                    inGracePeriod.value = false;
                     startTimerSync();
+                } else if (e.event_type === 'timer_delayed') {
+                    // Timer is delayed waiting for players to load
+                    lastAction.value = { 
+                        type: 'success', 
+                        message: e.additional_data?.message || 'Waiting for players to load...' 
+                    };
                 } else if (e.event_type === 'timer_stopped') {
                     timerRunning.value = false;
+                    inGracePeriod.value = false;
                     stopTimerSync();
+                } else if (e.event_type === 'timer_grace_period' && e.additional_data) {
+                    // Timer expired but still in grace period
+                    inGracePeriod.value = true;
+                    timer.value = 0;
+                    lastAction.value = { 
+                        type: 'error', 
+                        message: `Grace period: ${e.additional_data.grace_seconds_remaining}s remaining to submit!` 
+                    };
                 } else if (e.event_type === 'timer_warning' && e.additional_data) {
                     timer.value = e.additional_data.remaining_time;
                     // Play warning sound based on warning point
@@ -1174,6 +1251,9 @@ onMounted(() => {
         lastAction.value = { type: 'error', message: 'Real-time connection not available' };
     }
 
+    // Mark player as ready (page loaded)
+    markPlayerReady();
+    
     // Start timer sync immediately if game is active
     if (gameState.value?.status === 'active') {
         startTimerSync();

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\MultiplayerGame;
+use App\Models\Quiz;
 use App\Enums\MultiplayerGameStatus;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -10,39 +11,150 @@ use Carbon\Carbon;
 
 class GameTimerService
 {
-    const TIMER_DURATION = 30; // seconds per question
+    const BASE_TIMER_DURATION = 30; // base seconds per question
+    const ENUMERATION_MULTIPLIER = 30; // seconds per enumeration item
+    const TIMER_GRACE_PERIOD = 5; // seconds of grace period after timer expires
     const INACTIVITY_FORFEIT_DURATION = 120; // 2 minutes of total inactivity = forfeit
+    const PAGE_LOAD_GRACE_PERIOD = 10; // seconds to wait for page load before starting timer
     
     /**
-     * Start timer for a game turn
+     * Calculate timer duration based on question type
      */
-    public function startTimer(int $gameId): void
+    protected function calculateTimerDuration(MultiplayerGame $game): int
+    {
+        $currentQuestion = $game->getCurrentQuestion();
+        
+        if (!$currentQuestion) {
+            return self::BASE_TIMER_DURATION;
+        }
+        
+        switch ($currentQuestion->type) {
+            case 'enumeration':
+                // Count the number of answers expected
+                $answerCount = is_array($currentQuestion->answers) 
+                    ? count($currentQuestion->answers) 
+                    : (is_string($currentQuestion->answers) ? count(explode(',', $currentQuestion->answers)) : 1);
+                    
+                // Give 30 seconds per enumeration item, minimum 30 seconds
+                return max(self::BASE_TIMER_DURATION, $answerCount * self::ENUMERATION_MULTIPLIER);
+                
+            case 'multiple_choice':
+                return self::BASE_TIMER_DURATION;
+                
+            case 'true_false':
+                return self::BASE_TIMER_DURATION;
+                
+            default:
+                return self::BASE_TIMER_DURATION;
+        }
+    }
+    
+    /**
+     * Start timer for a game turn (with optional delay)
+     */
+    public function startTimer(int $gameId, bool $withGracePeriod = true): void
     {
         $timerKey = "game_timer_{$gameId}";
         $activityKey = "game_activity_{$gameId}";
         
+        // Check if both players are ready before starting timer
+        $readyKey = "game_players_ready_{$gameId}";
+        $playersReady = Cache::get($readyKey, []);
+        
+        $game = MultiplayerGame::find($gameId);
+        if (!$game) return;
+        
+        // Calculate timer duration based on question type
+        $timerDuration = $this->calculateTimerDuration($game);
+        
+        // If grace period is enabled and not all players are ready, wait
+        if ($withGracePeriod && count($playersReady) < 2) {
+            $this->startTimerWithDelay($gameId, self::PAGE_LOAD_GRACE_PERIOD);
+            return;
+        }
+        
         $timerData = [
             'game_id' => $gameId,
             'started_at' => now()->timestamp,
-            'duration' => self::TIMER_DURATION,
-            'warnings_sent' => []
+            'duration' => $timerDuration,
+            'warnings_sent' => [],
+            'grace_period_used' => false,
+            'question_type' => $game->getCurrentQuestion()?->type ?? 'unknown'
         ];
         
-        // Store timer data in cache with expiration slightly longer than timer duration
-        Cache::put($timerKey, $timerData, now()->addSeconds(self::TIMER_DURATION + 10));
+        // Store timer data in cache with expiration longer than timer duration + grace period
+        Cache::put($timerKey, $timerData, now()->addSeconds($timerDuration + self::TIMER_GRACE_PERIOD + 10));
         
         // Update activity timestamp
         Cache::put($activityKey, now()->timestamp, now()->addMinutes(10));
         
         // Broadcast timer start to players
+        broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_started', [
+            'timer_duration' => $timerDuration,
+            'started_at' => now()->timestamp,
+            'current_turn' => $game->current_turn,
+            'grace_period' => self::TIMER_GRACE_PERIOD,
+            'question_type' => $game->getCurrentQuestion()?->type ?? 'unknown',
+        ]));
+    }
+    
+    /**
+     * Start timer with a delay to allow for page loading
+     */
+    private function startTimerWithDelay(int $gameId, int $delaySeconds): void
+    {
+        $delayKey = "game_timer_delay_{$gameId}";
+        Cache::put($delayKey, now()->addSeconds($delaySeconds)->timestamp, now()->addMinutes(5));
+        
         $game = MultiplayerGame::find($gameId);
         if ($game) {
-            broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_started', [
-                'timer_duration' => self::TIMER_DURATION,
-                'started_at' => now()->timestamp,
+            broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_delayed', [
+                'delay_seconds' => $delaySeconds,
+                'message' => 'Waiting for players to load...',
                 'current_turn' => $game->current_turn,
             ]));
         }
+    }
+    
+    /**
+     * Mark a player as ready (page loaded)
+     */
+    public function markPlayerReady(int $gameId, int $playerId): void
+    {
+        $readyKey = "game_players_ready_{$gameId}";
+        $playersReady = Cache::get($readyKey, []);
+        
+        if (!in_array($playerId, $playersReady)) {
+            $playersReady[] = $playerId;
+            Cache::put($readyKey, $playersReady, now()->addMinutes(10));
+            
+            // If both players are now ready and timer is delayed, start immediately
+            if (count($playersReady) >= 2) {
+                $delayKey = "game_timer_delay_{$gameId}";
+                if (Cache::has($delayKey)) {
+                    Cache::forget($delayKey);
+                    $this->startTimer($gameId, false); // Start without additional grace period
+                }
+            }
+        }
+    }
+    
+    /**
+     * Check if answer submission is allowed (including grace period)
+     */
+    public function isSubmissionAllowed(int $gameId): bool
+    {
+        $timerKey = "game_timer_{$gameId}";
+        $timerData = Cache::get($timerKey);
+        
+        if (!$timerData) {
+            return true; // No timer running, allow submission
+        }
+        
+        $elapsedTime = now()->timestamp - $timerData['started_at'];
+        $gracePeriodEnd = $timerData['duration'] + self::TIMER_GRACE_PERIOD;
+        
+        return $elapsedTime <= $gracePeriodEnd;
     }
     
     /**
@@ -123,20 +235,45 @@ class GameTimerService
     protected function processGameTimer(MultiplayerGame $game): void
     {
         $timerKey = "game_timer_{$game->id}";
-        $timerData = Cache::get($timerKey);
+        $delayKey = "game_timer_delay_{$game->id}";
         
+        // Check if timer is delayed waiting for players
+        if (Cache::has($delayKey)) {
+            $delayUntil = Cache::get($delayKey);
+            if (now()->timestamp >= $delayUntil) {
+                Cache::forget($delayKey);
+                $this->startTimer($game->id, false); // Start timer now
+            }
+            return; // Still waiting for delay to expire
+        }
+        
+        $timerData = Cache::get($timerKey);
         if (!$timerData) {
             return; // No timer running
         }
         
         $remainingTime = $this->getRemainingTime($game->id);
+        $elapsedTime = now()->timestamp - $timerData['started_at'];
+        $gracePeriodEnd = $timerData['duration'] + self::TIMER_GRACE_PERIOD;
         
-        // Send warnings at specific intervals
-        $this->sendTimerWarnings($game, $remainingTime, $timerData);
+        // Send warnings at specific intervals (but not during grace period)
+        if ($remainingTime > 0) {
+            $this->sendTimerWarnings($game, $remainingTime, $timerData);
+        }
         
-        // Handle timeout
-        if ($remainingTime <= 0) {
+        // Handle timeout (only after grace period expires)
+        if ($elapsedTime > $gracePeriodEnd) {
             $this->handleTimeout($game);
+        } else if ($remainingTime <= 0 && !$timerData['grace_period_used']) {
+            // Timer expired but still in grace period - notify players
+            $timerData['grace_period_used'] = true;
+            Cache::put($timerKey, $timerData, now()->addSeconds(self::TIMER_GRACE_PERIOD + 10));
+            
+            broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_grace_period', [
+                'grace_seconds_remaining' => $gracePeriodEnd - $elapsedTime,
+                'message' => 'Timer expired - grace period active',
+                'current_turn' => $game->current_turn,
+            ]));
         }
     }
     
@@ -145,19 +282,42 @@ class GameTimerService
      */
     protected function sendTimerWarnings(MultiplayerGame $game, int $remainingTime, array &$timerData): void
     {
-        $warningPoints = [10, 5, 3, 2, 1]; // seconds
+        $duration = $timerData['duration'];
+        
+        // Dynamic warning points based on duration
+        $warningPoints = [];
+        
+        // Always warn at final countdown
+        $warningPoints = [3, 2, 1];
+        
+        // Add proportional warnings based on duration
+        if ($duration >= 30) {
+            $warningPoints[] = 10;
+            $warningPoints[] = 5;
+        }
+        if ($duration >= 60) {
+            $warningPoints[] = 30;
+            $warningPoints[] = 15;
+        }
+        if ($duration >= 120) {
+            $warningPoints[] = 60;
+        }
+        
+        // Sort in descending order
+        rsort($warningPoints);
         
         foreach ($warningPoints as $warningPoint) {
             if ($remainingTime <= $warningPoint && !in_array($warningPoint, $timerData['warnings_sent'])) {
                 // Mark warning as sent
                 $timerData['warnings_sent'][] = $warningPoint;
-                Cache::put("game_timer_{$game->id}", $timerData, now()->addSeconds(self::TIMER_DURATION + 10));
+                Cache::put("game_timer_{$game->id}", $timerData, now()->addSeconds($duration + self::TIMER_GRACE_PERIOD + 10));
                 
                 // Broadcast warning
                 broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_warning', [
                     'remaining_time' => $remainingTime,
                     'warning_point' => $warningPoint,
                     'current_turn' => $game->current_turn,
+                    'question_type' => $timerData['question_type'] ?? 'unknown',
                 ]));
                 
                 break; // Only send one warning per check
@@ -283,11 +443,40 @@ class GameTimerService
      */
     public function getTimerStatus(int $gameId): array
     {
+        $timerKey = "game_timer_{$gameId}";
+        $timerData = Cache::get($timerKey);
+        $isRunning = $this->isTimerRunning($gameId);
+        $remainingTime = $this->getRemainingTime($gameId);
+        
+        // Get the actual duration from timer data or calculate it
+        $duration = self::BASE_TIMER_DURATION;
+        if ($timerData && isset($timerData['duration'])) {
+            $duration = $timerData['duration'];
+        } else {
+            // Calculate duration for the current game
+            $game = MultiplayerGame::find($gameId);
+            if ($game) {
+                $duration = $this->calculateTimerDuration($game);
+            }
+        }
+        
+        // Check if we're in grace period
+        $inGracePeriod = false;
+        if ($timerData && $remainingTime <= 0) {
+            $elapsedTime = now()->timestamp - $timerData['started_at'];
+            $gracePeriodEnd = $timerData['duration'] + self::TIMER_GRACE_PERIOD;
+            $inGracePeriod = $elapsedTime <= $gracePeriodEnd;
+        }
+        
         return [
-            'is_running' => $this->isTimerRunning($gameId),
-            'remaining_time' => $this->getRemainingTime($gameId),
-            'duration' => self::TIMER_DURATION,
+            'is_running' => $isRunning,
+            'remaining_time' => $remainingTime,
+            'duration' => $duration,
+            'grace_period' => self::TIMER_GRACE_PERIOD,
+            'in_grace_period' => $inGracePeriod,
+            'submission_allowed' => $this->isSubmissionAllowed($gameId),
             'last_activity' => $this->getLastActivity($gameId),
+            'question_type' => $timerData['question_type'] ?? 'unknown',
         ];
     }
     

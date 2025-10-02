@@ -130,6 +130,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/game/{gameCode}', [App\Http\Controllers\MultiplayerGameController::class, 'joinByCodeUrl'])->name('multiplayer-games.join-url');
     Route::get('/multiplayer-games/{multiplayerGame}/state', [App\Http\Controllers\MultiplayerGameController::class, 'getGameState'])->name('multiplayer-games.state');
     Route::get('/multiplayer-games/{multiplayerGame}/timer', [App\Http\Controllers\MultiplayerGameController::class, 'getTimerStatus'])->name('multiplayer-games.timer');
+    Route::post('/multiplayer-games/{multiplayerGame}/ready', [App\Http\Controllers\MultiplayerGameController::class, 'markPlayerReady'])->name('multiplayer-games.ready');
     Route::post('/multiplayer-games/{multiplayerGame}/ping', [App\Http\Controllers\MultiplayerGameController::class, 'pingGameState'])->name('multiplayer-games.ping');
 
     // Quest routes

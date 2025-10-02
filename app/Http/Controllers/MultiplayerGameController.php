@@ -257,9 +257,9 @@ class MultiplayerGameController extends Controller
         // Start the game
         $multiplayerGame->startGame();
         
-        // Initialize activity tracking and start first timer
+        // Initialize activity tracking and start first timer with grace period
         $this->timerService->updateActivity($multiplayerGame->id);
-        $this->timerService->startTimer($multiplayerGame->id);
+        $this->timerService->startTimer($multiplayerGame->id, true); // Enable grace period for initial timer
 
         // Broadcast the game start to both players
         broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame->fresh(), 'game_started', [
@@ -359,6 +359,11 @@ class MultiplayerGameController extends Controller
             if (($isPlayerOne && $multiplayerGame->current_turn !== 1) ||
                 ($isPlayerTwo && $multiplayerGame->current_turn !== 2)) {
                 return back()->withErrors(['turn' => 'It is not your turn.']);
+            }
+            
+            // Check if submission is allowed (includes grace period for high latency)
+            if (!$this->timerService->isSubmissionAllowed($multiplayerGame->id)) {
+                return back()->withErrors(['timer' => 'Submission time has expired.']);
             }
 
             // Double-check the game hasn't ended while we were processing
@@ -885,6 +890,26 @@ class MultiplayerGameController extends Controller
             'timer' => $this->timerService->getTimerStatus($multiplayerGame->id),
             'game_status' => $multiplayerGame->status->value,
             'current_turn' => $multiplayerGame->current_turn,
+        ]);
+    }
+    
+    /**
+     * Mark player as ready (page loaded and ready to play)
+     */
+    public function markPlayerReady(MultiplayerGame $multiplayerGame)
+    {
+        // Check if user is part of this game
+        if ($multiplayerGame->player_one_id !== Auth::id() && $multiplayerGame->player_two_id !== Auth::id()) {
+            return response()->json(['error' => 'You are not part of this game.'], 403);
+        }
+        
+        // Mark player as ready
+        $this->timerService->markPlayerReady($multiplayerGame->id, Auth::id());
+        $this->timerService->updateActivity($multiplayerGame->id);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Player marked as ready'
         ]);
     }
 
