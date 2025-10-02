@@ -610,6 +610,7 @@ const props = defineProps<{
     waitingGames: PaginatedGames;
     myGames: PaginatedGames;
     collection_id?: number;
+    game_code?: string;
 }>();
 
 // Tab state
@@ -679,6 +680,12 @@ const showJoinByCode = ref(false);
 const gameCodeForm = useForm({
     game_code: '',
 });
+
+// Initialize game code form if game_code is provided via URL
+if (props.game_code) {
+    showJoinByCode.value = true;
+    gameCodeForm.game_code = props.game_code;
+}
 
 const joinByCode = () => {
     gameCodeForm.post(route('multiplayer-games.join-by-code'), {

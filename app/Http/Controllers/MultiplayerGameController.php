@@ -117,10 +117,8 @@ class MultiplayerGameController extends Controller
             'last_activity' => now(),
         ];
 
-        // Generate game code if private
-        if ($gameData['is_private']) {
-            $gameData['game_code'] = MultiplayerGame::generateGameCode();
-        }
+        // Generate game code for all games (both public and private)
+        $gameData['game_code'] = MultiplayerGame::generateGameCode();
 
         // Add file or collection
         if ($request->source_type === 'file') {
@@ -301,6 +299,11 @@ class MultiplayerGameController extends Controller
         // Pass collection_id if provided for pre-selection
         if ($request->has('collection_id')) {
             $data['collection_id'] = (int) $request->input('collection_id');
+        }
+
+        // Pass game_code if provided for pre-filling join by code form
+        if ($request->has('game_code')) {
+            $data['game_code'] = $request->input('game_code');
         }
 
         return Inertia::render('MultiplayerGames/Lobby', $data);
@@ -1137,6 +1140,48 @@ class MultiplayerGameController extends Controller
         }
 
         // Join the game
+        return $this->join($game);
+    }
+
+    /**
+     * Handle joining a game via URL with game code
+     */
+    public function joinByCodeUrl(string $gameCode)
+    {
+        $game = MultiplayerGame::findByCode($gameCode);
+
+        if (!$game) {
+            // Redirect to lobby with error message and pre-fill the code
+            return redirect()->route('multiplayer-games.lobby', ['game_code' => $gameCode])
+                           ->withErrors(['game_code' => 'Game not found with this code.']);
+        }
+
+        // Check if game is waiting for a player
+        if ($game->status !== MultiplayerGameStatus::WAITING) {
+            // If game is active and user is a participant, redirect to game
+            if ($game->status === MultiplayerGameStatus::ACTIVE && 
+                ($game->player_one_id === Auth::id() || $game->player_two_id === Auth::id())) {
+                return redirect()->route('multiplayer-games.show', $game->id);
+            }
+            
+            // Otherwise redirect to lobby with error
+            return redirect()->route('multiplayer-games.lobby', ['game_code' => $gameCode])
+                           ->withErrors(['game_code' => 'This game is not available to join.']);
+        }
+
+        // Check if user is not already player one
+        if ($game->player_one_id === Auth::id()) {
+            // If user is the creator and game is waiting, redirect to waiting room
+            return redirect()->route('multiplayer-games.show', $game->id);
+        }
+
+        // Check if there's already a second player
+        if ($game->player_two_id !== null) {
+            return redirect()->route('multiplayer-games.lobby', ['game_code' => $gameCode])
+                           ->withErrors(['game_code' => 'This game is already full.']);
+        }
+
+        // Join the game directly
         return $this->join($game);
     }
 }

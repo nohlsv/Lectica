@@ -236,6 +236,11 @@ const waitTime = ref(0);
 
 // Computed properties
 const gameUrl = computed(() => {
+    // Use game code for a more user-friendly URL (works for both private and public games)
+    if (props.game.game_code) {
+        return `${window.location.origin}/game/${props.game.game_code}`;
+    }
+    // Fallback to game ID if no code is available
     return `${window.location.origin}/multiplayer-games/${props.game.id}`;
 });
 
