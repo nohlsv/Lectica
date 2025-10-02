@@ -679,10 +679,39 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
 // Timer is now managed by server - these functions handle WebSocket updates
 const startTimerSync = () => {
     stopTimerSync();
-    // Poll timer status every second for smooth countdown display
+    
+    // Start local countdown and sync with server every few seconds
     timerSyncInterval = window.setInterval(() => {
-        syncTimerStatus();
+        // Decrease timer locally for smooth countdown
+        if (timer.value > 0 && timerRunning.value) {
+            timer.value--;
+            
+            // Check for client-side timeout
+            if (timer.value <= 0) {
+                handleTimeout();
+            }
+            
+            // Play warning sounds based on local timer
+            if (soundEnabled.value) {
+                const warningThresholds = getWarningThresholds(timerDuration.value);
+                if (timer.value === warningThresholds.first) {
+                    playWarningSound();
+                } else if (timer.value === warningThresholds.second) {
+                    playUrgentWarningSound();
+                } else if (timer.value <= 3 && timer.value > 0) {
+                    playCountdownSound();
+                }
+            }
+        }
+        
+        // Sync with server every 5 seconds to ensure accuracy
+        if (Math.floor(Date.now() / 1000) % 3 === 0) {
+            syncTimerStatus();
+        }
     }, 1000);
+    
+    // Also sync immediately
+    syncTimerStatus();
 };
 
 const stopTimerSync = () => {
@@ -718,27 +747,24 @@ const syncTimerStatus = async () => {
         const data = await response.json();
         
         if (data.timer.is_running) {
-            timer.value = data.timer.remaining_time;
-            timerDuration.value = data.timer.duration || DEFAULT_TIMER_DURATION; // Update actual duration
+            const serverTime = data.timer.remaining_time;
+            timerDuration.value = data.timer.duration || DEFAULT_TIMER_DURATION;
             timerRunning.value = true;
             
-            // Play warning sounds based on dynamic timer duration
-            if (soundEnabled.value) {
-                const warningThresholds = getWarningThresholds(timerDuration.value);
-                if (timer.value === warningThresholds.first) {
-                    playWarningSound();
-                } else if (timer.value === warningThresholds.second) {
-                    playUrgentWarningSound();
-                } else if (timer.value <= 3 && timer.value > 0) {
-                    playCountdownSound();
-                }
+            // Only update local timer if there's a significant difference (> 2 seconds)
+            // This allows smooth local countdown while correcting for drift
+            if (Math.abs(timer.value - serverTime) > 2) {
+                console.log(`Timer sync: adjusting from ${timer.value}s to ${serverTime}s`);
+                timer.value = serverTime;
             }
             
-            if (timer.value <= 0) {
+            if (serverTime <= 0) {
                 handleTimeout();
             }
         } else {
             timerRunning.value = false;
+            // If server says timer is not running, stop local countdown
+            timer.value = 0;
         }
     } catch (error) {
         console.error('Failed to sync timer status:', error);
@@ -766,13 +792,85 @@ const handleTimeout = () => {
         
         console.log('Client-side timeout detected, waiting for server confirmation');
         
-        // If server doesn't respond within 5 seconds, try to sync state
+        // If server doesn't respond within 5 seconds, try to sync state and force timeout
         setTimeout(() => {
             if (awaitingTimeoutResponse.value && timedOut.value) {
-                console.warn('Server timeout confirmation delayed, fetching fresh state');
+                console.warn('Server timeout confirmation delayed, trying fallback methods');
+                
+                // First try to fetch fresh state
                 fetchFreshGameState();
+                
+                // If still waiting after another 3 seconds, force timeout via API
+                setTimeout(() => {
+                    if (awaitingTimeoutResponse.value && timedOut.value && isMyTurn.value) {
+                        console.warn('Forcing timeout via API as final fallback');
+                        forceTimeoutViaAPI();
+                    }
+                }, 3000);
             }
         }, 5000);
+    }
+};
+
+// Force timeout via API as final fallback
+const forceTimeoutViaAPI = async () => {
+    if (!gameState.value?.id || !isMyTurn.value) {
+        console.warn('Cannot force timeout - invalid game state or not my turn');
+        return;
+    }
+    
+    try {
+        console.log('Attempting to force timeout via API...');
+        
+        const response = await fetch(route('multiplayer-games.force-timeout', gameState.value.id), {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
+            credentials: 'same-origin',
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Force timeout API response:', data);
+            
+            if (data.success) {
+                lastAction.value = { 
+                    type: 'error', 
+                    message: "⏰ Timeout processed! Your turn has ended." 
+                };
+                
+                // The timeout should trigger WebSocket events, but clear flags just in case
+                setTimeout(() => {
+                    awaitingTimeoutResponse.value = false;
+                    if (data.fallback) {
+                        // If fallback was used, reset manually since WebSocket might not fire
+                        resetForNextQuestion();
+                    }
+                }, 2000);
+            }
+        } else {
+            console.error('Force timeout API failed:', response.status, response.statusText);
+            
+            // Final fallback - just show timeout completed message
+            lastAction.value = { 
+                type: 'error', 
+                message: "⏰ Timer expired! Please wait for the next question." 
+            };
+            awaitingTimeoutResponse.value = false;
+        }
+    } catch (error) {
+        console.error('Force timeout API call failed:', error);
+        
+        // Final fallback - just show timeout completed message
+        lastAction.value = { 
+            type: 'error', 
+            message: "⏰ Timer expired! Please wait for the next question." 
+        };
+        awaitingTimeoutResponse.value = false;
     }
 };
 
@@ -785,9 +883,12 @@ const resetForNextQuestion = () => {
     answerSubmitted.value = false;
     timedOut.value = false;
     awaitingTimeoutResponse.value = false; // Clear the timeout response flag
-    timer.value = timerDuration.value;
-    // Timer is now managed by server, just sync status
-    syncTimerStatus();
+    
+    // Reset timer - the server will provide the correct duration via WebSocket or sync
+    timer.value = 0;
+    timerRunning.value = false;
+    
+    console.log('Reset for next question - waiting for timer to start');
 };
 
 // Watch for question change to reset enumeration fields
@@ -1080,6 +1181,9 @@ onMounted(() => {
                     timerDuration.value = duration;
                     timerRunning.value = true;
                     timedOut.value = false;
+                    awaitingTimeoutResponse.value = false;
+                    
+                    console.log(`Timer started: ${duration}s for question type:`, e.additional_data?.question_type);
                     startTimerSync();
                 } else if (e.event_type === 'timer_delayed') {
                     // Timer is delayed waiting for players to load
@@ -1093,7 +1197,13 @@ onMounted(() => {
                 } else if (e.event_type === 'timer_grace_period' && e.additional_data) {
                     // Grace period handled silently - no UI changes needed
                 } else if (e.event_type === 'timer_warning' && e.additional_data) {
-                    timer.value = e.additional_data.remaining_time;
+                    // Sync timer if there's a significant difference, but don't override local countdown
+                    const serverTime = e.additional_data.remaining_time;
+                    if (Math.abs(timer.value - serverTime) > 2) {
+                        console.log(`Timer warning sync: adjusting from ${timer.value}s to ${serverTime}s`);
+                        timer.value = serverTime;
+                    }
+                    
                     // Play warning sound based on warning point
                     if (soundEnabled.value && e.additional_data.warning_point) {
                         if (e.additional_data.warning_point === 10) {

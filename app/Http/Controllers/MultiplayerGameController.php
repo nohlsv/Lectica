@@ -951,6 +951,68 @@ class MultiplayerGameController extends Controller
     }
 
     /**
+     * Manual timeout trigger as fallback - forces timeout for current player
+     */
+    public function forceTimeout(Request $request, MultiplayerGame $multiplayerGame)
+    {
+        // Verify this is the current player's turn
+        $isPlayerOne = $multiplayerGame->player_one_id === Auth::id();
+        $isPlayerTwo = $multiplayerGame->player_two_id === Auth::id();
+
+        if (!$isPlayerOne && !$isPlayerTwo) {
+            return response()->json(['error' => 'You are not part of this game.'], 403);
+        }
+
+        if (($isPlayerOne && $multiplayerGame->current_turn !== 1) ||
+            ($isPlayerTwo && $multiplayerGame->current_turn !== 2)) {
+            return response()->json(['error' => 'It is not your turn.'], 400);
+        }
+
+        if (!$multiplayerGame->isActive()) {
+            return response()->json(['error' => 'Game is not active.'], 400);
+        }
+
+        // Force timeout through timer service
+        $success = $this->timerService->forceTimeout($multiplayerGame->id);
+        
+        if ($success) {
+            \Log::info('Manual timeout triggered successfully', [
+                'game_id' => $multiplayerGame->id,
+                'player_id' => Auth::id(),
+                'turn' => $multiplayerGame->current_turn
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Timeout processed successfully'
+            ]);
+        } else {
+            \Log::warning('Manual timeout via service failed, using fallback broadcast', [
+                'game_id' => $multiplayerGame->id,
+                'player_id' => Auth::id()
+            ]);
+
+            // Fallback: broadcast timeout event directly
+            $currentPlayer = $multiplayerGame->getCurrentPlayer();
+            if ($currentPlayer) {
+                broadcast(new \App\Events\MultiplayerGameUpdated($multiplayerGame, 'timer_timeout', [
+                    'timed_out_player' => $currentPlayer->id,
+                    'timed_out_player_name' => $currentPlayer->first_name,
+                    'current_turn' => $multiplayerGame->current_turn,
+                    'message' => $currentPlayer->first_name . ' timed out!',
+                    'fallback_triggered' => true,
+                ]));
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Timeout broadcast sent (fallback)',
+                'fallback' => true
+            ]);
+        }
+    }
+
+    /**
      * Get final game results for broadcasting
      */
     private function getFinalGameResults(MultiplayerGame $multiplayerGame): array

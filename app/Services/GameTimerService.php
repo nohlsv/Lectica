@@ -359,13 +359,8 @@ class GameTimerService
                 // Switch turn
                 $game->switchTurn();
                 
-                // Broadcast timeout event
-                broadcast(new \App\Events\MultiplayerGameUpdated($game->fresh(), 'timer_timeout', [
-                    'timed_out_player' => $currentPlayer->id,
-                    'timed_out_player_name' => $currentPlayer->first_name,
-                    'current_turn' => $game->current_turn,
-                    'message' => $currentPlayer->first_name . ' timed out!',
-                ]));
+                // Broadcast timeout event with retry mechanism
+                $this->broadcastTimeoutEvent($game->fresh(), $currentPlayer);
                 
                 // Start timer for next turn
                 $this->startTimer($game->id);
@@ -431,6 +426,93 @@ class GameTimerService
                 'game_id' => $game->id,
                 'error' => $e->getMessage()
             ]);
+        }
+    }
+    
+    /**
+     * Broadcast timeout event with retry mechanism
+     */
+    protected function broadcastTimeoutEvent(MultiplayerGame $game, $currentPlayer): void
+    {
+        try {
+            $timeoutData = [
+                'timed_out_player' => $currentPlayer->id,
+                'timed_out_player_name' => $currentPlayer->first_name,
+                'current_turn' => $game->current_turn,
+                'message' => $currentPlayer->first_name . ' timed out!',
+                'timestamp' => now()->timestamp,
+            ];
+
+            // Primary broadcast
+            broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_timeout', $timeoutData));
+            
+            \Log::info('Timeout event broadcasted', [
+                'game_id' => $game->id,
+                'timed_out_player' => $currentPlayer->id,
+                'current_turn' => $game->current_turn
+            ]);
+            
+            // Ensure broadcast with a slight delay as backup
+            dispatch(function () use ($game, $timeoutData) {
+                try {
+                    broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_timeout', array_merge($timeoutData, [
+                        'backup_broadcast' => true
+                    ])));
+                } catch (\Exception $e) {
+                    \Log::error('Backup timeout broadcast failed', [
+                        'game_id' => $game->id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            })->delay(now()->addSeconds(1));
+            
+        } catch (\Exception $e) {
+            \Log::error('Primary timeout broadcast failed', [
+                'game_id' => $game->id,
+                'timed_out_player' => $currentPlayer->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            // Final fallback - try simple broadcast
+            try {
+                broadcast(new \App\Events\MultiplayerGameUpdated($game, 'timer_timeout', [
+                    'timed_out_player' => $currentPlayer->id,
+                    'timed_out_player_name' => $currentPlayer->first_name,
+                    'fallback_broadcast' => true,
+                ]));
+            } catch (\Exception $finalError) {
+                \Log::critical('All timeout broadcasts failed', [
+                    'game_id' => $game->id,
+                    'error' => $finalError->getMessage()
+                ]);
+            }
+        }
+    }
+
+    /**
+     * Force timeout for a game (public method for controller fallback)
+     */
+    public function forceTimeout(int $gameId): bool
+    {
+        try {
+            $game = MultiplayerGame::find($gameId);
+            if (!$game || !$game->isActive()) {
+                return false;
+            }
+            
+            \Log::info('Forcing timeout via public method', [
+                'game_id' => $gameId,
+                'current_turn' => $game->current_turn
+            ]);
+            
+            $this->handleTimeout($game);
+            return true;
+        } catch (\Exception $e) {
+            \Log::error('Force timeout failed', [
+                'game_id' => $gameId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
         }
     }
     
