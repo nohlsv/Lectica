@@ -543,6 +543,14 @@ class MultiplayerGameController extends Controller
 
 
     /**
+     * Process damage for timeout (called from GameTimerService)
+     */
+    public function processDamageForTimeout(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne, &$damageDealt, &$damageReceived)
+    {
+        $this->processDamage($multiplayerGame, $isCorrect, $isPlayerOne, $damageDealt, $damageReceived);
+    }
+
+    /**
      * Process scoring based on game mode and answer correctness
      */
     private function processDamage(MultiplayerGame $multiplayerGame, bool $isCorrect, bool $isPlayerOne, &$damageDealt, &$damageReceived)

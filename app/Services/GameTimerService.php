@@ -341,7 +341,12 @@ class GameTimerService
             $game->refresh();
             
             // Process damage for timeout (treated as incorrect answer)
-            $damageInfo = $this->processTimeoutDamage($game, $currentTurn === 1);
+            $damageDealt = 0;
+            $damageReceived = 0;
+            
+            // Use the controller's damage processing logic
+            app(\App\Http\Controllers\MultiplayerGameController::class)
+                ->processDamageForTimeout($game, false, $currentTurn === 1, $damageDealt, $damageReceived);
             
             // Update accuracies
             $game->player_one_accuracy = $game->getPlayerOneAccuracy();
@@ -352,11 +357,15 @@ class GameTimerService
                 'game_id' => $gameId,
                 'old_turn' => $currentTurn,
                 'new_turn' => $game->current_turn,
-                'damage_dealt' => $damageInfo['damage_dealt'],
-                'damage_received' => $damageInfo['damage_received']
+                'damage_dealt' => $damageDealt,
+                'damage_received' => $damageReceived
             ]);
             
             // Broadcast timeout event with damage info
+            $damageInfo = [
+                'damage_dealt' => $damageDealt,
+                'damage_received' => $damageReceived
+            ];
             $this->broadcastSimpleTimeoutEvent($game, $currentPlayerId, $currentPlayerName, $damageInfo);
             
             // Only start timer for next turn if game is still active and has available questions
@@ -438,45 +447,6 @@ class GameTimerService
         }
     }
     
-    /**
-     * Process damage for timeout (treated as incorrect answer)
-     */
-    protected function processTimeoutDamage(MultiplayerGame $game, bool $isPlayerOne): array
-    {
-        $damageDealt = 0;
-        $damageReceived = 0;
-        
-        // PvP games only - check PvP mode
-        if ($game->pvp_mode === 'hp') {
-            // HP-based PvP: self-damage for timeout (incorrect answer)
-            $damage = 5; // Self-damage for timeout in PvP HP mode
-            $damageReceived = $damage;
-            
-            if ($isPlayerOne) {
-                $newPlayerHp = max(0, $game->player_one_hp - $damage);
-                $game->update(['player_one_hp' => $newPlayerHp]);
-            } else {
-                $newPlayerHp = max(0, $game->player_two_hp - $damage);
-                $game->update(['player_two_hp' => $newPlayerHp]);
-            }
-            
-            \Log::info('Timeout HP damage applied', [
-                'game_id' => $game->id,
-                'player' => $isPlayerOne ? 1 : 2,
-                'damage' => $damage,
-                'new_hp' => $isPlayerOne ? $game->player_one_hp : $game->player_two_hp
-            ]);
-        } else {
-            // Accuracy-based PvP: visual indicator for timeout
-            $damageReceived = 5; // Visual indicator for timeout
-        }
-        
-        return [
-            'damage_dealt' => $damageDealt,
-            'damage_received' => $damageReceived
-        ];
-    }
-
     /**
      * Broadcast timeout event with simplified player data
      */
