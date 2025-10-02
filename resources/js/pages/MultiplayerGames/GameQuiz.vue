@@ -1260,22 +1260,28 @@ onMounted(() => {
                         };
                         
                         console.log('Player timed out - answer auto-submitted as wrong');
+                        
+                        // For timed out player, clear message after showing but don't reset until turn changes
+                        setTimeout(() => {
+                            lastAction.value = null;
+                        }, 4000);
+                        
                     } else {
-                        // Show opponent timeout message
+                        // Show opponent timeout message for non-timed-out player
                         lastAction.value = { 
                             type: 'error', 
                             message: `${e.additional_data.timed_out_player_name} timed out and lost their turn!` 
                         };
                         
                         console.log(`Opponent ${e.additional_data.timed_out_player_name} timed out`);
+                        
+                        // For non-timed-out player, clear message and reset normally
+                        setTimeout(() => {
+                            timedOut.value = false;
+                            lastAction.value = null;
+                            resetForNextQuestion();
+                        }, 4000);
                     }
-                    
-                    // Clear timeout and reset for next question after showing message
-                    setTimeout(() => {
-                        timedOut.value = false;
-                        lastAction.value = null;
-                        resetForNextQuestion();
-                    }, 4000); // Show message a bit longer for timeout
                 }
 
                 // Update game state from websocket - use gameState instead of props.game
@@ -1373,6 +1379,13 @@ onMounted(() => {
                 if (!wasMyTurn && isMyTurn.value) {
                     resetForNextQuestion();
                     console.log("It's now my turn, resetting for next question");
+                }
+                
+                // If I was timed out but it's now not my turn anymore, clear the timeout state
+                if (wasMyTurn && !isMyTurn.value && timedOut.value) {
+                    console.log('Turn changed away from timed out player, clearing timeout state');
+                    timedOut.value = false;
+                    awaitingTimeoutResponse.value = false;
                 }
                 
                 // If it's still my turn after a timeout (meaning the game didn't progress properly),
