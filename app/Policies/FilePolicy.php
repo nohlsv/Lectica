@@ -65,10 +65,11 @@ class FilePolicy
     }
 
     /**
-     * Determine whether the user can verify the file.
+     * Determine whether the user can verify files.
      */
-    public function verify(User $user): bool
+    public function verify(User $user, ?File $file = null): bool
     {
+        // Faculty and admin can verify files from any college
         return in_array($user->user_role, ['faculty', 'admin']);
     }
 }

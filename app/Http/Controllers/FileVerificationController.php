@@ -25,17 +25,45 @@ class FileVerificationController extends Controller
 			->where('is_denied', false)
 			->with(['user', 'user.program']);
 
-		// Filter by college if the user is faculty (not admin)
-		if ($user->isFaculty() && $user->college) {
-			$query->whereHas('user.program', function ($q) use ($user) {
-				$q->where('college', $user->college);
-			});
+		// Get filter parameters
+		$collegeFilter = $request->get('college', 'my_college'); // Default to 'my_college'
+		$showAllColleges = $request->boolean('show_all_colleges', false);
+
+		// Apply college filtering logic
+		if (($user->isFaculty() || $user->isAdmin()) && $user->college) {
+			if ($collegeFilter === 'my_college' && !$showAllColleges) {
+				// Default: Show only files from user's college
+				$query->whereHas('user.program', function ($q) use ($user) {
+					$q->where('college', $user->college);
+				});
+			} elseif ($collegeFilter !== 'all' && $collegeFilter !== 'my_college') {
+				// Show files from specific college
+				$query->whereHas('user.program', function ($q) use ($collegeFilter) {
+					$q->where('college', $collegeFilter);
+				});
+			}
+			// If $showAllColleges is true or $collegeFilter is 'all', no additional filtering (show all colleges)
+		} elseif ($user->isFaculty() && !$user->college) {
+			// Faculty without college sees all files (fallback)
 		}
 
 		$files = $query->paginate(10)->withQueryString();
 
+		// Get all available colleges for filter dropdown
+		$availableColleges = \App\Models\Program::distinct()
+			->whereNotNull('college')
+			->pluck('college')
+			->sort()
+			->values();
+
 		return Inertia::render('Files/Verify', [
 			'files' => $files,
+			'filters' => [
+				'college' => $collegeFilter,
+				'show_all_colleges' => $showAllColleges,
+			],
+			'user_college' => $user->college,
+			'available_colleges' => $availableColleges,
 		]);
 	}
 
