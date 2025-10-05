@@ -42,7 +42,7 @@
                         </div>
 
                         <!-- Game Stats -->
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="bg-gray-800/50 p-4 rounded-lg">
                                 <div class="text-sm font-medium text-gray-300">Questions Answered</div>
                                 <div class="text-2xl font-bold text-white">{{ stats.total_questions }}</div>
@@ -57,56 +57,16 @@
                                     {{ stats.accuracy }}%
                                 </div>
                             </div>
-                            <div class="bg-gray-800/50 p-4 rounded-lg">
-                                <div class="text-sm font-medium text-gray-300">Players</div>
-                                <div class="text-2xl font-bold text-blue-400">{{ game.participants.length }}</div>
-                            </div>
-                        </div>
-
-                        <!-- Participants -->
-                        <div class="mt-4">
-                            <div class="text-sm font-medium text-gray-300 mb-2">Participants:</div>
-                            <div class="flex flex-wrap gap-2">
-                                <span 
-                                    v-for="participant in game.participants" 
-                                    :key="participant.id"
-                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                                >
-                                    {{ participant.user.name }}
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Tabs for Your Answers vs All Answers -->
+                <!-- Question Timeline -->
                 <div class="bg-container overflow-hidden shadow-sm sm:rounded-lg">
-                    <div class="border-b border-gray-600">
-                        <nav class="-mb-px flex">
-                            <button
-                                @click="activeTab = 'your-answers'"
-                                :class="activeTab === 'your-answers' 
-                                    ? 'border-maroon-500 text-maroon-400' 
-                                    : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'"
-                                class="w-1/2 py-2 px-1 text-center border-b-2 font-medium text-sm"
-                            >
-                                Your Answers
-                            </button>
-                            <button
-                                @click="activeTab = 'all-answers'"
-                                :class="activeTab === 'all-answers' 
-                                    ? 'border-maroon-500 text-maroon-400' 
-                                    : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-500'"
-                                class="w-1/2 py-2 px-1 text-center border-b-2 font-medium text-sm"
-                            >
-                                All Player Answers
-                            </button>
-                        </nav>
-                    </div>
-
                     <div class="p-6">
-                        <!-- Your Answers Tab -->
-                        <div v-if="activeTab === 'your-answers'" class="space-y-4">
+                        <h4 class="text-lg font-semibold text-white mb-4">Question Timeline</h4>
+                        
+                        <div class="space-y-4">
                             <div 
                                 v-for="(answer, index) in answers" 
                                 :key="answer.id"
@@ -117,11 +77,11 @@
                                     <div class="flex-1">
                                         <!-- Question Number and Status -->
                                         <div class="flex items-center mb-2">
-                                            <span class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">
+                                            <span class="bg-gray-700 text-gray-200 text-xs font-medium px-2.5 py-0.5 rounded-full mr-2">
                                                 Question {{ index + 1 }}
                                             </span>
                                             <span 
-                                                :class="answer.is_correct ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'" 
+                                                :class="answer.is_correct ? 'bg-green-900/50 text-green-300 border border-green-400' : 'bg-red-900/50 text-red-300 border border-red-400'" 
                                                 class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                                             >
                                                 <svg v-if="answer.is_correct" class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -136,33 +96,56 @@
 
                                         <!-- Question -->
                                         <div class="mb-3">
-                                            <h5 class="font-medium text-gray-900">{{ answer.quiz.question }}</h5>
+                                            <h5 class="font-medium text-white">{{ answer.quiz.question }}</h5>
                                         </div>
 
                                         <!-- Quiz Type Badge -->
                                         <div class="mb-2">
-                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                                            <span class="bg-blue-600 text-blue-100 text-xs font-medium px-2.5 py-0.5 rounded">
                                                 {{ formatQuizType(answer.quiz.type) }}
                                             </span>
                                         </div>
 
                                         <!-- Your Answer -->
                                         <div class="mb-2">
-                                            <div class="text-sm text-gray-600">Your Answer:</div>
-                                            <div class="font-medium" :class="answer.is_correct ? 'text-green-600' : 'text-red-600'">
+                                            <div class="text-sm text-gray-300">Your Answer:</div>
+                                            <div class="font-medium" :class="answer.is_correct ? 'text-green-400' : 'text-red-400'">
                                                 {{ formatAnswer(answer.user_answer) }}
                                             </div>
                                         </div>
 
                                         <!-- Correct Answer (if wrong) -->
                                         <div v-if="!answer.is_correct" class="mb-2">
-                                            <div class="text-sm text-gray-600">Correct Answer:</div>
-                                            <div class="font-medium text-green-600">{{ getCorrectAnswer(answer.quiz) }}</div>
+                                            <div class="text-sm text-gray-300">Correct Answer:</div>
+                                            <div class="font-medium text-green-400">{{ getCorrectAnswer(answer.quiz) }}</div>
+                                        </div>
+
+                                        <!-- Options for Multiple Choice -->
+                                        <div v-if="answer.quiz.type === 'multiple_choice' && answer.quiz.options" class="mb-2">
+                                            <div class="text-sm text-gray-300">Options:</div>
+                                            <div class="grid grid-cols-2 gap-1 text-sm">
+                                                <div 
+                                                    v-for="(option, optIndex) in answer.quiz.options" 
+                                                    :key="optIndex"
+                                                    class="p-1 rounded"
+                                                    :class="isCorrectOption(option, answer.quiz) ? 'bg-green-800/50 text-green-300' : 'bg-gray-800/50 text-gray-300'"
+                                                >
+                                                    {{ String.fromCharCode(65 + optIndex) }}. {{ option }}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Explanation if available -->
+                                        <div v-if="answer.quiz.explanation" class="mb-2">
+                                            <div class="text-sm text-gray-300">Explanation:</div>
+                                            <div class="text-sm text-gray-200 bg-blue-900/50 p-2 rounded">
+                                                {{ answer.quiz.explanation }}
+                                            </div>
                                         </div>
                                     </div>
 
                                     <!-- Timestamp -->
-                                    <div class="ml-4 flex-shrink-0 text-sm text-gray-500">
+                                    <div class="ml-4 flex-shrink-0 text-sm text-gray-400">
                                         {{ formatTime(answer.answered_at) }}
                                     </div>
                                 </div>
@@ -170,69 +153,12 @@
 
                             <!-- Empty State -->
                             <div v-if="answers.length === 0" class="text-center py-8">
-                                <div class="text-gray-500">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <div class="text-gray-400">
+                                    <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                                     </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No answers recorded</h3>
-                                    <p class="mt-1 text-sm text-gray-500">You haven't answered any questions in this game yet.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- All Answers Tab -->
-                        <div v-else class="space-y-6">
-                            <div v-for="(userAnswers, userId) in allAnswers" :key="userId" class="border border-gray-200 rounded-lg p-4">
-                                <div class="mb-4">
-                                    <h4 class="font-semibold text-gray-900">{{ getUserName(userId) }}</h4>
-                                    <div class="text-sm text-gray-500">
-                                        {{ userAnswers.length }} questions answered
-                                    </div>
-                                </div>
-
-                                <div class="space-y-3">
-                                    <div 
-                                        v-for="(answer, index) in userAnswers" 
-                                        :key="answer.id"
-                                        class="border-l-2 pl-3"
-                                        :class="answer.is_correct ? 'border-green-400' : 'border-red-400'"
-                                    >
-                                        <div class="flex items-start justify-between">
-                                            <div class="flex-1">
-                                                <div class="flex items-center mb-1">
-                                                    <span class="text-sm font-medium text-gray-700">
-                                                        Q{{ index + 1 }}: {{ truncateQuestion(answer.quiz.question) }}
-                                                    </span>
-                                                </div>
-                                                <div class="text-sm">
-                                                    <span class="text-gray-600">Answer:</span>
-                                                    <span :class="answer.is_correct ? 'text-green-600' : 'text-red-600'" class="font-medium ml-1">
-                                                        {{ formatAnswer(answer.user_answer) }}
-                                                    </span>
-                                                    <span 
-                                                        :class="answer.is_correct ? 'text-green-600' : 'text-red-600'" 
-                                                        class="ml-2 text-xs"
-                                                    >
-                                                        {{ answer.is_correct ? '✓' : '✗' }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div class="ml-2 text-xs text-gray-400">
-                                                {{ formatTime(answer.answered_at) }}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Empty State for All Answers -->
-                            <div v-if="Object.keys(allAnswers).length === 0" class="text-center py-8">
-                                <div class="text-gray-500">
-                                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                    </svg>
-                                    <h3 class="mt-2 text-sm font-medium text-gray-900">No answers recorded</h3>
-                                    <p class="mt-1 text-sm text-gray-500">No players have answered questions in this game yet.</p>
+                                    <h3 class="mt-2 text-sm font-medium text-white">No answers recorded</h3>
+                                    <p class="mt-1 text-sm text-gray-400">You haven't answered any questions in this game yet.</p>
                                 </div>
                             </div>
                         </div>
@@ -259,11 +185,7 @@ export default {
         allAnswers: Object,
         stats: Object
     },
-    data() {
-        return {
-            activeTab: 'your-answers'
-        }
-    },
+
     methods: {
         formatAnswer(answer) {
             if (typeof answer === 'object') {
@@ -313,18 +235,17 @@ export default {
             }
             return classes[status] || 'bg-gray-100 text-gray-800'
         },
-        getUserName(userId) {
-            const participant = this.game.participants.find(p => p.user_id == userId)
-            return participant ? participant.user.name : 'Unknown User'
-        },
-        truncateQuestion(question) {
-            return question.length > 50 ? question.substring(0, 50) + '...' : question
-        },
         getCorrectAnswer(quiz) {
             if (quiz.answers && Array.isArray(quiz.answers)) {
                 return quiz.answers[0]; // Return first correct answer
             }
             return quiz.answers || 'No correct answer';
+        },
+        isCorrectOption(option, quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers.includes(option);
+            }
+            return quiz.answers === option;
         }
     }
 }

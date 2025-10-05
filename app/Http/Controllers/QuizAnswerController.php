@@ -150,7 +150,22 @@ class QuizAnswerController extends Controller
         ];
 
         $game->load(['playerOne', 'playerTwo', 'file', 'collection']);
-        $game->participants = $game->participants(); // Add participants as attribute
+        
+        // Manually create participants array to ensure it's properly serialized
+        $participants = [];
+        if ($game->playerOne) {
+            $participants[] = [
+                'user_id' => $game->player_one_id,
+                'user' => $game->playerOne
+            ];
+        }
+        if ($game->playerTwo) {
+            $participants[] = [
+                'user_id' => $game->player_two_id,
+                'user' => $game->playerTwo
+            ];
+        }
+        $game->participants = $participants;
         
         return Inertia::render('QuizAnswers/MultiplayerAnswers', [
             'game' => $game,
@@ -179,7 +194,21 @@ class QuizAnswerController extends Controller
         } elseif ($answer->context_type === 'multiplayer' && $answer->context_id) {
             $context = MultiplayerGame::with(['playerOne', 'playerTwo', 'file', 'collection'])->find($answer->context_id);
             if ($context) {
-                $context->participants = $context->participants(); // Add participants as attribute
+                // Manually create participants array to ensure it's properly serialized
+                $participants = [];
+                if ($context->playerOne) {
+                    $participants[] = [
+                        'user_id' => $context->player_one_id,
+                        'user' => $context->playerOne
+                    ];
+                }
+                if ($context->playerTwo) {
+                    $participants[] = [
+                        'user_id' => $context->player_two_id,
+                        'user' => $context->playerTwo
+                    ];
+                }
+                $context->participants = $participants;
             }
         }
 
