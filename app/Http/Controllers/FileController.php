@@ -373,7 +373,9 @@ class FileController extends Controller
         return response(Storage::get($filePath), 200, [
             'Content-Type' => $mimeType,
             'Content-Disposition' => 'inline; filename="' . $file->name . '.' . $extension . '"',
-            'Cache-Control' => 'private, max-age=3600',
+            'Cache-Control' => 'public, max-age=3600',
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET',
         ]);
     }
 

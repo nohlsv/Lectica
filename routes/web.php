@@ -149,6 +149,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/games/{id}/forfeit', [GameController::class, 'forfeit'])->name('games.forfeit');
 });
 
+// Public file serving (no authentication required)
+Route::get('/files/{file}/serve', [App\Http\Controllers\FileController::class, 'serve'])
+    ->name('files.serve');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     require __DIR__ . '/files.php';
     Route::get('/statistics', [App\Http\Controllers\StatisticsController::class, 'index'])->name('statistics.index');
