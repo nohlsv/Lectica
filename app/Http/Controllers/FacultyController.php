@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\College;
 use App\Models\Program;
 use App\Models\Tag;
 use Illuminate\Http\Request;
@@ -40,6 +41,7 @@ class FacultyController extends Controller
         return Inertia::render('Faculty/Update', [
             'programs' => $programs,
             'tags' => $tags,
+            'colleges' => College::labels(),
         ]);
     }
 
@@ -52,7 +54,7 @@ class FacultyController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:programs,name',
             'code' => 'required|string|max:20|unique:programs,code',
-            'college' => 'required|string|max:255',
+            'college' => ['required', 'string', Rule::in(College::values())],
         ]);
 
         $program = Program::create($validated);
@@ -79,7 +81,7 @@ class FacultyController extends Controller
                 'max:20',
                 Rule::unique('programs', 'code')->ignore($program->id),
             ],
-            'college' => 'required|string|max:255',
+            'college' => ['required', 'string', Rule::in(College::values())],
         ]);
 
         $program->update($validated);

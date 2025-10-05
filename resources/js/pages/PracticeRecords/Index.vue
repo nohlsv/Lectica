@@ -12,13 +12,10 @@
                         :key="group.file.id"
                         class="pixel-outline flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4 shadow"
                     >
-                        <h2
-                            class="cursor-pointer text-lg font-semibold text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]"
-                            @click="toggleGroup(group.file.id)"
-                        >
+                        <h2 class="text-lg font-semibold text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">
                             {{ group.file.name }}
                         </h2>
-                        <div v-if="expandedGroups[group.file.id]" class="mt-2">
+                        <div class="mt-2">
                             <div v-for="attempt in group.attempts" :key="attempt.id" class="mb-2">
                                 <div class="flex items-center justify-between">
                                     <span>
@@ -36,7 +33,7 @@
                                     </span>
                                     <Link
                                         :href="route('practice-records.show', attempt.id)"
-                                        class="text-primary pixel-outline ml-2 rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-base tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]"
+                                        class="text-white pixel-outline ml-2 rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-base tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]"
                                     >
                                         View Details
                                     </Link>
@@ -45,9 +42,6 @@
                             <div v-if="group.attempts.length > 1" class="mt-4">
                                 <canvas :ref="setChartRef(group.file.id)" class="h-32 w-full"></canvas>
                             </div>
-                        </div>
-                        <div v-else class="mt-2 text-xs text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">
-                            Click to show attempts
                         </div>
                     </div>
                 </div>
@@ -60,7 +54,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
-import { nextTick, ref } from 'vue';
+import { nextTick, onMounted, ref } from 'vue';
 
 interface Attempt {
     id: number;
@@ -81,27 +75,15 @@ interface Props {
     groupedRecords: GroupedRecord[];
 }
 const props = defineProps<Props>();
-const expandedGroups = ref<{ [key: number]: boolean }>({});
 const chartRefs = ref<{ [key: number]: HTMLCanvasElement | null }>({});
 const chartInstances = ref<{ [key: number]: Chart | null }>({});
 
 function setChartRef(fileId: number) {
-    // Only set the ref, do not render chart here to avoid recursive updates
-    return (el: HTMLCanvasElement | null) => {
-        chartRefs.value[fileId] = el;
-    };
-}
-function toggleGroup(fileId: number) {
-    expandedGroups.value[fileId] = !expandedGroups.value[fileId];
-    if (expandedGroups.value[fileId]) {
-        // Wait for DOM update, then render chart
-        nextTick(() => renderChart(fileId));
-    } else {
-        if (chartInstances.value[fileId]) {
-            chartInstances.value[fileId].destroy();
-            chartInstances.value[fileId] = null;
+    return (el: any) => {
+        if (el && el instanceof HTMLCanvasElement) {
+            chartRefs.value[fileId] = el;
         }
-    }
+    };
 }
 function renderChart(fileId: number) {
     const group = props.groupedRecords.find((g) => g.file.id === fileId);
@@ -118,13 +100,13 @@ function renderChart(fileId: number) {
     // Chart.js plugin for outlined text
     const outlinedTextPlugin = {
         id: 'outlinedText',
-        beforeDraw: (chart) => {
+        beforeDraw: (chart: any) => {
             const ctx = chart.ctx;
             ctx.save();
             ctx.shadowColor = '#0c0a03';
             ctx.shadowBlur = 4;
         },
-        afterDraw: (chart) => {
+        afterDraw: (chart: any) => {
             const ctx = chart.ctx;
             ctx.shadowColor = 'transparent';
             ctx.shadowBlur = 0;
@@ -195,6 +177,18 @@ function renderChart(fileId: number) {
         plugins: [outlinedTextPlugin],
     });
 }
+
+// Render charts for all groups on mount
+onMounted(() => {
+    nextTick(() => {
+        props.groupedRecords.forEach((group) => {
+            if (group.attempts.length > 1) {
+                renderChart(group.file.id);
+            }
+        });
+    });
+});
+
 function formatDate(dateStr: string) {
     const date = new Date(dateStr);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });

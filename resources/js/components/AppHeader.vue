@@ -177,7 +177,7 @@ const facultyNavItems: NavItem[] = [
                   icon: FileIcon,
               },
               {
-                  title: 'Faculty Updates',
+                  title: 'Manage Program and Tags',
                   href: '/faculty/update',
                   icon: Settings,
               },
@@ -397,7 +397,7 @@ const getExperienceProgress = () => {
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="pixel-outline hidden h-full text-[#fce3aa] xl:flex xl:flex-1">
+                <div class="hidden h-full text-[#fce3aa] xl:flex xl:flex-1">
                     <NavigationMenu class="ml-10 flex h-full items-stretch relative">
                         <div class="flex h-full items-stretch space-x-2">
                             <!-- Home (always visible) -->
@@ -429,7 +429,7 @@ const getExperienceProgress = () => {
                                 <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
                                     <div class="grid gap-1">
                                         <Link v-for="item in contentNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>
@@ -452,7 +452,7 @@ const getExperienceProgress = () => {
                                 <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
                                     <div class="grid gap-1">
                                         <Link v-for="item in gameNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>
@@ -475,7 +475,7 @@ const getExperienceProgress = () => {
                                 <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
                                     <div class="grid gap-1">
                                         <Link v-for="item in facultyNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>
@@ -498,7 +498,7 @@ const getExperienceProgress = () => {
                                 <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
                                     <div class="grid gap-1">
                                         <Link v-for="item in adminNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>

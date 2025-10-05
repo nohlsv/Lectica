@@ -81,14 +81,22 @@
                                     <label for="program-college" class="pixel-outline block text-sm font-medium text-[#FFF8DC] mb-1">
                                         College *
                                     </label>
-                                    <input
+                                    <select
                                         id="program-college"
                                         v-model="programForm.college"
-                                        type="text"
                                         class="w-full rounded-lg border-2 border-[#ffd700] bg-[#0c0a03] px-3 py-2 text-[#FFF8DC] placeholder-[#FFF8DC]/50"
-                                        placeholder="e.g., College of Engineering"
                                         required
-                                    />
+                                    >
+                                        <option value="" disabled class="text-gray-400">Select a college</option>
+                                        <option 
+                                            v-for="(label, value) in colleges" 
+                                            :key="value" 
+                                            :value="value"
+                                            class="bg-[#0c0a03] text-[#FFF8DC]"
+                                        >
+                                            {{ label }}
+                                        </option>
+                                    </select>
                                 </div>
                             </div>
                             <div class="flex justify-end">
@@ -116,7 +124,7 @@
                                 <div v-if="editingProgram !== program.id" class="flex-1">
                                     <h4 class="pixel-outline font-semibold text-[#FFF8DC]">{{ program.name }}</h4>
                                     <p class="pixel-outline text-sm text-[#FFF8DC]/70">
-                                        Code: {{ program.code }} | College: {{ program.college }}
+                                        Code: {{ program.code }} | College: {{ program.college ? colleges[program.college] || program.college : 'N/A' }}
                                     </p>
                                 </div>
                                 <form 
@@ -139,13 +147,21 @@
                                             placeholder="Code"
                                             required
                                         />
-                                        <input
+                                        <select
                                             v-model="editProgramForm.college"
-                                            type="text"
                                             class="w-full rounded border border-[#ffd700] bg-[#0c0a03] px-2 py-1 text-sm text-[#FFF8DC]"
-                                            placeholder="College"
                                             required
-                                        />
+                                        >
+                                            <option value="" disabled class="text-gray-400">Select a college</option>
+                                            <option 
+                                                v-for="(label, value) in colleges" 
+                                                :key="value" 
+                                                :value="value"
+                                                class="bg-[#0c0a03] text-[#FFF8DC]"
+                                            >
+                                                {{ label }}
+                                            </option>
+                                        </select>
                                     </div>
                                 </form>
                                 <div class="flex items-center space-x-2">
@@ -375,6 +391,7 @@ interface ExtendedTag {
 interface Props {
     programs: Program[];
     tags: ExtendedTag[];
+    colleges: Record<string, string>;
 }
 
 const props = defineProps<Props>();
