@@ -5,6 +5,7 @@ use App\Http\Controllers\ProgramController;
 use App\Http\Controllers\FileRecommendationController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\AdminVerificationController;
+use App\Http\Controllers\FacultyController;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Http\Controllers\TagController;
@@ -230,6 +231,35 @@ Route::middleware(['auth'])->group(function () {
         
         return response()->file($filePath);
     })->name('verification.document');
+});
+
+// Faculty management routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Faculty update page
+    Route::get('/faculty/update', [App\Http\Controllers\FacultyController::class, 'update'])
+        ->name('faculty.update');
+    
+    // Program management routes
+    Route::post('/faculty/programs', [App\Http\Controllers\FacultyController::class, 'storeProgram'])
+        ->name('faculty.programs.store');
+    Route::put('/faculty/programs/{program}', [App\Http\Controllers\FacultyController::class, 'updateProgram'])
+        ->name('faculty.programs.update');
+    Route::delete('/faculty/programs/{program}', [App\Http\Controllers\FacultyController::class, 'deleteProgram'])
+        ->name('faculty.programs.delete');
+    
+    // Tag management routes
+    Route::post('/faculty/tags', [App\Http\Controllers\FacultyController::class, 'storeTag'])
+        ->name('faculty.tags.store');
+    Route::put('/faculty/tags/{tag}', [App\Http\Controllers\FacultyController::class, 'updateTag'])
+        ->name('faculty.tags.update');
+    Route::delete('/faculty/tags/{tag}', [App\Http\Controllers\FacultyController::class, 'deleteTag'])
+        ->name('faculty.tags.delete');
+    
+    // Tag alias management routes
+    Route::post('/faculty/tags/{tag}/aliases/add', [App\Http\Controllers\FacultyController::class, 'addTagAlias'])
+        ->name('faculty.tags.aliases.add');
+    Route::post('/faculty/tags/{tag}/aliases/remove', [App\Http\Controllers\FacultyController::class, 'removeTagAlias'])
+        ->name('faculty.tags.aliases.remove');
 });
 
 require __DIR__ . '/settings.php';

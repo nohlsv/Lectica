@@ -124,6 +124,7 @@ export interface Quiz {
 export interface Tag {
     id: number;
     name: string;
+    aliases?: string[];
 }
 
 export interface Game {

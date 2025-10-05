@@ -20,7 +20,7 @@ import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Bell, ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Swords, Target, Users } from 'lucide-vue-next';
+import { Bell, ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Settings, Swords, Target, Users } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 interface Notification {
@@ -155,6 +155,11 @@ const mainNavItems: NavItem[] = [
                   title: 'Verify Files',
                   href: '/files/verify',
                   icon: FileIcon,
+              },
+              {
+                  title: 'Faculty Updates',
+                  href: '/faculty/update',
+                  icon: Settings,
               },
           ]
         : []),
