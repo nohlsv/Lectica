@@ -310,4 +310,17 @@ class User extends Authenticatable implements MustVerifyEmail
         
         return route('verification.document', $this->id);
     }
+
+    /**
+     * Check if the verification document is an image.
+     */
+    public function getIsVerificationDocumentImageAttribute(): bool
+    {
+        if (!$this->verification_document_path) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($this->verification_document_path, PATHINFO_EXTENSION));
+        return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp']);
+    }
 }

@@ -46,7 +46,8 @@ class AdminVerificationController extends Controller
         return Inertia::render('Admin/VerificationDetail', [
             'user' => $user,
             'programs' => \App\Models\Program::orderBy('name')->get(),
-            'documentUrl' => $user->verification_document_url
+            'documentUrl' => $user->verification_document_url,
+            'isDocumentImage' => $user->is_verification_document_image
         ]);
     }
 

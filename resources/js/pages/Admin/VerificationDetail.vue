@@ -174,7 +174,7 @@
                                     <div v-if="documentUrl" class="space-y-4">
                                         <div class="overflow-hidden rounded border border-gray-600">
                                             <img
-                                                v-if="isImage(documentUrl)"
+                                                v-if="isDocumentImage"
                                                 :src="documentUrl"
                                                 :alt="user.user_role === 'student' ? 'COR Document' : 'ID Document'"
                                                 class="h-auto max-h-96 w-full bg-white object-contain"
@@ -317,6 +317,7 @@ const props = defineProps({
     user: Object,
     documentUrl: String,
     programs: Array,
+    isDocumentImage: Boolean,
 });
 
 const decision = ref('');
@@ -348,10 +349,6 @@ const submitDecision = () => {
         }
         verificationForm.patch(route('admin.verifications.reject', props.user.id));
     }
-};
-
-const isImage = (url) => {
-    return /\.(jpg|jpeg|png|gif)$/i.test(url);
 };
 
 const formatDate = (dateString) => {
