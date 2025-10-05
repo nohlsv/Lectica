@@ -386,7 +386,7 @@ circle {
 
 .bg-container {
     background-image:
-        linear-gradient(rgba(46, 5, 0, 0.9), rgba(0, 0, 0, 1.0)),
+        linear-gradient(rgba(0, 0, 0, 1.0), rgba(46, 5, 0, 0.9)),
         /* Maroon overlay */ url('/bg-bricks.png');
     background-size: cover;
     background-position: center;

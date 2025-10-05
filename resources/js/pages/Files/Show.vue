@@ -335,18 +335,9 @@ const addToCollection = async () => {
                             title="Download"
                         >
                             <DownloadIcon class="h-3 w-3 text-blue-300 mr-1" />
-                            <span class="text-xs text-blue-300 font-pixel">Download</span>
+                            <span class="text-blue-300 font-pixel">Download</span>
                         </a>
 
-                        <!-- Share -->
-                        <button
-                            @click="copyShareLink"
-                            class="flex h-7 items-center justify-center rounded border border-green-400/70 bg-green-400/20 px-2 transition-all hover:bg-green-400/30"
-                            title="Share"
-                        >
-                            <Share2Icon class="h-3 w-3 text-green-300 mr-1" />
-                            <span class="text-xs text-green-300 font-pixel">Share</span>
-                        </button>
 
                         <!-- Add to Collection -->
                         <button
@@ -355,10 +346,8 @@ const addToCollection = async () => {
                             title="Add to Collection"
                         >
                             <PlusIcon class="h-3 w-3 text-purple-300 mr-1" />
-                            <span class="text-xs text-purple-300 font-pixel">Collect</span>
+                            <span class="text-purple-300 font-pixel">Add to Collection</span>
                         </button>
-
-
 
                         <!-- Star -->
                         <button
@@ -374,14 +363,14 @@ const addToCollection = async () => {
                                         : 'text-white/60 hover:text-yellow-300'
                                 ]"
                             />
-                            <span class="text-xs font-pixel" :class="file.is_starred ? 'text-yellow-300' : 'text-white/60'">
+                            <span class="font-pixel" :class="file.is_starred ? 'text-yellow-300' : 'text-white/60'">
                                 {{ file.is_starred ? 'Starred' : 'Star' }}
                             </span>
                         </button>
 
                         <!-- Back -->
                         <Link href="/files">
-                            <Button class="font-pixel border border-white bg-red-600 px-2 py-1 text-xs text-white transition-all hover:bg-red-700">
+                            <Button class="font-pixel border border-white bg-red-600 px-2 py-1 text-white transition-all hover:bg-red-900">
                                 <ArrowLeftIcon class="mr-1 h-3 w-3" />
                                 Back
                             </Button>
@@ -400,9 +389,21 @@ const addToCollection = async () => {
                     <div class="space-y-3">
                         <!-- File Details Card -->
                         <div class="rounded border border-white/20 bg-black/30 p-2 backdrop-blur-sm">
-                            <h4 class="font-pixel mb-2 font-bold text-yellow-400">
-                                📄 Info
-                            </h4>
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-pixel font-bold text-yellow-400">
+                                    📄 Info
+                                </h4>
+                                <!-- Edit Button -->
+                                <Link v-if="isOwner" :href="route('files.edit', file.id)">
+                                    <button
+                                        class="flex items-center justify-center rounded border border-orange-400/70 bg-orange-400/20 px-2 py-1 text-xs transition-all hover:bg-orange-400/30"
+                                        title="Edit File"
+                                    >
+                                        <PencilIcon class="h-3 w-3 text-orange-300 mr-1" />
+                                        <span class="text-orange-300 font-pixel">Edit</span>
+                                    </button>
+                                </Link>
+                            </div>
                             <!-- Verification Status -->
                             <div class="mb-3 text-xs">
                                 <span
@@ -465,20 +466,20 @@ const addToCollection = async () => {
                         </div>
 
                         <!-- Study Materials -->
-                        <div class="rounded border border-white/20 bg-black/30 p-2 backdrop-blur-sm">
-                            <h4 class="font-pixel mb-2 font-bold text-yellow-400">📚 Study Materials</h4>
-                            <div class="space-y-2">
+                        <div class="rounded-lg border-2 border-white/20 bg-black/30 p-4 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                            <h4 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">📚 Study Materials</h4>
+                            <div class="space-y-4 flex flex-col items-center">
                                 <!-- Flashcards -->
-                                <div>
-                                    <h5 class="font-pixel mb-1 text-blue-300">📖 Flashcards</h5>
-                                    <div class="flex gap-1">
-                                        <Link :href="route('files.flashcards.index', file.id)">
-                                            <button class="font-pixel flex-1 border border-blue-400 bg-blue-600 px-2 py-1 text-white hover:bg-blue-700">
+                                <div class="w-full rounded-lg border border-blue-400/30 bg-blue-600/10 p-3 backdrop-blur-sm">
+                                    <h5 class="font-pixel mb-3 text-center font-bold text-blue-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">📖 Flashcards</h5>
+                                    <div class="flex gap-2">
+                                        <Link :href="route('files.flashcards.index', file.id)" class="flex-1">
+                                            <button class="font-pixel w-full border-2 border-blue-400 bg-blue-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-blue-700 hover:scale-[1.02]">
                                                 View
                                             </button>
                                         </Link>
-                                        <Link :href="route('files.flashcards.practice', file.id)">
-                                            <button class="font-pixel flex-1 border border-green-400 bg-green-600 px-2 py-1 text-white hover:bg-green-700">
+                                        <Link :href="route('files.flashcards.practice', file.id)" class="flex-1">
+                                            <button class="font-pixel w-full border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-green-700 hover:scale-[1.02]">
                                                 Practice
                                             </button>
                                         </Link>
@@ -486,16 +487,16 @@ const addToCollection = async () => {
                                 </div>
                                 
                                 <!-- Quizzes -->
-                                <div>
-                                    <h5 class="font-pixel mb-1 text-purple-300">🧠 Quizzes</h5>
-                                    <div class="flex gap-1">
-                                        <Link :href="route('files.quizzes.index', file.id)">
-                                            <button class="font-pixel flex-1 border border-purple-400 bg-purple-600 px-2 py-1 text-white hover:bg-purple-700">
+                                <div class="w-full rounded-lg border border-purple-400/30 bg-purple-600/10 p-3 backdrop-blur-sm">
+                                    <h5 class="font-pixel mb-3 text-center font-bold text-purple-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">🧠 Quizzes</h5>
+                                    <div class="flex gap-2">
+                                        <Link :href="route('files.quizzes.index', file.id)" class="flex-1">
+                                            <button class="font-pixel w-full border-2 border-purple-400 bg-purple-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-purple-700 hover:scale-[1.02]">
                                                 View
                                             </button>
                                         </Link>
-                                        <Link :href="route('files.quizzes.test', file.id)">
-                                            <button class="font-pixel flex-1 border border-orange-400 bg-orange-600 px-2 py-1 text-white hover:bg-orange-700">
+                                        <Link :href="route('files.quizzes.test', file.id)" class="flex-1">
+                                            <button class="font-pixel w-full border-2 border-orange-400 bg-orange-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-orange-700 hover:scale-[1.02]">
                                                 Practice
                                             </button>
                                         </Link>
@@ -503,11 +504,11 @@ const addToCollection = async () => {
                                 </div>
                                 
                                 <!-- Generate Content -->
-                                <div v-if="isOwner && file.verified" class="mt-3 rounded border border-yellow-400/30 bg-yellow-600/10 p-3">
-                                    <h5 class="font-pixel mb-2 text-yellow-300">🎲 Generate Content</h5>
+                                <div v-if="isOwner && file.verified" class="w-full rounded-lg border border-yellow-400/30 bg-yellow-600/10 p-3 backdrop-blur-sm">
+                                    <h5 class="font-pixel mb-3 text-center font-bold text-yellow-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">🎲 Generate Content</h5>
                                     <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
                                         <DialogTrigger asChild>
-                                            <button class="font-pixel w-full border border-yellow-400 bg-yellow-600 px-3 py-1 text-black hover:bg-yellow-500">
+                                            <button class="font-pixel w-full border-2 border-yellow-400 bg-yellow-600 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-yellow-500 hover:scale-[1.02]">
                                                 <PencilIcon class="mr-1 h-3 w-3 inline" />
                                                 Generate Flashcards & Quizzes
                                             </button>
@@ -623,7 +624,7 @@ const addToCollection = async () => {
                         <div v-if="canVerify && !file.verified && !file.is_denied" class="rounded-lg border-2 border-orange-400/70 bg-gradient-to-r from-orange-600/30 to-red-600/30 p-3 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
                             <div class="flex items-center justify-between mb-2">
                                 <h4 class="font-pixel text-sm font-bold text-orange-200 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                                    🛡️ Faculty Actions
+                                    🛡️ Verification Actions
                                 </h4>
                                 <div class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-pixel">
                                     PENDING
@@ -668,7 +669,7 @@ const addToCollection = async () => {
                         <!-- Admin Status Display (for already processed files) -->
                         <div v-else-if="canVerify && (file.verified || file.is_denied)" class="rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
                             <h4 class="font-pixel mb-2 text-sm font-bold text-blue-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                                🛡️ Admin Status
+                                🛡️ Verification Status
                             </h4>
                             <div v-if="file.verified" class="rounded-lg border-2 border-green-400 bg-green-600/20 p-3 backdrop-blur-sm">
                                 <div class="flex items-center justify-center mb-1">
