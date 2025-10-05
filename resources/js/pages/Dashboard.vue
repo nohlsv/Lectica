@@ -231,7 +231,7 @@ const facultyActions = [
         color: 'gray',
     },
     {
-        title: 'Faculty Updates',
+        title: 'Manage Program and Tags',
         href: '/faculty/update',
         description: 'Manage programs and tags',
         icon: 'settings',
