@@ -10,6 +10,8 @@ import {
     NavigationMenuItem,
     NavigationMenuLink,
     NavigationMenuList,
+    NavigationMenuContent,
+    NavigationMenuTrigger,
     navigationMenuTriggerStyle,
 } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -20,7 +22,7 @@ import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Bell, ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Settings, Swords, Target, Users } from 'lucide-vue-next';
+import { Bell, ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Settings, Shield, Swords, Target, Users, Gamepad2, BookOpen } from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 interface Notification {
@@ -97,14 +99,19 @@ onMounted(() => {
     fetchRecentNotifications();
 });
 
-const mainNavItems: NavItem[] = [
+// Primary navigation items (always visible)
+const primaryNavItems: NavItem[] = [
     {
         title: 'Home',
         href: '/home',
         icon: LayoutGrid,
     },
+];
+
+// Content management items
+const contentNavItems: NavItem[] = [
     {
-        title: 'Files',
+        title: 'All Files',
         href: '/files',
         icon: FileIcon,
     },
@@ -118,6 +125,10 @@ const mainNavItems: NavItem[] = [
         href: '/collections',
         icon: FolderOpen,
     },
+];
+
+// Gaming and activities items
+const gameNavItems: NavItem[] = [
     {
         title: 'Quests',
         href: '/quests',
@@ -134,21 +145,19 @@ const mainNavItems: NavItem[] = [
         icon: Users,
     },
     {
-        title: 'History',
-        href: '/history',
-        icon: FileChartLine,
-    },
-    {
         title: 'Leaderboards',
         href: '/leaderboards',
         icon: ChartArea,
     },
     {
-        title: 'FAQ',
-        href: '/faq',
-        icon: HelpCircle,
+        title: 'History',
+        href: '/history',
+        icon: FileChartLine,
     },
-    // Add faculty/admin pages conditionally
+];
+
+// Faculty/Admin management items
+const facultyNavItems: NavItem[] = [
     ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'
         ? [
               {
@@ -163,6 +172,10 @@ const mainNavItems: NavItem[] = [
               },
           ]
         : []),
+];
+
+// Admin-only items
+const adminNavItems: NavItem[] = [
     ...(auth.value.user.user_role === 'admin'
         ? [
               {
@@ -182,6 +195,25 @@ const mainNavItems: NavItem[] = [
               },
           ]
         : []),
+];
+
+// Support items
+const supportNavItems: NavItem[] = [
+    {
+        title: 'FAQ',
+        href: '/faq',
+        icon: HelpCircle,
+    },
+];
+
+// Legacy flat array for backward compatibility (used in mobile menu)
+const mainNavItems: NavItem[] = [
+    ...primaryNavItems,
+    ...contentNavItems,
+    ...gameNavItems,
+    ...facultyNavItems,
+    ...adminNavItems,
+    ...supportNavItems,
 ];
 
 const rightNavItems: NavItem[] = [
@@ -218,7 +250,7 @@ const getExperienceProgress = () => {
         <div class="border-sidebar-border/80 border-b bg-[#4d0a02]">
             <div class="md:max-w-8xl mx-auto flex h-16 items-center px-4">
                 <!-- Mobile Menu -->
-                <div class="2xl:hidden">
+                <div class="xl:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
                             <Button variant="ghost" size="icon" class="mr-2 h-9 w-9">
@@ -231,17 +263,105 @@ const getExperienceProgress = () => {
                                 <AppLogoIcon class="size-6 fill-current text-black dark:text-white" />
                             </SheetHeader>
                             <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-6">
-                                <nav class="-mx-3 space-y-1">
-                                    <Link
-                                        v-for="item in mainNavItems"
-                                        :key="item.title"
-                                        :href="item.href"
-                                        class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
-                                        :class="activeItemStyles(item.href)"
-                                    >
-                                        <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
-                                        {{ item.title }}
-                                    </Link>
+                                <nav class="-mx-3 space-y-4">
+                                    <!-- Primary Navigation -->
+                                    <div class="space-y-1">
+                                        <Link
+                                            v-for="item in primaryNavItems"
+                                            :key="item.title"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                            :class="activeItemStyles(item.href)"
+                                        >
+                                            <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
+                                            {{ item.title }}
+                                        </Link>
+                                    </div>
+
+                                    <!-- Content Section -->
+                                    <div class="space-y-1">
+                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Content
+                                        </div>
+                                        <Link
+                                            v-for="item in contentNavItems"
+                                            :key="item.title"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                            :class="activeItemStyles(item.href)"
+                                        >
+                                            <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
+                                            {{ item.title }}
+                                        </Link>
+                                    </div>
+
+                                    <!-- Activities Section -->
+                                    <div class="space-y-1">
+                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Activities
+                                        </div>
+                                        <Link
+                                            v-for="item in gameNavItems"
+                                            :key="item.title"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                            :class="activeItemStyles(item.href)"
+                                        >
+                                            <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
+                                            {{ item.title }}
+                                        </Link>
+                                    </div>
+
+                                    <!-- Faculty Section -->
+                                    <div v-if="facultyNavItems.length > 0" class="space-y-1">
+                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Faculty Management
+                                        </div>
+                                        <Link
+                                            v-for="item in facultyNavItems"
+                                            :key="item.title"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                            :class="activeItemStyles(item.href)"
+                                        >
+                                            <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
+                                            {{ item.title }}
+                                        </Link>
+                                    </div>
+
+                                    <!-- Admin Section -->
+                                    <div v-if="adminNavItems.length > 0" class="space-y-1">
+                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Administration
+                                        </div>
+                                        <Link
+                                            v-for="item in adminNavItems"
+                                            :key="item.title"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                            :class="activeItemStyles(item.href)"
+                                        >
+                                            <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
+                                            {{ item.title }}
+                                        </Link>
+                                    </div>
+
+                                    <!-- Support Section -->
+                                    <div class="space-y-1">
+                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                            Support
+                                        </div>
+                                        <Link
+                                            v-for="item in supportNavItems"
+                                            :key="item.title"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-x-3 rounded-lg px-3 py-2 text-sm font-medium"
+                                            :class="activeItemStyles(item.href)"
+                                        >
+                                            <component v-if="item.icon" :is="item.icon" class="h-5 w-5" />
+                                            {{ item.title }}
+                                        </Link>
+                                    </div>
                                 </nav>
                                 <div class="flex flex-col space-y-4">
                                     <a
@@ -266,24 +386,135 @@ const getExperienceProgress = () => {
                 </Link>
 
                 <!-- Desktop Menu -->
-                <div class="pixel-outline hidden h-full text-[#fce3aa] 2xl:flex 2xl:flex-1">
-                    <NavigationMenu class="ml-10 flex h-full items-stretch">
-                        <NavigationMenuList class="flex h-full items-stretch space-x-2">
-                            <NavigationMenuItem v-for="(item, index) in mainNavItems" :key="index" class="relative flex h-full items-center">
-                                <Link :href="item.href">
-                                    <NavigationMenuLink
-                                        :class="[navigationMenuTriggerStyle(), activeItemStyles(item.href), 'h-9 cursor-pointer px-3']"
-                                    >
-                                        <component v-if="item.icon" :is="item.icon" class="mr-2 h-4 w-4" />
-                                        {{ item.title }}
-                                    </NavigationMenuLink>
-                                </Link>
+                <div class="pixel-outline hidden h-full text-[#fce3aa] xl:flex xl:flex-1">
+                    <NavigationMenu class="ml-10 flex h-full items-stretch relative">
+                        <div class="flex h-full items-stretch space-x-2">
+                            <!-- Home (always visible) -->
+                            <div class="relative flex h-full items-center">
+                                <NavigationMenuLink
+                                    as-child
+                                    :class="[navigationMenuTriggerStyle(), activeItemStyles(primaryNavItems[0].href), 'h-9 cursor-pointer px-3']"
+                                >
+                                    <Link :href="primaryNavItems[0].href" class="flex items-center">
+                                        <component :is="primaryNavItems[0].icon" class="mr-2 h-4 w-4" />
+                                        {{ primaryNavItems[0].title }}
+                                    </Link>
+                                </NavigationMenuLink>
                                 <div
-                                    v-if="isCurrentRoute(item.href)"
+                                    v-if="isCurrentRoute(primaryNavItems[0].href)"
                                     class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-[#fe9104]"
                                 ></div>
-                            </NavigationMenuItem>
-                        </NavigationMenuList>
+                            </div>
+
+                            <!-- Content Dropdown -->
+                            <div class="group relative flex h-full items-center">
+                                <Button
+                                    variant="ghost"
+                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
+                                >
+                                    <FileIcon class="mr-2 h-4 w-4" />
+                                    Content
+                                </Button>
+                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                    <div class="grid gap-1">
+                                        <Link v-for="item in contentNavItems" :key="item.href" :href="item.href"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                        >
+                                            <component :is="item.icon" class="h-4 w-4" />
+                                            <div>
+                                                <div class="font-medium">{{ item.title }}</div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Activities Dropdown -->
+                            <div class="group relative flex h-full items-center">
+                                <Button
+                                    variant="ghost"
+                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
+                                >
+                                    <Gamepad2 class="mr-2 h-4 w-4" />
+                                    Activities
+                                </Button>
+                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                    <div class="grid gap-1">
+                                        <Link v-for="item in gameNavItems" :key="item.href" :href="item.href"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                        >
+                                            <component :is="item.icon" class="h-4 w-4" />
+                                            <div>
+                                                <div class="font-medium">{{ item.title }}</div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Faculty Management Dropdown (faculty/admin only) -->
+                            <div v-if="facultyNavItems.length > 0" class="group relative flex h-full items-center">
+                                <Button
+                                    variant="ghost"
+                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
+                                >
+                                    <Settings class="mr-2 h-4 w-4" />
+                                    Faculty
+                                </Button>
+                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                    <div class="grid gap-1">
+                                        <Link v-for="item in facultyNavItems" :key="item.href" :href="item.href"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                        >
+                                            <component :is="item.icon" class="h-4 w-4" />
+                                            <div>
+                                                <div class="font-medium">{{ item.title }}</div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Admin Management Dropdown (admin only) -->
+                            <div v-if="adminNavItems.length > 0" class="group relative flex h-full items-center">
+                                <Button
+                                    variant="ghost"
+                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
+                                >
+                                    <Shield class="mr-2 h-4 w-4" />
+                                    Admin
+                                </Button>
+                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                    <div class="grid gap-1">
+                                        <Link v-for="item in adminNavItems" :key="item.href" :href="item.href"
+                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                                        >
+                                            <component :is="item.icon" class="h-4 w-4" />
+                                            <div>
+                                                <div class="font-medium">{{ item.title }}</div>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Support -->
+                            <div class="relative flex h-full items-center">
+                                <NavigationMenuLink
+                                    as-child
+                                    :class="[navigationMenuTriggerStyle(), activeItemStyles(supportNavItems[0].href), 'h-9 cursor-pointer px-3']"
+                                >
+                                    <Link :href="supportNavItems[0].href" class="flex items-center">
+                                        <component :is="supportNavItems[0].icon" class="mr-2 h-4 w-4" />
+                                        {{ supportNavItems[0].title }}
+                                    </Link>
+                                </NavigationMenuLink>
+                                <div
+                                    v-if="isCurrentRoute(supportNavItems[0].href)"
+                                    class="absolute bottom-0 left-0 h-0.5 w-full translate-y-px dark:bg-[#fe9104]"
+                                ></div>
+                            </div>
+                        </div>
                     </NavigationMenu>
                 </div>
 
