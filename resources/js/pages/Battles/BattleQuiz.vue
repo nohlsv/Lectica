@@ -238,13 +238,49 @@ const currentQuestion = computed(() => {
     return props.quizzes[currentIndex.value];
 });
 
+// Format user answer for API submission
+const formatUserAnswer = (answer: any): string => {
+    if (answer === null || answer === undefined) {
+        return '';
+    }
+    
+    if (Array.isArray(answer)) {
+        // For enumeration answers, join with commas
+        const filtered = answer.filter(a => a !== null && a !== undefined && String(a).trim() !== '');
+        return filtered.join(', ');
+    }
+    
+    return String(answer).trim();
+};
+
 // Check if the current answer is correct
-const checkAnswer = () => {
+const checkAnswer = async () => {
     showFeedback.value = true;
     totalAnswered.value++;
 
     // Set visual effect type
     answerEffectType.value = isCurrentAnswerCorrect.value ? 'correct' : 'incorrect';
+
+    // Record the answer via API
+    try {
+        const userAnswer = userAnswers.value[currentIndex.value];
+        const formattedAnswer = formatUserAnswer(userAnswer);
+        
+        const payload = {
+            quiz_id: currentQuiz.value.id,
+            answer: formattedAnswer || 'No answer provided', // Ensure we always send a string
+            is_correct: Boolean(isCurrentAnswerCorrect.value) // Ensure boolean type
+        };
+        
+        await axios.post(`/battles/${props.battle.id}/answer`, payload);
+    } catch (error: any) {
+        console.error('Failed to record answer:', error);
+        if (error?.response) {
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+        }
+        // Don't interrupt the game flow if recording fails
+    }
 
     // Play sound effect (if enabled)
     if (soundEnabled.value) {
@@ -397,11 +433,8 @@ function finishBattle() {
 
             <!-- Battle Arena -->
             <div
-                class="-my-4 flex flex-1 flex-col"
+                class="-my-4 flex flex-1 flex-col bg-container"
                 style="
-                    background-image:
-                        linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-                        url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
                     background-size: cover;
                     background-position: center;
                 "
@@ -651,7 +684,10 @@ function finishBattle() {
                             </div>
                         </div>
                     </CardContent>
-                    <CardFooter class="flex justify-center">
+                    <CardFooter class="flex justify-center space-x-4">
+                        <Link :href="route('battles.show', props.battle.id)">
+                            <Button class="pixel-outline">View Battle Details</Button>
+                        </Link>
                         <Link :href="route('battles.index')">
                             <Button class="pixel-outline">Return to Battles</Button>
                         </Link>

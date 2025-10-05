@@ -191,7 +191,7 @@
                                                             <!-- Correct Answer (if incorrect) -->
                                                             <div v-if="!answer.is_correct" class="mb-2">
                                                                 <span class="text-sm text-gray-300">Correct Answer:</span>
-                                                                <span class="ml-2 font-medium text-green-400">{{ answer.quiz.correct_answer }}</span>
+                                                                <span class="ml-2 font-medium text-green-400">{{ getCorrectAnswer(answer.quiz) }}</span>
                                                             </div>
                                                         </div>
                                                         
@@ -395,6 +395,12 @@ export default {
                 'waiting': 'bg-orange-900/50 text-orange-300 border border-orange-400'
             }
             return classes[status] || 'bg-gray-700 text-gray-300 border border-gray-500'
+        },
+        getCorrectAnswer(quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers[0]; // Return first correct answer
+            }
+            return quiz.answers || 'No correct answer';
         }
     }
 }

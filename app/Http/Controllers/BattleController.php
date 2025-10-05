@@ -192,11 +192,6 @@ class BattleController extends Controller
             abort(403, 'You can only participate in your own battles.');
         }
 
-        // Check if battle is still active
-        if ($battle->status !== 'active') {
-            return response()->json(['error' => 'Battle is not active'], 400);
-        }
-
         $monster = Monster::find($battle->monster_id);
         $quiz = Quiz::find($request->quiz_id);
         $isCorrect = $request->is_correct;
@@ -212,7 +207,19 @@ class BattleController extends Controller
             'answered_at' => now(),
         ]);
 
-        $result = $this->battleService->processAnswer($battle, $quiz, $isCorrect);
+        // Only process battle mechanics if battle is still active
+        if ($battle->status === 'active') {
+            $result = $this->battleService->processAnswer($battle, $quiz, $isCorrect);
+        } else {
+            // For finished battles, return minimal data
+            $result = [
+                'battle' => $battle,
+                'monster' => $monster,
+                'message' => 'Answer recorded for completed battle.',
+                'battleEnded' => true,
+                'expEarned' => 0
+            ];
+        }
 
         // Update quest progress for answering a battle question
         $this->questService->updateQuestProgress(Auth::user(), 'battle_questions');

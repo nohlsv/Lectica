@@ -151,10 +151,10 @@
                                     v-for="(option, index) in answer.quiz.options" 
                                     :key="index"
                                     class="flex items-center p-3 rounded-lg border-2"
-                                    :class="getOptionClass(option, answer.quiz.correct_answer, answer.user_answer)"
+                                    :class="getOptionClass(option, getCorrectAnswer(answer.quiz), answer.user_answer)"
                                 >
                                     <div class="flex items-center justify-center w-6 h-6 rounded-full border-2 mr-3"
-                                         :class="getOptionIconClass(option, answer.quiz.correct_answer, answer.user_answer)"
+                                         :class="getOptionIconClass(option, getCorrectAnswer(answer.quiz), answer.user_answer)"
                                     >
                                         <span class="text-xs font-bold">{{ String.fromCharCode(65 + index) }}</span>
                                     </div>
@@ -165,7 +165,7 @@
                                         <span v-if="option === answer.user_answer" class="text-xs bg-blue-900/50 text-blue-300 px-2 py-1 rounded border border-blue-400">
                                             Your Answer
                                         </span>
-                                        <span v-if="option === answer.quiz.correct_answer" class="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded border border-green-400">
+                                        <span v-if="isCorrectOption(option, answer.quiz)" class="text-xs bg-green-900/50 text-green-300 px-2 py-1 rounded border border-green-400">
                                             Correct
                                         </span>
                                     </div>
@@ -196,7 +196,7 @@
                                     </div>
                                 </div>
                                 <div class="text-sm text-gray-300">
-                                    Correct answer: <span class="font-medium text-green-400">{{ answer.quiz.correct_answer }}</span>
+                                    Correct answer: <span class="font-medium text-green-400">{{ getCorrectAnswer(answer.quiz) }}</span>
                                 </div>
                             </div>
                         </div>
@@ -213,7 +213,7 @@
                                 <h5 class="font-medium text-white mb-2">Correct Answer:</h5>
                                 <div class="p-3 bg-green-900/30 rounded-lg border border-green-400">
                                     <div class="font-medium text-green-400">
-                                        {{ answer.quiz.correct_answer }}
+                                        {{ getCorrectAnswer(answer.quiz) }}
                                     </div>
                                 </div>
                             </div>
@@ -388,6 +388,18 @@ export default {
                 return 'border-red-400 text-red-400' // Wrong answer that user selected
             }
             return 'border-gray-400 text-gray-400' // Other options
+        },
+        getCorrectAnswer(quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers[0]; // Return first correct answer
+            }
+            return quiz.answers || 'No correct answer';
+        },
+        isCorrectOption(option, quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers.includes(option);
+            }
+            return quiz.answers === option;
         }
     }
 }

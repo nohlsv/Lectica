@@ -117,7 +117,7 @@
                                         <!-- Correct Answer (if wrong) -->
                                         <div v-if="!answer.is_correct" class="mb-2">
                                             <div class="text-sm text-gray-300">Correct Answer:</div>
-                                            <div class="font-medium text-green-400">{{ answer.quiz.correct_answer }}</div>
+                                            <div class="font-medium text-green-400">{{ getCorrectAnswer(answer.quiz) }}</div>
                                         </div>
 
                                         <!-- Options for Multiple Choice -->
@@ -128,7 +128,7 @@
                                                     v-for="(option, optIndex) in answer.quiz.options" 
                                                     :key="optIndex"
                                                     class="p-1 rounded"
-                                                    :class="option === answer.quiz.correct_answer ? 'bg-green-800/50 text-green-300' : 'bg-gray-800/50 text-gray-300'"
+                                                    :class="isCorrectOption(option, answer.quiz) ? 'bg-green-800/50 text-green-300' : 'bg-gray-800/50 text-gray-300'"
                                                 >
                                                     {{ String.fromCharCode(65 + optIndex) }}. {{ option }}
                                                 </div>
@@ -232,6 +232,18 @@ export default {
                 'abandoned': 'bg-gray-100 text-gray-800'
             }
             return classes[status] || 'bg-gray-100 text-gray-800'
+        },
+        getCorrectAnswer(quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers[0]; // Return first correct answer
+            }
+            return quiz.answers || 'No correct answer';
+        },
+        isCorrectOption(option, quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers.includes(option);
+            }
+            return quiz.answers === option;
         }
     }
 }

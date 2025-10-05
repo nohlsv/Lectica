@@ -157,7 +157,7 @@
                                         <!-- Correct Answer (if wrong) -->
                                         <div v-if="!answer.is_correct" class="mb-2">
                                             <div class="text-sm text-gray-600">Correct Answer:</div>
-                                            <div class="font-medium text-green-600">{{ answer.quiz.correct_answer }}</div>
+                                            <div class="font-medium text-green-600">{{ getCorrectAnswer(answer.quiz) }}</div>
                                         </div>
                                     </div>
 
@@ -319,6 +319,12 @@ export default {
         },
         truncateQuestion(question) {
             return question.length > 50 ? question.substring(0, 50) + '...' : question
+        },
+        getCorrectAnswer(quiz) {
+            if (quiz.answers && Array.isArray(quiz.answers)) {
+                return quiz.answers[0]; // Return first correct answer
+            }
+            return quiz.answers || 'No correct answer';
         }
     }
 }
