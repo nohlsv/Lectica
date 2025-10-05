@@ -43,7 +43,8 @@ interface Collection {
     user_id: number;
     user: {
         id: number;
-        name: string;
+        last_name: string;
+        first_name: string;
     };
     file_count: number;
     created_at: string;
@@ -931,7 +932,7 @@ const onCollectionSuccess = (message?: string) => {
                                             {{ collection.name }}
                                         </h3>
                                         <p class="font-pixel text-xs text-white/60 mt-1">
-                                            by {{ collection.user.name }}
+                                            by {{ collection.user.first_name }} {{ collection.user.last_name }}
                                         </p>
                                     </div>
                                     <div class="flex flex-col items-end mx-2 gap-1">
