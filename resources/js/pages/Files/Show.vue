@@ -503,6 +503,23 @@ const addToCollection = async () => {
                                     </div>
                                 </div>
                                 
+                                <!-- Battle Mode -->
+                                <div v-if="file.verified" class="w-full rounded-lg border border-red-400/30 bg-red-600/10 p-3 backdrop-blur-sm">
+                                    <h5 class="font-pixel mb-3 text-center font-bold text-red-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">⚔️ Battle Mode</h5>
+                                    <div class="flex gap-2">
+                                        <Link :href="route('battles.create', { file_id: file.id })" class="flex-1">
+                                            <button class="font-pixel w-full border-2 border-red-400 bg-red-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:scale-[1.02]">
+                                                Solo Battle
+                                            </button>
+                                        </Link>
+                                        <Link :href="route('multiplayer-games.lobby', { file_id: file.id })" class="flex-1">
+                                            <button class="font-pixel w-full border-2 border-purple-400 bg-purple-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-purple-700 hover:scale-[1.02]">
+                                                Multiplayer
+                                            </button>
+                                        </Link>
+                                    </div>
+                                </div>
+
                                 <!-- Generate Content -->
                                 <div v-if="isOwner && file.verified" class="w-full rounded-lg border border-yellow-400/30 bg-yellow-600/10 p-3 backdrop-blur-sm">
                                     <h5 class="font-pixel mb-3 text-center font-bold text-yellow-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">🎲 Generate Content</h5>

@@ -45,7 +45,7 @@ class BattleController extends Controller
     /**
      * Show the form for creating a new battle.
      */
-    public function create()
+    public function create(Request $request)
     {
         $files = File::where('user_id', Auth::id())->get();
         $collections = Collection::where('user_id', Auth::id())
@@ -53,9 +53,33 @@ class BattleController extends Controller
             ->where('file_count', '>', 0)
             ->get();
 
+        // Get file_id and collection_id from query parameters if provided
+        $preselectedFileId = $request->query('file_id');
+        $preselectedCollectionId = $request->query('collection_id');
+        
+        // Validate that the preselected file belongs to the user (if provided)
+        if ($preselectedFileId) {
+            $validFile = $files->firstWhere('id', $preselectedFileId);
+            if (!$validFile) {
+                // If the file doesn't belong to the user, don't preselect it
+                $preselectedFileId = null;
+            }
+        }
+        
+        // Validate that the preselected collection belongs to the user (if provided)
+        if ($preselectedCollectionId) {
+            $validCollection = $collections->firstWhere('id', $preselectedCollectionId);
+            if (!$validCollection) {
+                // If the collection doesn't belong to the user, don't preselect it
+                $preselectedCollectionId = null;
+            }
+        }
+
         return Inertia::render('Battles/Create', [
             'files' => $files,
-            'collections' => $collections
+            'collections' => $collections,
+            'preselectedFileId' => $preselectedFileId,
+            'preselectedCollectionId' => $preselectedCollectionId
         ]);
     }
 

@@ -347,9 +347,22 @@ class MultiplayerGameController extends Controller
             'myGames' => $myGames
         ];
 
-        // Pass collection_id if provided for pre-selection
+        // Pass file_id if provided for pre-selection (validate ownership)
+        if ($request->has('file_id')) {
+            $fileId = (int) $request->input('file_id');
+            $validFile = $files->firstWhere('id', $fileId);
+            if ($validFile) {
+                $data['file_id'] = $fileId;
+            }
+        }
+
+        // Pass collection_id if provided for pre-selection (validate ownership)
         if ($request->has('collection_id')) {
-            $data['collection_id'] = (int) $request->input('collection_id');
+            $collectionId = (int) $request->input('collection_id');
+            $validCollection = $collections->firstWhere('id', $collectionId);
+            if ($validCollection) {
+                $data['collection_id'] = $collectionId;
+            }
         }
 
         // Pass game_code if provided for pre-filling join by code form

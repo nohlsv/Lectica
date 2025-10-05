@@ -622,6 +622,7 @@ const props = defineProps<{
     collections: Collection[];
     waitingGames: PaginatedGames;
     myGames: PaginatedGames;
+    file_id?: number;
     collection_id?: number;
     game_code?: string;
 }>();
@@ -643,7 +644,11 @@ const form = useForm({
 const joiningGameId = ref<number | null>(null);
 
 // Initialize form with URL parameters
-if (props.collection_id) {
+if (props.file_id) {
+    activeTab.value = 'create';
+    form.source_type = 'file';
+    form.file_id = props.file_id;
+} else if (props.collection_id) {
     activeTab.value = 'create';
     form.source_type = 'collection';
     form.collection_id = props.collection_id;

@@ -401,7 +401,7 @@
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import axios from 'axios';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 interface File {
     id: number;
@@ -434,6 +434,8 @@ interface QuestionValidation {
 const props = defineProps<{
     files: File[];
     collections: Collection[];
+    preselectedFileId?: string | number | null;
+    preselectedCollectionId?: string | number | null;
 }>();
 
 const selectedDifficulty = ref('easy');
@@ -445,6 +447,36 @@ const form = useForm({
     file_id: '',
     collection_id: '',
     difficulty: 'easy',
+});
+
+// Initialize form with preselected file or collection if provided
+if (props.preselectedFileId) {
+    // Check if the preselected file exists in the user's files
+    const preselectedFile = props.files.find(
+        (f) => f.id.toString() === props.preselectedFileId?.toString()
+    );
+    
+    if (preselectedFile) {
+        form.source_type = 'file';
+        form.file_id = props.preselectedFileId.toString();
+    }
+} else if (props.preselectedCollectionId) {
+    // Check if the preselected collection exists in the user's collections
+    const preselectedCollection = props.collections.find(
+        (c) => c.id.toString() === props.preselectedCollectionId?.toString()
+    );
+    
+    if (preselectedCollection) {
+        form.source_type = 'collection';
+        form.collection_id = props.preselectedCollectionId.toString();
+    }
+}
+
+// Fetch question counts for preselected file or collection when component mounts
+onMounted(() => {
+    if ((props.preselectedFileId && form.file_id) || (props.preselectedCollectionId && form.collection_id)) {
+        fetchQuestionCounts();
+    }
 });
 
 // Monsters are now randomly selected for each question
