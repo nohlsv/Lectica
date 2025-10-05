@@ -94,6 +94,17 @@ const markNotificationAsRead = async (notificationId: string) => {
     }
 };
 
+const markAllNotificationsAsRead = async () => {
+    try {
+        await axios.patch('/notifications/mark-all-as-read');
+        // Refresh both counts and recent notifications
+        await fetchUnreadCount();
+        await fetchRecentNotifications();
+    } catch (error) {
+        console.error('Error marking all notifications as read:', error);
+    }
+};
+
 onMounted(() => {
     fetchUnreadCount();
     fetchRecentNotifications();
@@ -592,12 +603,21 @@ const getExperienceProgress = () => {
                             <div class="p-4">
                                 <div class="mb-3 flex items-center justify-between">
                                     <h3 class="font-semibold text-gray-900 dark:text-white">Notifications</h3>
-                                    <Link
-                                        :href="route('notifications.index')"
-                                        class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-                                    >
-                                        View all
-                                    </Link>
+                                    <div class="flex items-center space-x-2">
+                                        <button
+                                            v-if="unreadNotificationsCount > 0"
+                                            @click="markAllNotificationsAsRead"
+                                            class="text-xs text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300"
+                                        >
+                                            Mark all as read
+                                        </button>
+                                        <Link
+                                            :href="route('notifications.index')"
+                                            class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                        >
+                                            View all
+                                        </Link>
+                                    </div>
                                 </div>
                                 <div v-if="recentNotifications.length === 0" class="py-4 text-center text-sm text-gray-500 dark:text-gray-400">
                                     No notifications
