@@ -3,11 +3,12 @@ import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
+import CollectionModal from '@/components/CollectionModal.vue';
 import { Tag, type BreadcrumbItem, type PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useDateFormat } from '@vueuse/core';
 import axios from 'axios';
-import { EyeIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
+import { CheckCircleIcon, EyeIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -51,19 +52,7 @@ const showStarredOnly = ref(false);
 const showSameProgramOnly = ref(false);
 const showCollectionModal = ref(false);
 const selectedFileForCollection = ref<File | null>(null);
-const selectedCollection = ref<number | null>(null);
-const userCollections = ref<Collection[]>([]);
 const allTags = ref<Tag[]>([]);
-const showCreateNewCollection = ref(false);
-const newCollectionName = ref('');
-const isCreatingCollection = ref(false);
-
-interface Collection {
-    id: number;
-    name: string;
-    file_count: number;
-    is_public: boolean;
-}
 
 const sortOptions = ref([
     { value: 'name', label: 'Name' },
@@ -126,76 +115,19 @@ const toggleStar = async (file: File) => {
     }
 };
 
-// Fetch user's collections for adding files
-const fetchUserCollections = async () => {
-    try {
-        const response = await axios.get('/user/collections');
-        userCollections.value = response.data;
-    } catch (error) {
-        console.error('Failed to fetch collections:', error);
-    }
-};
-
 const openCollectionModal = (file: File) => {
     selectedFileForCollection.value = file;
-    selectedCollection.value = null;
     showCollectionModal.value = true;
-    showCreateNewCollection.value = false;
-    newCollectionName.value = '';
-    fetchUserCollections();
 };
 
-const createNewCollection = async () => {
-    if (!newCollectionName.value.trim()) return;
-
-    isCreatingCollection.value = true;
-    try {
-        const response = await axios.post('/collections', {
-            name: newCollectionName.value.trim(),
-            is_public: false,
-        });
-
-        await fetchUserCollections();
-        selectedCollection.value = response.data.id;
-        showCreateNewCollection.value = false;
-        newCollectionName.value = '';
-        toast.success('Collection created successfully!');
-    } catch (error) {
-        toast.error('Failed to create collection');
-    } finally {
-        isCreatingCollection.value = false;
-    }
+const closeCollectionModal = () => {
+    showCollectionModal.value = false;
+    selectedFileForCollection.value = null;
 };
 
-const addToCollection = async () => {
-    if (!selectedFileForCollection.value || !selectedCollection.value) return;
-
-    try {
-        await router.post(
-            route('collections.add-file', selectedCollection.value),
-            {
-                file_id: selectedFileForCollection.value.id,
-            },
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    showCollectionModal.value = false;
-                    selectedFileForCollection.value = null;
-                    selectedCollection.value = null;
-                    toast.success('File added to collection successfully!');
-                },
-                onError: (errors) => {
-                    if (errors.file) {
-                        toast.error(errors.file);
-                    } else {
-                        toast.error('Failed to add file to collection');
-                    }
-                },
-            },
-        );
-    } catch (error) {
-        toast.error('Failed to add file to collection');
-    }
+const onCollectionSuccess = (message?: string) => {
+    toast.success(message || 'Collections updated successfully!');
+    closeCollectionModal();
 };
 </script>
 
@@ -386,41 +318,53 @@ const addToCollection = async () => {
                                     <div class="flex items-center gap-2">
                                         <Link
                                             :href="`/files/${item.id}`"
-                                            class="border-border bg-background text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md border"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-2 transition-all hover:bg-blue-400/30"
                                             title="View file details"
                                         >
-                                            <EyeIcon class="h-4 w-4" />
+                                            <EyeIcon class="mr-1 h-3 w-3 text-blue-300" />
+                                            <span class="font-pixel text-blue-300">View</span>
                                         </Link>
                                         <Link
                                             v-if="item.can_edit"
                                             :href="`/files/${item.id}/edit`"
-                                            class="border-border bg-background text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md border"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-green-400/70 bg-green-400/20 px-2 transition-all hover:bg-green-400/30"
                                             title="Edit file"
                                         >
-                                            <PencilIcon class="h-4 w-4" />
+                                            <PencilIcon class="mr-1 h-3 w-3 text-green-300" />
+                                            <span class="font-pixel text-green-300">Edit</span>
                                         </Link>
                                         <div
                                             v-else
-                                            class="border-border bg-background text-muted-foreground inline-flex h-8 w-8 items-center justify-center rounded-md border opacity-40"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-gray-400/70 bg-gray-400/20 px-2 opacity-40"
                                             title="Only the uploader can edit this file"
                                         >
-                                            <PencilIcon class="h-4 w-4" />
+                                            <PencilIcon class="mr-1 h-3 w-3 text-gray-300" />
+                                            <span class="font-pixel text-gray-300">Edit</span>
                                         </div>
                                         <button
                                             @click.prevent="toggleStar(item)"
-                                            class="hover:bg-accent inline-flex items-center justify-center rounded-full p-1 transition-colors"
-                                            :class="{ 'text-amber-500': item.is_starred, 'text-muted-foreground': !item.is_starred }"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-2 transition-all hover:bg-yellow-400/30"
                                             :disabled="item.is_starring"
+                                            title="Star File"
                                         >
-                                            <StarIcon class="h-4 w-4" :fill="item.is_starred ? 'currentColor' : 'none'" />
+                                            <StarIcon 
+                                                :class="[
+                                                    'mr-1 h-3 w-3 transition-colors',
+                                                    item.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300'
+                                                ]"
+                                            />
+                                            <span class="font-pixel mr-1" :class="item.is_starred ? 'text-yellow-300' : 'text-white/60'">
+                                                {{ item.is_starred ? 'Starred' : 'Star' }}
+                                            </span>
+                                            <span class="text-xs text-white/60">({{ item.star_count || 0 }})</span>
                                         </button>
-                                        <span>{{ item.star_count || 0 }}</span>
                                         <button
                                             @click.prevent="openCollectionModal(item)"
-                                            class="border-border bg-background text-foreground hover:bg-accent inline-flex h-8 w-8 items-center justify-center rounded-md border transition-colors"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#b71400]/20 px-2 transition-all hover:bg-[#b71400]/30"
                                             title="Add to Collection"
                                         >
-                                            <PlusIcon class="h-4 w-4" />
+                                            <PlusIcon class="mr-1 h-3 w-3 text-[#ffd700]" />
+                                            <span class="font-pixel text-[#ffd700]">Add to Collection</span>
                                         </button>
                                     </div>
                                 </template>
@@ -431,81 +375,12 @@ const addToCollection = async () => {
             </div>
 
             <!-- Collection Modal -->
-            <Transition name="modal">
-                <div v-if="showCollectionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                    <div
-                        class="w-full max-w-md rounded-xl border-2 border-white bg-gradient-to-br from-gray-900 to-gray-800 p-6 shadow-[8px_8px_0px_rgba(0,0,0,0.8)]"
-                    >
-                        <h2 class="font-pixel mb-6 text-xl font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                            Add File to Collection
-                        </h2>
-
-                        <div v-if="!showCreateNewCollection" class="mb-6">
-                            <label for="collection" class="mb-3 block text-sm font-medium text-white/80">Select Collection</label>
-                            <select
-                                id="collection"
-                                v-model="selectedCollection"
-                                class="w-full rounded-lg border-2 border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400"
-                            >
-                                <option value="" class="bg-gray-800 text-white">Choose a collection...</option>
-                                <option
-                                    v-for="collection in userCollections"
-                                    :key="collection.id"
-                                    :value="collection.id"
-                                    class="bg-gray-800 text-white"
-                                >
-                                    {{ collection.name }} ({{ collection.file_count }} files)
-                                </option>
-                            </select>
-                            <p class="mt-1 text-xs text-white/60">Don't see the collection you want? Create a new one below.</p>
-                        </div>
-
-                        <div v-if="showCreateNewCollection" class="mb-6">
-                            <label for="new-collection" class="mb-3 block text-sm font-medium text-white/80">New Collection Name</label>
-                            <Input
-                                id="new-collection"
-                                v-model="newCollectionName"
-                                placeholder="Enter collection name"
-                                class="w-full border-2 border-white/30 bg-white/10 text-white backdrop-blur-sm placeholder:text-white/60 focus:border-yellow-400"
-                                @keydown.enter="createNewCollection"
-                            />
-                        </div>
-
-                        <div class="flex justify-between gap-3">
-                            <Button
-                                @click="showCreateNewCollection = !showCreateNewCollection"
-                                class="font-pixel border-2 border-blue-400 bg-blue-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-blue-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
-                            >
-                                {{ showCreateNewCollection ? 'Select Existing' : 'Create New' }}
-                            </Button>
-                            <div class="flex gap-2">
-                                <Button
-                                    @click="showCollectionModal = false"
-                                    class="font-pixel border-2 border-red-400 bg-red-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
-                                >
-                                    Cancel
-                                </Button>
-                                <Button
-                                    v-if="!showCreateNewCollection"
-                                    @click="addToCollection"
-                                    :disabled="!selectedCollection"
-                                    class="font-pixel border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-green-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    Add to Collection
-                                </Button>
-                                <Button
-                                    v-else
-                                    :disabled="isCreatingCollection || !newCollectionName.trim()"
-                                    @click="createNewCollection"
-                                    class="font-pixel border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-green-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] disabled:cursor-not-allowed disabled:opacity-50"
-                                >
-                                    {{ isCreatingCollection ? 'Creating...' : 'Create & Add' }}
-                                </Button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </Transition>
+            <CollectionModal 
+                :show="showCollectionModal"
+                :file-id="selectedFileForCollection?.id || null"
+                @close="closeCollectionModal"
+                @success="onCollectionSuccess"
+            />
         </AppLayout>
     </div>
 </template>

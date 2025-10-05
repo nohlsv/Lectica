@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\File;
 use App\Models\Tag;
+use App\Models\Collection;
 use App\Services\FileRecommendationService;
 use App\Services\QuestService;
 use Inertia\Inertia;
@@ -186,6 +187,19 @@ class FileController extends Controller
         // Check if file exists
         $fileExists = Storage::exists($file->path);
 
+        // Get collections that contain this file (public collections or owned by current user)
+        $collections = collect();
+        if (auth()->check()) {
+            $collections = $file->collections()
+                ->with(['user'])
+                ->withCount('files')
+                ->where(function ($query) {
+                    $query->where('is_public', true)
+                          ->orWhere('user_id', auth()->id());
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
+        }
 
         return Inertia::render('Files/Show', [
             'file' => $file,
@@ -196,6 +210,7 @@ class FileController extends Controller
                 'size' => $fileExists ? Storage::size($file->path) : null,
                 'lastModified' => $fileExists ? Storage::lastModified($file->path) : null,
             ],
+            'collections' => $collections,
         ]);
     }
 

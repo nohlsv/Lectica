@@ -445,10 +445,19 @@ class CollectionController extends Controller
         ]);
     }
 
-    public function userCollections(Collection $collection) {
+    public function userCollections(Request $request) {
+        $fileId = $request->query('file_id');
+        
         $collections = Collection::where('user_id', Auth::id())
-            ->select('id', 'name', 'file_count', 'is_public')
-            ->get();
+            ->select('id', 'name', 'files_count', 'is_public')
+            ->get()
+            ->map(function ($collection) use ($fileId) {
+                $collection->contains_file = false;
+                if ($fileId) {
+                    $collection->contains_file = $collection->files()->where('file_id', $fileId)->exists();
+                }
+                return $collection;
+            });
 
         return response()->json($collections);
     }

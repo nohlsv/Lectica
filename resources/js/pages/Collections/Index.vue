@@ -279,7 +279,7 @@
                                             </svg>
                                         </div>
                                         <div>
-                                            <p class="pixel-outline font-semibold text-[#FFF8DC]">{{ collection.files_count || 0 }}</p>
+                                            <p class="pixel-outline font-semibold text-[#FFF8DC]">{{ collection.file_count || 0 }}</p>
                                             <p class="pixel-outline text-xs">Files</p>
                                         </div>
                                     </div>
@@ -434,7 +434,7 @@ interface Collection {
     description?: string;
     is_public: boolean;
     is_original: boolean;
-    files_count: number;
+    file_count: number;
     total_questions: number;
     copy_count: number;
     tags: string[];
