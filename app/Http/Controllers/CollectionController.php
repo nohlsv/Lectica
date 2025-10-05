@@ -387,11 +387,10 @@ class CollectionController extends Controller
         }
 
         $isFavorited = $collection->toggleFavorite();
+        
+        $message = $isFavorited ? 'Added to favorites!' : 'Removed from favorites!';
 
-        return response()->json([
-            'is_favorited' => $isFavorited,
-            'message' => $isFavorited ? 'Added to favorites!' : 'Removed from favorites!'
-        ]);
+        return back()->with('success', $message);
     }
 
     /**

@@ -104,8 +104,8 @@
                             @click="toggleFavorite"
                             :class="
                                 isFavorited
-                                    ? 'bg-red-600 hover:bg-red-700 focus:bg-red-700 focus:ring-red-500 active:bg-red-900'
-                                    : 'bg-gray-600 hover:bg-gray-700 focus:bg-gray-700 focus:ring-gray-500 active:bg-gray-900'
+                                    ? 'bg-red-600 hover:bg-red-800 focus:bg-red-700 focus:ring-red-500 active:bg-red-900'
+                                    : 'bg-gray-600 hover:bg-gray-800 focus:bg-gray-700 focus:ring-gray-500 active:bg-gray-900'
                             "
                             class="pixel-outline inline-flex items-center rounded-md border border-transparent px-3 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800"
                         >
@@ -154,6 +154,23 @@
                             </svg>
                             Multiplayer Battle
                         </Link>
+                        <!-- Destructive Actions - Separated -->
+                        <div v-if="canEdit" class="ml-4 border-l border-gray-600 pl-4">
+                            <button
+                                @click="deleteCollection"
+                                class="pixel-outline inline-flex items-center rounded-md border border-gray-600 bg-gray-800 px-3 py-2 text-xs font-semibold tracking-widest text-red-400 uppercase transition duration-150 ease-in-out hover:bg-red-900 hover:text-white focus:bg-red-900 focus:text-white focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:outline-none active:bg-red-800 dark:focus:ring-offset-gray-800"
+                            >
+                                <svg class="pixel-outline-icon mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                    />
+                                </svg>
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -335,6 +352,12 @@ const removeFile = (file: any) => {
             data: { file_id: file.id },
             preserveScroll: true,
         });
+    }
+};
+
+const deleteCollection = () => {
+    if (confirm(`Are you sure you want to delete "${collection.name}"? This action cannot be undone.`)) {
+        router.delete(route('collections.destroy', collection.id));
     }
 };
 </script>

@@ -363,7 +363,7 @@ const addToCollection = async () => {
                 <!-- Files Data Table -->
                 <div class="bg-container rounded-xl border-2 border-white/20 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
                     <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                        📚 File Archive
+                        📚 Files
                     </h3>
 
                     <div class="bg-container overflow-hidden rounded-lg border border-white/20 backdrop-blur-sm">
