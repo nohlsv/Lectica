@@ -360,7 +360,7 @@ const onCollectionSuccess = (message?: string) => {
                                         </button>
                                         <button
                                             @click.prevent="openCollectionModal(item)"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#b71400]/20 px-2 transition-all hover:bg-[#b71400]/30"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#a85a47]/20 px-2 transition-all hover:bg-[#a85a47]/30"
                                             title="Add to Collection"
                                         >
                                             <PlusIcon class="mr-1 h-3 w-3 text-[#ffd700]" />

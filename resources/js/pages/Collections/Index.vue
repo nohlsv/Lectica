@@ -119,7 +119,7 @@
                     <div class="flex flex-col items-center justify-between gap-4 sm:flex-row">
                         <Link
                             :href="route('collections.create')"
-                            class="pixel-outline inline-flex items-center space-x-2 rounded-lg border-2 border-[#0c0a03] bg-[#b71400] px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-[#990f00]"
+                            class="pixel-outline inline-flex items-center space-x-2 rounded-lg border-2 border-[#0c0a03] bg-[#a85a47] px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-110 hover:bg-[#8d4a3a]"
                         >
                             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -390,7 +390,7 @@
                         <div v-if="filters.type === 'owned'" class="space-y-3">
                             <Link
                                 :href="route('collections.create')"
-                                class="pixel-outline inline-flex items-center space-x-2 rounded-lg border-2 border-[#0c0a03] bg-[#b71400] px-6 py-3 font-semibold text-white transition-all duration-300 hover:scale-110 hover:bg-[#990f00]"
+                                class="pixel-outline inline-flex items-center space-x-2 rounded-lg border-2 border-[#0c0a03] bg-[#a85a47] px-6 py-3 font-semibold text-white transition-all duration-300 hover:scale-110 hover:bg-[#8d4a3a]"
                             >
                                 <svg class="pixel-outline-icon h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />

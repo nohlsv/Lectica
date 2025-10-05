@@ -22,7 +22,7 @@
                             class="flex items-center justify-between rounded-md border p-3 transition-colors cursor-pointer"
                             :class="[
                                 selectedCollections.includes(collection.id)
-                                    ? 'border-[#ffd700] bg-[#b71400] shadow-lg' 
+                                    ? 'border-[#ffd700] bg-[#a85a47] shadow-lg' 
                                     : 'border-[#0c0a03] bg-[#28231d]/50 hover:bg-[#28231d]'
                             ]"
                             @click="toggleCollection(collection.id)"
@@ -66,7 +66,7 @@
                 <div class="flex justify-between gap-3">
                     <button
                         @click="showCreateNew = !showCreateNew"
-                        class="pixel-outline border-2 border-[#ffd700] bg-[#0c0a03] px-4 py-2 text-[#FFF8DC] shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-[#b71400] hover:text-white hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
+                        class="pixel-outline border-2 border-[#ffd700] bg-[#0c0a03] px-4 py-2 text-[#FFF8DC] shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-[#a85a47] hover:text-white hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
                     >
                         {{ showCreateNew ? 'Select Existing' : 'Create New' }}
                     </button>
@@ -83,7 +83,7 @@
                             v-if="!showCreateNew"
                             @click="saveChanges"
                             :disabled="saving"
-                            class="pixel-outline border-2 border-[#0c0a03] bg-[#b71400] px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-[#990f00] hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] disabled:cursor-not-allowed disabled:opacity-50"
+                            class="pixel-outline border-2 border-[#0c0a03] bg-[#a85a47] px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-[#8d4a3a] hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {{ saving ? 'Saving...' : 'Save Changes' }}
                         </button>
@@ -93,7 +93,7 @@
                             v-if="showCreateNew"
                             :disabled="isCreating || !newCollectionName.trim()"
                             @click="createNewCollection"
-                            class="pixel-outline border-2 border-[#0c0a03] bg-[#b71400] px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-[#990f00] hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] disabled:cursor-not-allowed disabled:opacity-50"
+                            class="pixel-outline border-2 border-[#0c0a03] bg-[#a85a47] px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-[#8d4a3a] hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             {{ isCreating ? 'Creating...' : 'Create & Add' }}
                         </button>
