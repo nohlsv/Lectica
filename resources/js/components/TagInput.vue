@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { type Tag } from '@/types';
 import axios from 'axios';
-import { ClockIcon, LinkIcon, PlusIcon, TrendingUpIcon, UsersIcon, XIcon } from 'lucide-vue-next';
+import { ClockIcon, LinkIcon, TrendingUpIcon, UsersIcon, XIcon } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
 
 interface Props {
@@ -13,7 +13,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
     existingTags: () => [],
-    addNewTags: true,
+    addNewTags: false,
     showSuggestions: true,
 });
 
@@ -109,32 +109,6 @@ const addTag = (tag: any) => {
     showDropdown.value = false;
 };
 
-const createNewTag = async () => {
-    if (!inputValue.value.trim() || !props.addNewTags) return;
-
-    // Check if tag already exists in selected tags
-    if (selectedTags.value.some((tag) => tag.name.toLowerCase() === inputValue.value.toLowerCase())) {
-        inputValue.value = '';
-        return;
-    }
-
-    try {
-        const response = await axios.post(route('tags.store'), { name: inputValue.value.trim() });
-        addTag(response.data);
-    } catch (error: any) {
-        console.error('Error creating tag:', error);
-
-        // If it's a 422 error (validation), it's likely the tag already exists
-        if (error.response?.status === 422) {
-            const existingTag = suggestedTags.value.find((tag) => tag.name.toLowerCase() === inputValue.value.toLowerCase());
-
-            if (existingTag) {
-                addTag(existingTag);
-            }
-        }
-    }
-};
-
 const removeTag = (tagId: number) => {
     selectedTags.value = selectedTags.value.filter((tag) => tag.id !== tagId);
 };
@@ -157,9 +131,6 @@ const handleKeydown = (e: KeyboardEvent) => {
         if (filteredSuggestions.value.length > 0) {
             e.stopPropagation();
             addTag(filteredSuggestions.value[0]);
-        } else if (inputValue.value.trim()) {
-            e.stopPropagation();
-            createNewTag();
         }
     } else if (e.key === 'Escape') {
         showDropdown.value = false;
@@ -177,7 +148,7 @@ const getSuggestionIcon = (suggestionType: string) => {
         case 'related':
             return LinkIcon;
         default:
-            return PlusIcon;
+            return ClockIcon;
     }
 };
 
@@ -306,25 +277,12 @@ onMounted(() => {
                     </button>
                 </div>
 
-                <!-- Create new tag option -->
-                <div
-                    v-if="
-                        inputValue.trim() &&
-                        props.addNewTags &&
-                        !filteredSuggestions.some((tag) => tag.name.toLowerCase() === inputValue.toLowerCase())
-                    "
-                >
-                    <div class="bg-muted text-muted-foreground px-3 py-1 text-xs font-medium">Create New</div>
-                    <button class="hover:bg-accent flex w-full items-center gap-2 px-3 py-2 text-left text-sm" @click="createNewTag">
-                        <PlusIcon class="h-4 w-4 text-green-600 dark:text-green-400" />
-                        <span class="flex-1">Create "{{ inputValue.trim() }}"</span>
-                        <span class="text-muted-foreground text-xs">New tag</span>
-                    </button>
-                </div>
-
                 <!-- No results -->
                 <div v-if="filteredSuggestions.length === 0 && filteredRelatedTags.length === 0 && !inputValue.trim()">
                     <div class="text-muted-foreground p-3 text-center text-sm">No suggestions available</div>
+                </div>
+                <div v-else-if="filteredSuggestions.length === 0 && filteredRelatedTags.length === 0 && inputValue.trim()">
+                    <div class="text-muted-foreground p-3 text-center text-sm">No matching tags found</div>
                 </div>
             </div>
         </div>
