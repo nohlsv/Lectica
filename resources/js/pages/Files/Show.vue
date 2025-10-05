@@ -291,77 +291,35 @@ const addToCollection = async () => {
 <template>
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-6 p-6">
-            <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <div class="flex items-center gap-4">
-                    <Link href="/files" class="text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-                        <ArrowLeftIcon class="h-4 w-4" />
-                        Back to Files
-                    </Link>
-                    <h1 class="text-xl font-bold md:text-2xl">File Details</h1>
-                </div>
-                <div class="flex flex-wrap items-center gap-3">
-                    <button
-                        @click="toggleStar"
-                        class="bg-background hover:bg-accent border-border inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm font-medium transition-colors"
-                        :class="{ 'text-amber-500': isStarred, 'text-muted-foreground': !isStarred }"
-                        :disabled="isStarring"
-                    >
-                        <StarIcon class="mr-2 h-5 w-5" :fill="isStarred ? 'currentColor' : 'none'" />
-                        {{ file.star_count || 0 }}
-                        {{ isStarred ? 'Starred' : 'Star' }}
-                    </button>
-                    <button
-                        v-if="!file.verified && !file.is_denied && canVerify"
-                        @click="verifyFile"
-                        class="inline-flex items-center justify-center rounded-md border bg-green-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-                        :disabled="isVerifying"
-                    >
-                        <CheckCircleIcon class="mr-2 h-5 w-5" />
-                        {{ isVerifying ? 'Verifying...' : 'Verify' }}
-                    </button>
-                    <button
-                        v-if="!file.verified && !file.is_denied && canVerify"
-                        @click="openDenyModal"
-                        class="inline-flex items-center justify-center rounded-md border bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
-                        :disabled="isDenying"
-                    >
-                        <XCircleIcon class="mr-2 h-5 w-5" />
-                        Deny
-                    </button>
-                </div>
-                <div class="flex flex-wrap items-center gap-2">
-                    <Link
-                        v-if="file.can_edit === true"
-                        :href="route('files.edit', { file: file.id })"
-                        class="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-1 rounded-md px-4 py-2 text-sm font-medium"
-                    >
-                        <PencilIcon class="h-4 w-4" />
-                        Edit
-                    </Link>
-                    <a
-                        :href="route('files.download', { file: file.id })"
-                        download
-                        class="border-border bg-background text-foreground hover:bg-accent inline-flex items-center justify-center gap-1 rounded-md border px-4 py-2 text-sm font-medium"
-                    >
-                        <DownloadIcon class="h-4 w-4" />
-                        Download
-                    </a>
-                    <button
-                        @click="openCollectionModal"
-                        class="border-border bg-background text-foreground hover:bg-accent inline-flex items-center justify-center gap-1 rounded-md border px-4 py-2 text-sm font-medium"
-                    >
-                        <PlusIcon class="h-4 w-4" />
-                        Add to Collection
-                    </button>
-                </div>
+        <div class="bg-gradient p-6">
+            <!-- Back btn -->
+            <div class="flex items-start mt-3 ml-3">
+                <Link
+                    href="/files"
+                    class="inline-flex items-center gap-2 px-3 py-1 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400 hover:text-red-700 duration-300 font-bold"
+                >
+                    <ArrowLeftIcon class="h-5 w-5" />
+                    Back
+                </Link>
             </div>
 
-            <div class="grid gap-6 md:grid-cols-3">
-                <!-- File Information -->
-                <div class="space-y-4 md:col-span-1">
-                    <div class="border-border rounded-lg border p-4">
-                        <h2 class="mb-3 text-lg font-semibold">{{ file.name }}</h2>
+            <!-- File Detail Header -->
+            <div class="rounded-xl px-10 py-2 text-3xl sm:text-3xl md:text-4xl font-extrabold welcome-banner shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce justify-center m-auto mb-3 pixel-outline" style="image-rendering: pixelated;">
+                <h1 class="text-2xl md:text-2xl font-extrabold text-center">File Details</h1>
+            </div>
+
+            <div class="bg-container ml-3 mr-3 mb-3 border-[#f68500] border-8 rounded-md">
+                <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
+                    <div class="flex items-center gap-4">
+                    </div>
+                    <!-- Action Buttons in File Preview Section -->
+            </div>
+
+                <div class="grid gap-6 md:grid-cols-3">
+                    <!-- File Information -->
+                    <div class="space-y-4 md:col-span-1">
+                        <div class="p-4">
+                            <h2 class="text-3xl font-semibold mb-3 text-[#fb9e1b] pixel-outline align-middle">{{ file.name }}</h2>
 
                         <!-- Verification Status -->
                         <div class="mb-3">
@@ -394,110 +352,96 @@ const addToCollection = async () => {
                         <div v-if="file.description" class="mb-3 text-sm">
                             <p class="text-muted-foreground">{{ file.description }}</p>
                         </div>
-                        <dl class="space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <dt class="text-muted-foreground font-medium">Type:</dt>
-                                <dd class="text-right uppercase">{{ fileInfo.extension }}</dd>
-                            </div>
-                            <div class="flex justify-between" v-if="fileInfo.size">
-                                <dt class="text-muted-foreground font-medium">Size:</dt>
-                                <dd class="text-right">{{ fileInfo.size }}</dd>
-                            </div>
-                            <div class="flex justify-between" v-if="fileInfo.lastModified">
-                                <dt class="text-muted-foreground font-medium">Last Modified:</dt>
-                                <dd class="text-right">{{ fileInfo.lastModified }}</dd>
-                            </div>
-                            <div class="flex justify-between">
-                                <dt class="text-muted-foreground font-medium">Verified:</dt>
-                                <dd class="text-right">
-                                    <span :class="file.verified ? 'text-green-500' : 'text-red-500'" class="font-semibold">
-                                        {{ file.verified ? 'Yes' : 'No' }}
-                                    </span>
-                                </dd>
-                            </div>
-                            <div class="border-border mt-2 flex justify-between border-t pt-2">
-                                <dt class="text-muted-foreground font-medium">Uploaded by:</dt>
-                                <dd class="text-right">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
-                            </div>
-                            <div class="flex justify-between">
-                                <dt class="text-muted-foreground font-medium">Upload Date:</dt>
-                                <dd class="text-right">
-                                    {{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}
-                                </dd>
-                            </div>
-                            <div class="border-border mt-2 border-t pt-2">
-                                <dt class="text-muted-foreground mb-2 font-medium">Tags:</dt>
-                                <dd class="flex flex-wrap gap-1">
-                                    <span
-                                        v-for="tag in file.tags"
-                                        :key="tag.id"
-                                        class="bg-primary/10 text-primary inline-flex rounded-md px-2 py-1 text-xs"
-                                    >
-                                        {{ tag.name }}
-                                    </span>
-                                    <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm"> No tags </span>
-                                </dd>
-                            </div>
-                        </dl>
-                        <div class="border-border mt-4 space-y-2 border-t py-4">
-                            <h3 class="text-lg font-medium">Study Materials</h3>
-                            <div class="mt-2">
-                                <div class="w-full py-2">
-                                    <h4 class="mb-2 font-medium">Flashcards</h4>
-                                    <div class="mb-2 flex flex-wrap justify-center gap-6">
-                                        <Link :href="route('files.flashcards.index', file.id)">
-                                            <Button variant="outline" class="w-full text-xs sm:w-auto">
-                                                <BookOpen class="mr-2 h-3 w-3" />
-                                                View Flashcards
-                                            </Button>
-                                        </Link>
-                                        <!-- <Link v-if="isOwner" :href="route('files.flashcards.create', file.id)">
-                                            <Button variant="outline" class="w-full sm:w-auto text-xs">
-                                                <Pencil class="mr-2 h-3 w-3" />
-                                                Add Flashcard
-                                            </Button>
-                                        </Link> -->
-                                        <Link :href="route('files.flashcards.practice', file.id)">
-                                            <Button variant="default" class="w-full text-xs sm:w-auto">
-                                                <BookOpen class="mr-2 h-3 w-3" />
-                                                Practice
-                                            </Button>
-                                        </Link>
-                                    </div>
+                            <dl class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
+                                    <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
                                 </div>
-                                <div class="border-border w-full border-t py-2">
-                                    <h4 class="mb-2 font-medium">Quizzes</h4>
-                                    <div class="mb-2 flex flex-wrap justify-center gap-6">
-                                        <Link :href="route('files.quizzes.index', file.id)">
-                                            <Button variant="outline" class="w-full text-xs sm:w-auto">
-                                                <ListChecks class="mr-2 h-3 w-3" />
-                                                View Quizzes
-                                            </Button>
-                                        </Link>
-                                        <!-- <Link v-if="isOwner" :href="route('files.quizzes.create', file.id)">
-                                            <Button variant="outline" class="w-full sm:w-auto text-xs">
-                                                <Pencil class="mr-2 h-3 w-3" />
-                                                Add Quiz
-                                            </Button>
-                                        </Link> -->
-                                        <Link :href="route('files.quizzes.test', file.id)">
-                                            <Button variant="default" class="w-full text-xs sm:w-auto">
-                                                <ListChecks class="mr-2 h-3 w-3" />
-                                                Take Quiz
-                                            </Button>
-                                        </Link>
-                                    </div>
+                                <div class="flex justify-between" v-if="fileInfo.size">
+                                    <dt class="text-base text-[#fce085] pixel-outline">File Size:</dt>
+                                    <dd class="text-right pixel-outline">{{ fileInfo.size }}</dd>
                                 </div>
-                                <div class="border-border flex w-full justify-center gap-2 border-t pt-4" v-if="isOwner && file.verified">
-                                    <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
-                                        <DialogTrigger asChild>
-                                            <Button
-                                                class="bg-secondary text-secondary-foreground hover:bg-secondary/90 flex w-full items-center justify-center gap-1 rounded-md px-4 py-2 text-xs font-medium sm:w-auto"
-                                            >
-                                                <PencilIcon class="mr-2 h-3 w-3" />
-                                                Generate Flashcards & Quizzes
-                                            </Button>
-                                        </DialogTrigger>
+                                <div class="flex justify-between" v-if="fileInfo.lastModified">
+                                    <dt class="text-base text-[#fce085] pixel-outline">Last Modified:</dt>
+                                    <dd class="text-right pixel-outline">{{ fileInfo.lastModified }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-base text-[#fce085] pixel-outline">Verified:</dt>
+                                    <dd class="text-right pixel-outline">
+                                        <span :class="file.verified ? 'text-green-500' : 'text-red-500'" class="font-semibold">
+                                            {{ file.verified ? 'Yes' : 'No' }}
+                                        </span>
+                                    </dd>
+                                </div>
+                                <div class="flex justify-between pt-2 mt-2 border-t border-[#faa800]">
+                                    <dt class="text-base text-[#fce085] pixel-outline">Uploaded by:</dt>
+                                    <dd class="text-right pixel-outline">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
+                                </div>
+                                <div class="flex justify-between">
+                                    <dt class="text-base text-[#fce085] pixel-outline">Upload Date:</dt>
+                                    <dd class="text-right pixel-outline">
+                                        {{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}
+                                    </dd>
+                                </div>
+                                <div class="pt-2 mt-2 border-t border-[#faa800]">
+                                    <dt class="text-base text-[#fce085] pixel-outline mb-2">Tags:</dt>
+                                    <dd class="flex flex-wrap gap-1">
+                                        <span
+                                            v-for="tag in file.tags"
+                                            :key="tag.id"
+                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-[#faa800] text-[#661500]"
+                                        >
+                                            {{ tag.name }}
+                                        </span>
+                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm"> No tags </span>
+                                    </dd>
+                                </div>
+                            </dl>
+                            <div class="mt-4 border-t border-[#faa800] py-4 space-y-2">
+                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] pixel-outline mb-5">Study Materials</h3>
+                                <div class="mt-2">
+                                    <div class="w-full py-2">
+                                        <h4 class="mb-2 font-medium text-[#fce085] pixel-outline">Flashcards</h4>
+                                        <div class="mb-2 flex flex-wrap justify-center gap-6">
+                                            <Link :href="route('files.flashcards.index', file.id)">
+                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
+                                                    <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                    View Flashcards
+                                                </Button>
+                                            </Link>
+                                            <Link :href="route('files.flashcards.practice', file.id)">
+                                                <Button class="w-full text-xs sm:w-auto bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
+                                                    <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                    Practice
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                    <div class="border-t border-[#faa800] w-full py-2">
+                                        <h4 class="mb-2 font-medium text-[#fce085] pixel-outline">Quizzes</h4>
+                                        <div class="mb-2 flex flex-wrap justify-center gap-6">
+                                            <Link :href="route('files.quizzes.index', file.id)">
+                                                <Button class="w-full text-xs sm:w-auto bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
+                                                    <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                    View Quizzes
+                                                </Button>
+                                            </Link>
+                                            <Link :href="route('files.quizzes.test', file.id)">
+                                                <Button class="w-full text-xs sm:w-auto bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
+                                                    <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
+                                                    Take Quiz
+                                                </Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                    <div class="flex w-full justify-center gap-2 border-t border-[#faa800] pt-4" v-if="isOwner && file.verified">
+                                        <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
+                                            <DialogTrigger asChild>
+                                                <Button class="sm:w-auto flex items-center justify-center text-sm sm:text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-3 sm:px-5 py-3 sm:py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#e6a03c] hover:to-[#e6b82c] pixel-outline active:scale-95">
+                                                    <PencilIcon class="h-6 w-6 sm:h-8 sm:w-8 text-[#fdf6ee] pixel-outline pixel-outline-icon flex-shrink-0" />
+                                                    <span class="text-center leading-tight">Generate Flashcards & Quizzes</span>
+                                                </Button>
+                                            </DialogTrigger>
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>Generate Flashcards & Quizzes</DialogTitle>
@@ -607,70 +551,133 @@ const addToCollection = async () => {
                     </div>
                 </div>
 
-                <!-- File Preview -->
-                <div class="space-y-4 md:col-span-2">
-                    <div class="border-border rounded-lg border p-4">
-                        <h2 class="mb-3 text-lg font-semibold">File Preview</h2>
+                    <!-- File Preview -->
+                    <div class="space-y-4 md:col-span-2">
+                        <div class="p-4">
+                            <!-- Top buttons container-->
+                            <div class="flex flex-row justify-between items-center gap-3 px-4 py-3">
+                                <h2 class="text-xl font-semibold justify-center flex text-left px-4 py-3 text-[#fce085] pixel-outline">File Preview</h2>
 
-                        <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
-                            <!-- PDF Preview -->
-                            <div v-if="isPdf && fileInfo.url" class="border-border h-[500px] w-full rounded-md border">
-                                <object :data="fileInfo.url" type="application/pdf" class="h-full w-full">
-                                    <div class="bg-accent/20 flex h-full items-center justify-center p-4 text-center">
-                                        <div>
-                                            <FileType2Icon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
-                                            <p>PDF preview not available in your browser.</p>
-                                            <a :href="fileInfo.url" target="_blank" class="text-primary mt-2 inline-block underline">
-                                                Open PDF in new tab
-                                            </a>
+                                <!-- Buttons container -->
+                                <div class="flex flex-wrap items-center gap-3 justify-center mt-3 md:mt-0">
+                                    <button
+                                        @click="toggleStar"
+                                        class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#ad5215] border-2 border-[#0c0a03] duration-300 hover:scale-105 pixel-outline"
+                                        :class="{'text-yellow-300': isStarred, 'bg-[#6f4f3b]': !isStarred}"
+                                        :disabled="isStarring"
+                                    >
+                                        <StarIcon class="h-5 w-5 mr-2 pixel-outline-icon" :fill="isStarred ? 'currentColor' : 'none'" />
+                                        {{ file.star_count || 0 }}
+                                        {{ isStarred ? 'Starred' : 'Star' }}
+                                    </button>
+
+                                    <button
+                                        v-if="!file.verified && !file.is_denied && canVerify"
+                                        @click="verifyFile"
+                                        class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#4a9159] border-[#0c0a03] duration-300 border-2"
+                                        :disabled="isVerifying"
+                                    >
+                                        <CheckCircleIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
+                                        {{ isVerifying ? 'Verifying...' : 'Verify' }}
+                                    </button>
+
+                                    <button
+                                        v-if="!file.verified && !file.is_denied && canVerify"
+                                        @click="openDenyModal"
+                                        class="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 border-2 border-[#0c0a03] pixel-outline"
+                                        :disabled="isDenying"
+                                    >
+                                        <XCircleIcon class="mr-2 h-5 w-5 pixel-outline-icon" />
+                                        Deny
+                                    </button>
+
+                                    <Link
+                                        v-if="file.can_edit === true"
+                                        :href="route('files.edit', { file: file.id })"
+                                        class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#578ec3] border-[#0c0a03] duration-300 pixel-outline"
+                                    >
+                                        <PencilIcon class="h-4 w-4 pixel-outline-icon" />
+                                        Edit
+                                    </Link>
+                                    <a
+                                        :href="route('files.download', { file: file.id })"
+                                        download
+                                        class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#b3744e] border-[#0c0a03] duration-300 pixel-outline"
+                                    >
+                                        <DownloadIcon class="h-4 w-4 pixel-outline-icon" />
+                                        Download
+                                    </a>
+                                    <button
+                                        @click="openCollectionModal"
+                                        class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#8b7355] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#6e5a43] border-[#0c0a03] duration-300 pixel-outline"
+                                    >
+                                        <PlusIcon class="h-4 w-4 pixel-outline-icon" />
+                                        Add to Collection
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
+                                <!-- PDF Preview -->
+                                <div v-if="isPdf && fileInfo.url" class="w-full h-[500px] border-5 border-[#feaf00] rounded-md">
+                                    <object :data="fileInfo.url" type="application/pdf" class="h-full w-full">
+                                        <div class="bg-accent/20 flex h-full items-center justify-center p-4 text-center">
+                                            <div>
+                                                <FileType2Icon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
+                                                <p>PDF preview not available in your browser.</p>
+                                                <a :href="fileInfo.url" target="_blank" class="text-primary mt-2 inline-block underline">
+                                                    Open PDF in new tab
+                                                </a>
+                                            </div>
                                         </div>
-                                    </div>
-                                </object>
+                                    </object>
+                                </div>
+
+                                <!-- Image Preview -->
+                                <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
+                                    <img :src="fileInfo.url" :alt="file.name" class="max-h-[500px] max-w-full rounded-md object-contain" />
+                                </div>
+
+                                <!-- Text Preview -->
+                                <div v-else-if="isTxt" class="bg-accent/50 max-h-[500px] overflow-auto rounded-md p-4">
+                                    <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                                </div>
+
+                                <!-- Office File Preview -->
+                                <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-[#0c0a03] rounded-md">
+                                    <iframe
+                                        :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
+                                        width="100%"
+                                        height="100%"
+                                        frameborder="0"
+                                    >
+                                        This is an embedded
+                                        <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
+                                        <a target="_blank" href="http://office.com/webapps">Office Online</a>.
+                                    </iframe>
+                                </div>
                             </div>
 
-                            <!-- Image Preview -->
-                            <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
-                                <img :src="fileInfo.url" :alt="file.name" class="max-h-[500px] max-w-full rounded-md object-contain" />
+                            <!-- Extracted Text Content -->
+                            <div v-if="!isPreviewable && file.content" class="mt-4">
+                                <h3 class="text-md mb-2 font-medium text-[#fce085]">Extracted Text</h3>
+                                <div class="bg-accent/60 max-h-[400px] overflow-auto rounded-md p-4">
+                                    <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
+                                </div>
                             </div>
 
-                            <!-- Text Preview -->
-                            <div v-else-if="isTxt" class="bg-accent/50 max-h-[500px] overflow-auto rounded-md p-4">
-                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
-                            </div>
-
-                            <!-- Office File Preview -->
-                            <div v-else-if="isOfficeFile && fileInfo.url" class="border-border h-[500px] w-full rounded-md border">
-                                <iframe
-                                    :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
-                                    width="100%"
-                                    height="100%"
-                                    frameborder="0"
-                                >
-                                    This is an embedded
-                                    <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
-                                    <a target="_blank" href="http://office.com/webapps">Office Online</a>.
-                                </iframe>
-                            </div>
-                        </div>
-
-                        <!-- Extracted Text Content -->
-                        <div v-if="!isPreviewable && file.content" class="mt-4">
-                            <h3 class="text-md mb-2 font-medium">Extracted Text</h3>
-                            <div class="bg-accent/50 max-h-[400px] overflow-auto rounded-md p-4">
-                                <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
-                            </div>
-                        </div>
-
-                        <!-- File Not Found -->
-                        <div v-if="!fileInfo.exists" class="bg-accent/20 flex h-[200px] items-center justify-center rounded-md">
-                            <div class="text-center">
-                                <FileIcon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
-                                <p>File content not available.</p>
+                            <!-- File Not Found -->
+                            <div v-if="!fileInfo.exists" class="bg-accent/60 flex h-[200px] items-center justify-center rounded-md">
+                                <div class="text-center">
+                                    <FileIcon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
+                                    <p>File content not available.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
 
             <!-- Add to Collection Modal -->
             <Dialog v-model:open="showCollectionModal" onOpenChange="showCollectionModal = $event">
@@ -756,6 +763,5 @@ const addToCollection = async () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
-    </AppLayout>
+        </AppLayout>
 </template>
