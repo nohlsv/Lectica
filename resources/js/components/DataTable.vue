@@ -6,6 +6,7 @@ import { computed } from 'vue';
 export interface Column<T> {
     key: keyof T;
     label: string;
+    class?: string;
 }
 
 interface Props<T> {
@@ -30,21 +31,21 @@ defineSlots<{
         <table class="w-full table-auto">
             <thead class="border-b">
                 <tr>
-                    <th v-for="column in columns" :key="column.key.toString()" class="border-border border-r p-4 pb-4 text-left last:border-r-0">
+                    <th v-for="column in columns" :key="column.key.toString()" :class="['border-border border-r p-4 pb-4 text-left last:border-r-0', column.class]">
                         {{ column.label }}
                     </th>
-                    <th v-if="$slots.actions" class="p-4 pb-4 text-left">Actions</th>
+                    <th v-if="$slots.actions" class="p-4 pb-4 text-left w-1 whitespace-nowrap">Actions</th>
                 </tr>
             </thead>
             <tbody v-if="hasData">
                 <tr v-for="(item, index) in data.data" :key="index" class="border-b">
-                    <td v-for="column in columns" :key="column.key.toString()" class="border-border border-r p-4 last:border-r-0">
+                    <td v-for="column in columns" :key="column.key.toString()" :class="['border-border border-r p-4 last:border-r-0', column.class]">
                         <!-- Check for a custom cell template, use it if available -->
                         <slot v-if="$slots['cell-' + column.key.toString()]" :name="'cell-' + column.key.toString()" :item="item"></slot>
                         <!-- Default rendering if no custom template -->
                         <template v-else>{{ item[column.key] }}</template>
                     </td>
-                    <td v-if="$slots.actions" class="p-4">
+                    <td v-if="$slots.actions" class="p-4 w-1 whitespace-nowrap">
                         <slot name="actions" :item="item"></slot>
                     </td>
                 </tr>

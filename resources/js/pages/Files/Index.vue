@@ -43,7 +43,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const columns = [
     { key: 'name', label: 'Name' },
     { key: 'description', label: 'Description', class: 'hidden sm:table-cell' },
-    { key: 'created_at', label: 'Upload Info', class: 'hidden md:table-cell' },
+    { key: 'created_at', label: 'Upload Info', class: 'hidden md:table-cell whitespace-nowrap' },
 ];
 
 const searchQuery = ref('');
@@ -187,7 +187,7 @@ const onCollectionSuccess = (message?: string) => {
             </div>
 
             <!--Main Content-->
-            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-6 pb-0 lg:p-8">
+            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-6 pb-0 lg:p-8 max-w-full overflow-hidden">
                 <!-- Search and Filters Section -->
                 <div class="mb-6 space-y-4 rounded-xl border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
                     <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
@@ -293,17 +293,17 @@ const onCollectionSuccess = (message?: string) => {
                 </div>
 
                 <!-- Files Data Table -->
-                <div class="bg-container rounded-xl border-2 border-white/20 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                <div class="bg-container rounded-xl border-2 border-white/20 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm max-w-full overflow-hidden">
                     <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                         📚 Files
                     </h3>
 
                     <div class="bg-container overflow-hidden rounded-lg border border-white/20 backdrop-blur-sm">
                         <div class="overflow-x-auto">
-                            <DataTable :data="files" :columns="columns" class="min-w-full">
-                                <!-- Custom cell template to clamp content text -->
+                            <DataTable :data="files" :columns="columns" class="w-full table-auto">
+                                <!-- Custom cell template for multiline description -->
                                 <template #cell-description="{ item }">
-                                    <p class="text-muted-foreground line-clamp-4 max-w-full text-sm sm:line-clamp-2">
+                                    <p class="text-muted-foreground text-sm break-words leading-relaxed max-w-xs">
                                         {{ item.description ? item.description : 'No description provided' }}
                                     </p>
                                 </template>
@@ -315,35 +315,35 @@ const onCollectionSuccess = (message?: string) => {
                                 </template>
 
                                 <template #actions="{ item }">
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-1 whitespace-nowrap flex-shrink-0">
                                         <Link
                                             :href="`/files/${item.id}`"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-2 transition-all hover:bg-blue-400/30"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-1.5 transition-all hover:bg-blue-400/30"
                                             title="View file details"
                                         >
                                             <EyeIcon class="mr-1 h-3 w-3 text-blue-300" />
-                                            <span class="font-pixel text-blue-300">View</span>
+                                            <span class="font-pixel text-blue-300 text-xs">View</span>
                                         </Link>
                                         <Link
                                             v-if="item.can_edit"
                                             :href="`/files/${item.id}/edit`"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-green-400/70 bg-green-400/20 px-2 transition-all hover:bg-green-400/30"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-green-400/70 bg-green-400/20 px-1.5 transition-all hover:bg-green-400/30"
                                             title="Edit file"
                                         >
                                             <PencilIcon class="mr-1 h-3 w-3 text-green-300" />
-                                            <span class="font-pixel text-green-300">Edit</span>
+                                            <span class="font-pixel text-green-300 text-xs">Edit</span>
                                         </Link>
                                         <div
                                             v-else
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-gray-400/70 bg-gray-400/20 px-2 opacity-40"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-gray-400/70 bg-gray-400/20 px-1.5 opacity-40"
                                             title="Only the uploader can edit this file"
                                         >
                                             <PencilIcon class="mr-1 h-3 w-3 text-gray-300" />
-                                            <span class="font-pixel text-gray-300">Edit</span>
+                                            <span class="font-pixel text-gray-300 text-xs">Edit</span>
                                         </div>
                                         <button
                                             @click.prevent="toggleStar(item)"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-2 transition-all hover:bg-yellow-400/30"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-1.5 transition-all hover:bg-yellow-400/30"
                                             :disabled="item.is_starring"
                                             title="Star File"
                                         >
@@ -353,18 +353,18 @@ const onCollectionSuccess = (message?: string) => {
                                                     item.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300'
                                                 ]"
                                             />
-                                            <span class="font-pixel mr-1" :class="item.is_starred ? 'text-yellow-300' : 'text-white/60'">
+                                            <span class="font-pixel mr-1 text-xs" :class="item.is_starred ? 'text-yellow-300' : 'text-white/60'">
                                                 {{ item.is_starred ? 'Starred' : 'Star' }}
                                             </span>
                                             <span class="text-xs text-white/60">({{ item.star_count || 0 }})</span>
                                         </button>
                                         <button
                                             @click.prevent="openCollectionModal(item)"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#a85a47]/20 px-2 transition-all hover:bg-[#a85a47]/30"
+                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#a85a47]/20 px-1.5 transition-all hover:bg-[#a85a47]/30"
                                             title="Add to Collection"
                                         >
                                             <PlusIcon class="mr-1 h-3 w-3 text-[#ffd700]" />
-                                            <span class="font-pixel text-[#ffd700]">Add to Collection</span>
+                                            <span class="font-pixel text-[#ffd700] text-xs">Collection</span>
                                         </button>
                                     </div>
                                 </template>
