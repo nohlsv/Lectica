@@ -1,7 +1,7 @@
 <template>
     <Head :title="collection.name" />
     <AppLayout>
-        <div class="min-h-screen bg-gradient">
+        <div class="bg-gradient min-h-screen">
             <!-- Header Section -->
             <div class="bg-container relative overflow-hidden">
                 <div class="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
@@ -478,7 +478,6 @@ const deleteCollection = () => {
     -webkit-line-clamp: 2;
     line-clamp: 2;
 }
-
 
 /* Animation for hover effects */
 @keyframes shimmer {

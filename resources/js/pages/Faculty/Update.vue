@@ -6,7 +6,7 @@
             <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Faculty Updates</h2>
         </template>
 
-        <div class="min-h-screen bg-gradient py-12">
+        <div class="bg-gradient min-h-screen py-12">
             <!-- Hero Section -->
             <div class="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="text-center">
@@ -23,10 +23,10 @@
                     <button
                         @click="activeTab = 'programs'"
                         :class="[
-                            'pixel-outline flex-1 rounded-lg px-6 py-3 text-sm font-medium leading-5 transition-all duration-200',
+                            'pixel-outline flex-1 rounded-lg px-6 py-3 text-sm leading-5 font-medium transition-all duration-200',
                             activeTab === 'programs'
                                 ? 'bg-[#b71400] text-[#FFF8DC] shadow-lg'
-                                : 'text-[#FFF8DC]/70 hover:text-[#FFF8DC] hover:bg-[#b71400]/50'
+                                : 'text-[#FFF8DC]/70 hover:bg-[#b71400]/50 hover:text-[#FFF8DC]',
                         ]"
                     >
                         Programs ({{ programs.length }})
@@ -34,10 +34,10 @@
                     <button
                         @click="activeTab = 'tags'"
                         :class="[
-                            'pixel-outline flex-1 rounded-lg px-6 py-3 text-sm font-medium leading-5 transition-all duration-200',
+                            'pixel-outline flex-1 rounded-lg px-6 py-3 text-sm leading-5 font-medium transition-all duration-200',
                             activeTab === 'tags'
                                 ? 'bg-[#b71400] text-[#FFF8DC] shadow-lg'
-                                : 'text-[#FFF8DC]/70 hover:text-[#FFF8DC] hover:bg-[#b71400]/50'
+                                : 'text-[#FFF8DC]/70 hover:bg-[#b71400]/50 hover:text-[#FFF8DC]',
                         ]"
                     >
                         Tags ({{ tags.length }})
@@ -50,9 +50,9 @@
                     <div class="bg-container rounded-2xl border-2 border-[#ffd700] p-6">
                         <h3 class="pixel-outline mb-4 text-xl font-bold text-[#FFF8DC]">Add New Program</h3>
                         <form @submit.prevent="submitProgram" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
-                                    <label for="program-name" class="pixel-outline block text-sm font-medium text-[#FFF8DC] mb-1">
+                                    <label for="program-name" class="pixel-outline mb-1 block text-sm font-medium text-[#FFF8DC]">
                                         Program Name *
                                     </label>
                                     <input
@@ -65,7 +65,7 @@
                                     />
                                 </div>
                                 <div>
-                                    <label for="program-code" class="pixel-outline block text-sm font-medium text-[#FFF8DC] mb-1">
+                                    <label for="program-code" class="pixel-outline mb-1 block text-sm font-medium text-[#FFF8DC]">
                                         Program Code *
                                     </label>
                                     <input
@@ -78,7 +78,7 @@
                                     />
                                 </div>
                                 <div>
-                                    <label for="program-college" class="pixel-outline block text-sm font-medium text-[#FFF8DC] mb-1">
+                                    <label for="program-college" class="pixel-outline mb-1 block text-sm font-medium text-[#FFF8DC]">
                                         College *
                                     </label>
                                     <select
@@ -88,23 +88,14 @@
                                         required
                                     >
                                         <option value="" disabled class="text-gray-400">Select a college</option>
-                                        <option 
-                                            v-for="(label, value) in colleges" 
-                                            :key="value" 
-                                            :value="value"
-                                            class="bg-[#0c0a03] text-[#FFF8DC]"
-                                        >
+                                        <option v-for="(label, value) in colleges" :key="value" :value="value" class="bg-[#0c0a03] text-[#FFF8DC]">
                                             {{ label }}
                                         </option>
                                     </select>
                                 </div>
                             </div>
                             <div class="flex justify-end">
-                                <Button
-                                    type="submit"
-                                    :disabled="programForm.processing"
-                                    class="pixel-btn-primary flex items-center space-x-2"
-                                >
+                                <Button type="submit" :disabled="programForm.processing" class="pixel-btn-primary flex items-center space-x-2">
                                     <PlusIcon class="h-4 w-4" />
                                     <span>Add Program</span>
                                 </Button>
@@ -124,15 +115,12 @@
                                 <div v-if="editingProgram !== program.id" class="flex-1">
                                     <h4 class="pixel-outline font-semibold text-[#FFF8DC]">{{ program.name }}</h4>
                                     <p class="pixel-outline text-sm text-[#FFF8DC]/70">
-                                        Code: {{ program.code }} | College: {{ program.college ? colleges[program.college] || program.college : 'N/A' }}
+                                        Code: {{ program.code }} | College:
+                                        {{ program.college ? colleges[program.college] || program.college : 'N/A' }}
                                     </p>
                                 </div>
-                                <form 
-                                    v-else 
-                                    @submit.prevent="updateProgram(program.id)"
-                                    class="flex-1 space-y-2"
-                                >
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                <form v-else @submit.prevent="updateProgram(program.id)" class="flex-1 space-y-2">
+                                    <div class="grid grid-cols-1 gap-2 md:grid-cols-3">
                                         <input
                                             v-model="editProgramForm.name"
                                             type="text"
@@ -153,9 +141,9 @@
                                             required
                                         >
                                             <option value="" disabled class="text-gray-400">Select a college</option>
-                                            <option 
-                                                v-for="(label, value) in colleges" 
-                                                :key="value" 
+                                            <option
+                                                v-for="(label, value) in colleges"
+                                                :key="value"
                                                 :value="value"
                                                 class="bg-[#0c0a03] text-[#FFF8DC]"
                                             >
@@ -166,30 +154,18 @@
                                 </form>
                                 <div class="flex items-center space-x-2">
                                     <template v-if="editingProgram !== program.id">
-                                        <button
-                                            @click="startEditProgram(program)"
-                                            class="rounded p-1 text-blue-400 hover:bg-blue-400/10"
-                                        >
+                                        <button @click="startEditProgram(program)" class="rounded p-1 text-blue-400 hover:bg-blue-400/10">
                                             <PencilIcon class="h-4 w-4" />
                                         </button>
-                                        <button
-                                            @click="deleteProgram(program.id)"
-                                            class="rounded p-1 text-red-400 hover:bg-red-400/10"
-                                        >
+                                        <button @click="deleteProgram(program.id)" class="rounded p-1 text-red-400 hover:bg-red-400/10">
                                             <TrashIcon class="h-4 w-4" />
                                         </button>
                                     </template>
                                     <template v-else>
-                                        <button
-                                            @click="updateProgram(program.id)"
-                                            class="rounded p-1 text-green-400 hover:bg-green-400/10"
-                                        >
+                                        <button @click="updateProgram(program.id)" class="rounded p-1 text-green-400 hover:bg-green-400/10">
                                             <CheckIcon class="h-4 w-4" />
                                         </button>
-                                        <button
-                                            @click="cancelEditProgram"
-                                            class="rounded p-1 text-gray-400 hover:bg-gray-400/10"
-                                        >
+                                        <button @click="cancelEditProgram" class="rounded p-1 text-gray-400 hover:bg-gray-400/10">
                                             <XIcon class="h-4 w-4" />
                                         </button>
                                     </template>
@@ -205,11 +181,9 @@
                     <div class="bg-container rounded-2xl border-2 border-[#ffd700] p-6">
                         <h3 class="pixel-outline mb-4 text-xl font-bold text-[#FFF8DC]">Add New Tag</h3>
                         <form @submit.prevent="submitTag" class="space-y-4">
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
-                                    <label for="tag-name" class="pixel-outline block text-sm font-medium text-[#FFF8DC] mb-1">
-                                        Tag Name *
-                                    </label>
+                                    <label for="tag-name" class="pixel-outline mb-1 block text-sm font-medium text-[#FFF8DC]"> Tag Name * </label>
                                     <input
                                         id="tag-name"
                                         v-model="tagForm.name"
@@ -220,7 +194,7 @@
                                     />
                                 </div>
                                 <div>
-                                    <label for="tag-aliases" class="pixel-outline block text-sm font-medium text-[#FFF8DC] mb-1">
+                                    <label for="tag-aliases" class="pixel-outline mb-1 block text-sm font-medium text-[#FFF8DC]">
                                         Aliases (comma-separated)
                                     </label>
                                     <input
@@ -233,11 +207,7 @@
                                 </div>
                             </div>
                             <div class="flex justify-end">
-                                <Button
-                                    type="submit"
-                                    :disabled="tagForm.processing"
-                                    class="pixel-btn-primary flex items-center space-x-2"
-                                >
+                                <Button type="submit" :disabled="tagForm.processing" class="pixel-btn-primary flex items-center space-x-2">
                                     <PlusIcon class="h-4 w-4" />
                                     <span>Add Tag</span>
                                 </Button>
@@ -249,41 +219,28 @@
                     <div class="bg-container rounded-2xl border-2 border-[#ffd700] p-6">
                         <h3 class="pixel-outline mb-4 text-xl font-bold text-[#FFF8DC]">Existing Tags</h3>
                         <div class="space-y-4">
-                            <div
-                                v-for="tag in tags"
-                                :key="tag.id"
-                                class="rounded-lg border border-[#ffd700]/30 bg-[#0c0a03] p-4"
-                            >
+                            <div v-for="tag in tags" :key="tag.id" class="rounded-lg border border-[#ffd700]/30 bg-[#0c0a03] p-4">
                                 <div class="flex items-center justify-between">
                                     <div v-if="editingTag !== tag.id" class="flex-1">
                                         <div class="flex items-center space-x-3">
                                             <h4 class="pixel-outline font-semibold text-[#FFF8DC]">{{ tag.name }}</h4>
-                                            <span class="pixel-outline text-xs text-[#FFF8DC]/50">
-                                                ({{ tag.files_count }} files)
-                                            </span>
+                                            <span class="pixel-outline text-xs text-[#FFF8DC]/50"> ({{ tag.files_count }} files) </span>
                                         </div>
                                         <div v-if="tag.aliases && tag.aliases.length > 0" class="mt-1 flex flex-wrap gap-1">
-                                            <span class="pixel-outline text-xs text-[#FFF8DC]/70 mr-2">Aliases:</span>
+                                            <span class="pixel-outline mr-2 text-xs text-[#FFF8DC]/70">Aliases:</span>
                                             <span
                                                 v-for="alias in tag.aliases"
                                                 :key="alias"
                                                 class="inline-flex items-center rounded-full bg-[#b71400]/50 px-2 py-1 text-xs text-[#FFF8DC]"
                                             >
                                                 {{ alias }}
-                                                <button
-                                                    @click="removeAlias(tag.id, alias)"
-                                                    class="ml-1 text-red-400 hover:text-red-300"
-                                                >
+                                                <button @click="removeAlias(tag.id, alias)" class="ml-1 text-red-400 hover:text-red-300">
                                                     <XIcon class="h-3 w-3" />
                                                 </button>
                                             </span>
                                         </div>
                                     </div>
-                                    <form 
-                                        v-else 
-                                        @submit.prevent="updateTag(tag.id)"
-                                        class="flex-1 space-y-2"
-                                    >
+                                    <form v-else @submit.prevent="updateTag(tag.id)" class="flex-1 space-y-2">
                                         <input
                                             v-model="editTagForm.name"
                                             type="text"
@@ -307,30 +264,18 @@
                                             >
                                                 <PlusIcon class="h-4 w-4" />
                                             </button>
-                                            <button
-                                                @click="startEditTag(tag)"
-                                                class="rounded p-1 text-blue-400 hover:bg-blue-400/10"
-                                            >
+                                            <button @click="startEditTag(tag)" class="rounded p-1 text-blue-400 hover:bg-blue-400/10">
                                                 <PencilIcon class="h-4 w-4" />
                                             </button>
-                                            <button
-                                                @click="deleteTag(tag.id)"
-                                                class="rounded p-1 text-red-400 hover:bg-red-400/10"
-                                            >
+                                            <button @click="deleteTag(tag.id)" class="rounded p-1 text-red-400 hover:bg-red-400/10">
                                                 <TrashIcon class="h-4 w-4" />
                                             </button>
                                         </template>
                                         <template v-else>
-                                            <button
-                                                @click="updateTag(tag.id)"
-                                                class="rounded p-1 text-green-400 hover:bg-green-400/10"
-                                            >
+                                            <button @click="updateTag(tag.id)" class="rounded p-1 text-green-400 hover:bg-green-400/10">
                                                 <CheckIcon class="h-4 w-4" />
                                             </button>
-                                            <button
-                                                @click="cancelEditTag"
-                                                class="rounded p-1 text-gray-400 hover:bg-gray-400/10"
-                                            >
+                                            <button @click="cancelEditTag" class="rounded p-1 text-gray-400 hover:bg-gray-400/10">
                                                 <XIcon class="h-4 w-4" />
                                             </button>
                                         </template>
@@ -338,7 +283,7 @@
                                 </div>
 
                                 <!-- Add Alias Form -->
-                                <div v-if="addingAliasTo === tag.id" class="mt-3 pt-3 border-t border-[#ffd700]/20">
+                                <div v-if="addingAliasTo === tag.id" class="mt-3 border-t border-[#ffd700]/20 pt-3">
                                     <form @submit.prevent="addAlias(tag.id)" class="flex space-x-2">
                                         <input
                                             v-model="newAliasInput"
@@ -347,10 +292,7 @@
                                             placeholder="Enter new alias"
                                             required
                                         />
-                                        <button
-                                            type="submit"
-                                            class="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700"
-                                        >
+                                        <button type="submit" class="rounded bg-green-600 px-3 py-1 text-xs text-white hover:bg-green-700">
                                             Add
                                         </button>
                                         <button
@@ -372,13 +314,13 @@
 </template>
 
 <script setup lang="ts">
-import { Head, useForm, router } from '@inertiajs/vue3';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/AppLayout.vue';
+import type { Program } from '@/types';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { CheckIcon, PencilIcon, PlusIcon, TrashIcon, XIcon } from 'lucide-vue-next';
 import { ref } from 'vue';
 import { toast } from 'vue-sonner';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
-import { PlusIcon, PencilIcon, TrashIcon, CheckIcon, XIcon } from 'lucide-vue-next';
-import type { Program } from '@/types';
 
 interface ExtendedTag {
     id: number;
@@ -487,8 +429,8 @@ function submitTag() {
     // Parse aliases from input
     const aliases = aliasInput.value
         .split(',')
-        .map(alias => alias.trim())
-        .filter(alias => alias.length > 0);
+        .map((alias) => alias.trim())
+        .filter((alias) => alias.length > 0);
 
     tagForm.aliases = aliases;
 
@@ -515,8 +457,8 @@ function updateTag(tagId: number) {
     // Parse aliases from input
     const aliases = editAliasInput.value
         .split(',')
-        .map(alias => alias.trim())
-        .filter(alias => alias.length > 0);
+        .map((alias) => alias.trim())
+        .filter((alias) => alias.length > 0);
 
     editTagForm.aliases = aliases;
 
@@ -561,32 +503,40 @@ function startAddAlias(tagId: number) {
 function addAlias(tagId: number) {
     if (!newAliasInput.value.trim()) return;
 
-    router.post(route('faculty.tags.aliases.add', tagId), {
-        alias: newAliasInput.value.trim(),
-    }, {
-        onSuccess: () => {
-            addingAliasTo.value = null;
-            newAliasInput.value = '';
-            toast.success('Alias added successfully!');
+    router.post(
+        route('faculty.tags.aliases.add', tagId),
+        {
+            alias: newAliasInput.value.trim(),
         },
-        onError: () => {
-            toast.error('Failed to add alias.');
+        {
+            onSuccess: () => {
+                addingAliasTo.value = null;
+                newAliasInput.value = '';
+                toast.success('Alias added successfully!');
+            },
+            onError: () => {
+                toast.error('Failed to add alias.');
+            },
         },
-    });
+    );
 }
 
 function removeAlias(tagId: number, alias: string) {
     if (confirm(`Remove alias "${alias}"?`)) {
-        router.post(route('faculty.tags.aliases.remove', tagId), {
-            alias: alias,
-        }, {
-            onSuccess: () => {
-                toast.success('Alias removed successfully!');
+        router.post(
+            route('faculty.tags.aliases.remove', tagId),
+            {
+                alias: alias,
             },
-            onError: () => {
-                toast.error('Failed to remove alias.');
+            {
+                onSuccess: () => {
+                    toast.success('Alias removed successfully!');
+                },
+                onError: () => {
+                    toast.error('Failed to remove alias.');
+                },
             },
-        });
+        );
     }
 }
 

@@ -31,10 +31,14 @@ defineSlots<{
         <table class="w-full table-auto">
             <thead class="border-b">
                 <tr>
-                    <th v-for="column in columns" :key="column.key.toString()" :class="['border-border border-r p-4 pb-4 text-left last:border-r-0', column.class]">
+                    <th
+                        v-for="column in columns"
+                        :key="column.key.toString()"
+                        :class="['border-border border-r p-4 pb-4 text-left last:border-r-0', column.class]"
+                    >
                         {{ column.label }}
                     </th>
-                    <th v-if="$slots.actions" class="p-4 pb-4 text-left w-1 whitespace-nowrap">Actions</th>
+                    <th v-if="$slots.actions" class="w-1 p-4 pb-4 text-left whitespace-nowrap">Actions</th>
                 </tr>
             </thead>
             <tbody v-if="hasData">
@@ -45,7 +49,7 @@ defineSlots<{
                         <!-- Default rendering if no custom template -->
                         <template v-else>{{ item[column.key] }}</template>
                     </td>
-                    <td v-if="$slots.actions" class="p-4 w-1 whitespace-nowrap">
+                    <td v-if="$slots.actions" class="w-1 p-4 whitespace-nowrap">
                         <slot name="actions" :item="item"></slot>
                     </td>
                 </tr>

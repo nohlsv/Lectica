@@ -1,14 +1,14 @@
 <script setup lang="ts">
+import CollectionModal from '@/components/CollectionModal.vue';
 import DataTable from '@/components/DataTable.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
-import CollectionModal from '@/components/CollectionModal.vue';
 import { Tag, type BreadcrumbItem, type PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useDateFormat } from '@vueuse/core';
 import axios from 'axios';
-import { CheckCircleIcon, EyeIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
+import { EyeIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -187,7 +187,7 @@ const onCollectionSuccess = (message?: string) => {
             </div>
 
             <!--Main Content-->
-            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-6 pb-0 lg:p-8 max-w-full overflow-hidden">
+            <div class="bg-gradient flex h-full max-w-full flex-1 flex-col gap-4 overflow-hidden px-4 pt-6 pb-0 lg:p-8">
                 <!-- Search and Filters Section -->
                 <div class="mb-6 space-y-4 rounded-xl border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
                     <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
@@ -293,7 +293,9 @@ const onCollectionSuccess = (message?: string) => {
                 </div>
 
                 <!-- Files Data Table -->
-                <div class="bg-container rounded-xl border-2 border-white/20 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm max-w-full overflow-hidden">
+                <div
+                    class="bg-container max-w-full overflow-hidden rounded-xl border-2 border-white/20 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm"
+                >
                     <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                         📚 Files
                     </h3>
@@ -303,7 +305,7 @@ const onCollectionSuccess = (message?: string) => {
                             <DataTable :data="files" :columns="columns" class="w-full table-auto">
                                 <!-- Custom cell template for multiline description -->
                                 <template #cell-description="{ item }">
-                                    <p class="text-muted-foreground text-sm break-words leading-relaxed max-w-xs">
+                                    <p class="text-muted-foreground max-w-xs text-sm leading-relaxed break-words">
                                         {{ item.description ? item.description : 'No description provided' }}
                                     </p>
                                 </template>
@@ -315,14 +317,14 @@ const onCollectionSuccess = (message?: string) => {
                                 </template>
 
                                 <template #actions="{ item }">
-                                    <div class="flex items-center gap-1 whitespace-nowrap flex-shrink-0">
+                                    <div class="flex flex-shrink-0 items-center gap-1 whitespace-nowrap">
                                         <Link
                                             :href="`/files/${item.id}`"
                                             class="pixel-outline flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-1.5 transition-all hover:bg-blue-400/30"
                                             title="View file details"
                                         >
                                             <EyeIcon class="mr-1 h-3 w-3 text-blue-300" />
-                                            <span class="font-pixel text-blue-300 text-xs">View</span>
+                                            <span class="font-pixel text-xs text-blue-300">View</span>
                                         </Link>
                                         <Link
                                             v-if="item.can_edit"
@@ -331,7 +333,7 @@ const onCollectionSuccess = (message?: string) => {
                                             title="Edit file"
                                         >
                                             <PencilIcon class="mr-1 h-3 w-3 text-green-300" />
-                                            <span class="font-pixel text-green-300 text-xs">Edit</span>
+                                            <span class="font-pixel text-xs text-green-300">Edit</span>
                                         </Link>
                                         <div
                                             v-else
@@ -339,7 +341,7 @@ const onCollectionSuccess = (message?: string) => {
                                             title="Only the uploader can edit this file"
                                         >
                                             <PencilIcon class="mr-1 h-3 w-3 text-gray-300" />
-                                            <span class="font-pixel text-gray-300 text-xs">Edit</span>
+                                            <span class="font-pixel text-xs text-gray-300">Edit</span>
                                         </div>
                                         <button
                                             @click.prevent="toggleStar(item)"
@@ -347,10 +349,10 @@ const onCollectionSuccess = (message?: string) => {
                                             :disabled="item.is_starring"
                                             title="Star File"
                                         >
-                                            <StarIcon 
+                                            <StarIcon
                                                 :class="[
                                                     'mr-1 h-3 w-3 transition-colors',
-                                                    item.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300'
+                                                    item.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300',
                                                 ]"
                                             />
                                             <span class="font-pixel mr-1 text-xs" :class="item.is_starred ? 'text-yellow-300' : 'text-white/60'">
@@ -364,7 +366,7 @@ const onCollectionSuccess = (message?: string) => {
                                             title="Add to Collection"
                                         >
                                             <PlusIcon class="mr-1 h-3 w-3 text-[#ffd700]" />
-                                            <span class="font-pixel text-[#ffd700] text-xs">Collection</span>
+                                            <span class="font-pixel text-xs text-[#ffd700]">Collection</span>
                                         </button>
                                     </div>
                                 </template>
@@ -375,7 +377,7 @@ const onCollectionSuccess = (message?: string) => {
             </div>
 
             <!-- Collection Modal -->
-            <CollectionModal 
+            <CollectionModal
                 :show="showCollectionModal"
                 :file-id="selectedFileForCollection?.id || null"
                 @close="closeCollectionModal"

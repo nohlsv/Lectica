@@ -26,7 +26,7 @@ const simplifyName = (name: string, code?: string): string => {
     if (code && code.trim()) {
         return code;
     }
-    
+
     // Fallback for non-program data (like colleges or other categories)
     if (name.length > 20) {
         return name
@@ -325,7 +325,7 @@ onMounted(async () => {
                             <span
                                 v-for="tag in statistics.total_flashcards_per_tag"
                                 :key="tag.name"
-                                class="text-white pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
+                                class="pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium text-white"
                             >
                                 {{ simplifyName(tag.name) }}: {{ tag.flashcards_count }} flashcard items
                             </span>
@@ -438,7 +438,10 @@ onMounted(async () => {
                                 <span class="text-gray-400">({{ statistics.most_popular_tag.files_count }} files)</span>
                             </li>
                             <li>
-                                Program: <span class="font-bold">{{ simplifyName(statistics.most_popular_program.name, statistics.most_popular_program.code) }}</span>
+                                Program:
+                                <span class="font-bold">{{
+                                    simplifyName(statistics.most_popular_program.name, statistics.most_popular_program.code)
+                                }}</span>
                                 <span class="text-gray-400">({{ statistics.most_popular_program.files_count }} files)</span>
                             </li>
                         </ul>

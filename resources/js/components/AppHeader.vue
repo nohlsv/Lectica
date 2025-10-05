@@ -5,15 +5,7 @@ import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import {
-    NavigationMenu,
-    NavigationMenuItem,
-    NavigationMenuLink,
-    NavigationMenuList,
-    NavigationMenuContent,
-    NavigationMenuTrigger,
-    navigationMenuTriggerStyle,
-} from '@/components/ui/navigation-menu';
+import { NavigationMenu, NavigationMenuLink, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import UserMenuContent from '@/components/UserMenuContent.vue';
@@ -22,7 +14,22 @@ import type { BreadcrumbItem, NavItem } from '@/types';
 import { User } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
-import { Bell, ChartArea, FileChartLine, FileIcon, FolderOpen, HelpCircle, LayoutGrid, Menu, Settings, Shield, Swords, Target, Users, Gamepad2, BookOpen } from 'lucide-vue-next';
+import {
+    Bell,
+    ChartArea,
+    FileChartLine,
+    FileIcon,
+    FolderOpen,
+    Gamepad2,
+    HelpCircle,
+    LayoutGrid,
+    Menu,
+    Settings,
+    Shield,
+    Swords,
+    Target,
+    Users,
+} from 'lucide-vue-next';
 import { computed, onMounted, ref } from 'vue';
 
 interface Notification {
@@ -218,14 +225,7 @@ const supportNavItems: NavItem[] = [
 ];
 
 // Legacy flat array for backward compatibility (used in mobile menu)
-const mainNavItems: NavItem[] = [
-    ...primaryNavItems,
-    ...contentNavItems,
-    ...gameNavItems,
-    ...facultyNavItems,
-    ...adminNavItems,
-    ...supportNavItems,
-];
+const mainNavItems: NavItem[] = [...primaryNavItems, ...contentNavItems, ...gameNavItems, ...facultyNavItems, ...adminNavItems, ...supportNavItems];
 
 const rightNavItems: NavItem[] = [
     /*
@@ -291,9 +291,7 @@ const getExperienceProgress = () => {
 
                                     <!-- Content Section -->
                                     <div class="space-y-1">
-                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Content
-                                        </div>
+                                        <div class="text-muted-foreground px-3 text-xs font-semibold tracking-wider uppercase">Content</div>
                                         <Link
                                             v-for="item in contentNavItems"
                                             :key="item.title"
@@ -308,9 +306,7 @@ const getExperienceProgress = () => {
 
                                     <!-- Activities Section -->
                                     <div class="space-y-1">
-                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Activities
-                                        </div>
+                                        <div class="text-muted-foreground px-3 text-xs font-semibold tracking-wider uppercase">Activities</div>
                                         <Link
                                             v-for="item in gameNavItems"
                                             :key="item.title"
@@ -325,7 +321,7 @@ const getExperienceProgress = () => {
 
                                     <!-- Faculty Section -->
                                     <div v-if="facultyNavItems.length > 0" class="space-y-1">
-                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                                        <div class="text-muted-foreground px-3 text-xs font-semibold tracking-wider uppercase">
                                             Faculty Management
                                         </div>
                                         <Link
@@ -342,9 +338,7 @@ const getExperienceProgress = () => {
 
                                     <!-- Admin Section -->
                                     <div v-if="adminNavItems.length > 0" class="space-y-1">
-                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Administration
-                                        </div>
+                                        <div class="text-muted-foreground px-3 text-xs font-semibold tracking-wider uppercase">Administration</div>
                                         <Link
                                             v-for="item in adminNavItems"
                                             :key="item.title"
@@ -359,9 +353,7 @@ const getExperienceProgress = () => {
 
                                     <!-- Support Section -->
                                     <div class="space-y-1">
-                                        <div class="px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Support
-                                        </div>
+                                        <div class="text-muted-foreground px-3 text-xs font-semibold tracking-wider uppercase">Support</div>
                                         <Link
                                             v-for="item in supportNavItems"
                                             :key="item.title"
@@ -398,7 +390,7 @@ const getExperienceProgress = () => {
 
                 <!-- Desktop Menu -->
                 <div class="hidden h-full text-[#fce3aa] xl:flex xl:flex-1">
-                    <NavigationMenu class="ml-10 flex h-full items-stretch relative">
+                    <NavigationMenu class="relative ml-10 flex h-full items-stretch">
                         <div class="flex h-full items-stretch space-x-2">
                             <!-- Home (always visible) -->
                             <div class="relative flex h-full items-center">
@@ -419,17 +411,19 @@ const getExperienceProgress = () => {
 
                             <!-- Content Dropdown -->
                             <div class="group relative flex h-full items-center">
-                                <Button
-                                    variant="ghost"
-                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
-                                >
+                                <Button variant="ghost" :class="['flex h-9 cursor-pointer items-center px-3', navigationMenuTriggerStyle()]">
                                     <FileIcon class="mr-2 h-4 w-4" />
                                     Content
                                 </Button>
-                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                <div
+                                    class="bg-popover text-popover-foreground absolute top-full left-0 z-50 hidden w-[300px] rounded-md border p-4 shadow-md group-hover:block hover:block"
+                                >
                                     <div class="grid gap-1">
-                                        <Link v-for="item in contentNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
+                                        <Link
+                                            v-for="item in contentNavItems"
+                                            :key="item.href"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>
@@ -442,17 +436,19 @@ const getExperienceProgress = () => {
 
                             <!-- Activities Dropdown -->
                             <div class="group relative flex h-full items-center">
-                                <Button
-                                    variant="ghost"
-                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
-                                >
+                                <Button variant="ghost" :class="['flex h-9 cursor-pointer items-center px-3', navigationMenuTriggerStyle()]">
                                     <Gamepad2 class="mr-2 h-4 w-4" />
                                     Activities
                                 </Button>
-                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                <div
+                                    class="bg-popover text-popover-foreground absolute top-full left-0 z-50 hidden w-[300px] rounded-md border p-4 shadow-md group-hover:block hover:block"
+                                >
                                     <div class="grid gap-1">
-                                        <Link v-for="item in gameNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
+                                        <Link
+                                            v-for="item in gameNavItems"
+                                            :key="item.href"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>
@@ -465,17 +461,19 @@ const getExperienceProgress = () => {
 
                             <!-- Faculty Management Dropdown (faculty/admin only) -->
                             <div v-if="facultyNavItems.length > 0" class="group relative flex h-full items-center">
-                                <Button
-                                    variant="ghost"
-                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
-                                >
+                                <Button variant="ghost" :class="['flex h-9 cursor-pointer items-center px-3', navigationMenuTriggerStyle()]">
                                     <Settings class="mr-2 h-4 w-4" />
                                     Faculty
                                 </Button>
-                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                <div
+                                    class="bg-popover text-popover-foreground absolute top-full left-0 z-50 hidden w-[300px] rounded-md border p-4 shadow-md group-hover:block hover:block"
+                                >
                                     <div class="grid gap-1">
-                                        <Link v-for="item in facultyNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
+                                        <Link
+                                            v-for="item in facultyNavItems"
+                                            :key="item.href"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>
@@ -488,17 +486,19 @@ const getExperienceProgress = () => {
 
                             <!-- Admin Management Dropdown (admin only) -->
                             <div v-if="adminNavItems.length > 0" class="group relative flex h-full items-center">
-                                <Button
-                                    variant="ghost"
-                                    :class="['h-9 cursor-pointer px-3 flex items-center', navigationMenuTriggerStyle()]"
-                                >
+                                <Button variant="ghost" :class="['flex h-9 cursor-pointer items-center px-3', navigationMenuTriggerStyle()]">
                                     <Shield class="mr-2 h-4 w-4" />
                                     Admin
                                 </Button>
-                                <div class="absolute left-0 top-full z-50 hidden group-hover:block hover:block w-[300px] rounded-md border bg-popover p-4 text-popover-foreground shadow-md">
+                                <div
+                                    class="bg-popover text-popover-foreground absolute top-full left-0 z-50 hidden w-[300px] rounded-md border p-4 shadow-md group-hover:block hover:block"
+                                >
                                     <div class="grid gap-1">
-                                        <Link v-for="item in adminNavItems" :key="item.href" :href="item.href"
-                                            class="flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent "
+                                        <Link
+                                            v-for="item in adminNavItems"
+                                            :key="item.href"
+                                            :href="item.href"
+                                            class="hover:bg-accent flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors"
                                         >
                                             <component :is="item.icon" class="h-4 w-4" />
                                             <div>

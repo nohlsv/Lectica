@@ -1,15 +1,13 @@
 <script setup lang="ts">
+import CollectionModal from '@/components/CollectionModal.vue';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
-import CollectionModal from '@/components/CollectionModal.vue';
 import { type BreadcrumbItem, type File, type User } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
     ArrowLeftIcon,
-    CheckCircleIcon,
     DownloadIcon,
     FileIcon,
     FileType2Icon,
@@ -88,7 +86,7 @@ const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
     });
 };
 
@@ -258,17 +256,17 @@ const fetchUserCollections = async () => {
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
+                'X-Requested-With': 'XMLHttpRequest',
             },
-            credentials: 'same-origin'
+            credentials: 'same-origin',
         });
-        
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         userCollections.value = data;
         console.log('Fetched collections:', data); // Debug log
@@ -313,7 +311,7 @@ const addToCollection = async () => {
     if (!selectedCollection.value) return;
 
     // Check if file is already in the selected collection
-    const selectedCollectionData = userCollections.value.find(c => c.id === selectedCollection.value);
+    const selectedCollectionData = userCollections.value.find((c) => c.id === selectedCollection.value);
     if (selectedCollectionData?.contains_file) {
         toast.error('File is already in this collection');
         return;
@@ -906,141 +904,168 @@ const onCollectionSuccess = (message?: string) => {
                     </div>
                 </div>
 
-            <!-- Collections Section -->
-            <div class="mx-auto max-w-7xl my-4 px-4 pb-8 sm:px-6 lg:px-8">
-                <div class="rounded-lg border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                    <div class="mb-6 text-center">
-                        <h2 class="font-pixel mb-2 my-2 text-2xl font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                            📚 File Collections
-                        </h2>
-                        <p class="font-pixel text-sm text-white/70">Collections containing this file</p>
-                        <div class="mx-auto mt-2 h-1 w-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full"></div>
-                    </div>
-
-                    <div v-if="props.collections && props.collections.length > 0" class="space-y-4">
-                        <!-- Collections Grid -->
-                        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <div
-                                v-for="collection in props.collections"
-                                :key="collection.id"
-                                class="group relative overflow-hidden rounded-lg border-2 border-white/20 bg-gradient-to-br from-purple-900/40 to-blue-900/40 p-4 shadow-[3px_3px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm transition-all hover:scale-[1.02] hover:border-yellow-400/50 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
+                <!-- Collections Section -->
+                <div class="mx-auto my-4 max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+                    <div class="rounded-lg border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                        <div class="mb-6 text-center">
+                            <h2
+                                class="font-pixel my-2 mb-2 text-2xl font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
                             >
-                                <!-- Collection Header -->
-                                <div class="mb-3 flex items-start justify-between">
-                                    <div class="flex-1 min-w-0">
-                                        <h3 class="font-pixel text-sm font-bold text-white truncate [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">
-                                            {{ collection.name }}
-                                        </h3>
-                                        <p class="font-pixel text-xs text-white/60 mt-1">
-                                            by {{ collection.user.first_name }} {{ collection.user.last_name }}
+                                📚 File Collections
+                            </h2>
+                            <p class="font-pixel text-sm text-white/70">Collections containing this file</p>
+                            <div class="mx-auto mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500"></div>
+                        </div>
+
+                        <div v-if="props.collections && props.collections.length > 0" class="space-y-4">
+                            <!-- Collections Grid -->
+                            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                <div
+                                    v-for="collection in props.collections"
+                                    :key="collection.id"
+                                    class="group relative overflow-hidden rounded-lg border-2 border-white/20 bg-gradient-to-br from-purple-900/40 to-blue-900/40 p-4 shadow-[3px_3px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm transition-all hover:scale-[1.02] hover:border-yellow-400/50 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
+                                >
+                                    <!-- Collection Header -->
+                                    <div class="mb-3 flex items-start justify-between">
+                                        <div class="min-w-0 flex-1">
+                                            <h3
+                                                class="font-pixel truncate text-sm font-bold text-white [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]"
+                                            >
+                                                {{ collection.name }}
+                                            </h3>
+                                            <p class="font-pixel mt-1 text-xs text-white/60">
+                                                by {{ collection.user.first_name }} {{ collection.user.last_name }}
+                                            </p>
+                                        </div>
+                                        <div class="mx-2 flex flex-col items-end gap-1">
+                                            <!-- Visibility Badge -->
+                                            <span
+                                                v-if="collection.is_public"
+                                                class="inline-flex items-center rounded-full border border-green-400 bg-green-600/20 px-2 py-1 text-xs font-medium text-green-300"
+                                            >
+                                                <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    />
+                                                </svg>
+                                                Public
+                                            </span>
+                                            <span
+                                                v-else
+                                                class="inline-flex items-center rounded-full border border-gray-400 bg-gray-600/20 px-2 py-1 text-xs font-medium text-gray-300"
+                                            >
+                                                <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                                    />
+                                                </svg>
+                                                Private
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Collection Description -->
+                                    <div v-if="collection.description" class="mb-3">
+                                        <p class="font-pixel line-clamp-2 text-xs text-white/80">
+                                            {{ collection.description }}
                                         </p>
                                     </div>
-                                    <div class="flex flex-col items-end mx-2 gap-1">
-                                        <!-- Visibility Badge -->
-                                        <span
-                                            v-if="collection.is_public"
-                                            class="inline-flex items-center rounded-full border border-green-400 bg-green-600/20 px-2 py-1 text-xs font-medium text-green-300"
-                                        >
-                                            <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+
+                                    <!-- Collection Stats -->
+                                    <div class="mb-3 flex items-center gap-4">
+                                        <div class="flex items-center gap-1">
+                                            <svg class="h-3 w-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
                                                     stroke-width="2"
-                                                    d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                                 />
                                             </svg>
-                                            Public
-                                        </span>
-                                        <span
-                                            v-else
-                                            class="inline-flex items-center rounded-full border border-gray-400 bg-gray-600/20 px-2 py-1 text-xs font-medium text-gray-300"
-                                        >
-                                            <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <span class="font-pixel text-xs text-blue-300">{{ collection.file_count }} files</span>
+                                        </div>
+                                        <div class="flex items-center gap-1">
+                                            <svg class="h-3 w-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path
                                                     stroke-linecap="round"
                                                     stroke-linejoin="round"
                                                     stroke-width="2"
-                                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                                                 />
                                             </svg>
-                                            Private
-                                        </span>
+                                            <span class="font-pixel text-xs text-purple-300">{{ formatDate(collection.created_at) }}</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <!-- Collection Description -->
-                                <div v-if="collection.description" class="mb-3">
-                                    <p class="font-pixel text-xs text-white/80 line-clamp-2">
-                                        {{ collection.description }}
-                                    </p>
-                                </div>
-
-                                <!-- Collection Stats -->
-                                <div class="mb-3 flex items-center gap-4">
-                                    <div class="flex items-center gap-1">
-                                        <svg class="h-3 w-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                                        </svg>
-                                        <span class="font-pixel text-xs text-blue-300">{{ collection.file_count }} files</span>
+                                    <!-- Action Button -->
+                                    <div class="flex justify-end">
+                                        <Link
+                                            :href="route('collections.show', collection.id)"
+                                            class="font-pixel inline-flex items-center gap-1 rounded border-2 border-yellow-400 bg-yellow-600/20 px-3 py-1 text-xs text-yellow-300 transition-all hover:bg-yellow-600/40 hover:text-yellow-200"
+                                        >
+                                            <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                                />
+                                                <path
+                                                    stroke-linecap="round"
+                                                    stroke-linejoin="round"
+                                                    stroke-width="2"
+                                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                                />
+                                            </svg>
+                                            View Collection
+                                        </Link>
                                     </div>
-                                    <div class="flex items-center gap-1">
-                                        <svg class="h-3 w-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="font-pixel text-xs text-purple-300">{{ formatDate(collection.created_at) }}</span>
-                                    </div>
-                                </div>
-
-                                <!-- Action Button -->
-                                <div class="flex justify-end">
-                                    <Link
-                                        :href="route('collections.show', collection.id)"
-                                        class="font-pixel inline-flex items-center gap-1 rounded border-2 border-yellow-400 bg-yellow-600/20 px-3 py-1 text-xs text-yellow-300 transition-all hover:bg-yellow-600/40 hover:text-yellow-200"
-                                    >
-                                        <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                        </svg>
-                                        View Collection
-                                    </Link>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Empty State -->
-                    <div v-else class="text-center py-8">
-                        <div class="mx-auto mb-4 h-16 w-16 rounded-full border-2 border-white/20 bg-white/5 flex items-center justify-center backdrop-blur-sm">
-                            <svg class="h-8 w-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
-                            </svg>
+                        <!-- Empty State -->
+                        <div v-else class="py-8 text-center">
+                            <div
+                                class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-2 border-white/20 bg-white/5 backdrop-blur-sm"
+                            >
+                                <svg class="h-8 w-8 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                                    />
+                                </svg>
+                            </div>
+                            <h3
+                                class="font-pixel mb-2 text-lg font-bold text-white/60 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]"
+                            >
+                                No Collections Found
+                            </h3>
+                            <p class="font-pixel mb-4 text-sm text-white/40">
+                                This file is not part of any public collections or collections you own.
+                            </p>
+                            <Link
+                                :href="route('collections.create')"
+                                class="font-pixel inline-flex items-center gap-2 rounded border-2 border-blue-400 bg-blue-600/20 px-4 py-2 text-sm text-blue-300 transition-all hover:bg-blue-600/40 hover:text-blue-200"
+                            >
+                                <PlusIcon class="h-4 w-4" />
+                                Create New Collection
+                            </Link>
                         </div>
-                        <h3 class="font-pixel text-lg font-bold text-white/60 mb-2 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">
-                            No Collections Found
-                        </h3>
-                        <p class="font-pixel text-sm text-white/40 mb-4">
-                            This file is not part of any public collections or collections you own.
-                        </p>
-                        <Link
-                            :href="route('collections.create')"
-                            class="font-pixel inline-flex items-center gap-2 rounded border-2 border-blue-400 bg-blue-600/20 px-4 py-2 text-sm text-blue-300 transition-all hover:bg-blue-600/40 hover:text-blue-200"
-                        >
-                            <PlusIcon class="h-4 w-4" />
-                            Create New Collection
-                        </Link>
                     </div>
                 </div>
             </div>
 
-            </div>
-
             <!-- Collection Modal -->
-            <CollectionModal 
-                :show="showCollectionModal"
-                :file-id="file.id"
-                @close="closeCollectionModal"
-                @success="onCollectionSuccess"
-            />
+            <CollectionModal :show="showCollectionModal" :file-id="file.id" @close="closeCollectionModal" @success="onCollectionSuccess" />
 
             <!-- Deny File Modal -->
             <Dialog v-model:open="showDenyModal" onOpenChange="showDenyModal = $event">

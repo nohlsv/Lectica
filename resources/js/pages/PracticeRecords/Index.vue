@@ -12,9 +12,19 @@
                         :key="group.file.id"
                         class="pixel-outline flex h-full flex-col rounded-lg border-2 border-[#0c0a03] bg-[#8E2C38] p-4 shadow"
                     >
-                        <h2 class="text-lg font-semibold text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]">
-                            {{ group.file.name }}
-                        </h2>
+                        <div class="mb-2 flex items-center justify-between">
+                            <h2
+                                class="text-lg font-semibold text-white drop-shadow-[0_1px_0_#0c0a03,0_-1px_0_#0c0a03,1px_0_0_#0c0a03,-1px_0_0_#0c0a03]"
+                            >
+                                {{ group.file.name }}
+                            </h2>
+                            <Link
+                                :href="route('files.show', group.file.id)"
+                                class="pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#b71400] px-2.5 py-0.5 text-sm tracking-wide text-white duration-300 hover:scale-105 hover:bg-[#8f0f00]"
+                            >
+                                View File
+                            </Link>
+                        </div>
                         <div class="mt-2">
                             <div v-for="attempt in getVisibleAttempts(group)" :key="attempt.id" class="mb-2">
                                 <div class="flex items-center justify-between">
@@ -31,33 +41,31 @@
                                             >{{ formatDate(attempt.created_at) }}</span
                                         >
                                     </span>
-                                    <div class="flex space-x-1">
+                                    <div class="flex space-x-1 ml-1">
                                         <Link
                                             :href="route('practice-records.show', attempt.id)"
-                                            class="text-white pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-sm tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]"
+                                            class="pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-sm tracking-wide text-white duration-300 hover:scale-105 hover:bg-[#0e9459]"
                                         >
-                                            View Details
-                                        </Link>
-                                        <Link
-                                            :href="attempt.type === 'flashcard' ? route('files.flashcards.practice', group.file.id) : route('files.quizzes.test', group.file.id)"
-                                            class="text-white pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#b71400] px-2.5 py-0.5 text-sm tracking-wide duration-300 hover:scale-105 hover:bg-[#8f0f00]"
-                                        >
-                                            {{ attempt.type === 'flashcard' ? 'Practice' : 'Retake' }}
+                                            Details
                                         </Link>
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <!-- Show More/Show Less Button -->
                             <div v-if="group.attempts.length > 3" class="mt-3 text-center">
                                 <button
                                     @click="toggleShowMore(group.file.id)"
-                                    class="pixel-outline text-xs text-white bg-[#b71400] hover:bg-[#8f0f00] px-3 py-1 rounded border-2 border-[#0c0a03] transition-colors duration-200"
+                                    class="pixel-outline rounded border-2 border-[#0c0a03] bg-[#b71400] px-3 py-1 text-xs text-white transition-colors duration-200 hover:bg-[#8f0f00]"
                                 >
-                                    {{ showAllAttempts[group.file.id] ? `Show Less (${group.attempts.length - 3} hidden)` : `Show More (+${group.attempts.length - 3} more)` }}
+                                    {{
+                                        showAllAttempts[group.file.id]
+                                            ? `Show Less (${group.attempts.length - 3} hidden)`
+                                            : `Show More (+${group.attempts.length - 3} more)`
+                                    }}
                                 </button>
                             </div>
-                            
+
                             <div v-if="group.attempts.length > 1" class="mt-4">
                                 <canvas :ref="setChartRef(group.file.id)" class="h-32 w-full"></canvas>
                             </div>
