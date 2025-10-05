@@ -72,6 +72,30 @@ class MultiplayerGame extends Model
     }
 
     /**
+     * Get participants as a collection (virtual relationship)
+     */
+    public function participants()
+    {
+        $participants = collect();
+        
+        if ($this->playerOne) {
+            $participants->push((object)[
+                'user_id' => $this->player_one_id,
+                'user' => $this->playerOne,
+            ]);
+        }
+        
+        if ($this->playerTwo) {
+            $participants->push((object)[
+                'user_id' => $this->player_two_id,
+                'user' => $this->playerTwo,
+            ]);
+        }
+        
+        return $participants;
+    }
+
+    /**
      * Get the file used in the game.
      */
     public function file(): BelongsTo

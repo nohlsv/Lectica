@@ -116,87 +116,135 @@
                 <!-- Quiz Answers List -->
                 <div class="bg-container overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
-                        <div class="space-y-4">
+                        <!-- Grouped Answers -->
+                        <div class="space-y-6">
                             <div 
-                                v-for="answer in answers.data" 
-                                :key="answer.id" 
-                                class="border border-gray-600 rounded-lg p-4 hover:bg-gray-800/50"
+                                v-for="(group, groupKey) in groupedAnswers" 
+                                :key="groupKey"
+                                class="border border-gray-600 rounded-lg overflow-hidden"
                             >
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <!-- Question -->
-                                        <div class="mb-2">
-                                            <h4 class="font-semibold text-white">{{ answer.quiz.question }}</h4>
+                                <!-- Group Header -->
+                                <div class="bg-gray-800/70 px-6 py-4 border-b border-gray-600">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h3 class="text-lg font-semibold text-white">
+                                                📚 {{ group.file_name }}
+                                            </h3>
+                                            <p class="text-sm text-gray-300 mt-1">
+                                                {{ group.answers.length }} answer{{ group.answers.length !== 1 ? 's' : '' }} • 
+                                                {{ Math.round((group.correct_count / group.answers.length) * 100) }}% accuracy
+                                            </p>
                                         </div>
-
-                                        <!-- Answer and Correctness -->
-                                        <div class="mb-2 flex items-center space-x-4">
-                                            <div>
-                                                <span class="text-sm text-gray-300">Your Answer:</span>
-                                                <span class="font-medium text-white">{{ formatAnswer(answer.user_answer) }}</span>
-                                            </div>
-                                            <div class="flex items-center">
-                                                <span 
-                                                    :class="answer.is_correct ? 'text-green-600' : 'text-red-600'" 
-                                                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                                                    :style="answer.is_correct ? 'background-color: rgb(220 252 231);' : 'background-color: rgb(254 226 226);'"
-                                                >
-                                                    <svg v-if="answer.is_correct" class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
-                                                    </svg>
-                                                    <svg v-else class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                                                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                                    </svg>
-                                                    {{ answer.is_correct ? 'Correct' : 'Incorrect' }}
+                                        <div class="text-right">
+                                            <div class="flex space-x-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-900/50 text-green-300 border border-green-400">
+                                                    ✓ {{ group.correct_count }}
+                                                </span>
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-900/50 text-red-300 border border-red-400">
+                                                    ✗ {{ group.answers.length - group.correct_count }}
                                                 </span>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <!-- Correct Answer (if incorrect) -->
-                                        <div v-if="!answer.is_correct" class="mb-2">
-                                            <span class="text-sm text-gray-300">Correct Answer:</span>
-                                            <span class="font-medium text-green-400">{{ answer.quiz.correct_answer }}</span>
-                                        </div>
+                                <!-- Group Content -->
+                                <div class="divide-y divide-gray-700">
+                                    <div 
+                                        v-for="answer in group.answers" 
+                                        :key="answer.id" 
+                                        class="p-4 hover:bg-gray-800/30"
+                                    >
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <!-- Question with Context Badge -->
+                                                <div class="mb-3">
+                                                    <div class="flex items-start space-x-2 mb-2">
+                                                        <span 
+                                                            v-if="answer.context_details"
+                                                            class="inline-flex items-center px-2 py-1 rounded text-xs font-medium"
+                                                            :class="answer.context_type === 'battle' ? 'bg-blue-900/50 text-blue-300 border border-blue-400' : 'bg-purple-900/50 text-purple-300 border border-purple-400'"
+                                                        >
+                                                            {{ answer.context_type === 'battle' ? '⚔️ Battle' : '👥 Multiplayer' }}
+                                                        </span>
+                                                        <span class="text-xs text-gray-400">
+                                                            {{ formatDate(answer.answered_at) }}
+                                                        </span>
+                                                    </div>
+                                                    <h4 class="font-medium text-white leading-relaxed">{{ answer.quiz.question }}</h4>
+                                                </div>
 
-                                        <!-- Context and Date -->
-                                        <div class="flex items-center justify-between text-sm text-gray-400">
-                                            <div class="flex items-center space-x-4">
-                                                <div v-if="answer.context_details">
+                                                <!-- Answer and Correctness -->
+                                                <div class="mb-3">
+                                                    <div class="flex items-start space-x-4">
+                                                        <div class="flex-1">
+                                                            <div class="mb-2">
+                                                                <span class="text-sm text-gray-300">Your Answer:</span>
+                                                                <span 
+                                                                    class="ml-2 font-medium"
+                                                                    :class="answer.is_correct ? 'text-green-400' : 'text-red-400'"
+                                                                >
+                                                                    {{ formatAnswer(answer.user_answer) }}
+                                                                </span>
+                                                            </div>
+                                                            
+                                                            <!-- Correct Answer (if incorrect) -->
+                                                            <div v-if="!answer.is_correct" class="mb-2">
+                                                                <span class="text-sm text-gray-300">Correct Answer:</span>
+                                                                <span class="ml-2 font-medium text-green-400">{{ answer.quiz.correct_answer }}</span>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <!-- Status Icon -->
+                                                        <div class="flex-shrink-0">
+                                                            <span 
+                                                                class="inline-flex items-center justify-center w-8 h-8 rounded-full"
+                                                                :class="answer.is_correct ? 'bg-green-900/50 border border-green-400' : 'bg-red-900/50 border border-red-400'"
+                                                            >
+                                                                <svg v-if="answer.is_correct" class="w-4 h-4 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                                                </svg>
+                                                                <svg v-else class="w-4 h-4 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                                                </svg>
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Context Link -->
+                                                <div v-if="answer.context_details" class="text-sm">
                                                     <Link 
                                                         :href="answer.context_details.route"
-                                                        class="text-blue-600 hover:text-blue-800"
+                                                        class="text-yellow-400 hover:text-yellow-300"
                                                     >
                                                         {{ answer.context_details.name }}
                                                     </Link>
-                                                    <span class="ml-1 px-2 py-1 rounded text-xs" :class="getContextStatusClass(answer.context_details.status)">
+                                                    <span 
+                                                        class="ml-2 px-2 py-1 rounded text-xs font-medium"
+                                                        :class="getContextStatusClass(answer.context_details.status)"
+                                                    >
                                                         {{ answer.context_details.status }}
                                                     </span>
                                                 </div>
-                                                <div v-if="answer.quiz.file">
-                                                    <span class="text-gray-300">From:</span>
-                                                    <span class="font-medium text-white">{{ answer.quiz.file.name }}</span>
-                                                </div>
                                             </div>
-                                            <div>
-                                                {{ formatDate(answer.answered_at) }}
+
+                                            <!-- Actions -->
+                                            <div class="ml-4 flex-shrink-0">
+                                                <Link 
+                                                    :href="route('quiz-answers.show', answer.id)"
+                                                    class="text-maroon-400 hover:text-maroon-300 text-sm font-medium"
+                                                >
+                                                    View Details
+                                                </Link>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <!-- Actions -->
-                                    <div class="ml-4 flex-shrink-0">
-                                        <Link 
-                                            :href="route('quiz-answers.show', answer.id)"
-                                            class="text-maroon-400 hover:text-maroon-300 text-sm font-medium"
-                                        >
-                                            View Details
-                                        </Link>
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Empty State -->
-                            <div v-if="answers.data.length === 0" class="text-center py-8">
+                            <div v-if="Object.keys(groupedAnswers).length === 0" class="text-center py-8">
                                 <div class="text-gray-400">
                                     <svg class="mx-auto h-12 w-12 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
@@ -243,6 +291,53 @@ export default {
                 is_correct: this.filters?.is_correct || '',
                 search: this.filters?.search || ''
             }
+        }
+    },
+    computed: {
+        groupedAnswers() {
+            const groups = {}
+            
+            // Group answers by file
+            this.answers.data.forEach(answer => {
+                const fileKey = answer.quiz.file ? answer.quiz.file.id : 'no-file'
+                const fileName = answer.quiz.file ? answer.quiz.file.name : 'Unknown File'
+                
+                if (!groups[fileKey]) {
+                    groups[fileKey] = {
+                        file_name: fileName,
+                        answers: [],
+                        correct_count: 0
+                    }
+                }
+                
+                groups[fileKey].answers.push(answer)
+                if (answer.is_correct) {
+                    groups[fileKey].correct_count++
+                }
+            })
+            
+            // Sort answers within each group by date (newest first)
+            Object.keys(groups).forEach(key => {
+                groups[key].answers.sort((a, b) => new Date(b.answered_at) - new Date(a.answered_at))
+            })
+            
+            // Sort groups by total accuracy (highest first), then by answer count
+            const sortedGroups = {}
+            Object.keys(groups)
+                .sort((a, b) => {
+                    const accuracyA = groups[a].correct_count / groups[a].answers.length
+                    const accuracyB = groups[b].correct_count / groups[b].answers.length
+                    
+                    if (accuracyA !== accuracyB) {
+                        return accuracyB - accuracyA // Higher accuracy first
+                    }
+                    return groups[b].answers.length - groups[a].answers.length // More answers first
+                })
+                .forEach(key => {
+                    sortedGroups[key] = groups[key]
+                })
+            
+            return sortedGroups
         }
     },
     methods: {
@@ -292,14 +387,14 @@ export default {
         },
         getContextStatusClass(status) {
             const classes = {
-                'active': 'bg-yellow-100 text-yellow-800',
-                'won': 'bg-green-100 text-green-800',
-                'lost': 'bg-red-100 text-red-800',
-                'abandoned': 'bg-gray-100 text-gray-800',
-                'finished': 'bg-blue-100 text-blue-800',
-                'waiting': 'bg-orange-100 text-orange-800'
+                'active': 'bg-yellow-900/50 text-yellow-300 border border-yellow-400',
+                'won': 'bg-green-900/50 text-green-300 border border-green-400',
+                'lost': 'bg-red-900/50 text-red-300 border border-red-400',
+                'abandoned': 'bg-gray-700 text-gray-300 border border-gray-500',
+                'finished': 'bg-blue-900/50 text-blue-300 border border-blue-400',
+                'waiting': 'bg-orange-900/50 text-orange-300 border border-orange-400'
             }
-            return classes[status] || 'bg-gray-100 text-gray-800'
+            return classes[status] || 'bg-gray-700 text-gray-300 border border-gray-500'
         }
     }
 }

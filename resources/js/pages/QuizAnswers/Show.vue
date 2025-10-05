@@ -371,23 +371,23 @@ export default {
         },
         getOptionClass(option, correctAnswer, userAnswer) {
             if (option === correctAnswer && option === userAnswer) {
-                return 'border-green-500 bg-green-50' // Correct answer that user selected
+                return 'border-green-400 bg-green-900/50 text-white ring-2 ring-green-400/50' // Correct answer that user selected - highlighted
             } else if (option === correctAnswer) {
-                return 'border-green-500 bg-green-50' // Correct answer
+                return 'border-green-400 bg-green-900/30 text-white' // Correct answer (not selected by user)
             } else if (option === userAnswer) {
-                return 'border-red-500 bg-red-50' // Wrong answer that user selected
+                return 'border-red-400 bg-red-900/30 text-white' // Wrong answer that user selected
             }
-            return 'border-gray-200 bg-gray-50' // Other options
+            return 'border-gray-600 bg-gray-800/50 text-white' // Other options
         },
         getOptionIconClass(option, correctAnswer, userAnswer) {
             if (option === correctAnswer && option === userAnswer) {
-                return 'border-green-500 text-green-600' // Correct answer that user selected
+                return 'border-green-400 text-green-400 bg-green-900/50' // Correct answer that user selected - highlighted
             } else if (option === correctAnswer) {
-                return 'border-green-500 text-green-600' // Correct answer
+                return 'border-green-400 text-green-400' // Correct answer (not selected by user)
             } else if (option === userAnswer) {
-                return 'border-red-500 text-red-600' // Wrong answer that user selected
+                return 'border-red-400 text-red-400' // Wrong answer that user selected
             }
-            return 'border-gray-300 text-gray-600' // Other options
+            return 'border-gray-400 text-gray-400' // Other options
         }
     }
 }

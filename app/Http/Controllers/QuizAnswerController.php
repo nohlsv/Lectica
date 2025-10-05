@@ -60,7 +60,7 @@ class QuizAnswerController extends Controller
                     'type' => 'Multiplayer',
                     'name' => "Multiplayer Game",
                     'status' => $game->status,
-                    'route' => route('multiplayer.game.show', $game->id)
+                    'route' => route('multiplayer-games.show', $game->id)
                 ] : null;
             } else {
                 $answer->context_details = null;
@@ -124,8 +124,7 @@ class QuizAnswerController extends Controller
     public function multiplayerAnswers(MultiplayerGame $game)
     {
         // Check if user participated in this game
-        $participant = $game->participants()->where('user_id', Auth::id())->first();
-        if (!$participant) {
+        if ($game->player_one_id !== Auth::id() && $game->player_two_id !== Auth::id()) {
             abort(403, 'You can only view answers from games you participated in.');
         }
 
@@ -150,8 +149,11 @@ class QuizAnswerController extends Controller
             'accuracy' => $answers->count() > 0 ? round(($answers->where('is_correct', true)->count() / $answers->count()) * 100, 2) : 0
         ];
 
+        $game->load(['playerOne', 'playerTwo', 'file', 'collection']);
+        $game->participants = $game->participants(); // Add participants as attribute
+        
         return Inertia::render('QuizAnswers/MultiplayerAnswers', [
-            'game' => $game->load(['participants.user', 'file', 'collection']),
+            'game' => $game,
             'answers' => $answers,
             'allAnswers' => $allAnswers,
             'stats' => $stats
@@ -175,7 +177,10 @@ class QuizAnswerController extends Controller
         if ($answer->context_type === 'battle' && $answer->context_id) {
             $context = Battle::with(['monster', 'file', 'collection'])->find($answer->context_id);
         } elseif ($answer->context_type === 'multiplayer' && $answer->context_id) {
-            $context = MultiplayerGame::with(['participants.user', 'file', 'collection'])->find($answer->context_id);
+            $context = MultiplayerGame::with(['playerOne', 'playerTwo', 'file', 'collection'])->find($answer->context_id);
+            if ($context) {
+                $context->participants = $context->participants(); // Add participants as attribute
+            }
         }
 
         return Inertia::render('QuizAnswers/Show', [
