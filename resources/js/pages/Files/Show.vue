@@ -8,14 +8,18 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
     ArrowLeftIcon,
-    BookOpen,
+    BookOpenIcon,
     CheckCircleIcon,
+    ClockIcon,
     DownloadIcon,
     FileIcon,
     FileType2Icon,
     ListChecks,
+    Loader2Icon,
     PencilIcon,
     PlusIcon,
+    Share2Icon,
+    ShieldCheckIcon,
     StarIcon,
     XCircleIcon,
 } from 'lucide-vue-next';
@@ -165,6 +169,15 @@ const denyFile = async () => {
     }
 };
 
+const copyShareLink = async () => {
+    try {
+        await navigator.clipboard.writeText(window.location.href);
+        toast.success('Link copied to clipboard!');
+    } catch (error) {
+        toast.error('Failed to copy link');
+    }
+};
+
 const isPdf = computed(() => props.fileInfo.extension.toLowerCase() === 'pdf');
 const isTxt = computed(() => props.fileInfo.extension.toLowerCase() === 'txt');
 const isImage = computed(() => ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(props.fileInfo.extension.toLowerCase()));
@@ -291,157 +304,214 @@ const addToCollection = async () => {
 <template>
     <Head :title="`File: ${file.name}`" />
     <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="bg-gradient p-6">
-            <!-- Back btn -->
-            <div class="flex items-start mt-3 ml-3">
-                <Link
-                    href="/files"
-                    class="inline-flex items-center gap-2 px-3 py-1 text-[#fce085] bg-red-700 border-2 border-[#f68500] rounded-md shadow-md hover:bg-yellow-400 hover:text-red-700 duration-300 font-bold"
-                >
-                    <ArrowLeftIcon class="h-5 w-5" />
-                    Back
-                </Link>
-            </div>
-
-            <!-- File Detail Header -->
-            <div class="rounded-xl px-10 py-2 text-3xl sm:text-3xl md:text-4xl font-extrabold welcome-banner shadow-[2px_2px_0px_rgba(0,0,0,0.8)] animate-soft-bounce justify-center m-auto mb-3 pixel-outline" style="image-rendering: pixelated;">
-                <h1 class="text-2xl md:text-2xl font-extrabold text-center">File Details</h1>
-            </div>
-
-            <div class="bg-container ml-3 mr-3 mb-3 border-[#f68500] border-8 rounded-md">
-                <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-                    <div class="flex items-center gap-4">
+        <div class="dark:bg-[#161615]">
+            <!-- Compact Header with Actions -->
+            <div class="bg-lectica flex w-full flex-col px-4 pt-2 pb-2">
+                <div class="flex items-center justify-between gap-2 rounded-xl p-2">
+                    <!--File Info-->
+                    <div class="flex items-center gap-2">
+                        <div class="flex h-8 w-8 items-center justify-center rounded border-2 border-white bg-gradient-to-br from-blue-500 to-purple-600">
+                            <FileIcon class="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                            <h1 class="text-sm font-pixel text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                                {{ file.name }}
+                            </h1>
+                            <div class="flex items-center space-x-1 text-xs text-white/80">
+                                <span>{{ fileInfo.size ? Math.round(Number(fileInfo.size) / 1024 / 1024 * 100) / 100 + ' MB' : 'Unknown size' }}</span>
+                                <span>•</span>
+                                <span>{{ new Date(file.created_at).toLocaleDateString() }}</span>
+                            </div>
+                        </div>
                     </div>
-                    <!-- Action Buttons in File Preview Section -->
+
+                    <!--Actions-->
+                    <div class="flex items-center space-x-1">
+                        <!-- Download -->
+                        <a
+                            :href="route('files.download', { file: file.id })"
+                            download
+                            class="flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-2 transition-all hover:bg-blue-400/30"
+                            title="Download"
+                        >
+                            <DownloadIcon class="h-3 w-3 text-blue-300 mr-1" />
+                            <span class="text-xs text-blue-300 font-pixel">Download</span>
+                        </a>
+
+                        <!-- Share -->
+                        <button
+                            @click="copyShareLink"
+                            class="flex h-7 items-center justify-center rounded border border-green-400/70 bg-green-400/20 px-2 transition-all hover:bg-green-400/30"
+                            title="Share"
+                        >
+                            <Share2Icon class="h-3 w-3 text-green-300 mr-1" />
+                            <span class="text-xs text-green-300 font-pixel">Share</span>
+                        </button>
+
+                        <!-- Add to Collection -->
+                        <button
+                            @click="showCollectionModal = true"
+                            class="flex h-7 items-center justify-center rounded border border-purple-400/70 bg-purple-400/20 px-2 transition-all hover:bg-purple-400/30"
+                            title="Add to Collection"
+                        >
+                            <PlusIcon class="h-3 w-3 text-purple-300 mr-1" />
+                            <span class="text-xs text-purple-300 font-pixel">Collect</span>
+                        </button>
+
+
+
+                        <!-- Star -->
+                        <button
+                            @click="toggleStar"
+                            class="flex h-7 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-2 transition-all hover:bg-yellow-400/30"
+                            title="Star File"
+                        >
+                            <StarIcon
+                                :class="[
+                                    'h-3 w-3 transition-colors mr-1',
+                                    file.is_starred 
+                                        ? 'fill-yellow-300 text-yellow-300' 
+                                        : 'text-white/60 hover:text-yellow-300'
+                                ]"
+                            />
+                            <span class="text-xs font-pixel" :class="file.is_starred ? 'text-yellow-300' : 'text-white/60'">
+                                {{ file.is_starred ? 'Starred' : 'Star' }}
+                            </span>
+                        </button>
+
+                        <!-- Back -->
+                        <Link href="/files">
+                            <Button class="font-pixel border border-white bg-red-600 px-2 py-1 text-xs text-white transition-all hover:bg-red-700">
+                                <ArrowLeftIcon class="mr-1 h-3 w-3" />
+                                Back
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+                <!--Divider-->
+                <hr class="-mx-4 h-0.5 border border-black bg-blue-500" />
             </div>
 
-                <div class="grid gap-6 md:grid-cols-3">
-                    <!-- File Information -->
-                    <div class="space-y-4 md:col-span-1">
-                        <div class="p-4">
-                            <h2 class="text-3xl font-semibold mb-3 text-[#fb9e1b] pixel-outline align-middle">{{ file.name }}</h2>
+            <!--Main Content - Two Column Layout-->
+            <div class="bg-gradient flex h-full flex-1 flex-col px-4 py-3 lg:px-6">
+                <!-- File Info and Preview Grid -->
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
+                    <!-- Left Column: File Info & Actions -->
+                    <div class="space-y-3">
+                        <!-- File Details Card -->
+                        <div class="rounded border border-white/20 bg-black/30 p-2 backdrop-blur-sm">
+                            <h4 class="font-pixel mb-2 font-bold text-yellow-400">
+                                📄 Info
+                            </h4>
+                            <!-- Verification Status -->
+                            <div class="mb-3 text-xs">
+                                <span
+                                    v-if="file.verified"
+                                    class="font-pixel inline-flex items-center rounded border border-green-400 bg-green-600 px-2 py-1 font-bold text-white"
+                                >
+                                    ✓ Verified
+                                </span>
+                                <span
+                                    v-else-if="file.is_denied"
+                                    class="font-pixel inline-flex items-center rounded border border-red-400 bg-red-600 px-2 py-1 font-bold text-white"
+                                >
+                                    ✗ Denied
+                                </span>
+                                <span
+                                    v-else
+                                    class="font-pixel inline-flex items-center rounded border border-yellow-400 bg-yellow-600 px-2 py-1 font-bold text-black"
+                                >
+                                    ⏳ Pending
+                                </span>
+                            </div>
 
-                        <!-- Verification Status -->
-                        <div class="mb-3">
-                            <span
-                                v-if="file.verified"
-                                class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800"
-                            >
-                                Verified
-                            </span>
-                            <span
-                                v-else-if="file.is_denied"
-                                class="inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800"
-                            >
-                                Denied
-                            </span>
-                            <span
-                                v-else
-                                class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800"
-                            >
-                                Pending Review
-                            </span>
-                        </div>
+                            <!-- Denial Reason -->
+                            <div v-if="file.is_denied && file.denial_reason" class="mb-3 rounded border border-red-400 bg-red-600/20 p-2">
+                                <p class="font-medium text-red-300">Denial Reason:</p>
+                                <p class="text-white">{{ file.denial_reason }}</p>
+                            </div>
 
-                        <!-- Denial Reason -->
-                        <div v-if="file.is_denied && file.denial_reason" class="mb-3 rounded border border-red-300 bg-red-50 p-3">
-                            <p class="text-xs font-medium text-red-700">Denial Reason:</p>
-                            <p class="mt-1 text-sm text-red-600">{{ file.denial_reason }}</p>
-                        </div>
-
-                        <div v-if="file.description" class="mb-3 text-sm">
-                            <p class="text-muted-foreground">{{ file.description }}</p>
-                        </div>
-                            <dl class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">File Type:</dt>
-                                    <dd class="text-right uppercase pixel-outline">{{ fileInfo.extension }}</dd>
+                            <!-- Compact File Details -->
+                            <div class="space-y-2">
+                                <div class="flex justify-between rounded bg-white/5 p-1.5">
+                                    <span class="text-yellow-400">Type:</span>
+                                    <span class="font-bold text-white uppercase">{{ fileInfo.extension }}</span>
                                 </div>
-                                <div class="flex justify-between" v-if="fileInfo.size">
-                                    <dt class="text-base text-[#fce085] pixel-outline">File Size:</dt>
-                                    <dd class="text-right pixel-outline">{{ fileInfo.size }}</dd>
+                                <div v-if="fileInfo.size" class="flex justify-between rounded bg-white/5 p-1.5">
+                                    <span class="text-yellow-400">Size:</span>
+                                    <span class="font-bold text-white">{{ ( Number(fileInfo.size) / 1024 / 1024).toFixed(2) }} MB</span>
                                 </div>
-                                <div class="flex justify-between" v-if="fileInfo.lastModified">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Last Modified:</dt>
-                                    <dd class="text-right pixel-outline">{{ fileInfo.lastModified }}</dd>
+                                <div class="flex justify-between rounded bg-white/5 p-1.5">
+                                    <span class="text-yellow-400">Uploaded By:</span>
+                                    <span class="font-bold text-white">{{ file.user.last_name }}, {{ file.user.first_name }}</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Verified:</dt>
-                                    <dd class="text-right pixel-outline">
-                                        <span :class="file.verified ? 'text-green-500' : 'text-red-500'" class="font-semibold">
-                                            {{ file.verified ? 'Yes' : 'No' }}
-                                        </span>
-                                    </dd>
+                                <div class="flex justify-between rounded bg-white/5 p-1.5">
+                                    <span class="text-yellow-400">Uploaded Date:</span>
+                                    <span class="font-bold text-white">{{ new Date(file.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) }}</span>
                                 </div>
-                                <div class="flex justify-between pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Uploaded by:</dt>
-                                    <dd class="text-right pixel-outline">{{ file.user.last_name }}, {{ file.user.first_name }}</dd>
+                                <div class="flex justify-between rounded bg-white/5 p-1.5">
+                                    <span class="text-yellow-400">Last Modified Date:</span>
+                                    <span class="font-bold text-white">{{ new Date(file.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) }}</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <dt class="text-base text-[#fce085] pixel-outline">Upload Date:</dt>
-                                    <dd class="text-right pixel-outline">
-                                        {{ new Date(file.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) }}
-                                    </dd>
-                                </div>
-                                <div class="pt-2 mt-2 border-t border-[#faa800]">
-                                    <dt class="text-base text-[#fce085] pixel-outline mb-2">Tags:</dt>
-                                    <dd class="flex flex-wrap gap-1">
-                                        <span
-                                            v-for="tag in file.tags"
-                                            :key="tag.id"
-                                            class="inline-flex px-2 py-1 text-xs rounded-md bg-[#faa800] text-[#661500]"
-                                        >
+                                <div v-if="file.tags && file.tags.length" class="rounded bg-white/5 p-1.5">
+                                    <div class="text-yellow-400 mb-1">Tags:</div>
+                                    <div class="flex flex-wrap gap-1">
+                                        <span v-for="tag in file.tags" :key="tag.id" class="font-pixel inline-flex px-1 py-0.5 rounded bg-purple-600 text-white border border-purple-400">
                                             {{ tag.name }}
                                         </span>
-                                        <span v-if="!file.tags || file.tags.length === 0" class="text-muted-foreground text-sm"> No tags </span>
-                                    </dd>
+                                    </div>
                                 </div>
-                            </dl>
-                            <div class="mt-4 border-t border-[#faa800] py-4 space-y-2">
-                                <h3 class="text-2xl font-medium text-center text-[#fb9e1b] pixel-outline mb-5">Study Materials</h3>
-                                <div class="mt-2">
-                                    <div class="w-full py-2">
-                                        <h4 class="mb-2 font-medium text-[#fce085] pixel-outline">Flashcards</h4>
-                                        <div class="mb-2 flex flex-wrap justify-center gap-6">
-                                            <Link :href="route('files.flashcards.index', file.id)">
-                                                <Button class="w-full sm:w-auto text-xs bg-[#A67C52] text-[#fdf6ee] hover:bg-[#8c6b44] border-[#0c0a03] border-2 pixel-outline">
-                                                    <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                    View Flashcards
-                                                </Button>
-                                            </Link>
-                                            <Link :href="route('files.flashcards.practice', file.id)">
-                                                <Button class="w-full text-xs sm:w-auto bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#597973] border-[#0c0a03] border-2 pixel-outline">
-                                                    <BookOpen class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                    Practice
-                                                </Button>
-                                            </Link>
-                                        </div>
+                            </div>
+                        </div>
+
+                        <!-- Study Materials -->
+                        <div class="rounded border border-white/20 bg-black/30 p-2 backdrop-blur-sm">
+                            <h4 class="font-pixel mb-2 font-bold text-yellow-400">📚 Study Materials</h4>
+                            <div class="space-y-2">
+                                <!-- Flashcards -->
+                                <div>
+                                    <h5 class="font-pixel mb-1 text-blue-300">📖 Flashcards</h5>
+                                    <div class="flex gap-1">
+                                        <Link :href="route('files.flashcards.index', file.id)">
+                                            <button class="font-pixel flex-1 border border-blue-400 bg-blue-600 px-2 py-1 text-white hover:bg-blue-700">
+                                                View
+                                            </button>
+                                        </Link>
+                                        <Link :href="route('files.flashcards.practice', file.id)">
+                                            <button class="font-pixel flex-1 border border-green-400 bg-green-600 px-2 py-1 text-white hover:bg-green-700">
+                                                Practice
+                                            </button>
+                                        </Link>
                                     </div>
-                                    <div class="border-t border-[#faa800] w-full py-2">
-                                        <h4 class="mb-2 font-medium text-[#fce085] pixel-outline">Quizzes</h4>
-                                        <div class="mb-2 flex flex-wrap justify-center gap-6">
-                                            <Link :href="route('files.quizzes.index', file.id)">
-                                                <Button class="w-full text-xs sm:w-auto bg-[#6B8F8C] text-[#fdf6ee] hover:bg-[#7FA19E] border-[#0c0a03] border-2 pixel-outline">
-                                                    <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                    View Quizzes
-                                                </Button>
-                                            </Link>
-                                            <Link :href="route('files.quizzes.test', file.id)">
-                                                <Button class="w-full text-xs sm:w-auto bg-[#A67C52] text-[#fdf6ee] hover:bg-[#B88D63] border-[#0c0a03] border-2 pixel-outline">
-                                                    <ListChecks class="mr-2 h-3 w-3 pixel-outline-icon" />
-                                                    Take Quiz
-                                                </Button>
-                                            </Link>
-                                        </div>
+                                </div>
+                                
+                                <!-- Quizzes -->
+                                <div>
+                                    <h5 class="font-pixel mb-1 text-purple-300">🧠 Quizzes</h5>
+                                    <div class="flex gap-1">
+                                        <Link :href="route('files.quizzes.index', file.id)">
+                                            <button class="font-pixel flex-1 border border-purple-400 bg-purple-600 px-2 py-1 text-white hover:bg-purple-700">
+                                                View
+                                            </button>
+                                        </Link>
+                                        <Link :href="route('files.quizzes.test', file.id)">
+                                            <button class="font-pixel flex-1 border border-orange-400 bg-orange-600 px-2 py-1 text-white hover:bg-orange-700">
+                                                Practice
+                                            </button>
+                                        </Link>
                                     </div>
-                                    <div class="flex w-full justify-center gap-2 border-t border-[#faa800] pt-4" v-if="isOwner && file.verified">
-                                        <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
-                                            <DialogTrigger asChild>
-                                                <Button class="sm:w-auto flex items-center justify-center text-sm sm:text-base gap-2 rounded-lg border-2 border-[#ff6f00] bg-gradient-to-r from-[#ffb347] to-[#ffcc33] px-3 sm:px-5 py-3 sm:py-5 font-semibold text-[#fdf6ee] shadow-md transition-all duration-300 hover:scale-110 hover:from-[#e6a03c] hover:to-[#e6b82c] pixel-outline active:scale-95">
-                                                    <PencilIcon class="h-6 w-6 sm:h-8 sm:w-8 text-[#fdf6ee] pixel-outline pixel-outline-icon flex-shrink-0" />
-                                                    <span class="text-center leading-tight">Generate Flashcards & Quizzes</span>
-                                                </Button>
-                                            </DialogTrigger>
+                                </div>
+                                
+                                <!-- Generate Content -->
+                                <div v-if="isOwner && file.verified" class="mt-3 rounded border border-yellow-400/30 bg-yellow-600/10 p-3">
+                                    <h5 class="font-pixel mb-2 text-yellow-300">🎲 Generate Content</h5>
+                                    <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
+                                        <DialogTrigger asChild>
+                                            <button class="font-pixel w-full border border-yellow-400 bg-yellow-600 px-3 py-1 text-black hover:bg-yellow-500">
+                                                <PencilIcon class="mr-1 h-3 w-3 inline" />
+                                                Generate Flashcards & Quizzes
+                                            </button>
+                                        </DialogTrigger>
                                         <DialogContent>
                                             <DialogHeader>
                                                 <DialogTitle>Generate Flashcards & Quizzes</DialogTitle>
@@ -548,136 +618,149 @@ const addToCollection = async () => {
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                    <!-- File Preview -->
-                    <div class="space-y-4 md:col-span-2">
-                        <div class="p-4">
-                            <!-- Top buttons container-->
-                            <div class="flex flex-row justify-between items-center gap-3 px-4 py-3">
-                                <h2 class="text-xl font-semibold justify-center flex text-left px-4 py-3 text-[#fce085] pixel-outline">File Preview</h2>
-
-                                <!-- Buttons container -->
-                                <div class="flex flex-wrap items-center gap-3 justify-center mt-3 md:mt-0">
+                        <!-- Admin Verification Section -->
+                        <div v-if="canVerify && !file.verified && !file.is_denied" class="rounded-lg border-2 border-orange-400/70 bg-gradient-to-r from-orange-600/30 to-red-600/30 p-3 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                            <div class="flex items-center justify-between mb-2">
+                                <h4 class="font-pixel text-sm font-bold text-orange-200 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                                    🛡️ Faculty Actions
+                                </h4>
+                                <div class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-pixel">
+                                    PENDING
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <!-- Verify Button -->
+                                <div class="space-y-1">
                                     <button
-                                        @click="toggleStar"
-                                        class="inline-flex items-center justify-center rounded-md bg-[#c9631a] px-3 py-2 text-sm font-medium hover:bg-[#ad5215] border-2 border-[#0c0a03] duration-300 hover:scale-105 pixel-outline"
-                                        :class="{'text-yellow-300': isStarred, 'bg-[#6f4f3b]': !isStarred}"
-                                        :disabled="isStarring"
-                                    >
-                                        <StarIcon class="h-5 w-5 mr-2 pixel-outline-icon" :fill="isStarred ? 'currentColor' : 'none'" />
-                                        {{ file.star_count || 0 }}
-                                        {{ isStarred ? 'Starred' : 'Star' }}
-                                    </button>
-
-                                    <button
-                                        v-if="!file.verified && !file.is_denied && canVerify"
                                         @click="verifyFile"
-                                        class="inline-flex items-center justify-center rounded-md bg-[#5cae6e] px-3 py-2 text-sm font-medium text-[#fdf6ee] pixel-outline hover:bg-[#4a9159] border-[#0c0a03] duration-300 border-2"
                                         :disabled="isVerifying"
+                                        class="font-pixel w-full flex items-center justify-center border-2 border-green-400 bg-green-600 px-4 py-3 text-sm text-white shadow-[3px_3px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-green-700 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
                                     >
-                                        <CheckCircleIcon class="h-5 w-5 mr-2 pixel-outline-icon" />
-                                        {{ isVerifying ? 'Verifying...' : 'Verify' }}
+                                        <ShieldCheckIcon v-if="!isVerifying" class="mr-2 h-5 w-5" />
+                                        <Loader2Icon v-else class="mr-2 h-5 w-5 animate-spin" />
+                                        {{ isVerifying ? 'Verifying...' : '✓ Approve & Verify' }}
                                     </button>
+                                    <p class="text-xs text-green-200/80 text-center">
+                                        Mark file as verified and allow study material generation
+                                    </p>
+                                </div>
 
+                                <!-- Deny Button -->
+                                <div class="space-y-1">
                                     <button
-                                        v-if="!file.verified && !file.is_denied && canVerify"
                                         @click="openDenyModal"
-                                        class="inline-flex items-center justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 border-2 border-[#0c0a03] pixel-outline"
-                                        :disabled="isDenying"
+                                        class="font-pixel w-full flex items-center justify-center border-2 border-red-400 bg-red-600 px-4 py-3 text-sm text-white shadow-[3px_3px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:scale-[1.02]"
                                     >
-                                        <XCircleIcon class="mr-2 h-5 w-5 pixel-outline-icon" />
-                                        Deny
+                                        <XCircleIcon class="mr-2 h-5 w-5" />
+                                        ✗ Deny File
                                     </button>
-
-                                    <Link
-                                        v-if="file.can_edit === true"
-                                        :href="route('files.edit', { file: file.id })"
-                                        class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#6aa7d6] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#578ec3] border-[#0c0a03] duration-300 pixel-outline"
-                                    >
-                                        <PencilIcon class="h-4 w-4 pixel-outline-icon" />
-                                        Edit
-                                    </Link>
-                                    <a
-                                        :href="route('files.download', { file: file.id })"
-                                        download
-                                        class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#d98c5f] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#b3744e] border-[#0c0a03] duration-300 pixel-outline"
-                                    >
-                                        <DownloadIcon class="h-4 w-4 pixel-outline-icon" />
-                                        Download
-                                    </a>
-                                    <button
-                                        @click="openCollectionModal"
-                                        class="inline-flex items-center justify-center gap-1 rounded-md border-2 bg-[#8b7355] px-4 py-2 text-sm font-medium text-[#fdf6ee] hover:bg-[#6e5a43] border-[#0c0a03] duration-300 pixel-outline"
-                                    >
-                                        <PlusIcon class="h-4 w-4 pixel-outline-icon" />
-                                        Add to Collection
-                                    </button>
+                                    <p class="text-xs text-red-200/80 text-center">
+                                        Reject file and provide feedback to uploader
+                                    </p>
                                 </div>
                             </div>
+                            <p class="mt-2 text-xs text-orange-200/80 text-center">
+                                Review and moderate this file submission
+                            </p>
+                        </div>
 
-                            <div v-if="fileInfo.exists && isPreviewable" class="mt-2">
-                                <!-- PDF Preview -->
-                                <div v-if="isPdf && fileInfo.url" class="w-full h-[500px] border-5 border-[#feaf00] rounded-md">
-                                    <object :data="fileInfo.url" type="application/pdf" class="h-full w-full">
-                                        <div class="bg-accent/20 flex h-full items-center justify-center p-4 text-center">
-                                            <div>
-                                                <FileType2Icon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
-                                                <p>PDF preview not available in your browser.</p>
-                                                <a :href="fileInfo.url" target="_blank" class="text-primary mt-2 inline-block underline">
-                                                    Open PDF in new tab
-                                                </a>
+                        <!-- Admin Status Display (for already processed files) -->
+                        <div v-else-if="canVerify && (file.verified || file.is_denied)" class="rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                            <h4 class="font-pixel mb-2 text-sm font-bold text-blue-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                                🛡️ Admin Status
+                            </h4>
+                            <div v-if="file.verified" class="rounded-lg border-2 border-green-400 bg-green-600/20 p-3 backdrop-blur-sm">
+                                <div class="flex items-center justify-center mb-1">
+                                    <ShieldCheckIcon class="mr-2 h-5 w-5 text-green-400" />
+                                    <span class="font-pixel text-sm text-green-300">File Verified</span>
+                                </div>
+                                <p class="text-xs text-green-200/80 text-center">
+                                    This file has been approved and is available for study materials
+                                </p>
+                            </div>
+                            <div v-else-if="file.is_denied" class="rounded-lg border-2 border-red-400 bg-red-600/20 p-3 backdrop-blur-sm">
+                                <div class="flex items-center justify-center mb-2">
+                                    <XCircleIcon class="mr-2 h-5 w-5 text-red-400" />
+                                    <span class="font-pixel text-sm text-red-300">File Denied</span>
+                                </div>
+                                <div v-if="file.denial_reason" class="rounded bg-red-500/20 p-2">
+                                    <p class="text-xs text-red-200 text-center font-medium">
+                                        Reason: "{{ file.denial_reason }}"
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: File Preview -->
+                    <div class="space-y-3">
+                        <!-- File Preview Section - Main Focus -->
+                        <div class="rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
+                            <h3 class="font-pixel mb-3 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                                � File Preview
+                            </h3>
+                            <!-- Full File Preview Content -->
+                            <div class="rounded border border-white/20 p-3 backdrop-blur-sm">
+                                <div v-if="fileInfo.exists && isPreviewable">
+                                    <!-- PDF Preview -->
+                                    <div v-if="isPdf && fileInfo.url" class="w-full border-2 border-yellow-400 rounded bg-white/5 backdrop-blur-sm" style="height: 75vh;">
+                                        <object :data="fileInfo.url" type="application/pdf" class="h-full w-full rounded">
+                                            <div class="flex h-full items-center justify-center text-center p-4">
+                                                <div>
+                                                    <FileType2Icon class="mx-auto mb-2 h-12 w-12 text-white/60" />
+                                                    <p class="text-white/80 mb-2">PDF preview not available in your browser</p>
+                                                    <a :href="fileInfo.url" target="_blank" class="text-yellow-400 underline hover:text-yellow-300">
+                                                        Open PDF in new tab
+                                                    </a>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </object>
+                                        </object>
+                                    </div>
+
+                                    <!-- Image Preview -->
+                                    <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
+                                        <img :src="fileInfo.url" :alt="file.name" class="max-w-full h-auto rounded border-2 border-blue-400 shadow-[4px_4px_0px_rgba(0,0,0,0.8)]" style="max-height: 75vh;" />
+                                    </div>
+
+                                    <!-- Text Preview -->
+                                    <div v-else-if="isTxt" class="overflow-auto rounded border-2 border-green-400 bg-green-600/10 p-4 backdrop-blur-sm" style="max-height: 75vh;">
+                                        <pre class="text-sm whitespace-pre-wrap text-white">{{ file.content }}</pre>
+                                    </div>
+
+                                    <!-- Office File Preview -->
+                                    <div v-else-if="isOfficeFile && fileInfo.url" class="w-full border-2 border-purple-400 rounded bg-purple-600/5 backdrop-blur-sm" style="height: 75vh;">
+                                        <iframe
+                                            :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
+                                            width="100%"
+                                            height="100%"
+                                            frameborder="0"
+                                            class="rounded"
+                                        >
+                                            This is an embedded Microsoft Office document, powered by Office Online.
+                                        </iframe>
+                                    </div>
                                 </div>
 
-                                <!-- Image Preview -->
-                                <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
-                                    <img :src="fileInfo.url" :alt="file.name" class="max-h-[500px] max-w-full rounded-md object-contain" />
+                                <!-- Extracted Text Content -->
+                                <div v-else-if="!isPreviewable && file.content" class="overflow-auto rounded border-2 border-orange-400 bg-orange-600/10 p-4 backdrop-blur-sm" style="max-height: 75vh;">
+                                    <h4 class="mb-3 font-medium text-orange-300">📝 Extracted Text Content</h4>
+                                    <pre class="text-sm whitespace-pre-wrap text-white">{{ file.content }}</pre>
                                 </div>
 
-                                <!-- Text Preview -->
-                                <div v-else-if="isTxt" class="bg-accent/50 max-h-[500px] overflow-auto rounded-md p-4">
-                                    <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
-                                </div>
-
-                                <!-- Office File Preview -->
-                                <div v-else-if="isOfficeFile && fileInfo.url" class="w-full h-[500px] border border-[#0c0a03] rounded-md">
-                                    <iframe
-                                        :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
-                                        width="100%"
-                                        height="100%"
-                                        frameborder="0"
-                                    >
-                                        This is an embedded
-                                        <a target="_blank" href="http://office.com">Microsoft Office</a> document, powered by
-                                        <a target="_blank" href="http://office.com/webapps">Office Online</a>.
-                                    </iframe>
-                                </div>
-                            </div>
-
-                            <!-- Extracted Text Content -->
-                            <div v-if="!isPreviewable && file.content" class="mt-4">
-                                <h3 class="text-md mb-2 font-medium text-[#fce085]">Extracted Text</h3>
-                                <div class="bg-accent/60 max-h-[400px] overflow-auto rounded-md p-4">
-                                    <pre class="text-sm whitespace-pre-wrap">{{ file.content }}</pre>
-                                </div>
-                            </div>
-
-                            <!-- File Not Found -->
-                            <div v-if="!fileInfo.exists" class="bg-accent/60 flex h-[200px] items-center justify-center rounded-md">
-                                <div class="text-center">
-                                    <FileIcon class="text-muted-foreground mx-auto mb-2 h-10 w-10" />
-                                    <p>File content not available.</p>
+                                <!-- File Not Found -->
+                                <div v-else class="flex items-center justify-center rounded border-2 border-red-400 bg-red-600/10 backdrop-blur-sm p-8" style="height: 50vh;">
+                                    <div class="text-center">
+                                        <FileIcon class="mx-auto mb-4 h-16 w-16 text-white/60" />
+                                        <p class="text-lg text-white/80 mb-2">File content not available</p>
+                                        <p class="text-sm text-white/60">The file may be too large or in an unsupported format</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
             <!-- Add to Collection Modal -->
             <Dialog v-model:open="showCollectionModal" onOpenChange="showCollectionModal = $event">
@@ -741,27 +824,56 @@ const addToCollection = async () => {
 
             <!-- Deny File Modal -->
             <Dialog v-model:open="showDenyModal" onOpenChange="showDenyModal = $event">
-                <DialogContent>
+                <DialogContent class="max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Deny File</DialogTitle>
+                        <DialogTitle class="flex items-center text-red-600">
+                            <XCircleIcon class="mr-2 h-5 w-5" />
+                            Deny File Submission
+                        </DialogTitle>
                     </DialogHeader>
                     <div class="space-y-4">
-                        <p class="text-sm text-gray-600">Please provide a reason for denying this file:</p>
-                        <textarea
-                            v-model="denialReason"
-                            placeholder="Enter reason for denial..."
-                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
-                            rows="4"
-                        ></textarea>
+                        <div class="rounded-lg border border-red-200 bg-red-50 p-3">
+                            <div class="flex items-start">
+                                <XCircleIcon class="mr-2 h-5 w-5 text-red-500 mt-0.5" />
+                                <div>
+                                    <h4 class="text-sm font-medium text-red-800">File Will Be Denied</h4>
+                                    <p class="text-xs text-red-600 mt-1">
+                                        This action will mark the file as denied and notify the uploader. 
+                                        The file will not be available for study materials generation.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Reason for Denial <span class="text-red-500">*</span>
+                            </label>
+                            <textarea
+                                v-model="denialReason"
+                                placeholder="Please provide a clear reason for denying this file (e.g., inappropriate content, wrong format, poor quality, etc.)"
+                                class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-2 focus:ring-red-200 focus:outline-none"
+                                rows="4"
+                                required
+                            ></textarea>
+                        </div>
                     </div>
-                    <DialogFooter>
-                        <Button variant="outline" @click="showDenyModal = false">Cancel</Button>
-                        <Button @click="denyFile" :disabled="!denialReason.trim() || isDenying" class="bg-red-600 text-white hover:bg-red-700">
-                            <span v-if="isDenying">Denying...</span>
-                            <span v-else>Deny File</span>
+                    <DialogFooter class="gap-2">
+                        <Button variant="outline" @click="showDenyModal = false" class="border-gray-300">
+                            Cancel
+                        </Button>
+                        <Button 
+                            @click="denyFile" 
+                            :disabled="!denialReason.trim() || isDenying" 
+                            class="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                        >
+                            <XCircleIcon v-if="!isDenying" class="mr-2 h-4 w-4" />
+                            <Loader2Icon v-else class="mr-2 h-4 w-4 animate-spin" />
+                            {{ isDenying ? 'Denying File...' : 'Deny File' }}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </AppLayout>
+        </div>
+    </AppLayout>
 </template>
