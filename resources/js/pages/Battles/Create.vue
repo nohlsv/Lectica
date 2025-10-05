@@ -452,20 +452,16 @@ const form = useForm({
 // Initialize form with preselected file or collection if provided
 if (props.preselectedFileId) {
     // Check if the preselected file exists in the user's files
-    const preselectedFile = props.files.find(
-        (f) => f.id.toString() === props.preselectedFileId?.toString()
-    );
-    
+    const preselectedFile = props.files.find((f) => f.id.toString() === props.preselectedFileId?.toString());
+
     if (preselectedFile) {
         form.source_type = 'file';
         form.file_id = props.preselectedFileId.toString();
     }
 } else if (props.preselectedCollectionId) {
     // Check if the preselected collection exists in the user's collections
-    const preselectedCollection = props.collections.find(
-        (c) => c.id.toString() === props.preselectedCollectionId?.toString()
-    );
-    
+    const preselectedCollection = props.collections.find((c) => c.id.toString() === props.preselectedCollectionId?.toString());
+
     if (preselectedCollection) {
         form.source_type = 'collection';
         form.collection_id = props.preselectedCollectionId.toString();

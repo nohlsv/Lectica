@@ -14,24 +14,24 @@
             </div>
         </template>
 
-        <div class="py-12">
+        <div class="min-h-screen bg-[#28231d] py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <!-- Search and Filters -->
-                <div class="mb-6 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+                <div class="bg-container mb-6 rounded-lg border-2 border-[#ffd700] p-4">
                     <div class="flex flex-col gap-4 sm:flex-row">
                         <div class="flex-1">
                             <input
                                 v-model="searchQuery"
                                 type="text"
                                 placeholder="Search public collections..."
-                                class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
+                                class="w-full rounded-md border-2 border-[#ffd700] bg-[#0c0a03] text-[#FFF8DC] placeholder-[#FFF8DC]/50 focus:border-[#b71400] focus:ring-[#ffd700]"
                                 @keyup.enter="search"
                             />
                         </div>
                         <div class="flex gap-2">
                             <select
                                 v-model="sortBy"
-                                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
+                                class="rounded-md border-2 border-[#ffd700] bg-[#0c0a03] text-[#FFF8DC] focus:border-[#b71400] focus:ring-[#ffd700]"
                                 @change="search"
                             >
                                 <option value="created_at">Newest</option>
@@ -41,7 +41,7 @@
                             </select>
                             <button
                                 @click="search"
-                                class="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                class="pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#b71400] px-4 py-2 text-white transition-all duration-300 hover:bg-[#990f00] focus:ring-2 focus:ring-[#ffd700] focus:outline-none"
                             >
                                 Search
                             </button>

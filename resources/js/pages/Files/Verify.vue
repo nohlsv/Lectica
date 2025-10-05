@@ -93,7 +93,7 @@ const denyFile = () => {
 const applyCollegeFilter = (college: string) => {
     currentCollegeFilter.value = college;
     showAllColleges.value = college === 'all';
-    
+
     const params = new URLSearchParams();
     if (college !== 'my_college') {
         params.set('college', college);
@@ -101,10 +101,10 @@ const applyCollegeFilter = (college: string) => {
     if (college === 'all') {
         params.set('show_all_colleges', 'true');
     }
-    
+
     const queryString = params.toString();
     const url = queryString ? `/files/verify?${queryString}` : '/files/verify';
-    
+
     router.visit(url, {
         preserveState: true,
         preserveScroll: true,
@@ -129,63 +129,63 @@ const getFilterDisplayText = () => {
             <div class="mx-auto flex max-w-md justify-center">
                 <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-10 py-2 text-center text-2xl font-bold">Verify Files</h1>
             </div>
-            
+
             <!-- College Filter -->
             <div v-if="props.user_college || (props.available_colleges && props.available_colleges.length > 0)" class="bg-container p-4">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                    <label class="text-sm font-medium text-gray-200 pixel-outline">Filter by College:</label>
+                <div class="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+                    <label class="pixel-outline text-sm font-medium text-gray-200">Filter by College:</label>
                     <div class="flex flex-wrap gap-2">
                         <!-- My College Button -->
                         <button
                             v-if="props.user_college"
                             @click="applyCollegeFilter('my_college')"
                             :class="[
-                                'px-3 py-1.5 text-sm rounded-md border-2 transition-colors pixel-outline',
+                                'pixel-outline rounded-md border-2 px-3 py-1.5 text-sm transition-colors',
                                 currentCollegeFilter === 'my_college' && !showAllColleges
-                                    ? 'border-blue-500 bg-blue-600 text-white' 
-                                    : 'border-gray-500 bg-gray-700 text-gray-200 hover:bg-gray-600'
+                                    ? 'border-blue-500 bg-blue-600 text-white'
+                                    : 'border-gray-500 bg-gray-700 text-gray-200 hover:bg-gray-600',
                             ]"
                         >
                             My College ({{ props.user_college }})
                         </button>
-                        
+
                         <!-- All Colleges Button -->
                         <button
                             @click="applyCollegeFilter('all')"
                             :class="[
-                                'px-3 py-1.5 text-sm rounded-md border-2 transition-colors pixel-outline',
+                                'pixel-outline rounded-md border-2 px-3 py-1.5 text-sm transition-colors',
                                 showAllColleges || currentCollegeFilter === 'all'
-                                    ? 'border-green-500 bg-green-600 text-white' 
-                                    : 'border-gray-500 bg-gray-700 text-gray-200 hover:bg-gray-600'
+                                    ? 'border-green-500 bg-green-600 text-white'
+                                    : 'border-gray-500 bg-gray-700 text-gray-200 hover:bg-gray-600',
                             ]"
                         >
                             All Colleges
                         </button>
-                        
+
                         <!-- Individual College Buttons -->
                         <button
-                            v-for="college in props.available_colleges?.filter(c => c !== props.user_college)"
+                            v-for="college in props.available_colleges?.filter((c) => c !== props.user_college)"
                             :key="college"
                             @click="applyCollegeFilter(college)"
                             :class="[
-                                'px-3 py-1.5 text-sm rounded-md border-2 transition-colors pixel-outline',
+                                'pixel-outline rounded-md border-2 px-3 py-1.5 text-sm transition-colors',
                                 currentCollegeFilter === college && !showAllColleges
-                                    ? 'border-purple-500 bg-purple-600 text-white' 
-                                    : 'border-gray-500 bg-gray-700 text-gray-200 hover:bg-gray-600'
+                                    ? 'border-purple-500 bg-purple-600 text-white'
+                                    : 'border-gray-500 bg-gray-700 text-gray-200 hover:bg-gray-600',
                             ]"
                         >
                             {{ college }}
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Current filter indicator -->
-                <div class="mt-2 text-xs text-gray-400 pixel-outline">
+                <div class="pixel-outline mt-2 text-xs text-gray-400">
                     Currently showing: <span class="font-medium text-gray-200">{{ getFilterDisplayText() }}</span>
                     <span v-if="props.files.data.length > 0" class="ml-2">({{ props.files.data.length }} files)</span>
                 </div>
             </div>
-            
+
             <div class="bg-container p-6">
                 <div v-if="props.files.data.length === 0" class="text-muted-foreground text-center">No unverified files available.</div>
                 <div v-else class="grid gap-4 space-y-4 sm:grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">

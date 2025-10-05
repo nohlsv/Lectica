@@ -8,17 +8,13 @@ import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
     ArrowLeftIcon,
-    BookOpenIcon,
     CheckCircleIcon,
-    ClockIcon,
     DownloadIcon,
     FileIcon,
     FileType2Icon,
-    ListChecks,
     Loader2Icon,
     PencilIcon,
     PlusIcon,
-    Share2Icon,
     ShieldCheckIcon,
     StarIcon,
     XCircleIcon,
@@ -310,15 +306,19 @@ const addToCollection = async () => {
                 <div class="flex items-center justify-between gap-2 rounded-xl p-2">
                     <!--File Info-->
                     <div class="flex items-center gap-2">
-                        <div class="flex h-8 w-8 items-center justify-center rounded border-2 border-white bg-gradient-to-br from-blue-500 to-purple-600">
+                        <div
+                            class="flex h-8 w-8 items-center justify-center rounded border-2 border-white bg-gradient-to-br from-blue-500 to-purple-600"
+                        >
                             <FileIcon class="h-4 w-4 text-white" />
                         </div>
                         <div>
-                            <h1 class="text-sm font-pixel text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                            <h1 class="font-pixel text-sm text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
                                 {{ file.name }}
                             </h1>
                             <div class="flex items-center space-x-1 text-xs text-white/80">
-                                <span>{{ fileInfo.size ? Math.round(Number(fileInfo.size) / 1024 / 1024 * 100) / 100 + ' MB' : 'Unknown size' }}</span>
+                                <span>{{
+                                    fileInfo.size ? Math.round((Number(fileInfo.size) / 1024 / 1024) * 100) / 100 + ' MB' : 'Unknown size'
+                                }}</span>
                                 <span>•</span>
                                 <span>{{ new Date(file.created_at).toLocaleDateString() }}</span>
                             </div>
@@ -334,10 +334,9 @@ const addToCollection = async () => {
                             class="flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-2 transition-all hover:bg-blue-400/30"
                             title="Download"
                         >
-                            <DownloadIcon class="h-3 w-3 text-blue-300 mr-1" />
-                            <span class="text-blue-300 font-pixel">Download</span>
+                            <DownloadIcon class="mr-1 h-3 w-3 text-blue-300" />
+                            <span class="font-pixel text-blue-300">Download</span>
                         </a>
-
 
                         <!-- Add to Collection -->
                         <button
@@ -345,8 +344,8 @@ const addToCollection = async () => {
                             class="flex h-7 items-center justify-center rounded border border-purple-400/70 bg-purple-400/20 px-2 transition-all hover:bg-purple-400/30"
                             title="Add to Collection"
                         >
-                            <PlusIcon class="h-3 w-3 text-purple-300 mr-1" />
-                            <span class="text-purple-300 font-pixel">Add to Collection</span>
+                            <PlusIcon class="mr-1 h-3 w-3 text-purple-300" />
+                            <span class="font-pixel text-purple-300">Add to Collection</span>
                         </button>
 
                         <!-- Star -->
@@ -357,10 +356,8 @@ const addToCollection = async () => {
                         >
                             <StarIcon
                                 :class="[
-                                    'h-3 w-3 transition-colors mr-1',
-                                    file.is_starred 
-                                        ? 'fill-yellow-300 text-yellow-300' 
-                                        : 'text-white/60 hover:text-yellow-300'
+                                    'mr-1 h-3 w-3 transition-colors',
+                                    file.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300',
                                 ]"
                             />
                             <span class="font-pixel" :class="file.is_starred ? 'text-yellow-300' : 'text-white/60'">
@@ -389,18 +386,16 @@ const addToCollection = async () => {
                     <div class="space-y-3">
                         <!-- File Details Card -->
                         <div class="rounded border border-white/20 bg-black/30 p-2 backdrop-blur-sm">
-                            <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-pixel font-bold text-yellow-400">
-                                    📄 Info
-                                </h4>
+                            <div class="mb-2 flex items-center justify-between">
+                                <h4 class="font-pixel font-bold text-yellow-400">📄 Info</h4>
                                 <!-- Edit Button -->
                                 <Link v-if="isOwner" :href="route('files.edit', file.id)">
                                     <button
                                         class="flex items-center justify-center rounded border border-orange-400/70 bg-orange-400/20 px-2 py-1 text-xs transition-all hover:bg-orange-400/30"
                                         title="Edit File"
                                     >
-                                        <PencilIcon class="h-3 w-3 text-orange-300 mr-1" />
-                                        <span class="text-orange-300 font-pixel">Edit</span>
+                                        <PencilIcon class="mr-1 h-3 w-3 text-orange-300" />
+                                        <span class="font-pixel text-orange-300">Edit</span>
                                     </button>
                                 </Link>
                             </div>
@@ -440,7 +435,7 @@ const addToCollection = async () => {
                                 </div>
                                 <div v-if="fileInfo.size" class="flex justify-between rounded bg-white/5 p-1.5">
                                     <span class="text-yellow-400">Size:</span>
-                                    <span class="font-bold text-white">{{ ( Number(fileInfo.size) / 1024 / 1024).toFixed(2) }} MB</span>
+                                    <span class="font-bold text-white">{{ (Number(fileInfo.size) / 1024 / 1024).toFixed(2) }} MB</span>
                                 </div>
                                 <div class="flex justify-between rounded bg-white/5 p-1.5">
                                     <span class="text-yellow-400">Uploaded By:</span>
@@ -448,16 +443,24 @@ const addToCollection = async () => {
                                 </div>
                                 <div class="flex justify-between rounded bg-white/5 p-1.5">
                                     <span class="text-yellow-400">Uploaded Date:</span>
-                                    <span class="font-bold text-white">{{ new Date(file.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) }}</span>
+                                    <span class="font-bold text-white">{{
+                                        new Date(file.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+                                    }}</span>
                                 </div>
                                 <div class="flex justify-between rounded bg-white/5 p-1.5">
                                     <span class="text-yellow-400">Last Modified Date:</span>
-                                    <span class="font-bold text-white">{{ new Date(file.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) }}</span>
+                                    <span class="font-bold text-white">{{
+                                        new Date(file.updated_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+                                    }}</span>
                                 </div>
                                 <div v-if="file.tags && file.tags.length" class="rounded bg-white/5 p-1.5">
-                                    <div class="text-yellow-400 mb-1">Tags:</div>
+                                    <div class="mb-1 text-yellow-400">Tags:</div>
                                     <div class="flex flex-wrap gap-1">
-                                        <span v-for="tag in file.tags" :key="tag.id" class="font-pixel inline-flex px-1 py-0.5 rounded bg-purple-600 text-white border border-purple-400">
+                                        <span
+                                            v-for="tag in file.tags"
+                                            :key="tag.id"
+                                            class="font-pixel inline-flex rounded border border-purple-400 bg-purple-600 px-1 py-0.5 text-white"
+                                        >
                                             {{ tag.name }}
                                         </span>
                                     </div>
@@ -467,53 +470,81 @@ const addToCollection = async () => {
 
                         <!-- Study Materials -->
                         <div class="rounded-lg border-2 border-white/20 bg-black/30 p-4 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                            <h4 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">📚 Study Materials</h4>
-                            <div class="space-y-4 flex flex-col items-center">
+                            <h4
+                                class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
+                            >
+                                📚 Study Materials
+                            </h4>
+                            <div class="flex flex-col items-center space-y-4">
                                 <!-- Flashcards -->
                                 <div class="w-full rounded-lg border border-blue-400/30 bg-blue-600/10 p-3 backdrop-blur-sm">
-                                    <h5 class="font-pixel mb-3 text-center font-bold text-blue-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">📖 Flashcards</h5>
+                                    <h5
+                                        class="font-pixel mb-3 text-center font-bold text-blue-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]"
+                                    >
+                                        📖 Flashcards
+                                    </h5>
                                     <div class="flex gap-2">
                                         <Link :href="route('files.flashcards.index', file.id)" class="flex-1">
-                                            <button class="font-pixel w-full border-2 border-blue-400 bg-blue-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-blue-700 hover:scale-[1.02]">
+                                            <button
+                                                class="font-pixel w-full border-2 border-blue-400 bg-blue-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-blue-700"
+                                            >
                                                 View
                                             </button>
                                         </Link>
                                         <Link :href="route('files.flashcards.practice', file.id)" class="flex-1">
-                                            <button class="font-pixel w-full border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-green-700 hover:scale-[1.02]">
+                                            <button
+                                                class="font-pixel w-full border-2 border-green-400 bg-green-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-green-700"
+                                            >
                                                 Practice
                                             </button>
                                         </Link>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Quizzes -->
                                 <div class="w-full rounded-lg border border-purple-400/30 bg-purple-600/10 p-3 backdrop-blur-sm">
-                                    <h5 class="font-pixel mb-3 text-center font-bold text-purple-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">🧠 Quizzes</h5>
+                                    <h5
+                                        class="font-pixel mb-3 text-center font-bold text-purple-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]"
+                                    >
+                                        🧠 Quizzes
+                                    </h5>
                                     <div class="flex gap-2">
                                         <Link :href="route('files.quizzes.index', file.id)" class="flex-1">
-                                            <button class="font-pixel w-full border-2 border-purple-400 bg-purple-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-purple-700 hover:scale-[1.02]">
+                                            <button
+                                                class="font-pixel w-full border-2 border-purple-400 bg-purple-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-purple-700"
+                                            >
                                                 View
                                             </button>
                                         </Link>
                                         <Link :href="route('files.quizzes.test', file.id)" class="flex-1">
-                                            <button class="font-pixel w-full border-2 border-orange-400 bg-orange-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-orange-700 hover:scale-[1.02]">
+                                            <button
+                                                class="font-pixel w-full border-2 border-orange-400 bg-orange-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-orange-700"
+                                            >
                                                 Practice
                                             </button>
                                         </Link>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Battle Mode -->
                                 <div v-if="file.verified" class="w-full rounded-lg border border-red-400/30 bg-red-600/10 p-3 backdrop-blur-sm">
-                                    <h5 class="font-pixel mb-3 text-center font-bold text-red-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">⚔️ Battle Mode</h5>
+                                    <h5
+                                        class="font-pixel mb-3 text-center font-bold text-red-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]"
+                                    >
+                                        ⚔️ Battle Mode
+                                    </h5>
                                     <div class="flex gap-2">
                                         <Link :href="route('battles.create', { file_id: file.id })" class="flex-1">
-                                            <button class="font-pixel w-full border-2 border-red-400 bg-red-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:scale-[1.02]">
+                                            <button
+                                                class="font-pixel w-full border-2 border-red-400 bg-red-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-red-700"
+                                            >
                                                 Solo Battle
                                             </button>
                                         </Link>
                                         <Link :href="route('multiplayer-games.lobby', { file_id: file.id })" class="flex-1">
-                                            <button class="font-pixel w-full border-2 border-purple-400 bg-purple-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-purple-700 hover:scale-[1.02]">
+                                            <button
+                                                class="font-pixel w-full border-2 border-purple-400 bg-purple-600 px-4 py-2 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-purple-700"
+                                            >
                                                 Multiplayer
                                             </button>
                                         </Link>
@@ -521,12 +552,21 @@ const addToCollection = async () => {
                                 </div>
 
                                 <!-- Generate Content -->
-                                <div v-if="isOwner && file.verified" class="w-full rounded-lg border border-yellow-400/30 bg-yellow-600/10 p-3 backdrop-blur-sm">
-                                    <h5 class="font-pixel mb-3 text-center font-bold text-yellow-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]">🎲 Generate Content</h5>
+                                <div
+                                    v-if="isOwner && file.verified"
+                                    class="w-full rounded-lg border border-yellow-400/30 bg-yellow-600/10 p-3 backdrop-blur-sm"
+                                >
+                                    <h5
+                                        class="font-pixel mb-3 text-center font-bold text-yellow-300 [text-shadow:1px_0_black,-1px_0_black,0_1px_black,0_-1px_black]"
+                                    >
+                                        🎲 Generate Content
+                                    </h5>
                                     <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
                                         <DialogTrigger asChild>
-                                            <button class="font-pixel w-full border-2 border-yellow-400 bg-yellow-600 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-yellow-500 hover:scale-[1.02]">
-                                                <PencilIcon class="mr-1 h-3 w-3 inline" />
+                                            <button
+                                                class="font-pixel w-full border-2 border-yellow-400 bg-yellow-600 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-yellow-500"
+                                            >
+                                                <PencilIcon class="mr-1 inline h-3 w-3" />
                                                 Generate Flashcards & Quizzes
                                             </button>
                                         </DialogTrigger>
@@ -638,14 +678,17 @@ const addToCollection = async () => {
                         </div>
 
                         <!-- Admin Verification Section -->
-                        <div v-if="canVerify && !file.verified && !file.is_denied" class="rounded-lg border-2 border-orange-400/70 bg-gradient-to-r from-orange-600/30 to-red-600/30 p-3 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                            <div class="flex items-center justify-between mb-2">
-                                <h4 class="font-pixel text-sm font-bold text-orange-200 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                        <div
+                            v-if="canVerify && !file.verified && !file.is_denied"
+                            class="rounded-lg border-2 border-orange-400/70 bg-gradient-to-r from-orange-600/30 to-red-600/30 p-3 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm"
+                        >
+                            <div class="mb-2 flex items-center justify-between">
+                                <h4
+                                    class="font-pixel text-sm font-bold text-orange-200 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
+                                >
                                     🛡️ Verification Actions
                                 </h4>
-                                <div class="bg-red-500 text-white text-xs px-2 py-1 rounded-full font-pixel">
-                                    PENDING
-                                </div>
+                                <div class="font-pixel rounded-full bg-red-500 px-2 py-1 text-xs text-white">PENDING</div>
                             </div>
                             <div class="space-y-3">
                                 <!-- Verify Button -->
@@ -653,59 +696,54 @@ const addToCollection = async () => {
                                     <button
                                         @click="verifyFile"
                                         :disabled="isVerifying"
-                                        class="font-pixel w-full flex items-center justify-center border-2 border-green-400 bg-green-600 px-4 py-3 text-sm text-white shadow-[3px_3px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-green-700 hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
+                                        class="font-pixel flex w-full items-center justify-center border-2 border-green-400 bg-green-600 px-4 py-3 text-sm text-white shadow-[3px_3px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-green-700 disabled:opacity-50 disabled:hover:scale-100"
                                     >
                                         <ShieldCheckIcon v-if="!isVerifying" class="mr-2 h-5 w-5" />
                                         <Loader2Icon v-else class="mr-2 h-5 w-5 animate-spin" />
                                         {{ isVerifying ? 'Verifying...' : '✓ Approve & Verify' }}
                                     </button>
-                                    <p class="text-xs text-green-200/80 text-center">
-                                        Mark file as verified and allow study material generation
-                                    </p>
+                                    <p class="text-center text-xs text-green-200/80">Mark file as verified and allow study material generation</p>
                                 </div>
 
                                 <!-- Deny Button -->
                                 <div class="space-y-1">
                                     <button
                                         @click="openDenyModal"
-                                        class="font-pixel w-full flex items-center justify-center border-2 border-red-400 bg-red-600 px-4 py-3 text-sm text-white shadow-[3px_3px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:scale-[1.02]"
+                                        class="font-pixel flex w-full items-center justify-center border-2 border-red-400 bg-red-600 px-4 py-3 text-sm text-white shadow-[3px_3px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-red-700"
                                     >
                                         <XCircleIcon class="mr-2 h-5 w-5" />
                                         ✗ Deny File
                                     </button>
-                                    <p class="text-xs text-red-200/80 text-center">
-                                        Reject file and provide feedback to uploader
-                                    </p>
+                                    <p class="text-center text-xs text-red-200/80">Reject file and provide feedback to uploader</p>
                                 </div>
                             </div>
-                            <p class="mt-2 text-xs text-orange-200/80 text-center">
-                                Review and moderate this file submission
-                            </p>
+                            <p class="mt-2 text-center text-xs text-orange-200/80">Review and moderate this file submission</p>
                         </div>
 
                         <!-- Admin Status Display (for already processed files) -->
-                        <div v-else-if="canVerify && (file.verified || file.is_denied)" class="rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                            <h4 class="font-pixel mb-2 text-sm font-bold text-blue-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                        <div
+                            v-else-if="canVerify && (file.verified || file.is_denied)"
+                            class="rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm"
+                        >
+                            <h4
+                                class="font-pixel mb-2 text-sm font-bold text-blue-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
+                            >
                                 🛡️ Verification Status
                             </h4>
                             <div v-if="file.verified" class="rounded-lg border-2 border-green-400 bg-green-600/20 p-3 backdrop-blur-sm">
-                                <div class="flex items-center justify-center mb-1">
+                                <div class="mb-1 flex items-center justify-center">
                                     <ShieldCheckIcon class="mr-2 h-5 w-5 text-green-400" />
                                     <span class="font-pixel text-sm text-green-300">File Verified</span>
                                 </div>
-                                <p class="text-xs text-green-200/80 text-center">
-                                    This file has been approved and is available for study materials
-                                </p>
+                                <p class="text-center text-xs text-green-200/80">This file has been approved and is available for study materials</p>
                             </div>
                             <div v-else-if="file.is_denied" class="rounded-lg border-2 border-red-400 bg-red-600/20 p-3 backdrop-blur-sm">
-                                <div class="flex items-center justify-center mb-2">
+                                <div class="mb-2 flex items-center justify-center">
                                     <XCircleIcon class="mr-2 h-5 w-5 text-red-400" />
                                     <span class="font-pixel text-sm text-red-300">File Denied</span>
                                 </div>
                                 <div v-if="file.denial_reason" class="rounded bg-red-500/20 p-2">
-                                    <p class="text-xs text-red-200 text-center font-medium">
-                                        Reason: "{{ file.denial_reason }}"
-                                    </p>
+                                    <p class="text-center text-xs font-medium text-red-200">Reason: "{{ file.denial_reason }}"</p>
                                 </div>
                             </div>
                         </div>
@@ -715,19 +753,25 @@ const addToCollection = async () => {
                     <div class="space-y-3">
                         <!-- File Preview Section - Main Focus -->
                         <div class="rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                            <h3 class="font-pixel mb-3 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                            <h3
+                                class="font-pixel mb-3 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]"
+                            >
                                 � File Preview
                             </h3>
                             <!-- Full File Preview Content -->
                             <div class="rounded border border-white/20 p-3 backdrop-blur-sm">
                                 <div v-if="fileInfo.exists && isPreviewable">
                                     <!-- PDF Preview -->
-                                    <div v-if="isPdf && fileInfo.url" class="w-full border-2 border-yellow-400 rounded bg-white/5 backdrop-blur-sm" style="height: 75vh;">
+                                    <div
+                                        v-if="isPdf && fileInfo.url"
+                                        class="w-full rounded border-2 border-yellow-400 bg-white/5 backdrop-blur-sm"
+                                        style="height: 75vh"
+                                    >
                                         <object :data="fileInfo.url" type="application/pdf" class="h-full w-full rounded">
-                                            <div class="flex h-full items-center justify-center text-center p-4">
+                                            <div class="flex h-full items-center justify-center p-4 text-center">
                                                 <div>
                                                     <FileType2Icon class="mx-auto mb-2 h-12 w-12 text-white/60" />
-                                                    <p class="text-white/80 mb-2">PDF preview not available in your browser</p>
+                                                    <p class="mb-2 text-white/80">PDF preview not available in your browser</p>
                                                     <a :href="fileInfo.url" target="_blank" class="text-yellow-400 underline hover:text-yellow-300">
                                                         Open PDF in new tab
                                                     </a>
@@ -738,16 +782,29 @@ const addToCollection = async () => {
 
                                     <!-- Image Preview -->
                                     <div v-else-if="isImage && fileInfo.url" class="flex justify-center">
-                                        <img :src="fileInfo.url" :alt="file.name" class="max-w-full h-auto rounded border-2 border-blue-400 shadow-[4px_4px_0px_rgba(0,0,0,0.8)]" style="max-height: 75vh;" />
+                                        <img
+                                            :src="fileInfo.url"
+                                            :alt="file.name"
+                                            class="h-auto max-w-full rounded border-2 border-blue-400 shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
+                                            style="max-height: 75vh"
+                                        />
                                     </div>
 
                                     <!-- Text Preview -->
-                                    <div v-else-if="isTxt" class="overflow-auto rounded border-2 border-green-400 bg-green-600/10 p-4 backdrop-blur-sm" style="max-height: 75vh;">
+                                    <div
+                                        v-else-if="isTxt"
+                                        class="overflow-auto rounded border-2 border-green-400 bg-green-600/10 p-4 backdrop-blur-sm"
+                                        style="max-height: 75vh"
+                                    >
                                         <pre class="text-sm whitespace-pre-wrap text-white">{{ file.content }}</pre>
                                     </div>
 
                                     <!-- Office File Preview -->
-                                    <div v-else-if="isOfficeFile && fileInfo.url" class="w-full border-2 border-purple-400 rounded bg-purple-600/5 backdrop-blur-sm" style="height: 75vh;">
+                                    <div
+                                        v-else-if="isOfficeFile && fileInfo.url"
+                                        class="w-full rounded border-2 border-purple-400 bg-purple-600/5 backdrop-blur-sm"
+                                        style="height: 75vh"
+                                    >
                                         <iframe
                                             :src="`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileInfo.url)}`"
                                             width="100%"
@@ -761,16 +818,24 @@ const addToCollection = async () => {
                                 </div>
 
                                 <!-- Extracted Text Content -->
-                                <div v-else-if="!isPreviewable && file.content" class="overflow-auto rounded border-2 border-orange-400 bg-orange-600/10 p-4 backdrop-blur-sm" style="max-height: 75vh;">
+                                <div
+                                    v-else-if="!isPreviewable && file.content"
+                                    class="overflow-auto rounded border-2 border-orange-400 bg-orange-600/10 p-4 backdrop-blur-sm"
+                                    style="max-height: 75vh"
+                                >
                                     <h4 class="mb-3 font-medium text-orange-300">📝 Extracted Text Content</h4>
                                     <pre class="text-sm whitespace-pre-wrap text-white">{{ file.content }}</pre>
                                 </div>
 
                                 <!-- File Not Found -->
-                                <div v-else class="flex items-center justify-center rounded border-2 border-red-400 bg-red-600/10 backdrop-blur-sm p-8" style="height: 50vh;">
+                                <div
+                                    v-else
+                                    class="flex items-center justify-center rounded border-2 border-red-400 bg-red-600/10 p-8 backdrop-blur-sm"
+                                    style="height: 50vh"
+                                >
                                     <div class="text-center">
                                         <FileIcon class="mx-auto mb-4 h-16 w-16 text-white/60" />
-                                        <p class="text-lg text-white/80 mb-2">File content not available</p>
+                                        <p class="mb-2 text-lg text-white/80">File content not available</p>
                                         <p class="text-sm text-white/60">The file may be too large or in an unsupported format</p>
                                     </div>
                                 </div>
@@ -852,19 +917,19 @@ const addToCollection = async () => {
                     <div class="space-y-4">
                         <div class="rounded-lg border border-red-200 bg-red-50 p-3">
                             <div class="flex items-start">
-                                <XCircleIcon class="mr-2 h-5 w-5 text-red-500 mt-0.5" />
+                                <XCircleIcon class="mt-0.5 mr-2 h-5 w-5 text-red-500" />
                                 <div>
                                     <h4 class="text-sm font-medium text-red-800">File Will Be Denied</h4>
-                                    <p class="text-xs text-red-600 mt-1">
-                                        This action will mark the file as denied and notify the uploader. 
-                                        The file will not be available for study materials generation.
+                                    <p class="mt-1 text-xs text-red-600">
+                                        This action will mark the file as denied and notify the uploader. The file will not be available for study
+                                        materials generation.
                                     </p>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <label class="mb-2 block text-sm font-medium text-gray-700">
                                 Reason for Denial <span class="text-red-500">*</span>
                             </label>
                             <textarea
@@ -877,12 +942,10 @@ const addToCollection = async () => {
                         </div>
                     </div>
                     <DialogFooter class="gap-2">
-                        <Button variant="outline" @click="showDenyModal = false" class="border-gray-300">
-                            Cancel
-                        </Button>
-                        <Button 
-                            @click="denyFile" 
-                            :disabled="!denialReason.trim() || isDenying" 
+                        <Button variant="outline" @click="showDenyModal = false" class="border-gray-300"> Cancel </Button>
+                        <Button
+                            @click="denyFile"
+                            :disabled="!denialReason.trim() || isDenying"
                             class="bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
                         >
                             <XCircleIcon v-if="!isDenying" class="mr-2 h-4 w-4" />
