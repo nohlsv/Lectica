@@ -133,9 +133,8 @@ function finishPractice() {
 <!-- Flashcard Template -->
 <template>
     <Head title="Practice Flashcards" />
-    <div class="flex h-full min-h-screen flex-1 flex-col gap-4 rounded-xl p-4">
-        <AppLayout :breadcrumbs="breadcrumbs">
-            <div class="bg-container min-h-screen bg-cover bg-center bg-no-repeat">
+    <AppLayout :breadcrumbs="breadcrumbs">
+        <div class="bg-container bg-cover bg-center bg-no-repeat">
                 <!--Buttons Row (Top Left // Center)-->
                 <div class="mt-6 ml-4 flex flex-wrap justify-center gap-3 sm:mt-8 sm:ml-6 sm:justify-start">
                     <!--Back Button (Escape)-->
@@ -177,9 +176,9 @@ function finishPractice() {
                 </div>
 
                 <!--Main Content-->
-                <div class="mx-auto max-w-4xl space-y-6 p-6 sm:px-6 lg:px-8">
+                <div class="mx-auto max-w-4xl space-y-4 p-4 sm:px-6">
                     <!--Title Header-->
-                    <div class="welcome-banner animate-soft-bounce mb-4 px-6 py-4 text-center">
+                    <div class="welcome-banner animate-soft-bounce mb-4 px-4 py-2 text-center">
                         <h2 class="font-pixel pixel-outline text-2xl tracking-wider text-white">Flashcard Practice</h2>
                     </div>
                     <!--No Flashcards Message-->
@@ -276,76 +275,6 @@ function finishPractice() {
                         </div>
                     </div>
                 </div>
-                <!--Flashcard Layout-->
-                <Card
-                    class="font-pixel relative mx-auto min-h-[320px] w-full max-w-sm overflow-hidden rounded-xl border-[6px] border-yellow-500 bg-gradient-to-br from-gray-900 via-black to-gray-800 shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-transform duration-500 hover:scale-105 hover:shadow-[0_0_25px_rgba(255,115,0,0.9)] sm:min-h-[360px] sm:max-w-lg md:min-h-[420px] md:max-w-xl lg:max-w-3xl xl:max-w-4xl"
-                >
-                    <CardContent class="perspective flex min-h-[320px] flex-col items-center justify-between p-6">
-                        <!--Flip Flashcard-->
-                        <div
-                            class="transform-style-preserve-3d relative flex w-full flex-1 items-center justify-center transition-transform duration-700"
-                            :class="{ 'rotate-y-180': showAnswer }"
-                        >
-                            <!--Front (Question)-->
-                            <div class="absolute inset-0 flex items-center justify-center p-4 backface-hidden sm:p-6">
-                                <p class="font-pixel text-center text-sm leading-relaxed break-words text-white sm:text-base md:text-lg lg:text-2xl">
-                                    {{ (currentFlashcard as Flashcard).question }}
-                                </p>
-                            </div>
-                            <!--Back (Answer)-->
-                            <div class="absolute inset-0 flex rotate-y-180 items-center justify-center p-4 backface-hidden sm:p-6">
-                                <p
-                                    class="font-pixel animate-soft-bounce px-2 text-center text-sm text-yellow-300 sm:px-4 sm:text-base md:text-lg lg:text-xl"
-                                >
-                                    {{ (currentFlashcard as Flashcard).answer }}
-                                </p>
-                            </div>
-                        </div>
-                        <!--Middle Button (Flip Trigger)-->
-                        <div
-                            @click="toggleAnswer"
-                            class="group relative mt-6 flex h-16 w-16 cursor-pointer items-center justify-center rounded-full border-4 border-black bg-white shadow-[6px_6px_0px_rgba(0,0,0,1)] transition-transform duration-300 hover:scale-110 sm:mt-8 sm:h-20 sm:w-20"
-                        >
-                            <!--Glow-->
-                            <div class="absolute h-20 w-20 rounded-full bg-white opacity-20 blur-xl group-hover:animate-ping sm:h-24 sm:w-24"></div>
-                            <!--Show star when on question-->
-                            <span v-if="!showAnswer" class="relative z-10 animate-pulse text-xl sm:text-2xl md:text-3xl">⭐ </span>
-                            <!--Show moon when on answer-->
-                            <span v-else class="relative z-10 animate-pulse text-xl sm:text-2xl md:text-3xl">🌙 </span>
-                        </div>
-                    </CardContent>
-
-                    <!--Footer with navigation buttons-->
-                    <CardFooter class="flex justify-between border-t-4 border-black bg-yellow-500 px-4 py-3">
-                        <!--Redirects to previous flashcard-->
-                        <Button class="pixel-outline border-2 border-blue-700 bg-blue-500 text-[#fdf6ee] hover:bg-blue-600">
-                            <ChevronLeft class="mr-2 h-4 w-4" />
-                            Previous
-                        </Button>
-                        <!--Reset Button (from shuffle)-->
-                        <Button
-                            @click="next"
-                            variant="default"
-                            class="pixel-outline border-2 border-orange-700 bg-orange-500 text-[#fdf6ee] hover:bg-orange-600"
-                        >
-                            Skip
-                            <ChevronRight class="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardFooter>
-                </Card>
-
-                <!--Next Card Button (after flipping)-->
-                <div v-if="showAnswer" class="flex justify-center">
-                    <Button
-                        @click="next"
-                        :disabled="currentIndex === cards.length - 1"
-                        class="pixel-outline border-4 border-green-700 bg-green-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-green-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
-                    >
-                        Next Card
-                        <ChevronRight class="ml-2 h-4 w-4" />
-                    </Button>
-                </div>
-            </div>
-        </AppLayout>
-    </div>
+        </div>
+    </AppLayout>
 </template>

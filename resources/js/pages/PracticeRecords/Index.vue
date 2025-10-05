@@ -16,7 +16,7 @@
                             {{ group.file.name }}
                         </h2>
                         <div class="mt-2">
-                            <div v-for="attempt in group.attempts" :key="attempt.id" class="mb-2">
+                            <div v-for="attempt in getVisibleAttempts(group)" :key="attempt.id" class="mb-2">
                                 <div class="flex items-center justify-between">
                                     <span>
                                         <span
@@ -31,14 +31,33 @@
                                             >{{ formatDate(attempt.created_at) }}</span
                                         >
                                     </span>
-                                    <Link
-                                        :href="route('practice-records.show', attempt.id)"
-                                        class="text-white pixel-outline ml-2 rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-base tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]"
-                                    >
-                                        View Details
-                                    </Link>
+                                    <div class="flex space-x-1">
+                                        <Link
+                                            :href="route('practice-records.show', attempt.id)"
+                                            class="text-white pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-2.5 py-0.5 text-sm tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]"
+                                        >
+                                            View Details
+                                        </Link>
+                                        <Link
+                                            :href="attempt.type === 'flashcard' ? route('files.flashcards.practice', group.file.id) : route('files.quizzes.test', group.file.id)"
+                                            class="text-white pixel-outline rounded-md border-2 border-[#0c0a03] bg-[#b71400] px-2.5 py-0.5 text-sm tracking-wide duration-300 hover:scale-105 hover:bg-[#8f0f00]"
+                                        >
+                                            {{ attempt.type === 'flashcard' ? 'Practice' : 'Retake' }}
+                                        </Link>
+                                    </div>
                                 </div>
                             </div>
+                            
+                            <!-- Show More/Show Less Button -->
+                            <div v-if="group.attempts.length > 3" class="mt-3 text-center">
+                                <button
+                                    @click="toggleShowMore(group.file.id)"
+                                    class="pixel-outline text-xs text-white bg-[#b71400] hover:bg-[#8f0f00] px-3 py-1 rounded border-2 border-[#0c0a03] transition-colors duration-200"
+                                >
+                                    {{ showAllAttempts[group.file.id] ? `Show Less (${group.attempts.length - 3} hidden)` : `Show More (+${group.attempts.length - 3} more)` }}
+                                </button>
+                            </div>
+                            
                             <div v-if="group.attempts.length > 1" class="mt-4">
                                 <canvas :ref="setChartRef(group.file.id)" class="h-32 w-full"></canvas>
                             </div>
@@ -77,6 +96,7 @@ interface Props {
 const props = defineProps<Props>();
 const chartRefs = ref<{ [key: number]: HTMLCanvasElement | null }>({});
 const chartInstances = ref<{ [key: number]: Chart | null }>({});
+const showAllAttempts = ref<{ [key: number]: boolean }>({});
 
 function setChartRef(fileId: number) {
     return (el: any) => {
@@ -84,6 +104,15 @@ function setChartRef(fileId: number) {
             chartRefs.value[fileId] = el;
         }
     };
+}
+
+function getVisibleAttempts(group: GroupedRecord) {
+    const isShowingAll = showAllAttempts.value[group.file.id];
+    return isShowingAll ? group.attempts : group.attempts.slice(0, 3);
+}
+
+function toggleShowMore(fileId: number) {
+    showAllAttempts.value[fileId] = !showAllAttempts.value[fileId];
 }
 function renderChart(fileId: number) {
     const group = props.groupedRecords.find((g) => g.file.id === fileId);

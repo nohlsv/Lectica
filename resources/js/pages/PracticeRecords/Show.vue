@@ -17,6 +17,17 @@
                         <span class="font-bold">Score:</span> {{ record.correct_answers }} / {{ record.total_questions }} (
                         <span :class="scoreColorClass">{{ formattedScorePercentage }}</span> )
                     </p>
+                    
+                    <!-- Take Quiz Again Link -->
+                    <div class="mt-4">
+                        <Link
+                            :href="record.type === 'flashcard' ? route('files.flashcards.practice', record.file.id) : route('files.quizzes.test', record.file.id)"
+                            class="pixel-outline inline-block rounded-md border-2 border-[#0c0a03] bg-[#10B981] px-4 py-2 text-base font-semibold text-white tracking-wide duration-300 hover:scale-105 hover:bg-[#0e9459]"
+                        >
+                            {{ record.type === 'flashcard' ? 'Practice Flashcards Again' : 'Take Quiz Again' }}
+                        </Link>
+                    </div>
+                    
                     <div v-if="decodedMistakes && decodedMistakes.length > 0" class="mt-4">
                         <h3 class="text-lg font-semibold tracking-wide text-red-200">Mistakes:</h3>
                         <ul class="">
@@ -43,12 +54,14 @@
 
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
+import { Link } from '@inertiajs/vue3';
 import Chart from 'chart.js/auto';
 import { computed, onMounted, ref } from 'vue';
 interface Props {
     record: {
         id: number;
         file: {
+            id: number;
             name: string;
         };
         type: string;
@@ -119,13 +132,13 @@ onMounted(() => {
         // Chart.js plugin for outlined text
         const outlinedTextPlugin = {
             id: 'outlinedText',
-            beforeDraw: (chart) => {
+            beforeDraw: (chart: any) => {
                 const ctx = chart.ctx;
                 ctx.save();
                 ctx.shadowColor = '#0c0a03';
                 ctx.shadowBlur = 4;
             },
-            afterDraw: (chart) => {
+            afterDraw: (chart: any) => {
                 const ctx = chart.ctx;
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
