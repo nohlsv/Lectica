@@ -20,33 +20,14 @@ import { nextTick, onMounted } from 'vue';
 // Register required Chart.js components
 Chart.register(BarController, BarElement, CategoryScale, LinearScale, PieController, ArcElement, LineController, LineElement, PointElement, Tooltip);
 
-// College and program acronyms as in ProgramSeeder
-const collegeAcronyms: { [key: string]: string } = {
-    'College of Computer Studies': 'CCS',
-    'College of Engineering': 'COE',
-    'College of Business': 'COB',
-    'College of Technology': 'COT',
-    'College of Allied Health and Sciences': 'CAHS',
-};
-const programAcronyms: { [key: string]: string } = {
-    'Computer Science': 'CS',
-    'Information Technology': 'IT',
-    'Entertainment and Multimedia Computing': 'EMC',
-    'Civil Engineering': 'CE',
-    'Electrical Engineering': 'EE',
-    'Mechanical Engineering': 'ME',
-    'Industrial Engineering': 'IE',
-    Architecture: 'ARC',
-    'Business Administration': 'BA',
-    'Industrial Technology': 'ITECH',
-    Nursing: 'NUR',
-    Midwifery: 'MID',
-};
-
-// Use program code or college acronym if available, else fallback to acronym from first letters
-const simplifyName = (name: string): string => {
-    if (programAcronyms[name]) return programAcronyms[name];
-    if (collegeAcronyms[name]) return collegeAcronyms[name];
+// Use program code if available, else fallback to acronym from first letters
+const simplifyName = (name: string, code?: string): string => {
+    // If we have a program code, use it
+    if (code && code.trim()) {
+        return code;
+    }
+    
+    // Fallback for non-program data (like colleges or other categories)
     if (name.length > 20) {
         return name
             .split(' ')
@@ -64,7 +45,8 @@ interface Statistics {
     total_tags: number;
     total_programs: number;
     most_used_tags: Array<{ name: string; files_count: number }>;
-    most_files_per_program: Array<{ name: string; files_count: number }>;
+    most_files_per_program: Array<{ name: string; code: string; files_count: number }>;
+    users_per_program: Array<{ name: string; code: string; users_count: number }>;
     most_active_user: { last_name: string; first_name: string; files_count: number };
     average_files_per_user: number;
     total_flashcards_per_tag: Array<{ name: string; flashcards_count: number }>;
@@ -89,17 +71,17 @@ interface Statistics {
     latest_quizzes: Array<{ id: number; name: string; created_at: string }>;
     latest_flashcards: Array<{ id: number; question: string; created_at: string }>;
     latest_tags: Array<{ id: number; name: string; created_at: string }>;
-    latest_programs: Array<{ id: number; name: string; created_at: string }>;
+    latest_programs: Array<{ id: number; name: string; code: string; created_at: string }>;
     most_popular_file: { id: number; name: string; starred_by_count: number };
     most_popular_tag: { id: number; name: string; files_count: number };
-    most_popular_program: { id: number; name: string; files_count: number };
+    most_popular_program: { id: number; name: string; code: string; files_count: number };
     total_storage_used_mb: number;
     average_file_size_kb: number;
     files_by_type: Array<{ extension: string; count: number }>;
     files_created_per_month: Array<{ month: string; count: number }>;
-    storage_per_program: Array<{ name: string; storage_mb: number }>;
-    quizzes_per_program: Array<{ name: string; quizzes_count: number }>;
-    flashcards_per_program: Array<{ name: string; flashcards_count: number }>;
+    storage_per_program: Array<{ name: string; code: string; storage_mb: number }>;
+    quizzes_per_program: Array<{ name: string; code: string; quizzes_count: number }>;
+    flashcards_per_program: Array<{ name: string; code: string; flashcards_count: number }>;
     access_logs: Array<{ user: string; route: string; method: string; accessed_at: string }>;
 }
 
@@ -160,7 +142,7 @@ onMounted(async () => {
         'filesPerProgramChart',
         'bar',
         {
-            labels: props.statistics.users_per_program.map((p) => simplifyName(p.name)),
+            labels: props.statistics.users_per_program.map((p) => simplifyName(p.name, p.code)),
             datasets: [
                 {
                     label: 'Users/Students per Program',
@@ -194,7 +176,7 @@ onMounted(async () => {
         'storagePerProgramChart',
         'bar',
         {
-            labels: props.statistics.storage_per_program.map((p) => simplifyName(p.name)),
+            labels: props.statistics.storage_per_program.map((p) => simplifyName(p.name, p.code)),
             datasets: [
                 {
                     label: 'Storage Usage Per Program (MB)',
@@ -211,7 +193,7 @@ onMounted(async () => {
         'quizzesPerProgramChart',
         'bar',
         {
-            labels: props.statistics.quizzes_per_program.map((p) => simplifyName(p.name)),
+            labels: props.statistics.quizzes_per_program.map((p) => simplifyName(p.name, p.code)),
             datasets: [
                 {
                     label: 'Quiz Items Per Program',
@@ -228,7 +210,7 @@ onMounted(async () => {
         'flashcardsPerProgramChart',
         'bar',
         {
-            labels: props.statistics.flashcards_per_program.map((p) => simplifyName(p.name)),
+            labels: props.statistics.flashcards_per_program.map((p) => simplifyName(p.name, p.code)),
             datasets: [
                 {
                     label: 'Flashcard Items Per Program',
@@ -343,7 +325,7 @@ onMounted(async () => {
                             <span
                                 v-for="tag in statistics.total_flashcards_per_tag"
                                 :key="tag.name"
-                                class="text-primary pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
+                                class="text-white pixel-outline mb-2 inline-flex items-center rounded-full border-2 border-[#0c0a03] bg-[#8E2C38] px-3 py-1 text-sm font-medium"
                             >
                                 {{ simplifyName(tag.name) }}: {{ tag.flashcards_count }} flashcard items
                             </span>
@@ -439,7 +421,7 @@ onMounted(async () => {
                             <span class="font-bold">Programs:</span>
                             <ul class="text-xs">
                                 <li v-for="program in statistics.latest_programs" :key="program.id">
-                                    {{ simplifyName(program.name) }} <span class="text-gray-400">({{ program.created_at }})</span>
+                                    {{ simplifyName(program.name, program.code) }} <span class="text-gray-400">({{ program.created_at }})</span>
                                 </li>
                             </ul>
                         </div>
@@ -456,7 +438,7 @@ onMounted(async () => {
                                 <span class="text-gray-400">({{ statistics.most_popular_tag.files_count }} files)</span>
                             </li>
                             <li>
-                                Program: <span class="font-bold">{{ simplifyName(statistics.most_popular_program.name) }}</span>
+                                Program: <span class="font-bold">{{ simplifyName(statistics.most_popular_program.name, statistics.most_popular_program.code) }}</span>
                                 <span class="text-gray-400">({{ statistics.most_popular_program.files_count }} files)</span>
                             </li>
                         </ul>

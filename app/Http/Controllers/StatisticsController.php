@@ -30,10 +30,11 @@ class StatisticsController extends Controller
 			   // Users per program (for chart)
 			   'users_per_program' => Program::withCount('users')
 				   ->orderBy('users_count', 'desc')
-				   ->get(['name', 'users_count'])
+				   ->get(['name', 'code', 'users_count'])
 				   ->map(function ($program) {
 					   return [
 						   'name' => $program->name,
+						   'code' => $program->code,
 						   'users_count' => $program->users_count,
 					   ];
 				   }),
@@ -41,10 +42,11 @@ class StatisticsController extends Controller
 			   'most_files_per_program' => Program::withCount('users')
 				   ->orderBy('users_count', 'desc')
 				   ->take(5)
-				   ->get(['name', 'users_count'])
+				   ->get(['name', 'code', 'users_count'])
 				   ->map(function ($program) {
 					   return [
 						   'name' => $program->name,
+						   'code' => $program->code,
 						   'users_count' => $program->users_count,
 					   ];
 				   }),
@@ -117,7 +119,7 @@ class StatisticsController extends Controller
 			'latest_quizzes' => Quiz::orderBy('created_at', 'desc')->take(5)->get(['id','name','created_at']),
 			'latest_flashcards' => Flashcard::orderBy('created_at', 'desc')->take(5)->get(['id','question','created_at']),
 			'latest_tags' => Tag::orderBy('created_at', 'desc')->take(5)->get(['id','name','created_at']),
-			'latest_programs' => Program::orderBy('created_at', 'desc')->take(5)->get(['id','name','created_at']),
+			'latest_programs' => Program::orderBy('created_at', 'desc')->take(5)->get(['id','name','code','created_at']),
 
 			'most_popular_file' => File::withCount('starredBy')->orderBy('starred_by_count', 'desc')->first(),
 			'most_popular_tag' => Tag::withCount('files')->orderBy('files_count', 'desc')->first(),
@@ -153,6 +155,7 @@ class StatisticsController extends Controller
 					   ->sum('size');
 				   return [
 					   'name' => $program->name,
+					   'code' => $program->code,
 					   'storage_mb' => round($storage / 1024 / 1024, 2),
 				   ];
 			   })->sortByDesc('storage_mb')->values(),
@@ -163,6 +166,7 @@ class StatisticsController extends Controller
 				   $quizzesCount = \App\Models\Quiz::whereIn('file_id', $fileIds)->count();
 				   return [
 					   'name' => $program->name,
+					   'code' => $program->code,
 					   'quizzes_count' => $quizzesCount,
 				   ];
 			   })->sortByDesc('quizzes_count')->values(),
@@ -173,6 +177,7 @@ class StatisticsController extends Controller
 				   $flashcardsCount = \App\Models\Flashcard::whereIn('file_id', $fileIds)->count();
 				   return [
 					   'name' => $program->name,
+					   'code' => $program->code,
 					   'flashcards_count' => $flashcardsCount,
 				   ];
 			   })->sortByDesc('flashcards_count')->values(),
