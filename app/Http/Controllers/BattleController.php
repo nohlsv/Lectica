@@ -201,6 +201,17 @@ class BattleController extends Controller
         $quiz = Quiz::find($request->quiz_id);
         $isCorrect = $request->is_correct;
 
+        // Record the answer
+        \App\Models\QuizAnswer::create([
+            'user_id' => Auth::id(),
+            'quiz_id' => $request->quiz_id,
+            'user_answer' => $request->answer,
+            'is_correct' => $isCorrect,
+            'context_type' => 'battle',
+            'context_id' => $battle->id,
+            'answered_at' => now(),
+        ]);
+
         $result = $this->battleService->processAnswer($battle, $quiz, $isCorrect);
 
         // Update quest progress for answering a battle question

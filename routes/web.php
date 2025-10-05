@@ -135,6 +135,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/multiplayer-games/{multiplayerGame}/ping', [App\Http\Controllers\MultiplayerGameController::class, 'pingGameState'])->name('multiplayer-games.ping');
     Route::post('/multiplayer-games/{multiplayerGame}/force-timeout', [App\Http\Controllers\MultiplayerGameController::class, 'forceTimeout'])->name('multiplayer-games.force-timeout');
 
+    // Quiz Answer History routes
+    Route::get('/quiz-answers', [App\Http\Controllers\QuizAnswerController::class, 'index'])->name('quiz-answers.index');
+    Route::get('/quiz-answers/{answer}', [App\Http\Controllers\QuizAnswerController::class, 'show'])->name('quiz-answers.show');
+    Route::get('/battles/{battle}/answers', [App\Http\Controllers\QuizAnswerController::class, 'battleAnswers'])->name('battles.answers');
+    Route::get('/multiplayer-games/{game}/answers', [App\Http\Controllers\QuizAnswerController::class, 'multiplayerAnswers'])->name('multiplayer-games.answers');
+    Route::get('/api/quiz-answers/stats', [App\Http\Controllers\QuizAnswerController::class, 'getStats'])->name('api.quiz-answers.stats');
+
     // Quest routes
     Route::get('/quests', [App\Http\Controllers\QuestController::class, 'index'])->name('quests.index');
     Route::get('/quests/stats', [App\Http\Controllers\QuestController::class, 'stats'])->name('quests.stats');

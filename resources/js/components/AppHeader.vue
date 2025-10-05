@@ -172,6 +172,11 @@ const gameNavItems: NavItem[] = [
         href: '/history',
         icon: FileChartLine,
     },
+    {
+        title: 'Quiz Answers',
+        href: '/quiz-answers',
+        icon: FileChartLine,
+    },
 ];
 
 // Faculty/Admin management items

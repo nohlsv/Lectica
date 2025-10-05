@@ -125,6 +125,15 @@
                             >
                                 View Statistics
                             </Link>
+
+                            <!-- View Answer History -->
+                            <Link
+                                v-if="battle.status !== 'active'"
+                                :href="route('battles.answers', battle.id)"
+                                class="pixel-outline rounded-lg bg-yellow-500 px-6 py-3 text-center font-bold text-white hover:bg-yellow-700"
+                            >
+                                View Answer History
+                            </Link>
                         </div>
                     </div>
                 </div>

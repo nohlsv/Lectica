@@ -431,6 +431,17 @@ class MultiplayerGameController extends Controller
             // Stop the current timer since player answered
             $this->timerService->stopTimer($multiplayerGame->id);
 
+            // Record the answer
+            \App\Models\QuizAnswer::create([
+                'user_id' => Auth::id(),
+                'quiz_id' => $request->quiz_id,
+                'user_answer' => $request->answer,
+                'is_correct' => $request->is_correct,
+                'context_type' => 'multiplayer',
+                'context_id' => $multiplayerGame->id,
+                'answered_at' => now(),
+            ]);
+
             // Update question statistics
             if ($isPlayerOne) {
                 $multiplayerGame->increment('total_questions_p1');
