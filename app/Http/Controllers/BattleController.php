@@ -47,11 +47,34 @@ class BattleController extends Controller
      */
     public function create(Request $request)
     {
-        $files = File::where('user_id', Auth::id())->get();
-        $collections = Collection::where('user_id', Auth::id())
+        $user = Auth::user();
+        
+        // Get files owned by the user
+        $ownedFiles = File::where('user_id', $user->id)->get();
+        
+        // Get collections owned by the user
+        $ownedCollections = Collection::where('user_id', $user->id)
             ->with(['files'])
             ->where('file_count', '>', 0)
             ->get();
+            
+        // Get favorited collections
+        $favoritedCollections = $user->favoritedCollections()
+            ->with(['files'])
+            ->where('file_count', '>', 0)
+            ->get();
+        
+        // Get files from favorited collections
+        $favoritedFiles = collect();
+        foreach ($favoritedCollections as $collection) {
+            $favoritedFiles = $favoritedFiles->merge($collection->files);
+        }
+        
+        // Merge owned and favorited collections
+        $collections = $ownedCollections->merge($favoritedCollections)->unique('id');
+        
+        // Merge owned and favorited files
+        $files = $ownedFiles->merge($favoritedFiles)->unique('id');
 
         // Get file_id and collection_id from query parameters if provided
         $preselectedFileId = $request->query('file_id');

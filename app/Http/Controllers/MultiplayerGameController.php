@@ -78,6 +78,23 @@ class MultiplayerGameController extends Controller
             try {
                 $file = File::findOrFail($request->file_id);
                 \Log::info('File found', ['file' => $file->toArray()]);
+                
+                // Check if user owns the file or has access through favorited collections
+                $user = Auth::user();
+                $isOwned = $file->user_id === $user->id;
+                $isFromFavoritedCollection = false;
+                
+                if (!$isOwned) {
+                    // Check if file is part of any favorited collection
+                    $isFromFavoritedCollection = $user->favoritedCollections()
+                        ->whereHas('files', function($query) use ($request) {
+                            $query->where('files.id', $request->file_id);
+                        })->exists();
+                }
+                
+                if (!$isOwned && !$isFromFavoritedCollection) {
+                    return back()->withErrors(['file_id' => 'You can only create games with your own files or files from favorited collections.']);
+                }
             } catch (\Exception $e) {
                 \Log::error('File not found', ['file_id' => $request->file_id, 'error' => $e->getMessage()]);
                 return back()->withErrors(['file_id' => 'The selected file could not be found.']);
@@ -95,6 +112,15 @@ class MultiplayerGameController extends Controller
             try {
                 $collection = Collection::findOrFail($request->collection_id);
                 \Log::info('Collection found', ['collection' => $collection->toArray()]);
+                
+                // Check if user owns the collection or has favorited it
+                $user = Auth::user();
+                $isOwned = $collection->user_id === $user->id;
+                $isFavorited = $user->favoritedCollections()->where('collection_id', $collection->id)->exists();
+                
+                if (!$isOwned && !$isFavorited) {
+                    return back()->withErrors(['collection_id' => 'You can only create games with your own collections or favorited collections.']);
+                }
             } catch (\Exception $e) {
                 \Log::error('Collection not found', ['collection_id' => $request->collection_id, 'error' => $e->getMessage()]);
                 return back()->withErrors(['collection_id' => 'The selected collection could not be found.']);
@@ -319,11 +345,34 @@ class MultiplayerGameController extends Controller
      */
     public function lobby(Request $request)
     {
-        $files = File::where('user_id', Auth::id())->get();
-        $collections = Collection::where('user_id', Auth::id())
+        $user = Auth::user();
+        
+        // Get files owned by the user
+        $ownedFiles = File::where('user_id', $user->id)->get();
+        
+        // Get collections owned by the user
+        $ownedCollections = Collection::where('user_id', $user->id)
             ->with(['files'])
             ->where('file_count', '>', 0)
             ->get();
+            
+        // Get favorited collections
+        $favoritedCollections = $user->favoritedCollections()
+            ->with(['files'])
+            ->where('file_count', '>', 0)
+            ->get();
+        
+        // Get files from favorited collections
+        $favoritedFiles = collect();
+        foreach ($favoritedCollections as $collection) {
+            $favoritedFiles = $favoritedFiles->merge($collection->files);
+        }
+        
+        // Merge owned and favorited collections
+        $collections = $ownedCollections->merge($favoritedCollections)->unique('id');
+        
+        // Merge owned and favorited files
+        $files = $ownedFiles->merge($favoritedFiles)->unique('id');
 
         $waitingGames = MultiplayerGame::with(['file', 'playerOne'])
             ->waiting()

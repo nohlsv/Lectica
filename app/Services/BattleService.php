@@ -33,11 +33,19 @@ class BattleService
         if ($fileId) {
             $file = File::findOrFail($fileId);
 
-            // Check if user owns the file
-            if ($file->user_id !== Auth::id()) {
-                throw new \UnauthorizedAccessException('You can only battle with your own files.');
+            // Check if user owns the file or has access through favorited collections
+            $user = Auth::user();
+            $isOwned = $file->user_id === $user->id;
+            $isFromFavoritedCollection = false;
+            
+            if (!$isOwned) {
+                // Check if file is part of any favorited collection
+                $isFromFavoritedCollection = $user->favoritedCollections()
+                    ->whereHas('files', function($query) use ($fileId) {
+                        $query->where('files.id', $fileId);
+                    })->exists();
             }
-
+            
             // Check if file has quizzes
             $quizCount = Quiz::where('file_id', $file->id)->count();
             if ($quizCount === 0) {
@@ -46,10 +54,11 @@ class BattleService
         } elseif ($collectionId) {
             $collection = Collection::findOrFail($collectionId);
 
-            // Check if user owns the collection
-            if ($collection->user_id !== Auth::id()) {
-                throw new \UnauthorizedAccessException('You can only battle with your own collections.');
-            }
+            // Check if user owns the collection or has favorited it
+            $user = Auth::user();
+            $isOwned = $collection->user_id === $user->id;
+            $isFavorited = $user->favoritedCollections()->where('collection_id', $collection->id)->exists();
+            
 
             $quizCount = $collection->getTotalQuizzesCount();
             if ($quizCount === 0) {
