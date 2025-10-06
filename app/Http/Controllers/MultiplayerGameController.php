@@ -839,9 +839,11 @@ class MultiplayerGameController extends Controller
             $quizzes = $multiplayerGame->getAvailableQuizzes();
             $totalQuestions = $quizzes->count();
 
-
-            // End if the questions has run out
-            if ($multiplayerGame->total_questions_p1 + $multiplayerGame->total_questions_p2 >= $totalQuestions) {
+            // Ensure both players have answered at least half the questions
+            $minQuestionsPerPlayer = round($totalQuestions / 2);
+            
+            if ($multiplayerGame->total_questions_p1 >= $minQuestionsPerPlayer &&
+                $multiplayerGame->total_questions_p2 >= $minQuestionsPerPlayer) {
                 // Calculate and set winner_id before marking as finished
                 $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                 $multiplayerGame->markAsFinished();
