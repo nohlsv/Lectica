@@ -83,7 +83,12 @@
                                     </p>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <button @click="copyCollection(collection)" class="text-gray-400 hover:text-blue-500" title="Copy Collection">
+                                    <button 
+                                        v-if="collection.can_copy"
+                                        @click="copyCollection(collection)" 
+                                        class="text-gray-400 hover:text-blue-500" 
+                                        title="Copy Collection"
+                                    >
                                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 stroke-linecap="round"
@@ -231,7 +236,7 @@
 <script setup lang="ts">
 import Pagination from '@/components/Pagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 interface User {
@@ -250,6 +255,7 @@ interface Collection {
     tags: string[];
     user: User;
     is_favorited: boolean;
+    can_copy: boolean;
     created_at: string;
 }
 
@@ -265,6 +271,7 @@ const props = defineProps<{
         links: any[];
     };
     filters: Filters;
+    currentUserId: number;
 }>();
 
 const searchQuery = ref(props.filters.search || '');
@@ -302,7 +309,11 @@ const toggleFavorite = async (collection: Collection) => {
 };
 
 const copyCollection = (collection: Collection) => {
-    router.post(route('collections.copy', collection.id));
+    const form = useForm({
+        name: null
+    });
+    
+    form.post(route('collections.copy', collection.id));
 };
 
 const formatDate = (dateString: string) => {

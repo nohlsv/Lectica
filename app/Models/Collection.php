@@ -141,8 +141,8 @@ class Collection extends Model
             return false;
         }
 
-        // Can't copy your own collection or private collections from others
-        return $this->user_id !== Auth::id() && $this->is_public;
+        // Can copy if you own the collection, or if it's public and not owned by you
+        return $this->user_id === Auth::id() || ($this->is_public && $this->user_id !== Auth::id());
     }
 
     /**
@@ -219,9 +219,6 @@ class Collection extends Model
             'name' => $newName ?? "Copy of {$this->name}",
             'description' => $this->description,
             'is_public' => false, // Copies start as private
-            'is_original' => false,
-            'original_collection_id' => $this->is_original ? $this->id : $this->original_collection_id,
-            'original_creator_id' => $this->is_original ? $this->user_id : $this->original_creator_id,
             'tags' => $this->tags,
         ]);
 
@@ -232,12 +229,6 @@ class Collection extends Model
         }
 
         $copy->updateCounts();
-
-        // Increment copy count on original
-        $originalCollection = $this->is_original ? $this : $this->originalCollection;
-        if ($originalCollection) {
-            $originalCollection->increment('copy_count');
-        }
 
         return $copy;
     }

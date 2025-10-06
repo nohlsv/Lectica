@@ -52,20 +52,7 @@
                                         </svg>
                                         Public
                                     </span>
-                                    <span
-                                        v-if="!collection.is_original"
-                                        class="inline-flex items-center rounded-full border border-blue-600 bg-blue-900/60 px-3 py-1 text-xs font-medium text-blue-300"
-                                    >
-                                        <svg class="mr-1 h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path
-                                                stroke-linecap="round"
-                                                stroke-linejoin="round"
-                                                stroke-width="2"
-                                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                                            />
-                                        </svg>
-                                        Copy
-                                    </span>
+
                                 </div>
                             </div>
 
@@ -143,7 +130,7 @@
                             <h3 class="text-sm font-medium tracking-wide text-gray-300 uppercase">Collection</h3>
                             <div class="space-y-2">
                                 <button
-                                    v-if="canCopy"
+                                    v-if="collection.can_copy"
                                     @click="copyCollection"
                                     class="inline-flex w-full items-center justify-center rounded-lg border border-blue-600 bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2.5 text-sm font-medium text-white transition-all hover:from-blue-700 hover:to-blue-800 hover:shadow-lg hover:shadow-blue-500/25 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                                 >
@@ -395,20 +382,138 @@
                 <div class="bg-opacity-75 fixed inset-0 bg-gray-500 transition-opacity" aria-hidden="true" @click="showAddFileModal = false"></div>
                 <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
                 <div
-                    class="inline-block transform overflow-hidden rounded-lg bg-white text-left align-bottom shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:align-middle dark:bg-gray-800"
+                    class="inline-block transform overflow-hidden rounded-xl bg-gray-900 text-left align-bottom shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl sm:align-middle border border-gray-700"
                 >
-                    <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 dark:bg-gray-800">
-                        <h3 class="mb-4 text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">Add File to Collection</h3>
-                        <p class="mb-4 text-sm text-gray-500 dark:text-gray-400">Select a file to add to this collection.</p>
-                        <!-- Add file selection UI here -->
+                    <div class="bg-gray-900 px-6 pt-6 pb-4">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Add Files to Collection</h3>
+                                <p class="text-sm text-gray-400">Select files to add to "{{ collection.name }}"</p>
+                            </div>
+                            <button
+                                @click="showAddFileModal = false"
+                                class="rounded-lg p-2 text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
+                            >
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Search Bar -->
+                        <div class="mb-6">
+                            <div class="relative">
+                                <svg class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    v-model="fileSearchQuery"
+                                    type="text"
+                                    placeholder="Search your files..."
+                                    class="w-full rounded-lg border border-gray-600 bg-gray-800 py-2.5 pl-10 pr-4 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Files Grid -->
+                        <div v-if="availableFiles && availableFiles.length > 0" class="max-h-96 overflow-y-auto">
+                            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div
+                                    v-for="file in filteredAvailableFiles"
+                                    :key="file.id"
+                                    @click="toggleFileSelection(file.id)"
+                                    :class="[
+                                        'group relative cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-lg',
+                                        selectedFileIds.includes(file.id)
+                                            ? 'border-blue-500 bg-blue-900/20 shadow-blue-500/25'
+                                            : 'border-gray-600 bg-gray-800/50 hover:border-gray-500 hover:bg-gray-800'
+                                    ]"
+                                >
+                                    <!-- Selection Checkbox -->
+                                    <div class="absolute top-3 right-3">
+                                        <div
+                                            :class="[
+                                                'flex h-5 w-5 items-center justify-center rounded border-2 transition-colors',
+                                                selectedFileIds.includes(file.id)
+                                                    ? 'border-blue-500 bg-blue-500'
+                                                    : 'border-gray-500 bg-transparent group-hover:border-gray-400'
+                                            ]"
+                                        >
+                                            <svg v-if="selectedFileIds.includes(file.id)" class="h-3 w-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+
+                                    <!-- File Info -->
+                                    <div class="pr-8">
+                                        <h4 class="font-semibold text-white truncate mb-1">{{ file.title || file.name }}</h4>
+                                        <p v-if="file.description" class="text-sm text-gray-400 line-clamp-2 mb-2">{{ file.description }}</p>
+                                        <div class="flex items-center gap-3 text-xs">
+                                            <span class="inline-flex items-center gap-1 text-blue-400">
+                                                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {{ file.quizzes?.length || 0 }} questions
+                                            </span>
+                                            <span class="text-gray-500">{{ formatFileDate(file.created_at) }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No files found -->
+                            <div v-if="filteredAvailableFiles.length === 0 && fileSearchQuery" class="py-8 text-center">
+                                <div class="text-gray-400 mb-2">No files found matching "{{ fileSearchQuery }}"</div>
+                                <button @click="fileSearchQuery = ''" class="text-blue-400 hover:text-blue-300">Clear search</button>
+                            </div>
+                        </div>
+
+                        <!-- No files message -->
+                        <div v-else class="py-12 text-center">
+                            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-800">
+                                <svg class="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                            </div>
+                            <h4 class="text-lg font-semibold text-white mb-2">No files available</h4>
+                            <p class="text-gray-400 mb-4">You don't have any files that can be added to this collection.</p>
+                            <Link :href="route('files.create')" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Create New File
+                            </Link>
+                        </div>
                     </div>
-                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 dark:bg-gray-700">
-                        <button
-                            @click="showAddFileModal = false"
-                            class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                        >
-                            Cancel
-                        </button>
+
+                    <!-- Modal Footer -->
+                    <div class="bg-gray-800/50 px-6 py-4 border-t border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm text-gray-400">
+                                {{ selectedFileIds.length }} file{{ selectedFileIds.length !== 1 ? 's' : '' }} selected
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    @click="showAddFileModal = false"
+                                    class="rounded-lg border border-gray-600 bg-transparent px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:outline-none"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    :disabled="selectedFileIds.length === 0"
+                                    @click="addSelectedFilesToCollection"
+                                    :class="[
+                                        'rounded-lg px-4 py-2 text-sm font-medium focus:ring-2 focus:outline-none',
+                                        selectedFileIds.length > 0
+                                            ? 'bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500'
+                                            : 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                                    ]"
+                                >
+                                    Add {{ selectedFileIds.length > 0 ? selectedFileIds.length : '' }} File{{ selectedFileIds.length !== 1 ? 's' : '' }}
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -418,16 +523,80 @@
 
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 
 const props = defineProps<{
     collection: any;
     canEdit?: boolean;
-    canCopy?: boolean;
+    currentUserId: number;
+    userFiles: any[];
 }>();
 
-const { collection, canEdit, canCopy } = props;
+const { collection, canEdit, currentUserId, userFiles } = props;
+
+const selectedFileIds = ref<number[]>([]);
+const fileSearchQuery = ref('');
+
+// Filter files that aren't already in the collection
+const availableFiles = computed(() => {
+    if (!userFiles) return [];
+    const collectionFileIds = collection.files.map((f: any) => f.id);
+    return userFiles.filter((file: any) => !collectionFileIds.includes(file.id));
+});
+
+// Filter available files based on search query
+const filteredAvailableFiles = computed(() => {
+    if (!fileSearchQuery.value) return availableFiles.value;
+    const query = fileSearchQuery.value.toLowerCase();
+    return availableFiles.value.filter((file: any) => 
+        (file.title || file.name).toLowerCase().includes(query) ||
+        (file.description || '').toLowerCase().includes(query)
+    );
+});
+
+const toggleFileSelection = (fileId: number) => {
+    const index = selectedFileIds.value.indexOf(fileId);
+    if (index > -1) {
+        selectedFileIds.value.splice(index, 1);
+    } else {
+        selectedFileIds.value.push(fileId);
+    }
+};
+
+const addSelectedFilesToCollection = async () => {
+    if (selectedFileIds.value.length === 0) return;
+
+    try {
+        // Add files one by one to maintain order
+        for (const fileId of selectedFileIds.value) {
+            await router.post(route('collections.add-file', collection.id), {
+                file_id: fileId
+            }, {
+                preserveScroll: true,
+                preserveState: true,
+            });
+        }
+        
+        // Reset and close modal
+        selectedFileIds.value = [];
+        fileSearchQuery.value = '';
+        showAddFileModal.value = false;
+        
+        // Refresh the page to show updated collection
+        router.reload({ only: ['collection'] });
+    } catch (error) {
+        console.error('Failed to add files to collection:', error);
+    }
+};
+
+const formatFileDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+};
 
 const showAddFileModal = ref(false);
 const isFavorited = ref(collection.is_favorited);
@@ -451,7 +620,11 @@ const toggleFavorite = async () => {
 };
 
 const copyCollection = () => {
-    router.post(route('collections.copy', props.collection.id));
+    const form = useForm({
+        name: null
+    });
+    
+    form.post(route('collections.copy', collection.id));
 };
 
 const removeFile = (file: any) => {

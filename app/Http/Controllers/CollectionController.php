@@ -77,7 +77,8 @@ class CollectionController extends Controller
                 'tags' => $tags,
                 'sort' => $sort,
                 'direction' => $direction,
-            ]
+            ],
+            'currentUserId' => Auth::id(),
         ]);
     }
 
@@ -174,17 +175,19 @@ class CollectionController extends Controller
             'user',
             'files.user',
             'files.quizzes',
-            'originalCollection.user',
-            'originalCreator'
         ]);
 
         $monsters = Monster::all();
+        $userFiles = File::where('user_id', Auth::id())
+            ->with(['quizzes'])
+            ->get();
 
         return Inertia::render('Collections/Show', [
             'collection' => $collection,
             'monsters' => $monsters,
             'canEdit' => $collection->can_edit,
-            'canCopy' => $collection->can_copy,
+            'userFiles' => $userFiles,
+            'currentUserId' => Auth::id(),
         ]);
     }
 
@@ -360,8 +363,8 @@ class CollectionController extends Controller
      */
     public function copy(Request $request, Collection $collection)
     {
-        // Check if collection can be copied
-        if (!$collection->can_copy) {
+        // Only allow copying public collections not owned by the user
+        if ($collection->user_id !== Auth::id() && !$collection->is_public) {
             abort(403, 'This collection cannot be copied.');
         }
 
@@ -372,8 +375,8 @@ class CollectionController extends Controller
         $newName = $request->name ?: null;
         $copy = $collection->createCopy(Auth::user(), $newName);
 
-        return redirect()->route('collections.show', $copy)
-            ->with('success', 'Collection copied successfully!');
+        // Force a full redirect for Inertia to properly handle the page change
+        return Inertia::location(route('collections.show', $copy));
     }
 
     /**
@@ -441,7 +444,8 @@ class CollectionController extends Controller
                 'tags' => $tags,
                 'sort' => $sort,
                 'direction' => $direction,
-            ]
+            ],
+            'currentUserId' => Auth::id(),
         ]);
     }
 

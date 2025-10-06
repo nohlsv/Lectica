@@ -419,7 +419,7 @@
 <script setup lang="ts">
 import Pagination from '@/components/Pagination.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 interface User {
@@ -457,6 +457,7 @@ const props = defineProps<{
         links: any[];
     };
     filters: Filters;
+    currentUserId: number;
 }>();
 
 const searchQuery = ref(props.filters.search || '');
@@ -495,7 +496,11 @@ const toggleFavorite = async (collection: Collection) => {
 };
 
 const copyCollection = (collection: Collection) => {
-    router.post(route('collections.copy', collection.id));
+    const form = useForm({
+        name: null
+    });
+    
+    form.post(route('collections.copy', collection.id));
 };
 
 const deleteCollection = (collection: Collection) => {
