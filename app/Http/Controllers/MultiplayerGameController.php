@@ -839,13 +839,9 @@ class MultiplayerGameController extends Controller
             $quizzes = $multiplayerGame->getAvailableQuizzes();
             $totalQuestions = $quizzes->count();
 
-            // End game when both players have answered enough questions
-            // We consider the battle complete when each player has answered at least the total number of available questions
-            // This ensures all questions have been seen at least once by both players, preventing infinite battles
-            $minQuestionsPerPlayer = max($totalQuestions, 10); // At least 10 questions or total available questions
-            
-            if ($multiplayerGame->total_questions_p1 >= $minQuestionsPerPlayer &&
-                $multiplayerGame->total_questions_p2 >= $minQuestionsPerPlayer) {
+
+            // End if the questions has run out
+            if ($multiplayerGame->total_questions_p1 + $multiplayerGame->total_questions_p2 >= $totalQuestions) {
                 // Calculate and set winner_id before marking as finished
                 $winnerId = $this->calculateAndSetWinner($multiplayerGame);
                 $multiplayerGame->markAsFinished();
