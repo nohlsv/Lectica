@@ -141,6 +141,52 @@ const isStudent = computed(() => user.user_role === 'student');
 const isFaculty = computed(() => user.user_role === 'faculty');
 const isAdmin = computed(() => user.user_role === 'admin');
 
+// Get college mascot info
+const getCollegeMascot = (college: string | undefined) => {
+    const collegeMap: Record<string, { abbr: string; mascot: string; image: string }> = {
+        'College of Computer Studies': {
+            abbr: 'CCST',
+            mascot: 'WIZARDS', 
+            image: '/images/mascots/CCST WIZARDS.png'
+        },
+        'College of Engineering and Architecture': {
+            abbr: 'CEA',
+            mascot: 'FALCONS',
+            image: '/images/mascots/CEA FALCONS.png'
+        },
+        'College of Business and Accountancy': {
+            abbr: 'CBA',
+            mascot: 'PHOENIX',
+            image: '/images/mascots/CBA PHOENIX.png'
+        },
+        'College of Technology': {
+            abbr: 'CTEC',
+            mascot: 'DRAGONS',
+            image: '/images/mascots/CTEC DRAGONS.png'
+        },
+        'College of Allied Health and Sciences': {
+            abbr: 'CAHS',
+            mascot: 'WOLVES',
+            image: '/images/mascots/CAHS WOLVES.png'
+        },
+        'College of Arts and Science': {
+            abbr: 'COAS',
+            mascot: 'KNIGHTS',
+            image: '/images/mascots/COAS KNIGHTS.png'
+        }
+    };
+    return collegeMap[college || ''] || collegeMap['College of Computer Studies'];
+};
+
+const collegeMascot = computed(() => {
+    const college = user.college || user.program?.college;
+    return getCollegeMascot(college);
+});
+
+const collegeAbbreviation = computed(() => {
+    return collegeMascot.value.abbr;
+});
+
 // Define role-specific quick actions
 const studentActions = [
     {
@@ -346,14 +392,14 @@ const getColorClasses = (color: string) => {
                     <!--Avatar-->
                     <div class="relative flex flex-col items-center gap-2">
                         <img
-                            src="https://cdn130.picsart.com/248878984010212.png"
+                            :src="collegeMascot.image"
                             class="animate-floating w-20 sm:w-28 md:w-32"
                             style="image-rendering: pixelated"
                         />
                         <div
                             class="font-pixel border-2 border-white bg-black px-3 py-1 text-sm text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-base"
                         >
-                            CCST
+                            {{ collegeAbbreviation }}
                         </div>
                     </div>
                     <!--Greeting-->

@@ -7,8 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { type File, type Quiz } from '@/types';
-import { Head, Link } from '@inertiajs/vue3';
+import { type File, type Quiz, type SharedData } from '@/types';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, ChevronLeft, ChevronRight, RotateCcw, XIcon } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
@@ -112,6 +112,52 @@ const score = computed(() => {
 
     const percentage = Math.round((correctCount / quizQuestions.value.length) * 100);
     return { correct: correctCount, total: quizQuestions.value.length, percentage };
+});
+
+// Get user data and college mascot info
+const page = usePage<SharedData>();
+const user = computed(() => page.props.auth.user);
+
+// Get college mascot info
+const getCollegeMascot = (college: string | undefined) => {
+    const collegeMap: Record<string, { abbr: string; mascot: string; image: string }> = {
+        'College of Computer Studies': {
+            abbr: 'CCST',
+            mascot: 'WIZARDS', 
+            image: '/images/mascots/CCST WIZARDS.png'
+        },
+        'College of Engineering and Architecture': {
+            abbr: 'CEA',
+            mascot: 'FALCONS',
+            image: '/images/mascots/CEA FALCONS.png'
+        },
+        'College of Business and Accountancy': {
+            abbr: 'CBA',
+            mascot: 'PHOENIX',
+            image: '/images/mascots/CBA PHOENIX.png'
+        },
+        'College of Technology': {
+            abbr: 'CTEC',
+            mascot: 'DRAGONS',
+            image: '/images/mascots/CTEC DRAGONS.png'
+        },
+        'College of Allied Health and Sciences': {
+            abbr: 'CAHS',
+            mascot: 'WOLVES',
+            image: '/images/mascots/CAHS WOLVES.png'
+        },
+        'College of Arts and Science': {
+            abbr: 'COAS',
+            mascot: 'KNIGHTS',
+            image: '/images/mascots/COAS KNIGHTS.png'
+        }
+    };
+    return collegeMap[college || ''] || collegeMap['College of Computer Studies'];
+};
+
+const collegeMascot = computed(() => {
+    const college = user.value.college || user.value.program?.college;
+    return getCollegeMascot(college);
 });
 
 function checkAnswer() {
@@ -347,7 +393,7 @@ watch(
                     </div>
                     <div class="flex-shrink-0">
                         <img
-                            src="https://cdn130.picsart.com/248878984010212.png"
+                            :src="collegeMascot.image"
                             class="animate-floating w-20 sm:w-28 md:w-32"
                             style="image-rendering: pixelated"
                         />
