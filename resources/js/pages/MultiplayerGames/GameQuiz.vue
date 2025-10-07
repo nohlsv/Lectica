@@ -24,15 +24,20 @@
                                 {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
                             </span>
                         </div>
-                        <button
-                            @click="toggleSound"
-                            :class="[
-                                'pixel-outline rounded-md px-3 py-1 text-sm text-white transition-colors',
-                                soundEnabled ? 'bg-green-600 hover:bg-green-700' : 'bg-gray-600 hover:bg-gray-700',
-                            ]"
-                        >
-                            {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
-                        </button>
+                        <div class="flex items-center space-x-2 rounded-md bg-blue-600 px-3 py-1">
+                            <button @click="toggleSound" class="text-white hover:scale-110 transition-transform w-5 flex items-center justify-center">
+                                {{ soundVolume === 0 ? '🔇' : soundVolume < 0.5 ? '🔉' : '🔊' }}
+                            </button>
+                            <input
+                                type="range"
+                                min="0"
+                                max="1"
+                                step="0.1"
+                                v-model="soundVolume"
+                                class="pixel-slider flex-1 h-2 bg-gray-300 rounded-md appearance-none cursor-pointer w-20"
+                            />
+                            <span class="pixel-outline text-xs text-white min-w-[3ch]">{{ Math.round(soundVolume * 100) }}%</span>
+                        </div>
                         <button @click="forfeitGame" class="pixel-outline rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
                             Forfeit
                         </button>
@@ -480,7 +485,21 @@ const accuracyAnimation = ref<{ player: 'one' | 'two'; change: number } | null>(
 const streakAnimation = ref<{ player: 'one' | 'two'; streak: number } | null>(null);
 const gameStartAnimation = ref(false);
 const gameEndAnimation = ref(false);
-const soundEnabled = ref(true);
+const soundVolume = ref(0.5); // 0 to 1 range
+
+// Load sound volume from localStorage
+const loadSoundSettings = () => {
+    const saved = localStorage.getItem('lectia-sound-volume');
+    if (saved !== null) {
+        const volume = parseFloat(saved);
+        soundVolume.value = isNaN(volume) ? 0.5 : Math.max(0, Math.min(1, volume));
+    }
+};
+
+// Save sound volume to localStorage
+const saveSoundSettings = () => {
+    localStorage.setItem('lectia-sound-volume', soundVolume.value.toString());
+};
 
 // Timer constraint - now managed by server
 const DEFAULT_TIMER_DURATION = 30; // default seconds per question (for display purposes)
@@ -617,6 +636,9 @@ const submitAnswer = async (isTimeout = false) => {
                 preserveScroll: true,
                 onSuccess: () => {
                     console.log('Answer submitted successfully, WebSocket will update game state');
+                    // Stop timer warning music when answer is submitted
+                    timerWarningSfx.pause();
+                    timerWarningSfx.currentTime = 0;
                     // Don't reset submission state here - let WebSocket handle it
                 },
                 onError: (errors) => {
@@ -684,14 +706,115 @@ const streakSfx = new Audio('/sfx/streak.wav');
 const victorySfx = new Audio('/sfx/victory.wav');
 const defeatSfx = new Audio('/sfx/defeat.wav');
 const damageSfx = new Audio('/sfx/damage.wav');
-// Use existing sound files for timer warnings
+// Timer warning sounds
 const warningSfx = new Audio('/sfx/turn_start.wav'); // Repurpose existing sound
 const urgentWarningSfx = new Audio('/sfx/incorrect.wav'); // Use incorrect sound for urgency
 const countdownSfx = new Audio('/sfx/damage.wav'); // Use damage sound for countdown
+const timerWarningSfx = new Audio('/sfx/timer_warning_music.mp3'); // Timer warning music
+const battleMusicSfx = new Audio('/sfx/battle_music.mp3'); // Background battle music
+
+// Track if music has been started by user interaction
+const musicStarted = ref(false);
+
+// Initialize sound effects
+const audioInit = () => {
+    loadSoundSettings(); // Load saved volume settings
+    updateAllAudioVolumes(); // Apply volumes to all audio elements
+    timerWarningSfx.loop = true; // Loop timer warning music
+    battleMusicSfx.loop = true; // Loop battle music
+    
+    // Try to start background music immediately if volume > 0
+    if (soundVolume.value > 0) {
+        startBattleMusic();
+    }
+};
+
+// Function to start battle music with fallback for user interaction
+const startBattleMusic = () => {
+    if (soundVolume.value === 0 || musicStarted.value) return;
+    
+    battleMusicSfx.currentTime = 0;
+    battleMusicSfx.play()
+        .then(() => {
+            musicStarted.value = true;
+            console.log('Battle music started successfully');
+        })
+        .catch(() => {
+            console.log('Battle music autoplay blocked - will start on first user interaction');
+            // Add event listeners for first user interaction
+            const startOnInteraction = () => {
+                if (soundVolume.value > 0 && !musicStarted.value) {
+                    battleMusicSfx.currentTime = 0;
+                    battleMusicSfx.play()
+                        .then(() => {
+                            musicStarted.value = true;
+                            console.log('Battle music started after user interaction');
+                        })
+                        .catch(() => console.log('Failed to start battle music'));
+                }
+                // Remove listeners after first successful start
+                document.removeEventListener('click', startOnInteraction);
+                document.removeEventListener('keydown', startOnInteraction);
+                document.removeEventListener('touchstart', startOnInteraction);
+            };
+            
+            document.addEventListener('click', startOnInteraction, { once: true });
+            document.addEventListener('keydown', startOnInteraction, { once: true });
+            document.addEventListener('touchstart', startOnInteraction, { once: true });
+        });
+};
+
+// Update all audio volumes based on current sound volume
+const updateAllAudioVolumes = () => {
+    correctSfx.volume = soundVolume.value;
+    incorrectSfx.volume = soundVolume.value;
+    gameStartSfx.volume = soundVolume.value;
+    gameEndSfx.volume = soundVolume.value;
+    turnStartSfx.volume = soundVolume.value;
+    streakSfx.volume = soundVolume.value;
+    victorySfx.volume = soundVolume.value;
+    defeatSfx.volume = soundVolume.value;
+    damageSfx.volume = soundVolume.value;
+    warningSfx.volume = soundVolume.value;
+    urgentWarningSfx.volume = soundVolume.value;
+    countdownSfx.volume = soundVolume.value;
+    timerWarningSfx.volume = soundVolume.value * 0.6; // Lower volume for background music
+    battleMusicSfx.volume = soundVolume.value * 0.6; // Lower volume for background music
+};
+
+// Watch for volume changes to update all audio elements
+watch(soundVolume, (newVolume, oldVolume) => {
+    updateAllAudioVolumes();
+    saveSoundSettings();
+    
+    // Handle music start/stop based on volume change
+    if (oldVolume === 0 && newVolume > 0) {
+        // Volume was turned on, start appropriate music based on timer state
+        musicStarted.value = false; // Reset to allow music restart
+        const warningThresholds = getWarningThresholds(timerDuration.value);
+        if (timerRunning.value && timer.value <= warningThresholds.first) {
+            // Timer is in warning state, start timer warning music
+            battleMusicSfx.pause();
+            timerWarningSfx.currentTime = 0;
+            timerWarningSfx.play().catch(() => console.log('Timer warning music blocked'));
+        } else {
+            // Normal state, start battle music
+            timerWarningSfx.pause();
+            startBattleMusic();
+        }
+    } else if (newVolume === 0) {
+        // Volume was muted, pause all music
+        battleMusicSfx.pause();
+        timerWarningSfx.pause();
+    }
+});
+
+// Initialize audio on load
+audioInit();
 
 const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: number) => {
     // Play sound effect (if enabled)
-    if (soundEnabled.value) {
+    if (soundVolume.value > 0) {
         if (isCorrect) {
             correctSfx.currentTime = 0;
             correctSfx.play();
@@ -737,6 +860,30 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     }, 3000);
 };
 
+// Helper to manage music toggling between battle and timer warning
+function handleMusicForTimerState(timerValue: number, warningThresholds: { first: number; second: number }) {
+    // Only handle music if volume is enabled
+    if (soundVolume.value === 0) return;
+    
+    if (timerValue <= warningThresholds.first && timerValue > 0) {
+        // Timer is in warning state
+        if (timerWarningSfx.paused) {
+            // Switch from battle music to timer warning music
+            battleMusicSfx.pause();
+            timerWarningSfx.currentTime = 0;
+            timerWarningSfx.play().catch(() => console.log('Timer warning music blocked'));
+        }
+    } else if (timerValue > warningThresholds.first) {
+        // Timer is not in warning state
+        if (battleMusicSfx.paused) {
+            // Switch from timer warning music to battle music
+            timerWarningSfx.pause();
+            timerWarningSfx.currentTime = 0;
+            startBattleMusic();
+        }
+    }
+}
+
 // Timer is now managed by server - these functions handle WebSocket updates
 const startTimerSync = () => {
     stopTimerSync();
@@ -758,9 +905,14 @@ const startTimerSync = () => {
                 }, 1000);
             }
 
-            // Play warning sounds based on local timer
-            if (soundEnabled.value) {
+            // Play warning sounds and handle music transitions based on local timer
+            if (soundVolume.value > 0) {
                 const warningThresholds = getWarningThresholds(timerDuration.value);
+                
+                // Handle music transitions
+                handleMusicForTimerState(timer.value, warningThresholds);
+                
+                // Play warning sounds at specific thresholds
                 if (timer.value === warningThresholds.first) {
                     playWarningSound();
                 } else if (timer.value === warningThresholds.second) {
@@ -787,6 +939,14 @@ const stopTimerSync = () => {
         timerSyncInterval = undefined;
     }
     timerRunning.value = false;
+    
+    // Stop timer warning music and resume battle music when timer stops
+    timerWarningSfx.pause();
+    timerWarningSfx.currentTime = 0;
+    
+    if (soundVolume.value > 0 && battleMusicSfx.paused && gameState.value.status === 'active') {
+        startBattleMusic();
+    }
 };
 
 // Mark player as ready (page loaded and ready to play)
@@ -872,7 +1032,7 @@ const handleTimeout = () => {
         awaitingTimeoutResponse.value = true;
 
         // Play timeout sound immediately
-        if (soundEnabled.value) {
+        if (soundVolume.value > 0) {
             incorrectSfx.currentTime = 0;
             incorrectSfx.play();
         }
@@ -956,6 +1116,14 @@ const resetForNextQuestion = () => {
     // Reset timer - the server will provide the correct duration via WebSocket or sync
     timer.value = 0;
     timerRunning.value = false;
+    
+    // Stop timer warning music and resume battle music if volume is on
+    timerWarningSfx.pause();
+    timerWarningSfx.currentTime = 0;
+    
+    if (soundVolume.value > 0 && battleMusicSfx.paused) {
+        startBattleMusic();
+    }
 
     console.log('Reset for next question - waiting for timer to start');
 };
@@ -1035,8 +1203,15 @@ const forfeitGame = () => {
     }
 };
 
+// Toggle between 0 and previously saved volume (or 0.5 if first time)
 const toggleSound = () => {
-    soundEnabled.value = !soundEnabled.value;
+    const savedNonZeroVolume = localStorage.getItem('lectia-last-volume');
+    if (soundVolume.value === 0) {
+        soundVolume.value = savedNonZeroVolume ? parseFloat(savedNonZeroVolume) : 0.5;
+    } else {
+        localStorage.setItem('lectia-last-volume', soundVolume.value.toString());
+        soundVolume.value = 0;
+    }
 };
 
 const handleImageError = (event: Event) => {
@@ -1244,7 +1419,7 @@ onMounted(() => {
                             answer: e.additional_data.answer_text,
                         };
 
-                        if (soundEnabled.value) {
+                        if (soundVolume.value > 0) {
                             if (opponentFeedback.value.isCorrect) {
                                 correctSfx.currentTime = 0;
                                 correctSfx.play();
@@ -1288,7 +1463,7 @@ onMounted(() => {
                     }
 
                     // Play warning sound based on warning point
-                    if (soundEnabled.value && e.additional_data.warning_point) {
+                    if (soundVolume.value > 0 && e.additional_data.warning_point) {
                         if (e.additional_data.warning_point === 10) {
                             playWarningSound();
                         } else if (e.additional_data.warning_point === 5) {
@@ -1307,7 +1482,7 @@ onMounted(() => {
                         submitting.value = false; // Stop submitting state
 
                         // Play timeout sound
-                        if (soundEnabled.value) {
+                        if (soundVolume.value > 0) {
                             incorrectSfx.currentTime = 0;
                             incorrectSfx.play();
                         }
@@ -1499,11 +1674,19 @@ onMounted(() => {
 
     // Start periodic state checking
     startStateCheckInterval();
+    
+    // Ensure music starts when component is mounted
+    if (soundVolume.value > 0) {
+        // Small delay to ensure everything is initialized
+        setTimeout(() => {
+            startBattleMusic();
+        }, 1000);
+    }
 });
 
 // Play sfx for game start animation
 watch(gameStartAnimation, (val) => {
-    if (val && soundEnabled.value) {
+    if (val && soundVolume.value > 0) {
         gameStartSfx.currentTime = 0;
         gameStartSfx.play();
     }
@@ -1511,7 +1694,7 @@ watch(gameStartAnimation, (val) => {
 
 // Play sfx for game end animation
 watch(gameEndAnimation, (val) => {
-    if (val && soundEnabled.value) {
+    if (val && soundVolume.value > 0) {
         gameEndSfx.currentTime = 0;
         gameEndSfx.play();
     }
@@ -1519,7 +1702,7 @@ watch(gameEndAnimation, (val) => {
 
 // Play sfx when player's turn starts
 watch(isMyTurn, (val, oldVal) => {
-    if (val && !oldVal && soundEnabled.value) {
+    if (val && !oldVal && soundVolume.value > 0) {
         turnStartSfx.currentTime = 0;
         turnStartSfx.play();
     }
@@ -1536,6 +1719,10 @@ watch(streakAnimation, (val) => {
 // Play sfx for victory/defeat
 watch(gameOver, (val) => {
     if (val) {
+        // Stop battle music when game ends
+        battleMusicSfx.pause();
+        battleMusicSfx.currentTime = 0;
+        
         const result = getGameResult();
         if (result.includes('Victory')) {
             victorySfx.currentTime = 0;
@@ -1555,21 +1742,21 @@ function playDamageSfx() {
 
 // Play warning sounds for timer
 function playWarningSound() {
-    if (soundEnabled.value) {
+    if (soundVolume.value > 0) {
         warningSfx.currentTime = 0;
         warningSfx.play().catch(() => {}); // Fallback gracefully if audio fails
     }
 }
 
 function playUrgentWarningSound() {
-    if (soundEnabled.value) {
+    if (soundVolume.value > 0) {
         urgentWarningSfx.currentTime = 0;
         urgentWarningSfx.play().catch(() => {}); // Fallback gracefully if audio fails
     }
 }
 
 function playCountdownSound() {
-    if (soundEnabled.value) {
+    if (soundVolume.value > 0) {
         countdownSfx.currentTime = 0;
         countdownSfx.play().catch(() => {}); // Fallback gracefully if audio fails
     }
@@ -1583,5 +1770,49 @@ function playCountdownSound() {
 }
 .fade-enter, .fade-leave-to /* .fade-leave-active in <2.1.8 */ {
     opacity: 0;
+}
+
+/* Sound slider styling */
+.pixel-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #374151;
+    border: 2px solid #1f2937;
+    border-radius: 4px;
+    height: 8px;
+}
+
+.pixel-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #10b981;
+    border: 2px solid #065f46;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pixel-slider::-webkit-slider-thumb:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pixel-slider::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #10b981;
+    border: 2px solid #065f46;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pixel-slider::-moz-range-thumb:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
 }
 </style>

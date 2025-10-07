@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, SwordIcon, XIcon } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -132,8 +132,7 @@ watch(currentIndex, (val) => {
         
         // Ensure battle music is playing (it should already be from audioInit)
         if (battleMusicSfx.paused) {
-            battleMusicSfx.currentTime = 0;
-            battleMusicSfx.play().catch(() => console.log('Battle music restart blocked'));
+            startBattleMusic();
         }
         
         firstQuestion.value = false;
@@ -179,19 +178,54 @@ const nextQuestionDisabled = computed(() => {
     );
 });
 
+// Track if music has been started by user interaction
+const musicStarted = ref(false);
+
 // Initialize sound effects
 const audioInit = () => {
     loadSoundSettings(); // Load saved volume settings
     updateAllAudioVolumes(); // Apply volumes to all audio elements
     battleMusicSfx.loop = true; // Loop battle music
     
-    // Auto-start battle music if volume > 0
+    // Try to start background music immediately if volume > 0
     if (soundVolume.value > 0) {
-        setTimeout(() => {
-            battleMusicSfx.currentTime = 0;
-            battleMusicSfx.play().catch(() => console.log('Battle music autoplay blocked by browser'));
-        }, 500); // Small delay to ensure page is loaded
+        startBattleMusic();
     }
+};
+
+// Function to start battle music with fallback for user interaction
+const startBattleMusic = () => {
+    if (soundVolume.value === 0 || musicStarted.value) return;
+    
+    battleMusicSfx.currentTime = 0;
+    battleMusicSfx.play()
+        .then(() => {
+            musicStarted.value = true;
+            console.log('Battle music started successfully');
+        })
+        .catch(() => {
+            console.log('Battle music autoplay blocked - will start on first user interaction');
+            // Add event listeners for first user interaction
+            const startOnInteraction = () => {
+                if (soundVolume.value > 0 && !musicStarted.value) {
+                    battleMusicSfx.currentTime = 0;
+                    battleMusicSfx.play()
+                        .then(() => {
+                            musicStarted.value = true;
+                            console.log('Battle music started after user interaction');
+                        })
+                        .catch(() => console.log('Failed to start battle music'));
+                }
+                // Remove listeners after first successful start
+                document.removeEventListener('click', startOnInteraction);
+                document.removeEventListener('keydown', startOnInteraction);
+                document.removeEventListener('touchstart', startOnInteraction);
+            };
+            
+            document.addEventListener('click', startOnInteraction, { once: true });
+            document.addEventListener('keydown', startOnInteraction, { once: true });
+            document.addEventListener('touchstart', startOnInteraction, { once: true });
+        });
 };
 
 // Update all audio volumes based on current sound volume
@@ -415,11 +449,9 @@ watch(soundVolume, (newVolume, oldVolume) => {
     
     // Handle music start/stop based on volume change
     if (oldVolume === 0 && newVolume > 0) {
-        // Volume was turned on, start music if not playing
-        if (battleMusicSfx.paused) {
-            battleMusicSfx.currentTime = 0;
-            battleMusicSfx.play().catch(() => console.log('Battle music start blocked'));
-        }
+        // Volume was turned on, reset music started flag and start music
+        musicStarted.value = false;
+        startBattleMusic();
     } else if (newVolume === 0) {
         // Volume was muted, pause music
         battleMusicSfx.pause();
@@ -477,6 +509,17 @@ function finishBattle() {
             toast.error('Failed to save battle results');
         });
 }
+
+// Ensure music starts when component is mounted
+onMounted(() => {
+    // Ensure music starts when component is mounted
+    if (soundVolume.value > 0) {
+        // Small delay to ensure everything is initialized
+        setTimeout(() => {
+            startBattleMusic();
+        }, 1000);
+    }
+});
 </script>
 
 <template>
