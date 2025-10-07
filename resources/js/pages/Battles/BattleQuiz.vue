@@ -87,10 +87,6 @@ const playerHpPercent = computed(() => {
     return (playerHp.value / 3) * 100; // 3 hearts max
 });
 
-const monsterHpPercent = computed(() => {
-    return 100; // Monster always starts at full health for each question
-});
-
 const battleResult = computed(() => {
     if (playerHp.value <= 0) return 'defeat';
 
@@ -441,15 +437,6 @@ function finishBattle() {
             >
                 <!-- Monster Area -->
                 <div class="mb-4 flex flex-col items-center">
-                    <div class="pixel-outline my-4 flex w-full max-w-md items-center rounded-lg border-2 border-red-500 bg-black/50 p-2">
-                        <div class="mr-2 font-bold text-white">{{ currentMonster.name }}</div>
-                        <div class="flex-1">
-                            <Progress :value="monsterHpPercent" class="h-4 bg-red-900">
-                                <div class="pixel-outline-icon h-full bg-red-300" :style="`width: ${monsterHpPercent}%`"></div>
-                            </Progress>
-                        </div>
-                        <div class="ml-2 font-bold text-white">{{ currentMonster.hp }}/{{ currentMonster.hp }}</div>
-                    </div>
                     <div class="relative flex w-full items-center justify-center bg-black/70 p-4">
                         <img
                             :src="currentMonster.image_path"
