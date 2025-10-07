@@ -48,6 +48,11 @@ const togglePasswordConfirmationVisibility = () => {
 };
 
 const submit = () => {
+    // Set default values for faculty
+    if (form.user_role === 'faculty') {
+        form.year_of_study = 'Graduate';
+    }
+    
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
     });
@@ -172,7 +177,6 @@ const submit = () => {
                                     <option value="3rd Year">3rd Year</option>
                                     <option value="4th Year">4th Year</option>
                                     <option value="5th Year">5th Year</option>
-                                    <option value="Graduate">Graduate</option>
                                 </select>
                                 <InputError :message="form.errors.year_of_study" />
                             </div>

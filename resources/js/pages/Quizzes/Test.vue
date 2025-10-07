@@ -123,32 +123,32 @@ const getCollegeMascot = (college: string | undefined) => {
     const collegeMap: Record<string, { abbr: string; mascot: string; image: string }> = {
         'College of Computer Studies': {
             abbr: 'CCST',
-            mascot: 'WIZARDS', 
+            mascot: 'Merlin the Wizard', 
             image: '/images/mascots/CCST WIZARDS.png'
         },
         'College of Engineering and Architecture': {
             abbr: 'CEA',
-            mascot: 'FALCONS',
+            mascot: 'Boingo the Falcon',
             image: '/images/mascots/CEA FALCONS.png'
         },
         'College of Business and Accountancy': {
             abbr: 'CBA',
-            mascot: 'PHOENIX',
+            mascot: 'Toastimus the Phoenix',
             image: '/images/mascots/CBA PHOENIX.png'
         },
         'College of Technology': {
             abbr: 'CTEC',
-            mascot: 'DRAGONS',
+            mascot: 'Scroggle the Dragon',
             image: '/images/mascots/CTEC DRAGONS.png'
         },
         'College of Allied Health and Sciences': {
             abbr: 'CAHS',
-            mascot: 'WOLVES',
+            mascot: 'Howlton the Wolf',
             image: '/images/mascots/CAHS WOLVES.png'
         },
         'College of Arts and Science': {
             abbr: 'COAS',
-            mascot: 'KNIGHTS',
+            mascot: 'Boofus the Knight',
             image: '/images/mascots/COAS KNIGHTS.png'
         }
     };
@@ -380,15 +380,15 @@ watch(
             >
                 <!-- Question Box -->
                 <div
-                    class="font-pixel absolute top-10 right-4 left-4 flex w-auto items-center gap-3 border-[6px] border-black bg-white/95 px-3 py-3 shadow-[6px_6px_0px_rgba(0,0,0,1),-3px_-3px_0px_rgba(0,0,0,1)] sm:top-10 sm:left-1/6 sm:-translate-x-1/12 sm:gap-6 sm:px-6 sm:py-4 md:left-1/3 md:-translate-x-1/4 2xl:left-1/2 2xl:-translate-x-1/2"
+                    class="font-pixel absolute top-10 right-4 left-4 flex w-auto items-center gap-3 border-[6px] border-black bg-gradient px-3 py-3 shadow-[6px_6px_0px_rgba(0,0,0,1),-3px_-3px_0px_rgba(0,0,0,1)] sm:top-10 sm:left-1/6 sm:-translate-x-1/12 sm:gap-6 sm:px-6 sm:py-4 md:left-1/3 md:-translate-x-1/4 2xl:left-1/2 2xl:-translate-x-1/2"
                     style="image-rendering: pixelated"
                 >
                     <div
                         class="text-md font-pixel absolute -top-5 left-0 border-2 border-white bg-black px-3 py-1 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-base"
                     >
-                        Funko the Pop
+                        {{ collegeMascot.mascot }}
                     </div>
-                    <div class="flex-1 text-center text-sm text-black sm:text-left sm:text-xl md:text-lg lg:text-xl xl:text-xl 2xl:text-2xl">
+                    <div class="flex-1 text-center text-sm text-white sm:text-left sm:text-xl md:text-lg lg:text-xl xl:text-xl 2xl:text-2xl">
                         "{{ currentQuiz?.question }}"
                     </div>
                     <div class="flex-shrink-0">

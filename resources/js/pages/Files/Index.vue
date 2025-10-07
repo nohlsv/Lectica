@@ -8,7 +8,7 @@ import { Tag, type BreadcrumbItem, type PaginatedData } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { useDateFormat } from '@vueuse/core';
 import axios from 'axios';
-import { EyeIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
+import { EyeIcon, FileIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { toast } from 'vue-sonner';
 

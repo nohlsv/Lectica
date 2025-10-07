@@ -393,8 +393,10 @@ const getColorClasses = (color: string) => {
                     <div class="relative flex flex-col items-center gap-2">
                         <img
                             :src="collegeMascot.image"
+                            :alt="`${collegeMascot.mascot} mascot`"
                             class="animate-floating w-20 sm:w-28 md:w-32"
                             style="image-rendering: pixelated"
+                            @error="($event.target as HTMLImageElement).src = 'https://cdn130.picsart.com/248878984010212.png'"
                         />
                         <div
                             class="font-pixel border-2 border-white bg-black px-3 py-1 text-sm text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-base"

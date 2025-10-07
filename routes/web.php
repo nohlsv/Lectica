@@ -22,6 +22,9 @@ Route::get('/', function () {
 Route::get('home', function (Request $request) {
     $user = $request->user();
     
+    // Load the program relationship
+    $user->load('program');
+    
     // Check verification status and redirect if needed
     if (!$user->hasVerifiedEmail()) {
         return redirect()->route('verification.notice');
