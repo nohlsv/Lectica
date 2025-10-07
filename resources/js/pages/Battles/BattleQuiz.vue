@@ -34,7 +34,21 @@ const totalAnswered = ref(props.battle.total_questions || 0);
 // Visual effects
 const monsterShaking = ref(false);
 const answerEffectType = ref<'correct' | 'incorrect' | null>(null);
-const soundEnabled = ref(true);
+const soundVolume = ref(0.5); // 0 to 1 range
+
+// Load sound volume from localStorage
+const loadSoundSettings = () => {
+    const saved = localStorage.getItem('lectia-sound-volume');
+    if (saved !== null) {
+        const volume = parseFloat(saved);
+        soundVolume.value = isNaN(volume) ? 0.5 : Math.max(0, Math.min(1, volume));
+    }
+};
+
+// Save sound volume to localStorage
+const saveSoundSettings = () => {
+    localStorage.setItem('lectia-sound-volume', soundVolume.value.toString());
+};
 
 // Initialize userAnswers
 if (Array.isArray(props.quizzes)) {
@@ -107,13 +121,21 @@ const streakSfx = new Audio('/sfx/streak.wav');
 const victorySfx = new Audio('/sfx/victory.wav');
 const defeatSfx = new Audio('/sfx/defeat.wav');
 const damageSfx = new Audio('/sfx/damage.wav');
+const battleMusicSfx = new Audio('/sfx/battle_music.mp3');
 
 // Play sfx for game start (first question)
 const firstQuestion = ref(true);
 watch(currentIndex, (val) => {
-    if (firstQuestion.value) {
+    if (firstQuestion.value && soundVolume.value > 0) {
         gameStartSfx.currentTime = 0;
         gameStartSfx.play();
+        
+        // Ensure battle music is playing (it should already be from audioInit)
+        if (battleMusicSfx.paused) {
+            battleMusicSfx.currentTime = 0;
+            battleMusicSfx.play().catch(() => console.log('Battle music restart blocked'));
+        }
+        
         firstQuestion.value = false;
     }
 });
@@ -147,6 +169,8 @@ function playDamageSfx() {
     damageSfx.play();
 }
 
+
+
 const nextQuestionDisabled = computed(() => {
     return (
         (currentQuiz.value.type === 'multiple_choice' && !userAnswers[currentIndex.value]) ||
@@ -157,14 +181,30 @@ const nextQuestionDisabled = computed(() => {
 
 // Initialize sound effects
 const audioInit = () => {
-    correctSfx.volume = 0.5;
-    incorrectSfx.volume = 0.5;
-    gameStartSfx.volume = 0.5;
-    gameEndSfx.volume = 0.5;
-    streakSfx.volume = 0.5;
-    victorySfx.volume = 0.5;
-    defeatSfx.volume = 0.5;
-    damageSfx.volume = 0.5;
+    loadSoundSettings(); // Load saved volume settings
+    updateAllAudioVolumes(); // Apply volumes to all audio elements
+    battleMusicSfx.loop = true; // Loop battle music
+    
+    // Auto-start battle music if volume > 0
+    if (soundVolume.value > 0) {
+        setTimeout(() => {
+            battleMusicSfx.currentTime = 0;
+            battleMusicSfx.play().catch(() => console.log('Battle music autoplay blocked by browser'));
+        }, 500); // Small delay to ensure page is loaded
+    }
+};
+
+// Update all audio volumes based on current sound volume
+const updateAllAudioVolumes = () => {
+    correctSfx.volume = soundVolume.value;
+    incorrectSfx.volume = soundVolume.value;
+    gameStartSfx.volume = soundVolume.value;
+    gameEndSfx.volume = soundVolume.value;
+    streakSfx.volume = soundVolume.value;
+    victorySfx.volume = soundVolume.value;
+    defeatSfx.volume = soundVolume.value;
+    damageSfx.volume = soundVolume.value;
+    battleMusicSfx.volume = soundVolume.value * 0.6; // Lower volume for background music
 };
 
 audioInit();
@@ -224,6 +264,8 @@ const initBattleState = async () => {
     currentIndex.value = 0;
     showFeedback.value = false;
     battleFinished.value = false;
+    
+
 };
 
 initBattleState();
@@ -301,7 +343,7 @@ const checkAnswer = async () => {
     }
 
     // Play sound effect (if enabled)
-    if (soundEnabled.value) {
+    if (soundVolume.value > 0) {
         if (isCurrentAnswerCorrect.value) {
             correctSfx.currentTime = 0;
             correctSfx.play();
@@ -366,9 +408,34 @@ function clearAnswerEffect() {
     }, 2000);
 }
 
-function toggleSound() {
-    soundEnabled.value = !soundEnabled.value;
-}
+// Watch for volume changes to update all audio elements
+watch(soundVolume, (newVolume, oldVolume) => {
+    updateAllAudioVolumes();
+    saveSoundSettings();
+    
+    // Handle music start/stop based on volume change
+    if (oldVolume === 0 && newVolume > 0) {
+        // Volume was turned on, start music if not playing
+        if (battleMusicSfx.paused) {
+            battleMusicSfx.currentTime = 0;
+            battleMusicSfx.play().catch(() => console.log('Battle music start blocked'));
+        }
+    } else if (newVolume === 0) {
+        // Volume was muted, pause music
+        battleMusicSfx.pause();
+    }
+});
+
+// Toggle between 0 and previously saved volume (or 0.5 if first time)
+const toggleSound = () => {
+    const savedNonZeroVolume = localStorage.getItem('lectia-last-volume');
+    if (soundVolume.value === 0) {
+        soundVolume.value = savedNonZeroVolume ? parseFloat(savedNonZeroVolume) : 0.5;
+    } else {
+        localStorage.setItem('lectia-last-volume', soundVolume.value.toString());
+        soundVolume.value = 0;
+    }
+};
 
 async function next() {
     if (Array.isArray(props.quizzes) && currentIndex.value < props.quizzes.length - 1) {
@@ -378,6 +445,8 @@ async function next() {
         // Spawn a new monster for the next question
         currentMonster.value = await getRandomMonster();
         attackMessages.value.unshift(`A wild ${currentMonster.value.name} appears!`);
+        
+
     } else {
         // No more questions, finish the battle
         finishBattle();
@@ -386,6 +455,10 @@ async function next() {
 
 function finishBattle() {
     battleFinished.value = true;
+    
+    // Stop battle music
+    battleMusicSfx.pause();
+    battleMusicSfx.currentTime = 0;
 
     // Save battle results
     axios
@@ -433,15 +506,20 @@ function finishBattle() {
                             Escape Battle
                         </Button>
                     </Link>
-                    <Button
-                        @click="toggleSound"
-                        :class="[
-                            'pixel-outline border-4 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]',
-                            soundEnabled ? 'border-green-700 bg-green-500 hover:bg-green-600' : 'border-gray-700 bg-gray-500 hover:bg-gray-600',
-                        ]"
-                    >
-                        {{ soundEnabled ? '🔊 Sound On' : '🔇 Sound Off' }}
-                    </Button>
+                    <div class="flex items-center space-x-3 rounded-lg border-4 border-blue-700 bg-blue-500 px-4 py-2 shadow-[4px_4px_0px_rgba(0,0,0,0.4)]">
+                        <button @click="toggleSound" class="text-white hover:scale-110 transition-transform w-6 flex items-center justify-center">
+                            {{ soundVolume === 0 ? '🔇' : soundVolume < 0.5 ? '🔉' : '🔊' }}
+                        </button>
+                        <input
+                            type="range"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            v-model="soundVolume"
+                            class="pixel-slider flex-1 h-2 bg-gray-300 rounded-lg appearance-none cursor-pointer"
+                        />
+                        <span class="pixel-outline text-xs text-white min-w-[3ch]">{{ Math.round(soundVolume * 100) }}%</span>
+                    </div>
                 </div>
                 <div class="welcome-banner animate-soft-bounce pixel-outline mb-4 flex grid rounded-lg p-2 text-center text-xl font-bold md:text-3xl">
                     {{ file.name }}
@@ -467,7 +545,7 @@ function finishBattle() {
                                 monsterShaking ? 'animate-shake' : 'animate-floating',
                             ]"
                             :alt="currentMonster.name"
-                            @error="$event.target.style.display = 'none'"
+                            @error="(e) => (e.target as HTMLImageElement).style.display = 'none'"
                         />
                         <div class="flex flex-col rounded-lg p-4">
                             <div class="pixel-outline mb-2 text-left text-sm font-bold text-yellow-300 sm:text-base md:text-lg">
@@ -746,5 +824,49 @@ function finishBattle() {
     80% {
         transform: translateX(10px);
     }
+}
+
+/* Sound slider styling */
+.pixel-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    background: #374151;
+    border: 2px solid #1f2937;
+    border-radius: 4px;
+    height: 12px;
+}
+
+.pixel-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    border: 2px solid #065f46;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pixel-slider::-webkit-slider-thumb:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pixel-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #10b981;
+    border: 2px solid #065f46;
+    border-radius: 2px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px rgba(0, 0, 0, 0.4);
+}
+
+.pixel-slider::-moz-range-thumb:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.4);
 }
 </style>
