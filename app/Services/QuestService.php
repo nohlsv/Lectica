@@ -154,7 +154,7 @@ class QuestService
         }
         
         // Check for "XP Collector" achievement (1000 XP earned)
-        if ($totalXpEarned >= 1000 && ($totalXpEarned - $user->quests()->where('id', $user->quests()->latest()->first()?->id)->first()?->experience_reward ?? 0) < 1000) {
+        if ($totalXpEarned >= 1000 && ($totalXpEarned - $user->quests()->where('quests.id', $user->quests()->latest()->first()?->id)->first()?->experience_reward ?? 0) < 1000) {
             $user->notify(new \App\Notifications\AchievementUnlockedNotification(
                 'XP Collector',
                 'Earn 1000 experience points',
