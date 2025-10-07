@@ -44,23 +44,32 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const markAsRead = async (notificationId: string) => {
-    try {
-        await router.patch(route('notifications.markAsRead', notificationId));
-        router.reload({ only: ['notifications'] });
-    } catch (error) {
-        toast.error('Failed to mark notification as read');
-    }
+const markAsRead = (notificationId: string) => {
+    router.patch(route('notifications.markAsRead', notificationId), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['notifications'],
+        onSuccess: () => {
+            toast.info('📖 Notification marked as read');
+        },
+        onError: () => {
+            toast.error('Failed to mark notification as read');
+        }
+    });
 };
 
-const markAllAsRead = async () => {
-    try {
-        await router.patch(route('notifications.markAllAsRead'));
-        router.reload({ only: ['notifications'] });
-        toast.success('All notifications marked as read');
-    } catch (error) {
-        toast.error('Failed to mark all notifications as read');
-    }
+const markAllAsRead = () => {
+    router.patch(route('notifications.markAllAsRead'), {}, {
+        preserveState: true,
+        preserveScroll: true,
+        only: ['notifications'],
+        onSuccess: () => {
+            toast.success('All notifications marked as read');
+        },
+        onError: () => {
+            toast.error('Failed to mark all notifications as read');
+        }
+    });
 };
 
 const unreadCount = computed(() => {

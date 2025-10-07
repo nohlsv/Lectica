@@ -1369,7 +1369,7 @@ class MultiplayerGameController extends Controller
             $multiplayerGame->forfeitGame(Auth::id());
             
             return redirect()->route('multiplayer-games.lobby')
-                ->with('success', 'Game forfeited successfully.');
+                ->with('warning', '⚠️ You have forfeited the game. Your opponent wins by default.');
         } catch (\Exception $e) {
             return back()->withErrors(['forfeit' => $e->getMessage()]);
         }
