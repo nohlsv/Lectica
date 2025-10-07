@@ -53,11 +53,11 @@
                                                     {{ battle.status.charAt(0).toUpperCase() + battle.status.slice(1) }}
                                                 </span>
                                                 <span
-                                                    v-if="battle.monster?.difficulty"
-                                                    :class="getDifficultyBadge(battle.monster.difficulty).color"
+                                                    v-if="battle.difficulty"
+                                                    :class="getDifficultyBadge(battle.difficulty).color"
                                                     class="pixel-outline-icon rounded-full px-2 py-1 text-xs font-medium"
                                                 >
-                                                    {{ getDifficultyBadge(battle.monster.difficulty).text }}
+                                                    {{ getDifficultyBadge(battle.difficulty).text }}
                                                 </span>
                                             </div>
                                         </div>
@@ -131,12 +131,16 @@ const getStatusBadge = (status) => {
 
 const getDifficultyBadge = (difficulty) => {
     const levels = {
+        easy: { text: 'Easy', color: 'bg-green-100 text-green-800' },
+        medium: { text: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
+        hard: { text: 'Hard', color: 'bg-red-100 text-red-800' },
+        // Legacy support for numeric values (if any exist)
         1: { text: 'Easy', color: 'bg-green-100 text-green-800' },
         2: { text: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
         3: { text: 'Hard', color: 'bg-red-100 text-red-800' },
         4: { text: 'Expert', color: 'bg-purple-100 text-purple-800' },
     };
 
-    return levels[difficulty] || levels[1];
+    return levels[difficulty] || levels.easy;
 };
 </script>
