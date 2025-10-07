@@ -137,10 +137,10 @@ const onCollectionSuccess = (message?: string) => {
     <div class="dark:bg-[#161615]">
         <Head title="File Explorer" />
         <AppLayout :breadcrumbs="breadcrumbs">
-            <div class="bg-lectica flex max-h-[200px] w-full flex-1 flex-col gap-4 px-4 pt-4 pb-0">
+            <div class="bg-lectica flex w-full flex-1 flex-col gap-4 px-4 pt-4 pb-0">
                 <!--Header Section-->
                 <div
-                    class="mb-6 flex min-h-[150px] w-full flex-col items-center justify-center gap-6 rounded-xl p-6 text-center sm:flex-row sm:text-left"
+                    class="mb-4 flex w-full flex-col items-center justify-center gap-4 rounded-xl p-4 text-center sm:mb-6 sm:min-h-[150px] sm:flex-row sm:gap-6 sm:p-6 sm:text-left"
                 >
                     <!--Icon-->
                     <div class="relative flex flex-col items-center gap-2">
