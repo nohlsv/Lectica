@@ -1088,8 +1088,8 @@ const fetchFreshGameState = async () => {
             // Clear timeout flags since we have fresh state
             awaitingTimeoutResponse.value = false;
 
-            // Handle turn changes
-            if (!wasMyTurn && isMyTurn.value) {
+            // Handle turn changes - only reset if turn actually changed
+            if (!wasMyTurn && isMyTurn.value && previousTurn !== gameState.value.current_turn) {
                 resetForNextQuestion();
                 console.log('Turn switched after state sync, resetting for next question');
             } else if (wasMyTurn && !isMyTurn.value) {
@@ -1098,6 +1098,9 @@ const fetchFreshGameState = async () => {
                 timedOut.value = false;
                 awaitingTimeoutResponse.value = false;
                 console.log('My turn ended after state sync, stopping timer');
+            } else if (wasMyTurn && isMyTurn.value && previousTurn === gameState.value.current_turn) {
+                // Still my turn and same turn ID - don't reset
+                console.log('State sync during my turn - no reset needed');
             }
 
             // If we were stuck with a timeout but the turn hasn't changed,
@@ -1200,8 +1203,10 @@ onMounted(() => {
             .listen('MultiplayerGameUpdated', (e: any) => {
                 console.log('Received game update:', e);
 
-                // Store previous state for comparisons
+                // Store previous state for comparisons - use actual turn tracking
                 const wasMyTurn = isMyTurn.value;
+                const previousTurnId = gameState.value.current_turn;
+                const previousQuestionId = currentQuestion.value?.id;
                 const previousPlayerOneAccuracy = props.game.player_one_accuracy;
                 const previousPlayerTwoAccuracy = props.game.player_two_accuracy;
                 const previousPlayerOneStreak = props.game.player_one_streak;
@@ -1426,12 +1431,17 @@ onMounted(() => {
                     console.log('Timeout response received via WebSocket');
                 }
 
-                // Handle turn changes consistently for both players
-                if (!wasMyTurn && isMyTurn.value) {
+                // Handle turn changes consistently for both players - only reset if turn or question actually changed
+                const currentTurnId = gameState.value.current_turn;
+                const currentQuestionId = currentQuestion.value?.id;
+                const actualTurnChange = previousTurnId !== currentTurnId;
+                const actualQuestionChange = previousQuestionId !== currentQuestionId;
+                
+                if (!wasMyTurn && isMyTurn.value && (actualTurnChange || actualQuestionChange)) {
                     // It became my turn - reset for next question
                     resetForNextQuestion();
-                    console.log("It's now my turn, resetting for next question");
-                } else if (wasMyTurn && !isMyTurn.value) {
+                    console.log("It's now my turn, resetting for next question (Turn change:", actualTurnChange, "Question change:", actualQuestionChange, ")");
+                } else if (wasMyTurn && !isMyTurn.value && actualTurnChange) {
                     // It's no longer my turn - clear any timeout states and prepare for waiting
                     if (timedOut.value) {
                         console.log('Turn changed away from timed out player, clearing timeout state');
@@ -1441,6 +1451,9 @@ onMounted(() => {
                     // Ensure we're in a clean waiting state
                     submitting.value = false;
                     console.log('No longer my turn, entering waiting state');
+                } else if (wasMyTurn && isMyTurn.value && !actualTurnChange && !actualQuestionChange) {
+                    // Still my turn and same question - don't reset anything
+                    console.log('WebSocket update during my turn - no reset needed (Turn ID:', currentTurnId, 'Question ID:', currentQuestionId, ')');
                 }
 
                 // If it's still my turn after a timeout (meaning the game didn't progress properly),
