@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { EyeIcon, FileIcon, FolderIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, onMounted, ref, watch, nextTick } from 'vue';
 import { toast } from 'vue-sonner';
+
+// Extend File type to include starring functionality
+interface ExtendedFile extends File {
+    is_starring?: boolean;
+}
 
 interface PageProps {
     files: {
@@ -31,20 +35,20 @@ const props = defineProps<PageProps>();
 
 // Computed property to group files by first letter
 const groupedFiles = computed(() => {
-    const grouped: Record<string, File[]> = {};
+    const grouped: Record<string, ExtendedFile[]> = {};
 
     props.files.data.forEach((file) => {
         const firstLetter = file.name.charAt(0).toUpperCase();
         if (!grouped[firstLetter]) {
             grouped[firstLetter] = [];
         }
-        grouped[firstLetter].push(file);
+        grouped[firstLetter].push(file as ExtendedFile);
     });
 
     // Sort groups alphabetically
     return Object.keys(grouped)
         .sort()
-        .reduce<Record<string, File[]>>((result, key) => {
+        .reduce<Record<string, ExtendedFile[]>>((result, key) => {
             result[key] = grouped[key];
             return result;
         }, {});
@@ -63,6 +67,24 @@ const userCollections = ref<Collection[]>([]);
 const showCreateNewCollection = ref(false);
 const newCollectionName = ref('');
 const isCreatingCollection = ref(false);
+
+// Filters for MyFiles - Initialize from URL parameters
+const searchQuery = ref('');
+const selectedTags = ref<number[]>(props.selectedTags || []);
+const showStarredOnly = ref(false);
+const showVerifiedOnly = ref(false);
+const showPendingOnly = ref(false);
+const showDeniedOnly = ref(false);
+const allTags = ref<Tag[]>([]);
+
+const sortOptions = ref([
+    { value: 'name', label: 'Name' },
+    { value: 'created_at', label: 'Created Date' },
+    { value: 'star_count', label: 'Star Count' },
+    { value: 'updated_at', label: 'Last Updated' },
+]);
+const selectedSort = ref('name');
+const sortDirection = ref('asc');
 
 interface Collection {
     id: number;
@@ -142,6 +164,157 @@ const addToCollection = async () => {
         toast.error('Failed to add file to collection');
     }
 };
+
+// Toggle star functionality for files
+const toggleStar = async (file: ExtendedFile) => {
+    if (file.is_starring) return;
+
+    file.is_starring = true;
+
+    try {
+        await router.post(
+            route('files.star', { file: file.id }),
+            {},
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    // Update the file state
+                    file.is_starred = !file.is_starred;
+                    file.star_count = file.is_starred ? (file.star_count || 0) + 1 : (file.star_count || 0) - 1;
+                    file.is_starring = false;
+                },
+                onError: (errors) => {
+                    file.is_starring = false;
+                    toast.error('Failed to star/unstar file');
+                },
+            },
+        );
+    } catch (error) {
+        file.is_starring = false;
+        toast.error('Failed to star/unstar file');
+    }
+};
+
+// Fetch tags for filtering
+const fetchTags = async () => {
+    try {
+        const response = await axios.get(route('tags.index'));
+        allTags.value = response.data;
+    } catch (error) {
+        console.error('Failed to fetch tags:', error);
+    }
+};
+
+// Apply filters to the file list
+const applyFilters = () => {
+    try {
+        router.get(
+            route('myfiles'),
+            {
+                search: searchQuery.value,
+                tags: selectedTags.value,
+                starred: showStarredOnly.value,
+                verified: showVerifiedOnly.value,
+                pending: showPendingOnly.value,
+                denied: showDeniedOnly.value,
+                sort: selectedSort.value,
+                direction: sortDirection.value,
+            },
+            { 
+                preserveState: true,
+                preserveScroll: true,
+            },
+        );
+    } catch (error) {
+        console.error('Error applying filters:', error);
+    }
+};
+
+// Debounced search
+let searchTimeout: number | null = null;
+
+const debouncedSearch = () => {
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
+    searchTimeout = setTimeout(() => {
+        applyFilters();
+    }, 300);
+};
+
+// Initialize on component mount
+onMounted(() => {
+    fetchTags();
+    
+    // Initialize filter values from URL if available
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    if (urlParams.get('search')) {
+        searchQuery.value = urlParams.get('search') || '';
+    }
+    if (urlParams.get('starred') === 'true') {
+        showStarredOnly.value = true;
+    }
+    if (urlParams.get('verified') === 'true') {
+        showVerifiedOnly.value = true;
+    }
+    if (urlParams.get('pending') === 'true') {
+        showPendingOnly.value = true;
+    }
+    if (urlParams.get('denied') === 'true') {
+        showDeniedOnly.value = true;
+    }
+    if (urlParams.get('sort')) {
+        selectedSort.value = urlParams.get('sort') || 'name';
+    }
+    if (urlParams.get('direction')) {
+        sortDirection.value = urlParams.get('direction') || 'asc';
+    }
+
+    // Set up watchers after component is mounted and values are initialized
+    // Watch for search query changes
+    watch(searchQuery, () => {
+        console.log('Search watcher triggered:', searchQuery.value);
+        debouncedSearch();
+    });
+
+    // Watch for filter changes - individual watchers for better debugging
+    watch(showStarredOnly, (newVal) => {
+        console.log('StarredOnly changed to:', newVal);
+        applyFilters();
+    });
+    
+    watch(showVerifiedOnly, (newVal) => {
+        console.log('VerifiedOnly changed to:', newVal);
+        applyFilters();
+    });
+    
+    watch(showPendingOnly, (newVal) => {
+        console.log('PendingOnly changed to:', newVal);
+        applyFilters();
+    });
+    
+    watch(showDeniedOnly, (newVal) => {
+        console.log('DeniedOnly changed to:', newVal);
+        applyFilters();
+    });
+
+    watch(selectedSort, (newVal) => {
+        console.log('Sort changed to:', newVal);
+        applyFilters();
+    });
+
+    watch(sortDirection, (newVal) => {
+        console.log('Sort direction changed to:', newVal);
+        applyFilters();
+    });
+
+    // Watch for tag selection changes
+    watch(selectedTags, (newTags) => {
+        console.log('Tags changed to:', newTags);
+        applyFilters();
+    }, { deep: true });
+});
 </script>
 
 <template>
@@ -190,6 +363,116 @@ const addToCollection = async () => {
 
             <!--Main Content-->
             <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
+                <!-- Search and Filters Section - MyFiles Specific -->
+                <div class="mb-4 space-y-3 rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm sm:mb-6 sm:space-y-4 sm:rounded-xl sm:p-4 sm:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] lg:p-6">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 class="font-pixel text-sm font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-base lg:text-lg">
+                            🔍 Manage My Files
+                        </h3>
+                        
+                        <!-- Search Bar -->
+                        <div class="flex flex-1 items-center gap-2 sm:max-w-md">
+                            <Input
+                                v-model="searchQuery"
+                                placeholder="Search my files..."
+                                class="flex-1 border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm placeholder:text-white/60 focus:border-yellow-400 sm:px-4"
+                            />
+                        </div>
+                    </div>
+
+                    <!-- Filter Row - MyFiles Specific -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <!-- Status Filters -->
+                        <label class="flex items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-white/20 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
+                            <input
+                                type="checkbox"
+                                v-model="showStarredOnly"
+                                class="h-3 w-3 rounded border-white/30 bg-white/10 text-yellow-400 focus:ring-yellow-400 sm:h-4 sm:w-4"
+                            />
+                            <StarIcon class="h-3 w-3 text-yellow-400 sm:h-4 sm:w-4" />
+                            <span class="hidden sm:inline">Starred</span>
+                        </label>
+                        
+                        <label class="flex items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-white/20 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
+                            <input
+                                type="checkbox"
+                                v-model="showVerifiedOnly"
+                                class="h-3 w-3 rounded border-white/30 bg-white/10 text-green-400 focus:ring-green-400 sm:h-4 sm:w-4"
+                            />
+                            <svg class="h-3 w-3 text-green-400 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="hidden sm:inline">Verified</span>
+                        </label>
+
+                        <label class="flex items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-white/20 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
+                            <input
+                                type="checkbox"
+                                v-model="showPendingOnly"
+                                class="h-3 w-3 rounded border-white/30 bg-white/10 text-yellow-400 focus:ring-yellow-400 sm:h-4 sm:w-4"
+                            />
+                            <svg class="h-3 w-3 text-yellow-400 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="hidden sm:inline">Pending</span>
+                        </label>
+
+                        <label class="flex items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-white/20 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
+                            <input
+                                type="checkbox"
+                                v-model="showDeniedOnly"
+                                class="h-3 w-3 rounded border-white/30 bg-white/10 text-red-400 focus:ring-red-400 sm:h-4 sm:w-4"
+                            />
+                            <svg class="h-3 w-3 text-red-400 sm:h-4 sm:w-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                            <span class="hidden sm:inline">Denied</span>
+                        </label>
+
+                        <!-- Sort Controls - Right aligned -->
+                        <div class="ml-auto flex items-center gap-1 sm:gap-2">
+                            <select
+                                v-model="selectedSort"
+                                class="rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400 sm:px-4 sm:py-3 sm:text-base"
+                            >
+                                <option v-for="option in sortOptions" :key="option.value" :value="option.value" class="bg-gray-800 text-white">
+                                    {{ option.label }}
+                                </option>
+                            </select>
+                            <Button
+                                @click="sortDirection = sortDirection === 'asc' ? 'desc' : 'asc'"
+                                class="border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:px-4 sm:py-3 sm:text-base"
+                            >
+                                {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <!-- Tags Filter - Always Open -->
+                    <div v-if="allTags.length" class="border-t border-white/10 pt-2">
+                        <div class="mb-2">
+                            <h3 class="text-xs font-medium text-white sm:text-sm">
+                                🏷️ Filter by tags ({{ selectedTags.length }} selected)
+                            </h3>
+                        </div>
+                        <div class="flex flex-wrap gap-1">
+                            <label
+                                v-for="tag in allTags"
+                                :key="tag.id"
+                                class="flex cursor-pointer items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                            >
+                                <input
+                                    type="checkbox"
+                                    :value="tag.id"
+                                    v-model="selectedTags"
+                                    class="rounded border-white/30 bg-white/10 text-purple-400 focus:ring-purple-400"
+                                />
+                                <span>{{ tag.name }}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <div v-if="files.data.length === 0" class="flex flex-col items-center justify-center py-12">
                     <div
                         class="mb-6 flex h-32 w-32 items-center justify-center rounded-full border-4 border-dashed border-gray-400 bg-gray-100 dark:border-gray-600 dark:bg-gray-800"
@@ -254,13 +537,6 @@ const addToCollection = async () => {
                                             </div>
                                         </div>
                                         
-                                        <!-- Star indicator -->
-                                        <StarIcon
-                                            :class="[
-                                                'h-4 w-4',
-                                                file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-white/30',
-                                            ]"
-                                        />
                                     </div>
 
                                     <!-- File title -->
@@ -332,6 +608,14 @@ const addToCollection = async () => {
                                         </div>
 
                                         <div class="flex gap-1 sm:gap-2">
+                                            <button
+                                                @click.prevent="toggleStar(file)"
+                                                class="rounded bg-yellow-500/20 px-3 py-2 text-xs text-yellow-400 transition-colors hover:bg-yellow-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                :disabled="file.is_starring"
+                                                title="Star file"
+                                            >
+                                                <StarIcon class="inline h-3 w-3 sm:h-4 sm:w-4" :class="file.is_starred ? 'fill-current' : ''" />
+                                            </button>
                                             <button
                                                 @click.prevent="openCollectionModal(file)"
                                                 class="rounded bg-purple-500/20 px-3 py-2 text-xs text-purple-400 transition-colors hover:bg-purple-500/30 sm:px-4 sm:py-2 sm:text-sm"
