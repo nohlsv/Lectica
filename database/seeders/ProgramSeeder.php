@@ -87,21 +87,6 @@ class ProgramSeeder extends Seeder
         ],
 
         // College of Arts and Science (new college)
-        [
-            'name' => 'Psychology',
-            'code' => 'PSY',
-            'college' => 'College of Arts and Science',
-        ],
-        [
-            'name' => 'English Language Studies',
-            'code' => 'ELS',
-            'college' => 'College of Arts and Science',
-        ],
-        [
-            'name' => 'Mathematics',
-            'code' => 'MATH',
-            'college' => 'College of Arts and Science',
-        ],
     ];
     public function run(): void
     {
