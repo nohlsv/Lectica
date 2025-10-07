@@ -191,6 +191,10 @@ const getRandomMonster = async () => {
 
 // Initialize battle state
 const initBattleState = async () => {
+    // Preserve current question's answers to prevent clearing during active gameplay
+    const currentQuestionIndex = currentIndex.value;
+    const preservedAnswer = userAnswers.value[currentQuestionIndex];
+    
     playerHp.value = 3; // Start with 3 hearts
     currentMonster.value = await getRandomMonster(); // Start with random monster
     attackMessages.value = [`A wild ${currentMonster.value.name} appears!`];
@@ -211,6 +215,12 @@ const initBattleState = async () => {
         });
     }
 
+    // Restore preserved answer if we're in the middle of a question
+    if (preservedAnswer !== undefined && currentQuestionIndex >= 0 && !showFeedback.value) {
+        userAnswers.value[currentQuestionIndex] = preservedAnswer;
+        console.log('Preserved current question answer during state reset');
+    }
+
     currentIndex.value = 0;
     showFeedback.value = false;
     battleFinished.value = false;
@@ -218,12 +228,24 @@ const initBattleState = async () => {
 
 initBattleState();
 
-// Sync battle state with props on file change
+// Track file ID to prevent unnecessary resets
+let previousFileId: number | null = props.file?.id || null;
+
+// Sync battle state with props on file change - only reset if file ID actually changes
 watch(
     () => props.file,
-    (newFile) => {
+    (newFile, oldFile) => {
         if (newFile) {
-            initBattleState();
+            const newFileId = newFile.id;
+            const actualFileChange = previousFileId !== newFileId;
+            
+            if (actualFileChange) {
+                console.log('File changed - resetting battle state:', previousFileId, '->', newFileId);
+                initBattleState();
+                previousFileId = newFileId;
+            } else {
+                console.log('File prop updated but same file ID - no reset needed:', newFileId);
+            }
         }
     },
     { immediate: true },
