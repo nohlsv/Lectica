@@ -227,10 +227,38 @@ class FileController extends Controller
                 return $query->whereHas('tags', function ($q) use ($request) {
                     $q->whereIn('tags.id', $request->tags);
                 }, '=', count($request->tags));
+            })
+            ->when($request->boolean('starred'), function ($query) use ($request) {
+                return $query->whereHas('starredBy', function ($q) {
+                    $q->where('user_id', auth()->id());
+                });
+            })
+            ->when($request->boolean('verified'), function ($query) use ($request) {
+                return $query->where('verified', true);
+            })
+            ->when($request->boolean('pending'), function ($query) use ($request) {
+                return $query->where('verified', false)->where('is_denied', false);
+            })
+            ->when($request->boolean('denied'), function ($query) use ($request) {
+                return $query->where('is_denied', true);
             });
 
+        // Handle sorting
+        $sort = $request->get('sort', 'created_at');
+        $direction = $request->get('direction', 'desc');
+        
+        $validSorts = ['name', 'created_at', 'star_count', 'updated_at'];
+        if (!in_array($sort, $validSorts)) {
+            $sort = 'created_at';
+        }
+        
+        if ($sort === 'star_count') {
+            $query->withCount('starredBy as star_count')->orderBy('star_count', $direction);
+        } else {
+            $query->orderBy($sort, $direction);
+        }
+
         $files = $query->withCount(['flashcards', 'quizzes'])
-            ->orderBy('created_at', 'desc')
             ->paginate(9)
             ->withQueryString();
 
