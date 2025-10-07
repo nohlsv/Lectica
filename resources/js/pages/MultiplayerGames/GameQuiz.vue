@@ -426,6 +426,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useGlobalMusic } from '@/composables/useGlobalMusic';
 
 interface Quiz {
     id: number;
@@ -1381,6 +1382,10 @@ const stopStateCheckInterval = () => {
 
 onMounted(() => {
     console.log('DEBUG: gameState.value.pvp_mode =', gameState.value.pvp_mode);
+
+    // Stop global music since this is a game page
+    const { stopGlobalMusic } = useGlobalMusic();
+    stopGlobalMusic();
 
     // Initialize selectedAnswer for enumeration questions on mount
     if (currentQuiz.value && currentQuiz.value.type === 'enumeration') {

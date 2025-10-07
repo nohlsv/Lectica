@@ -10,6 +10,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, SwordIcon, XIcon } from 'lucide-vue-next';
 import { computed, onMounted, ref, watch } from 'vue';
+import { useGlobalMusic } from '@/composables/useGlobalMusic';
 import { toast } from 'vue-sonner';
 
 interface Props {
@@ -512,7 +513,11 @@ function finishBattle() {
 
 // Ensure music starts when component is mounted
 onMounted(() => {
-    // Ensure music starts when component is mounted
+    // Stop global music since this is a game page
+    const { stopGlobalMusic } = useGlobalMusic();
+    stopGlobalMusic();
+
+    // Ensure battle music starts when component is mounted
     if (soundVolume.value > 0) {
         // Small delay to ensure everything is initialized
         setTimeout(() => {
