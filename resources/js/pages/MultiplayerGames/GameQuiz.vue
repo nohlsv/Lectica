@@ -1099,15 +1099,24 @@ const forceTimeoutViaAPI = async () => {
 };
 
 const resetForNextQuestion = () => {
-    if (currentQuiz.value?.type === 'enumeration') {
-        selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
-        previousQuizId = currentQuiz.value.id; // Update tracking
-    } else {
-        selectedAnswer.value = '';
-        if (currentQuiz.value) {
+    // Only reset answers if we haven't already answered or if it's truly a new question
+    const shouldResetAnswers = !answerSubmitted.value && !timedOut.value;
+    
+    if (shouldResetAnswers) {
+        if (currentQuiz.value?.type === 'enumeration') {
+            console.log('RESET: Clearing enumeration answers in resetForNextQuestion');
+            selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
             previousQuizId = currentQuiz.value.id; // Update tracking
+        } else {
+            selectedAnswer.value = '';
+            if (currentQuiz.value) {
+                previousQuizId = currentQuiz.value.id; // Update tracking
+            }
         }
+    } else {
+        console.log('Skipping answer reset - already answered or timed out');
     }
+    
     answerSubmitted.value = false;
     timedOut.value = false;
     awaitingTimeoutResponse.value = false; // Clear the timeout response flag
@@ -1132,16 +1141,24 @@ const resetForNextQuestion = () => {
 let previousQuizId: number | null = null;
 watch(currentQuiz, (newQuiz, oldQuiz) => {
     if (newQuiz && newQuiz.type === 'enumeration') {
-        // Only reset if this is actually a new question (different ID)
+        // Only reset if this is actually a new question (different ID) AND we haven't started answering
         const isNewQuestion = !previousQuizId || (newQuiz.id !== previousQuizId);
+        const hasUserInput = Array.isArray(selectedAnswer.value) && selectedAnswer.value.some(answer => answer && answer.trim() !== '');
         
-        if (isNewQuestion) {
-            console.log('New enumeration question detected, resetting answers');
+        if (isNewQuestion && !hasUserInput) {
+            console.log('RESET: New enumeration question detected, resetting answers');
             selectedAnswer.value = Array(newQuiz.answers.length).fill('');
             previousQuizId = newQuiz.id;
+        } else if (isNewQuestion && hasUserInput) {
+            console.log('New enumeration question detected, but preserving user input');
+            // Just update the tracking without clearing answers
+            previousQuizId = newQuiz.id;
         } else if (!Array.isArray(selectedAnswer.value) || selectedAnswer.value.length !== newQuiz.answers.length) {
-            // Only initialize if not properly initialized yet
-            selectedAnswer.value = Array(newQuiz.answers.length).fill('');
+            // Only initialize if not properly initialized yet and no user input
+            if (!hasUserInput) {
+                console.log('RESET: Initializing enumeration answers array');
+                selectedAnswer.value = Array(newQuiz.answers.length).fill('');
+            }
         }
     } else if (newQuiz) {
         // Update tracking for non-enumeration questions too
@@ -1613,9 +1630,9 @@ onMounted(() => {
                 const actualQuestionChange = previousQuestionId !== currentQuestionId;
                 
                 if (!wasMyTurn && isMyTurn.value && (actualTurnChange || actualQuestionChange)) {
-                    // It became my turn - reset for next question
-                    resetForNextQuestion();
+                    // It became my turn - reset for next question only if it's actually a new turn/question
                     console.log("It's now my turn, resetting for next question (Turn change:", actualTurnChange, "Question change:", actualQuestionChange, ")");
+                    resetForNextQuestion();
                 } else if (wasMyTurn && !isMyTurn.value && actualTurnChange) {
                     // It's no longer my turn - clear any timeout states and prepare for waiting
                     if (timedOut.value) {
