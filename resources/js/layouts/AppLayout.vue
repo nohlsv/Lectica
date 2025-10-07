@@ -41,5 +41,12 @@ withDefaults(defineProps<Props>(), {
     <Toaster richColors />
     <AppLayout :breadcrumbs="breadcrumbs">
         <slot />
+
+            <!--Footer-->
+            <footer class="font-pixel mt-0 w-full border-4 border-black bg-yellow-800 p-2 text-center text-white shadow-[4px_4px_0px_rgba(0,0,0,1)]">
+                <p class="text-lg">
+                    © 2025 <span class="border-2 border-white bg-black px-2 py-1 text-yellow-300 shadow-[2px_2px_0px_rgba(0,0,0,1)]">Lectica</span>
+                </p>
+            </footer>
     </AppLayout>
 </template>

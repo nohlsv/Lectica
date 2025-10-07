@@ -380,74 +380,74 @@ const getColorClasses = (color: string) => {
                 <hr class="-mx-4 h-2 border-2 border-black bg-red-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
             </div>
             <!--Main Content-->
-            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
+            <div class="bg-gradient flex h-full flex-1 flex-col gap-4 px-2 pt-4 pb-0 sm:px-4 lg:p-8">
                 <!-- Quick Actions -->
-                <div class="mb-8">
-                    <div class="mb-6 flex items-center justify-between">
+                <div class="mb-6 sm:mb-8">
+                    <div class="mb-4 flex flex-col items-start justify-between gap-2 sm:mb-6 sm:flex-row sm:items-center">
                         <h2
-                            class="wave text-lg font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-xl"
+                            class="wave text-base font-semibold text-yellow-500 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-lg md:text-xl"
                         >
                             <span>Q</span><span>u</span><span>i</span><span>c</span><span>k</span><span>_</span><span>A</span><span>c</span
                             ><span>t</span><span>i</span><span>o</span><span>n</span><span>s</span>
                         </h2>
-                        <div class="hidden sm:block">
+                        <div class="sm:block">
                             <span
-                                class="rounded-full border-2 border-yellow-400 bg-yellow-500 px-3 py-1 text-xs font-bold text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)]"
+                                class="rounded-full border-2 border-yellow-400 bg-yellow-500 px-2 py-1 text-xs font-bold text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:px-3"
                             >
                                 {{ isAdmin ? 'ADMIN' : isFaculty ? 'FACULTY' : 'STUDENT' }}
                             </span>
                         </div>
                     </div>
 
-                    <!-- Role-specific action grid -->
-                    <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+                    <!-- Role-specific action grid - Responsive grid -->
+                    <div class="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                         <Link
                             v-for="action in currentUserActions"
                             :key="action.title"
                             :href="action.href"
                             :class="[
-                                'group relative flex flex-col items-center justify-center rounded-xl border-2 p-4 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)]',
+                                'group relative flex flex-col items-center justify-center rounded-lg border-2 p-2 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all duration-200 hover:translate-y-[-1px] hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:rounded-xl sm:p-3 md:p-4 sm:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] hover:sm:shadow-[6px_6px_0px_rgba(0,0,0,0.8)]',
                                 getColorClasses(action.color),
                             ]"
                         >
-                            <!-- Icon -->
-                            <div class="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-white/50 shadow-lg backdrop-blur-sm">
+                            <!-- Icon - Responsive sizing -->
+                            <div class="mb-1 flex h-6 w-6 items-center justify-center rounded-full bg-white/50 shadow-lg backdrop-blur-sm sm:mb-2 sm:h-8 sm:w-8 md:h-10 md:w-10">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    width="20"
-                                    height="20"
+                                    width="12"
+                                    height="12"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
                                     stroke-width="2"
                                     stroke-linecap="round"
                                     stroke-linejoin="round"
-                                    class="text-gray-700 dark:text-gray-300"
+                                    class="text-gray-700 dark:text-gray-300 sm:h-4 sm:w-4 md:h-5 md:w-5"
                                 >
                                     <path :d="getIconSvg(action.icon)" />
                                 </svg>
                             </div>
 
-                            <!-- Title -->
-                            <span class="mb-1 text-center text-sm font-semibold text-gray-800 dark:text-gray-200">
+                            <!-- Title - Responsive text sizing -->
+                            <span class="mb-0.5 text-center text-xs font-semibold text-gray-800 dark:text-gray-200 sm:mb-1 sm:text-sm">
                                 {{ action.title }}
                             </span>
 
-                            <!-- Description -->
-                            <span class="text-center text-xs text-gray-600 dark:text-gray-400">
+                            <!-- Description - Hidden on small screens, shown on larger -->
+                            <span class="hidden text-center text-xs text-gray-600 dark:text-gray-400 sm:block">
                                 {{ action.description }}
                             </span>
 
                             <!-- Hover effect -->
                             <div
-                                class="absolute inset-0 rounded-xl bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                                class="absolute inset-0 rounded-lg bg-white/10 opacity-0 transition-opacity duration-200 group-hover:opacity-100 sm:rounded-xl"
                             ></div>
                         </Link>
                     </div>
 
                     <!-- Role-specific tip -->
-                    <div class="mt-4 rounded-lg border border-yellow-200 bg-yellow-50 p-3 dark:border-yellow-700 dark:bg-yellow-900/20">
-                        <p class="text-sm text-yellow-800 dark:text-yellow-200">
+                    <div class="mt-2 rounded-lg border border-yellow-200 bg-yellow-50 p-2 dark:border-yellow-700 dark:bg-yellow-900/20 sm:mt-4 sm:p-3">
+                        <p class="text-xs text-yellow-800 dark:text-yellow-200 sm:text-sm">
                             <span class="font-semibold">💡 Tip:</span>
                             <span v-if="isStudent">Complete quests and battles to level up and unlock new content!</span>
                             <span v-else-if="isFaculty">Use the verification system to moderate and approve student submissions.</span>
@@ -457,22 +457,22 @@ const getColorClasses = (color: string) => {
                 </div>
 
                 <!-- Notifications Section -->
-                <div class="mb-8 w-full">
-                    <div class="bg-container rounded-lg p-4">
-                        <div class="mb-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <Bell class="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Notifications</h3>
+                <div class="mb-6 w-full sm:mb-8">
+                    <div class="bg-container rounded-lg p-3 sm:p-4">
+                        <div class="mb-3 flex items-center justify-between sm:mb-4">
+                            <div class="flex items-center space-x-1 sm:space-x-2">
+                                <Bell class="h-4 w-4 text-blue-600 dark:text-blue-400 sm:h-5 sm:w-5" />
+                                <h3 class="text-sm font-semibold text-gray-900 dark:text-white sm:text-base lg:text-lg">Recent Notifications</h3>
                                 <span
                                     v-if="unreadNotificationsCount > 0"
-                                    class="flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white"
+                                    class="flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white sm:h-5 sm:w-5"
                                 >
                                     {{ unreadNotificationsCount > 9 ? '9+' : unreadNotificationsCount }}
                                 </span>
                             </div>
                             <Link
                                 :href="route('notifications.index')"
-                                class="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 sm:text-sm"
                             >
                                 View All
                             </Link>
@@ -594,12 +594,6 @@ const getColorClasses = (color: string) => {
                     </div>
                 </div>
             </div>
-            <!--Footer-->
-            <footer class="font-pixel mt-0 w-full border-4 border-black bg-yellow-800 p-2 text-center text-white shadow-[4px_4px_0px_rgba(0,0,0,1)]">
-                <p class="text-lg">
-                    © 2025 <span class="border-2 border-white bg-black px-2 py-1 text-yellow-300 shadow-[2px_2px_0px_rgba(0,0,0,1)]">Lectica</span>
-                </p>
-            </footer>
         </AppLayout>
     </div>
 </template>

@@ -90,7 +90,7 @@ function submit() {
             <div class="flex justify-between">
                 <Link :href="route('files.quizzes.index', file.id)">
                     <Button
-                        class="pixel-outline inline-flex items-center gap-2 rounded-md border-2 border-[#f68500] bg-red-700 px-2 py-2 font-bold text-[#fce085] shadow-md duration-300 hover:bg-yellow-400 hover:text-red-700"
+                        class="pixel-outline inline-flex items-center gap-2 rounded-md border-2 border-[#f68500] bg-red-700 px-2 py-2 font-bold shadow-md duration-300 hover:bg-yellow-400 hover:text-red-700"
                         variant="default"
                         >Back to Quizzes</Button
                     >
@@ -102,7 +102,7 @@ function submit() {
 
             <Card class="bg-container flex w-full justify-center self-center rounded-md border-8 border-[#680d00] p-6">
                 <CardHeader>
-                    <CardTitle class="pixel-outline text-center text-2xl text-[#fce085]">New Quiz for "{{ file.name }}"</CardTitle>
+                    <CardTitle class="pixel-outline text-center text-2xltext-white">New Quiz for "{{ file.name }}"</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-4">
@@ -113,13 +113,13 @@ function submit() {
                         </div>
 
                         <div>
-                            <Label class="pixel-outline mb-2 block" for="type">Quiz Type</Label>
+                            <Label class="pixel-outline text-white mb-2 block" for="type">Quiz Type</Label>
                             <Select v-model="form.type">
-                                <SelectTrigger class="pixel-outline border-yellow-300">
+                                <SelectTrigger class="pixel-outline text-white border-yellow-300">
                                     <SelectValue placeholder="Select a quiz type" />
                                 </SelectTrigger>
-                                <SelectContent class="pixel-outline border-yellow-300">
-                                    <SelectItem v-for="option in quizTypeOptions" :key="option.value" :value="option.value">
+                                <SelectContent class="pixel-outline text-white border-yellow-300">
+                                    <SelectItem v-for="option in quizTypeOptions" :key="option.value" :value="option.value" class="text-white">
                                         {{ option.label }}
                                     </SelectItem>
                                 </SelectContent>
@@ -129,10 +129,10 @@ function submit() {
 
                         <!-- Multiple Choice Options -->
                         <div v-if="form.type === 'multiple_choice'" class="space-y-4">
-                            <Label class="pixel-outline">Options</Label>
+                            <Label class="pixel-outline text-white">Options</Label>
                             <div v-for="(option, index) in form.options" :key="index" class="flex items-center space-x-2">
                                 <Input
-                                    class="pixel-outline border-yellow-300"
+                                    class="pixel-outline text-white border-yellow-300"
                                     v-model="form.options[index]"
                                     :placeholder="`Option ${index + 1}`"
                                     required
@@ -140,7 +140,7 @@ function submit() {
                                 <Button
                                     type="button"
                                     variant="default"
-                                    class="pixel-outline rounded-lg border-red-700 bg-red-500 text-[#fdf6ee] hover:bg-red-600"
+                                    class="pixel-outline text-white rounded-lg border-red-700 bg-red-500 text-[#fdf6ee] hover:bg-red-600"
                                     size="icon"
                                     @click="removeOption(index)"
                                     :disabled="form.options.length <= 2"
@@ -160,9 +160,9 @@ function submit() {
                             <InputError :message="form.errors.options" />
 
                             <div class="space-y-2">
-                                <Label class="pixel-outline">Correct Answer</Label>
+                                <Label class="pixel-outline text-white">Correct Answer</Label>
                                 <RadioGroup v-model="form.answers" class="space-y-2">
-                                    <div v-for="(option, index) in form.options" :key="index" class="pixel-outline flex items-center space-x-2">
+                                    <div v-for="(option, index) in form.options" :key="index" class="pixel-outline text-white flex items-center space-x-2">
                                         <RadioGroupItem class="border-yellow-300" :value="option" :id="`option-${index}`" />
                                         <Label :for="`option-${index}`">{{ option }}</Label>
                                     </div>
@@ -173,10 +173,10 @@ function submit() {
 
                         <!-- Enumeration Answers -->
                         <div v-if="form.type === 'enumeration'" class="space-y-4">
-                            <Label class="pixel-outline">Correct Answers (Enter each answer separately)</Label>
+                            <Label class="pixel-outline text-white">Correct Answers (Enter each answer separately)</Label>
                             <div v-for="(answer, index) in form.answers" :key="index" class="flex items-center space-x-2">
                                 <Input
-                                    class="pixel-outline border-yellow-300"
+                                    class="pixel-outline text-white border-yellow-300"
                                     v-model="form.answers[index]"
                                     :placeholder="`Answer ${index + 1}`"
                                     required
@@ -185,7 +185,7 @@ function submit() {
                                     type="button"
                                     variant="default"
                                     size="icon"
-                                    class="pixel-outline rounded-lg border-red-700 bg-red-500 text-[#fdf6ee] hover:bg-red-600"
+                                    class="pixel-outline text-white rounded-lg border-red-700 bg-red-500 text-[#fdf6ee] hover:bg-red-600"
                                     @click="removeAnswer(index)"
                                     :disabled="form.answers.length <= 1"
                                 >
@@ -206,15 +206,15 @@ function submit() {
 
                         <!-- True/False Answer -->
                         <div v-if="form.type === 'true_false'" class="space-y-2">
-                            <Label class="pixel-outline">Correct Answer</Label>
+                            <Label class="pixel-outline text-white">Correct Answer</Label>
                             <RadioGroup v-model="form.answers[0]">
                                 <div class="flex items-center space-x-2">
                                     <RadioGroupItem class="border-yellow-300" value="true" id="true" />
-                                    <Label class="pixel-outline" for="true">True</Label>
+                                    <Label class="pixel-outline text-white" for="true">True</Label>
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <RadioGroupItem class="border-yellow-300" value="false" id="false" />
-                                    <Label class="pixel-outline" for="false">False</Label>
+                                    <Label class="pixel-outline text-white" for="false">False</Label>
                                 </div>
                             </RadioGroup>
                             <InputError :message="form.errors.answers" />

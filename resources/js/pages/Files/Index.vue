@@ -25,6 +25,8 @@ interface File {
     star_count?: number;
     can_edit?: boolean;
     is_starring?: boolean; // Added property
+    verified: boolean;
+    tags?: Array<{ id: number; name: string }>;
 }
 
 interface Props {
@@ -188,71 +190,57 @@ const onCollectionSuccess = (message?: string) => {
 
             <!--Main Content-->
             <div class="bg-gradient flex h-full max-w-full flex-1 flex-col gap-4 overflow-hidden px-4 pt-6 pb-0 lg:p-8">
-                <!-- Search and Filters Section -->
-                <div class="mb-6 space-y-4 rounded-xl border-2 border-white/20 bg-black/30 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm">
-                    <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
-                        🔍 Search & Filter
-                    </h3>
-
-                    <div class="space-y-4">
+                <!-- Search and Filters Section - Compact Mobile-First -->
+                <div class="mb-4 space-y-3 rounded-lg border-2 border-white/20 bg-black/30 p-3 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm sm:mb-6 sm:space-y-4 sm:rounded-xl sm:p-4 sm:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] lg:p-6">
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                        <h3 class="font-pixel text-sm font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-base lg:text-lg">
+                            🔍 Search & Filter
+                        </h3>
+                        
                         <!-- Search Bar -->
-                        <div class="flex items-center gap-4">
+                        <div class="flex flex-1 items-center gap-2 sm:max-w-md">
                             <Input
                                 v-model="searchQuery"
+                                @input="applyFilters"
                                 placeholder="Search files..."
-                                class="flex-1 border-2 border-white/30 bg-white/10 text-white backdrop-blur-sm placeholder:text-white/60 focus:border-yellow-400"
+                                class="flex-1 border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm placeholder:text-white/60 focus:border-yellow-400 sm:px-4"
                             />
-                            <Button
-                                @click="applyFilters"
-                                class="font-pixel border-2 border-yellow-400 bg-yellow-500 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-yellow-400 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
-                            >
-                                Search
-                            </Button>
                         </div>
+                    </div>
 
-                        <!-- Filter Options -->
-                        <div class="flex flex-wrap items-center gap-4">
-                            <label
-                                class="flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm"
-                            >
-                                <input
-                                    type="checkbox"
-                                    v-model="showStarredOnly"
-                                    @change="applyFilters"
-                                    class="rounded border-white/30 bg-white/10 text-yellow-400 focus:ring-yellow-400"
-                                />
-                                <StarIcon class="h-4 w-4" />
-                                <span>Starred Only</span>
-                            </label>
-                            <label
-                                class="flex items-center gap-2 rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm font-medium text-white backdrop-blur-sm"
-                            >
-                                <input
-                                    type="checkbox"
-                                    v-model="showSameProgramOnly"
-                                    @change="applyFilters"
-                                    class="rounded border-white/30 bg-white/10 text-blue-400 focus:ring-blue-400"
-                                />
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"
-                                    />
-                                </svg>
-                                <span>Same Program</span>
-                            </label>
-                        </div>
+                    <!-- Compact Filter Row -->
+                    <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <!-- Quick Filters -->
+                        <label class="flex items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-white/20 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
+                            <input
+                                type="checkbox"
+                                v-model="showStarredOnly"
+                                @change="applyFilters"
+                                class="h-3 w-3 rounded border-white/30 bg-white/10 text-yellow-400 focus:ring-yellow-400 sm:h-4 sm:w-4"
+                            />
+                            <StarIcon class="h-3 w-3 sm:h-4 sm:w-4" />
+                            <span class="hidden sm:inline">Starred</span>
+                        </label>
+                        
+                        <label class="flex items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs font-medium text-white backdrop-blur-sm hover:bg-white/20 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm">
+                            <input
+                                type="checkbox"
+                                v-model="showSameProgramOnly"
+                                @change="applyFilters"
+                                class="h-3 w-3 rounded border-white/30 bg-white/10 text-blue-400 focus:ring-blue-400 sm:h-4 sm:w-4"
+                            />
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                            </svg>
+                            <span class="hidden sm:inline">My Program</span>
+                        </label>
 
-                        <!-- Sort Controls -->
-                        <div class="flex flex-wrap items-center gap-3">
-                            <span class="text-sm font-medium text-white">Sort by:</span>
+                        <!-- Sort Controls - Right aligned -->
+                        <div class="ml-auto flex items-center gap-1 sm:gap-2">
                             <select
-                                id="sort"
                                 v-model="selectedSort"
                                 @change="applyFilters"
-                                class="rounded-lg border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400"
+                                class="rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400 sm:px-3 sm:py-2 sm:text-sm"
                             >
                                 <option v-for="option in sortOptions" :key="option.value" :value="option.value" class="bg-gray-800 text-white">
                                     {{ option.label }}
@@ -263,20 +251,29 @@ const onCollectionSuccess = (message?: string) => {
                                     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
                                     applyFilters();
                                 "
-                                class="font-pixel border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                                class="border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:px-3 sm:py-2 sm:text-sm"
                             >
-                                {{ sortDirection === 'asc' ? '↑ Ascending' : '↓ Descending' }}
+                                {{ sortDirection === 'asc' ? '↑' : '↓' }}
                             </Button>
                         </div>
+                    </div>
 
-                        <!-- Tags Filter -->
-                        <div v-if="allTags.length" class="space-y-2">
-                            <span class="text-sm font-medium text-white">Filter by tags:</span>
-                            <div class="flex flex-wrap gap-2">
+                    <!-- Tags Filter - Collapsible -->
+                    <div v-if="allTags.length" class="border-t border-white/10 pt-2">
+                        <details class="group">
+                            <summary class="cursor-pointer text-xs font-medium text-white hover:text-yellow-400 sm:text-sm">
+                                <span class="inline-flex items-center gap-1">
+                                    🏷️ Filter by tags ({{ selectedTags.length }} selected)
+                                    <svg class="h-3 w-3 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                            </summary>
+                            <div class="mt-2 flex flex-wrap gap-1">
                                 <label
                                     v-for="tag in allTags"
                                     :key="tag.id"
-                                    class="flex cursor-pointer items-center gap-1 rounded-lg border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-all hover:bg-white/20"
+                                    class="flex cursor-pointer items-center gap-1 rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-all hover:bg-white/20"
                                 >
                                     <input
                                         type="checkbox"
@@ -288,89 +285,135 @@ const onCollectionSuccess = (message?: string) => {
                                     <span>{{ tag.name }}</span>
                                 </label>
                             </div>
-                        </div>
+                        </details>
                     </div>
                 </div>
 
-                <!-- Files Data Table -->
+                <!-- Files Cards Grid -->
                 <div
-                    class="bg-container max-w-full overflow-hidden rounded-xl border-2 border-white/20 p-6 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm"
+                    class="bg-container max-w-full overflow-hidden rounded-xl border-2 border-white/20 p-4 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] backdrop-blur-sm sm:p-6"
                 >
-                    <h3 class="font-pixel mb-4 text-lg font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                    <h3 class="font-pixel mb-4 text-base font-bold text-yellow-400 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-lg">
                         📚 Files
                     </h3>
 
-                    <div class="bg-container overflow-hidden rounded-lg border border-white/20 backdrop-blur-sm">
-                        <div class="overflow-x-auto">
-                            <DataTable :data="files" :columns="columns" class="w-full table-auto">
-                                <!-- Custom cell template for multiline description -->
-                                <template #cell-description="{ item }">
-                                    <p class="text-muted-foreground max-w-xs text-sm leading-relaxed break-words">
-                                        {{ item.description ? item.description : 'No description provided' }}
-                                    </p>
-                                </template>
-                                <template #cell-created_at="{ item }">
-                                    <p class="text-muted-foreground max-w-full text-sm">
-                                        By {{ item.user.last_name }}, {{ item.user.first_name }}<br />
-                                        {{ useDateFormat(item.created_at, 'MMM D, YYYY').value }}
-                                    </p>
-                                </template>
+                    <!-- No files message -->
+                    <div v-if="files.data.length === 0" class="py-12 text-center">
+                        <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-gray-100 p-4 dark:bg-gray-800">
+                            <FileIcon class="h-8 w-8 text-gray-400" />
+                        </div>
+                        <h3 class="text-lg font-medium text-white">No files found</h3>
+                        <p class="mt-2 text-sm text-white/70">Try adjusting your search or filters to find what you're looking for.</p>
+                    </div>
 
-                                <template #actions="{ item }">
-                                    <div class="flex flex-shrink-0 items-center gap-1 whitespace-nowrap">
+                    <!-- Files Grid -->
+                    <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div
+                            v-for="file in files.data"
+                            :key="file.id"
+                            class="group relative overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:shadow-lg"
+                        >
+                            <!-- File Card Content -->
+                            <Link :href="`/files/${file.id}`" class="block p-4">
+                                <!-- Header with file icon and verification status -->
+                                <div class="mb-3 flex items-start justify-between">
+                                    <div class="flex items-center gap-2">
+                                        <div class="flex h-8 w-8 items-center justify-center rounded bg-blue-500/20">
+                                            <FileIcon class="h-4 w-4 text-blue-400" />
+                                        </div>
+                                        <div v-if="file.verified" class="rounded-full bg-green-500/20 p-1">
+                                            <svg class="h-3 w-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Star indicator -->
+                                    <StarIcon
+                                        :class="[
+                                            'h-4 w-4 transition-colors',
+                                            file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-white/30',
+                                        ]"
+                                    />
+                                </div>
+
+                                <!-- File title -->
+                                <h3 class="mb-2 line-clamp-2 text-sm font-semibold text-white group-hover:text-yellow-400 sm:text-base">
+                                    {{ file.name }}
+                                </h3>
+
+                                <!-- Description -->
+                                <p class="mb-3 line-clamp-2 text-xs text-white/70 sm:text-sm">
+                                    {{ file.description || 'No description provided' }}
+                                </p>
+
+                                <!-- File metadata -->
+                                <div class="mb-3 space-y-1 text-xs text-white/60">
+                                    <div class="flex items-center justify-between">
+                                        <span>By {{ file.user.first_name }} {{ file.user.last_name }}</span>
+                                        <span>{{ useDateFormat(file.created_at, 'MMM D, YYYY').value }}</span>
+                                    </div>
+                                    <div class="flex items-center justify-between">
+                                        <span>⭐ {{ file.star_count || 0 }} stars</span>
+                                        <span v-if="file.verified" class="text-green-400">✓ Verified</span>
+                                    </div>
+                                </div>
+
+                                <!-- Tags (if any) -->
+                                <div v-if="file.tags && file.tags.length > 0" class="mb-3 flex flex-wrap gap-1">
+                                    <span
+                                        v-for="tag in file.tags.slice(0, 3)"
+                                        :key="tag.id"
+                                        class="rounded bg-purple-500/20 px-2 py-0.5 text-xs text-purple-300"
+                                    >
+                                        {{ tag.name }}
+                                    </span>
+                                    <span v-if="file.tags.length > 3" class="text-xs text-white/50">
+                                        +{{ file.tags.length - 3 }} more
+                                    </span>
+                                </div>
+                            </Link>
+
+                            <!-- Action buttons -->
+                            <div class="border-t border-white/10 p-3">
+                                <div class="flex items-center justify-between gap-2">
+                                    <div class="flex gap-1">
                                         <Link
-                                            :href="`/files/${item.id}`"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-1.5 transition-all hover:bg-blue-400/30"
-                                            title="View file details"
+                                            :href="`/files/${file.id}`"
+                                            class="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-400 transition-colors hover:bg-blue-500/30"
+                                            title="View file"
                                         >
-                                            <EyeIcon class="mr-1 h-3 w-3 text-blue-300" />
-                                            <span class="font-pixel text-xs text-blue-300">View</span>
+                                            <EyeIcon class="inline h-3 w-3" />
                                         </Link>
                                         <Link
-                                            v-if="item.can_edit"
-                                            :href="`/files/${item.id}/edit`"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-green-400/70 bg-green-400/20 px-1.5 transition-all hover:bg-green-400/30"
+                                            v-if="file.can_edit"
+                                            :href="`/files/${file.id}/edit`"
+                                            class="rounded bg-green-500/20 px-2 py-1 text-xs text-green-400 transition-colors hover:bg-green-500/30"
                                             title="Edit file"
                                         >
-                                            <PencilIcon class="mr-1 h-3 w-3 text-green-300" />
-                                            <span class="font-pixel text-xs text-green-300">Edit</span>
+                                            <PencilIcon class="inline h-3 w-3" />
                                         </Link>
-                                        <div
-                                            v-else
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-gray-400/70 bg-gray-400/20 px-1.5 opacity-40"
-                                            title="Only the uploader can edit this file"
-                                        >
-                                            <PencilIcon class="mr-1 h-3 w-3 text-gray-300" />
-                                            <span class="font-pixel text-xs text-gray-300">Edit</span>
-                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-1">
                                         <button
-                                            @click.prevent="toggleStar(item)"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-1.5 transition-all hover:bg-yellow-400/30"
-                                            :disabled="item.is_starring"
-                                            title="Star File"
+                                            @click.prevent="toggleStar(file)"
+                                            class="rounded bg-yellow-500/20 px-2 py-1 text-xs text-yellow-400 transition-colors hover:bg-yellow-500/30"
+                                            :disabled="file.is_starring"
+                                            title="Star file"
                                         >
-                                            <StarIcon
-                                                :class="[
-                                                    'mr-1 h-3 w-3 transition-colors',
-                                                    item.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300',
-                                                ]"
-                                            />
-                                            <span class="font-pixel mr-1 text-xs" :class="item.is_starred ? 'text-yellow-300' : 'text-white/60'">
-                                                {{ item.is_starred ? 'Starred' : 'Star' }}
-                                            </span>
-                                            <span class="text-xs text-white/60">({{ item.star_count || 0 }})</span>
+                                            <StarIcon class="inline h-3 w-3" :class="file.is_starred ? 'fill-current' : ''" />
                                         </button>
                                         <button
-                                            @click.prevent="openCollectionModal(item)"
-                                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#a85a47]/20 px-1.5 transition-all hover:bg-[#a85a47]/30"
-                                            title="Add to Collection"
+                                            @click.prevent="openCollectionModal(file)"
+                                            class="rounded bg-purple-500/20 px-2 py-1 text-xs text-purple-400 transition-colors hover:bg-purple-500/30"
+                                            title="Add to collection"
                                         >
-                                            <PlusIcon class="mr-1 h-3 w-3 text-[#ffd700]" />
-                                            <span class="font-pixel text-xs text-[#ffd700]">Collection</span>
+                                            <PlusIcon class="inline h-3 w-3" />
                                         </button>
                                     </div>
-                                </template>
-                            </DataTable>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

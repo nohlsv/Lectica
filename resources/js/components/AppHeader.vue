@@ -273,13 +273,13 @@ const getExperienceProgress = () => {
                                 <Menu class="pixel-outline-icon h-5 w-5" />
                             </Button>
                         </SheetTrigger>
-                        <SheetContent side="left" class="w-[300px] p-6">
+                        <SheetContent side="left" class="w-[300px] p-6 flex flex-col h-full">
                             <SheetTitle class="sr-only">Navigation Menu</SheetTitle>
-                            <SheetHeader class="flex justify-start text-left">
+                            <SheetHeader class="flex justify-start text-left flex-shrink-0">
                                 <AppLogoIcon class="size-6 fill-current text-black dark:text-white" />
                             </SheetHeader>
-                            <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-6">
-                                <nav class="-mx-3 space-y-4">
+                            <div class="flex h-full flex-1 flex-col justify-between space-y-4 py-6 overflow-hidden">
+                                <nav class="-mx-3 space-y-4 flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800 pr-2">
                                     <!-- Primary Navigation -->
                                     <div class="space-y-1">
                                         <Link
