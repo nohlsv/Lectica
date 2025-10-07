@@ -1448,6 +1448,6 @@ class MultiplayerGameController extends Controller
         }
 
         // Join the game directly
-        return $this->join($game);
+        return $this->join(request(), $game);
     }
 }
