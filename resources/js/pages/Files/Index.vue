@@ -176,10 +176,11 @@ const onCollectionSuccess = (message?: string) => {
                     <div class="sm:ml-auto">
                         <Link href="/files/create">
                             <Button
-                                class="font-pixel border-2 border-white bg-green-600 px-4 py-2 text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all hover:translate-y-[-2px] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)]"
+                                class="font-pixel border-2 border-white bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all hover:translate-y-[-2px] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] sm:px-6 sm:py-4 sm:text-base"
                             >
-                                <PlusIcon class="mr-2 h-4 w-4" />
-                                Upload New File
+                                <PlusIcon class="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                <span class="hidden sm:inline">Upload New File</span>
+                                <span class="sm:hidden">Upload</span>
                             </Button>
                         </Link>
                     </div>
@@ -240,7 +241,7 @@ const onCollectionSuccess = (message?: string) => {
                             <select
                                 v-model="selectedSort"
                                 @change="applyFilters"
-                                class="rounded border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400 sm:px-3 sm:py-2 sm:text-sm"
+                                class="rounded border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm focus:border-yellow-400 focus:ring-yellow-400 sm:px-4 sm:py-3 sm:text-base"
                             >
                                 <option v-for="option in sortOptions" :key="option.value" :value="option.value" class="bg-gray-800 text-white">
                                     {{ option.label }}
@@ -251,7 +252,7 @@ const onCollectionSuccess = (message?: string) => {
                                     sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
                                     applyFilters();
                                 "
-                                class="border border-white/30 bg-white/10 px-2 py-1 text-xs text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:px-3 sm:py-2 sm:text-sm"
+                                class="border border-white/30 bg-white/10 px-3 py-2 text-sm text-white backdrop-blur-sm transition-all hover:bg-white/20 sm:px-4 sm:py-3 sm:text-base"
                             >
                                 {{ sortDirection === 'asc' ? '↑' : '↓' }}
                             </Button>
@@ -329,12 +330,6 @@ const onCollectionSuccess = (message?: string) => {
                                     </div>
                                     
                                     <!-- Star indicator -->
-                                    <StarIcon
-                                        :class="[
-                                            'h-4 w-4 transition-colors',
-                                            file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-white/30',
-                                        ]"
-                                    />
                                 </div>
 
                                 <!-- File title -->
@@ -377,39 +372,39 @@ const onCollectionSuccess = (message?: string) => {
                             <!-- Action buttons -->
                             <div class="border-t border-white/10 p-3">
                                 <div class="flex items-center justify-between gap-2">
-                                    <div class="flex gap-1">
+                                    <div class="flex gap-1 sm:gap-2">
                                         <Link
                                             :href="`/files/${file.id}`"
-                                            class="rounded bg-blue-500/20 px-2 py-1 text-xs text-blue-400 transition-colors hover:bg-blue-500/30"
+                                            class="rounded bg-blue-500/20 px-3 py-2 text-xs text-blue-400 transition-colors hover:bg-blue-500/30 sm:px-4 sm:py-2 sm:text-sm"
                                             title="View file"
                                         >
-                                            <EyeIcon class="inline h-3 w-3" />
+                                            <EyeIcon class="inline h-3 w-3 sm:h-4 sm:w-4" />
                                         </Link>
                                         <Link
                                             v-if="file.can_edit"
                                             :href="`/files/${file.id}/edit`"
-                                            class="rounded bg-green-500/20 px-2 py-1 text-xs text-green-400 transition-colors hover:bg-green-500/30"
+                                            class="rounded bg-green-500/20 px-3 py-2 text-xs text-green-400 transition-colors hover:bg-green-500/30 sm:px-4 sm:py-2 sm:text-sm"
                                             title="Edit file"
                                         >
-                                            <PencilIcon class="inline h-3 w-3" />
+                                            <PencilIcon class="inline h-3 w-3 sm:h-4 sm:w-4" />
                                         </Link>
                                     </div>
 
-                                    <div class="flex gap-1">
+                                    <div class="flex gap-1 sm:gap-2">
                                         <button
                                             @click.prevent="toggleStar(file)"
-                                            class="rounded bg-yellow-500/20 px-2 py-1 text-xs text-yellow-400 transition-colors hover:bg-yellow-500/30"
+                                            class="rounded bg-yellow-500/20 px-3 py-2 text-xs text-yellow-400 transition-colors hover:bg-yellow-500/30 sm:px-4 sm:py-2 sm:text-sm"
                                             :disabled="file.is_starring"
                                             title="Star file"
                                         >
-                                            <StarIcon class="inline h-3 w-3" :class="file.is_starred ? 'fill-current' : ''" />
+                                            <StarIcon class="inline h-3 w-3 sm:h-4 sm:w-4" :class="file.is_starred ? 'fill-current' : ''" />
                                         </button>
                                         <button
                                             @click.prevent="openCollectionModal(file)"
-                                            class="rounded bg-purple-500/20 px-2 py-1 text-xs text-purple-400 transition-colors hover:bg-purple-500/30"
+                                            class="rounded bg-purple-500/20 px-3 py-2 text-xs text-purple-400 transition-colors hover:bg-purple-500/30 sm:px-4 sm:py-2 sm:text-sm"
                                             title="Add to collection"
                                         >
-                                            <PlusIcon class="inline h-3 w-3" />
+                                            <PlusIcon class="inline h-3 w-3 sm:h-4 sm:w-4" />
                                         </button>
                                     </div>
                                 </div>
