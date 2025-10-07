@@ -7,7 +7,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type Tag } from '@/types';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { FileIcon, FolderIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
+import { EyeIcon, FileIcon, FolderIcon, PencilIcon, PlusIcon, StarIcon } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -175,10 +175,11 @@ const addToCollection = async () => {
                     <div class="sm:ml-auto">
                         <Link :href="route('files.create')">
                             <Button
-                                class="font-pixel border-2 border-white bg-green-600 px-4 py-2 text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all hover:translate-y-[-2px] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)]"
+                                class="font-pixel border-2 border-white bg-green-600 px-4 py-3 text-sm font-semibold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all hover:translate-y-[-2px] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] sm:px-6 sm:py-4 sm:text-base"
                             >
-                                <PlusIcon class="mr-2 h-4 w-4" />
-                                Add New File
+                                <PlusIcon class="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                                <span class="hidden sm:inline">Add New File</span>
+                                <span class="sm:hidden">Add</span>
                             </Button>
                         </Link>
                     </div>
@@ -203,10 +204,11 @@ const addToCollection = async () => {
                     </p>
                     <Link :href="route('files.create')">
                         <Button
-                            class="font-pixel border-2 border-white bg-green-600 px-6 py-3 text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all hover:translate-y-[-2px] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)]"
+                            class="font-pixel border-2 border-white bg-green-600 px-6 py-3 text-sm font-semibold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.8)] transition-all hover:translate-y-[-2px] hover:bg-green-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.8)] sm:px-8 sm:py-4 sm:text-base"
                         >
-                            <PlusIcon class="mr-2 h-4 w-4" />
-                            Upload Your First File
+                            <PlusIcon class="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
+                            <span class="hidden sm:inline">Upload Your First File</span>
+                            <span class="sm:hidden">Upload File</span>
                         </Button>
                     </Link>
                 </div>
@@ -221,93 +223,125 @@ const addToCollection = async () => {
                             </div>
                             <hr class="h-1 flex-1 rounded bg-gradient-to-r from-yellow-400 to-transparent" />
                         </div>
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3">
-                            <div v-for="file in files" :key="file.id" class="group bg-container relative">
-                                <Link :href="route('files.show', file.id)" class="block no-underline">
-                                    <Card
-                                        class="bg-container h-full border-2 border-gray-300 transition-all duration-200 hover:translate-y-[-2px] hover:shadow-[8px_8px_0px_rgba(0,0,0,0.8)] dark:border-gray-600 dark:bg-gray-800/90"
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div
+                                v-for="file in files"
+                                :key="file.id"
+                                class="group relative overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:shadow-lg"
+                            >
+                                <!-- File Card Content -->
+                                <Link :href="route('files.show', file.id)" class="block p-4">
+                                    <!-- Header with file icon and verification status -->
+                                    <div class="mb-3 flex items-start justify-between">
+                                        <div class="flex items-center gap-2">
+                                            <div class="flex h-8 w-8 items-center justify-center rounded bg-blue-500/20">
+                                                <FileIcon class="h-4 w-4 text-blue-400" />
+                                            </div>
+                                            <div v-if="file.verified" class="rounded-full bg-green-500/20 p-1">
+                                                <svg class="h-3 w-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div v-else-if="file.is_denied" class="rounded-full bg-red-500/20 p-1">
+                                                <svg class="h-3 w-3 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                            <div v-else class="rounded-full bg-yellow-500/20 p-1">
+                                                <svg class="h-3 w-3 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Star indicator -->
+                                        <StarIcon
+                                            :class="[
+                                                'h-4 w-4',
+                                                file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-white/30',
+                                            ]"
+                                        />
+                                    </div>
+
+                                    <!-- File title -->
+                                    <h3 class="mb-2 line-clamp-2 text-sm font-semibold text-white group-hover:text-yellow-400 sm:text-base">
+                                        {{ file.name }}
+                                    </h3>
+
+                                    <!-- Description -->
+                                    <p class="mb-3 line-clamp-2 text-xs text-white/70 sm:text-sm">
+                                        {{ file.description || 'No description provided' }}
+                                    </p>
+
+                                    <!-- File metadata -->
+                                    <div class="mb-3 space-y-1 text-xs text-white/60">
+                                        <div class="flex items-center justify-between">
+                                            <span>Created</span>
+                                            <span>{{ new Date(file.created_at).toLocaleDateString() }}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span>⭐ {{ file.star_count || 0 }} stars</span>
+                                            <span v-if="file.verified" class="text-green-400">✓ Verified</span>
+                                            <span v-else-if="file.is_denied" class="text-red-400">✗ Denied</span>
+                                            <span v-else class="text-yellow-400">⏳ Pending</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Denial Reason -->
+                                    <div
+                                        v-if="file.is_denied && file.denial_reason"
+                                        class="mb-3 rounded border border-red-300/20 bg-red-500/10 p-2 text-xs"
                                     >
-                                        <CardHeader class="pb-2">
-                                            <div class="flex items-start justify-between">
-                                                <div class="flex items-center">
-                                                    <FileIcon class="text-primary mr-2 h-5 w-5" />
-                                                    <CardTitle class="max-w-[200px] truncate text-lg" :title="file.name">
-                                                        {{ file.name }}
-                                                    </CardTitle>
-                                                </div>
-                                                <div class="flex items-center gap-1">
-                                                    <StarIcon
-                                                        :class="[
-                                                            'h-5 w-5',
-                                                            file.is_starred ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground',
-                                                        ]"
-                                                    />
-                                                    <button
-                                                        @click.stop.prevent="openCollectionModal(file)"
-                                                        class="border-border bg-background text-foreground hover:bg-accent inline-flex h-6 w-6 items-center justify-center rounded-md border opacity-0 transition-colors group-hover:opacity-100"
-                                                        title="Add to Collection"
-                                                    >
-                                                        <PlusIcon class="h-3 w-3" />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </CardHeader>
-                                        <CardContent>
-                                            <CardDescription class="line-clamp-2">
-                                                {{ file.description || 'No description provided' }}
-                                            </CardDescription>
+                                        <strong class="text-red-300">Denial Reason:</strong>
+                                        <p class="mt-1 text-red-400">{{ file.denial_reason }}</p>
+                                    </div>
 
-                                            <!-- Verification Status -->
-                                            <div class="mt-2">
-                                                <Badge v-if="file.verified" class="border-2 border-[#0c0a03] bg-green-500 text-xs text-white">
-                                                    Verified
-                                                </Badge>
-                                                <Badge
-                                                    v-else-if="file.is_denied"
-                                                    class="border-2 border-[#0c0a03] bg-red-500 text-xs text-white"
-                                                    :title="file.denial_reason"
-                                                >
-                                                    Denied
-                                                </Badge>
-                                                <Badge v-else class="border-2 border-[#0c0a03] bg-yellow-500 text-xs text-black">
-                                                    Pending Review
-                                                </Badge>
-                                            </div>
-
-                                            <!-- Denial Reason -->
-                                            <div
-                                                v-if="file.is_denied && file.denial_reason"
-                                                class="mt-2 rounded border border-red-300 bg-red-50 p-2 text-xs dark:border-red-600 dark:bg-red-900/20"
-                                            >
-                                                <strong class="text-red-700 dark:text-red-300">Denial Reason:</strong>
-                                                <p class="mt-1 text-red-600 dark:text-red-400">{{ file.denial_reason }}</p>
-                                            </div>
-
-                                            <div class="mt-2 flex flex-wrap gap-1">
-                                                <Badge
-                                                    v-for="tag in file.tags"
-                                                    :key="tag.id"
-                                                    class="truncate border-2 border-[#0c0a03] bg-[#faa800] text-xs text-[#661500]"
-                                                    :title="tag.name"
-                                                >
-                                                    {{ tag.name }}
-                                                </Badge>
-                                            </div>
-                                        </CardContent>
-                                        <CardFooter class="pixel-outline flex justify-between text-xs tracking-wide text-[#fdf6ee]/75">
-                                            <span>Created: {{ new Date(file.created_at).toLocaleDateString() }}</span>
-                                            <div class="flex items-center space-x-2">
-                                                <div class="flex items-center">
-                                                    <span>{{ file.flashcards_count || 0 }} flashcards</span>
-                                                </div>
-                                                <span>•</span>
-                                                <div class="flex items-center">
-                                                    <span>{{ file.quizzes_count || 0 }} quizzes</span>
-                                                </div>
-                                            </div>
-                                        </CardFooter>
-                                    </Card>
+                                    <!-- Tags (if any) -->
+                                    <div v-if="file.tags && file.tags.length > 0" class="mb-3 flex flex-wrap gap-1">
+                                        <span
+                                            v-for="tag in file.tags.slice(0, 3)"
+                                            :key="tag.id"
+                                            class="rounded bg-purple-500/20 px-2 py-0.5 text-xs text-purple-300"
+                                        >
+                                            {{ tag.name }}
+                                        </span>
+                                        <span v-if="file.tags.length > 3" class="text-xs text-white/50">
+                                            +{{ file.tags.length - 3 }} more
+                                        </span>
+                                    </div>
                                 </Link>
+
+                                <!-- Action buttons -->
+                                <div class="border-t border-white/10 p-3">
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="flex gap-1 sm:gap-2">
+                                            <Link
+                                                :href="route('files.show', file.id)"
+                                                class="rounded bg-blue-500/20 px-3 py-2 text-xs text-blue-400 transition-colors hover:bg-blue-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                title="View file"
+                                            >
+                                                <EyeIcon class="inline h-3 w-3 sm:h-4 sm:w-4" />
+                                            </Link>
+                                            <Link
+                                                :href="route('files.edit', file.id)"
+                                                class="rounded bg-green-500/20 px-3 py-2 text-xs text-green-400 transition-colors hover:bg-green-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                title="Edit file"
+                                            >
+                                                <PencilIcon class="inline h-3 w-3 sm:h-4 sm:w-4" />
+                                            </Link>
+                                        </div>
+
+                                        <div class="flex gap-1 sm:gap-2">
+                                            <button
+                                                @click.prevent="openCollectionModal(file)"
+                                                class="rounded bg-purple-500/20 px-3 py-2 text-xs text-purple-400 transition-colors hover:bg-purple-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                title="Add to collection"
+                                            >
+                                                <PlusIcon class="inline h-3 w-3 sm:h-4 sm:w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
