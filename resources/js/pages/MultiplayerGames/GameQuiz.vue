@@ -941,8 +941,12 @@ const forceTimeoutViaAPI = async () => {
 const resetForNextQuestion = () => {
     if (currentQuiz.value?.type === 'enumeration') {
         selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+        previousQuizId = currentQuiz.value.id; // Update tracking
     } else {
         selectedAnswer.value = '';
+        if (currentQuiz.value) {
+            previousQuizId = currentQuiz.value.id; // Update tracking
+        }
     }
     answerSubmitted.value = false;
     timedOut.value = false;
@@ -957,11 +961,23 @@ const resetForNextQuestion = () => {
 };
 
 // Watch for question change to reset enumeration fields
-watch(currentQuiz, (newQuiz) => {
+let previousQuizId: number | null = null;
+watch(currentQuiz, (newQuiz, oldQuiz) => {
     if (newQuiz && newQuiz.type === 'enumeration') {
-        if (!Array.isArray(selectedAnswer.value) || selectedAnswer.value.length !== newQuiz.answers.length) {
+        // Only reset if this is actually a new question (different ID)
+        const isNewQuestion = !previousQuizId || (newQuiz.id !== previousQuizId);
+        
+        if (isNewQuestion) {
+            console.log('New enumeration question detected, resetting answers');
+            selectedAnswer.value = Array(newQuiz.answers.length).fill('');
+            previousQuizId = newQuiz.id;
+        } else if (!Array.isArray(selectedAnswer.value) || selectedAnswer.value.length !== newQuiz.answers.length) {
+            // Only initialize if not properly initialized yet
             selectedAnswer.value = Array(newQuiz.answers.length).fill('');
         }
+    } else if (newQuiz) {
+        // Update tracking for non-enumeration questions too
+        previousQuizId = newQuiz.id;
     }
 });
 
@@ -1174,6 +1190,9 @@ onMounted(() => {
     // Initialize selectedAnswer for enumeration questions on mount
     if (currentQuiz.value && currentQuiz.value.type === 'enumeration') {
         selectedAnswer.value = Array(currentQuiz.value.answers.length).fill('');
+        previousQuizId = currentQuiz.value.id; // Initialize tracking
+    } else if (currentQuiz.value) {
+        previousQuizId = currentQuiz.value.id; // Initialize tracking for non-enumeration
     }
 
     if (window.Echo) {
@@ -1330,10 +1349,16 @@ onMounted(() => {
                     }
                 }
 
-                // Update the current question if it's included in the websocket data
+                // Update the current question if it's included in the websocket data and actually changed
                 if (e.game.currentQuestion !== undefined) {
-                    currentQuestion.value = e.game.currentQuestion;
-                    console.log('Updated current question from websocket:', e.game.currentQuestion);
+                    const newQuestionId = e.game.currentQuestion?.id;
+                    const currentQuestionId = currentQuestion.value?.id;
+                    
+                    // Only update if the question ID is actually different
+                    if (newQuestionId !== currentQuestionId) {
+                        console.log('Question changed from websocket:', currentQuestionId, '->', newQuestionId);
+                        currentQuestion.value = e.game.currentQuestion;
+                    }
                 }
 
                 // Show accuracy animations if changed (using the updated values)
