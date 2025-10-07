@@ -104,13 +104,36 @@ const initializeGlobalMusic = () => {
         globalMusicAudio.value.volume = globalMusicVolume.value;
         globalMusicAudio.value.preload = 'auto';
         
+        // Try to enable autoplay (some browsers support this)
+        globalMusicAudio.value.autoplay = true;
+        
+        // Set additional attributes that might help with autoplay
+        try {
+            globalMusicAudio.value.setAttribute('autoplay', '');
+            globalMusicAudio.value.setAttribute('preload', 'auto');
+        } catch (attrError) {
+            console.log('Global Music: Could not set autoplay attributes:', attrError);
+        }
+        
         // Add error handling
-        globalMusicAudio.value.addEventListener('error', (e) => {
+        globalMusicAudio.value.addEventListener('error', (e: Event) => {
             console.error('Global Music: Failed to load audio file:', e);
         });
         
         globalMusicAudio.value.addEventListener('canplaythrough', () => {
             console.log('Global Music: Audio file loaded successfully');
+            // Try to start playing as soon as it's ready
+            if (isGlobalMusicEnabled.value && !shouldDisableMusic()) {
+                startGlobalMusic();
+            }
+        });
+        
+        globalMusicAudio.value.addEventListener('loadeddata', () => {
+            console.log('Global Music: Audio data loaded');
+            // Another opportunity to try starting
+            if (isGlobalMusicEnabled.value && !shouldDisableMusic()) {
+                startGlobalMusic();
+            }
         });
         
         console.log('Global Music: Audio element created successfully');
@@ -123,14 +146,22 @@ const initializeGlobalMusic = () => {
     
     // Start music if enabled and not on a disabled page
     if (isGlobalMusicEnabled.value && !shouldDisableMusic()) {
-        // Delay to ensure page is fully loaded
+        // Try to start immediately
+        startGlobalMusic();
+        
+        // Also try again after page loads as backup
+        setTimeout(() => {
+            startGlobalMusic();
+        }, 500);
+        
+        // And once more after full page load
         setTimeout(() => {
             startGlobalMusic();
         }, 1500);
     }
 };
 
-// Start global music with user interaction fallback
+// Start global music with multiple attempt strategies
 const startGlobalMusic = () => {
     if (!globalMusicAudio.value || !isGlobalMusicEnabled.value) {
         console.log('Global Music: Cannot start - audio not initialized or music disabled');
@@ -151,35 +182,53 @@ const startGlobalMusic = () => {
     }
 
     console.log('Global Music: Attempting to start...');
+    
     // Resume from saved position for smooth transitions
     if (savedMusicPosition.value > 0) {
         globalMusicAudio.value.currentTime = savedMusicPosition.value;
     }
-    globalMusicAudio.value.play()
-        .then(() => {
-            console.log('Global Music: Started successfully');
-        })
-        .catch((error) => {
-            console.log('Global Music: Autoplay blocked, setting up user interaction listeners', error);
-            // Add event listeners for first user interaction
-            const startOnInteraction = () => {
-                if (globalMusicAudio.value && isGlobalMusicEnabled.value && !shouldDisableMusic()) {
-                    globalMusicAudio.value.play()
-                        .then(() => {
-                            console.log('Global Music: Started after user interaction');
-                        })
-                        .catch((err) => console.log('Global Music: Failed to start after user interaction:', err));
-                }
-                // Remove listeners after first attempt
-                document.removeEventListener('click', startOnInteraction);
-                document.removeEventListener('keydown', startOnInteraction);
-                document.removeEventListener('touchstart', startOnInteraction);
-            };
-            
-            document.addEventListener('click', startOnInteraction, { once: true });
-            document.addEventListener('keydown', startOnInteraction, { once: true });
-            document.addEventListener('touchstart', startOnInteraction, { once: true });
-        });
+
+    // Try multiple strategies to start music
+    const attemptPlay = () => {
+        return globalMusicAudio.value!.play()
+            .then(() => {
+                console.log('Global Music: Started successfully');
+                return true;
+            })
+            .catch((error) => {
+                console.log('Global Music: Play attempt failed:', error);
+                return false;
+            });
+    };
+
+    // First attempt - immediate play
+    attemptPlay().then((success) => {
+        if (!success) {
+            // Second attempt - try again after a short delay
+            setTimeout(() => {
+                attemptPlay().then((secondSuccess) => {
+                    if (!secondSuccess) {
+                        // Third attempt - set up user interaction listeners as fallback
+                        console.log('Global Music: Setting up user interaction fallback');
+                        const startOnInteraction = () => {
+                            if (globalMusicAudio.value && isGlobalMusicEnabled.value && !shouldDisableMusic()) {
+                                globalMusicAudio.value.play()
+                                    .then(() => {
+                                        console.log('Global Music: Started after user interaction');
+                                    })
+                                    .catch((err) => console.log('Global Music: Failed to start after user interaction:', err));
+                            }
+                        };
+                        
+                        // Use more comprehensive event listeners
+                        ['click', 'keydown', 'touchstart', 'mousemove', 'scroll'].forEach(event => {
+                            document.addEventListener(event, startOnInteraction, { once: true, passive: true });
+                        });
+                    }
+                });
+            }, 1000);
+        }
+    });
 };
 
 // Stop global music
@@ -235,10 +284,13 @@ if (typeof window !== 'undefined' && !(window as any).__lectiaGlobalMusicAutoIni
     console.log('Global Music: Setting up auto-initialization');
     (window as any).__lectiaGlobalMusicAutoInit = true;
     
-    // Small delay to ensure DOM is ready
+    // Try to initialize immediately
+    initializeGlobalMusic();
+    
+    // Also try after a tiny delay as backup
     setTimeout(() => {
         initializeGlobalMusic();
-    }, 100);
+    }, 10);
 }
 
 // Composable hook

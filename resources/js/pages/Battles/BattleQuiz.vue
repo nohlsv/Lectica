@@ -9,7 +9,7 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, SwordIcon, XIcon } from 'lucide-vue-next';
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import { useGlobalMusic } from '@/composables/useGlobalMusic';
 import { toast } from 'vue-sonner';
 
@@ -524,6 +524,15 @@ onMounted(() => {
             startBattleMusic();
         }, 1000);
     }
+});
+
+// Clean up music when component is unmounted (user leaves battle)
+onUnmounted(() => {
+    // Stop battle music when leaving the page
+    battleMusicSfx.pause();
+    battleMusicSfx.currentTime = 0;
+    
+    console.log('Battle music stopped - component unmounted');
 });
 </script>
 

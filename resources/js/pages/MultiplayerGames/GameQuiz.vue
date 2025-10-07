@@ -1171,6 +1171,14 @@ watch(currentQuiz, (newQuiz, oldQuiz) => {
 onUnmounted(() => {
     stopTimerSync();
     stopStateCheckInterval();
+    
+    // Stop all music and sound effects when leaving the game
+    battleMusicSfx.pause();
+    battleMusicSfx.currentTime = 0;
+    timerWarningSfx.pause();
+    timerWarningSfx.currentTime = 0;
+    
+    console.log('Game music stopped - component unmounted');
 });
 
 const getGameResult = (): string => {
