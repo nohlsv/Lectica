@@ -32,6 +32,11 @@ class NotificationController extends Controller
             $notification->markAsRead();
         }
 
+        // Handle Inertia requests vs AJAX requests
+        if (request()->header('X-Inertia')) {
+            return back();
+        }
+
         return response()->json(['success' => true]);
     }
 
@@ -41,6 +46,11 @@ class NotificationController extends Controller
     public function markAllAsRead()
     {
         auth()->user()->unreadNotifications->markAsRead();
+
+        // Handle Inertia requests vs AJAX requests
+        if (request()->header('X-Inertia')) {
+            return back();
+        }
 
         return response()->json(['success' => true]);
     }
