@@ -184,7 +184,7 @@ const facultyNavItems: NavItem[] = [
     ...(auth.value.user.user_role === 'faculty' || auth.value.user.user_role === 'admin'
         ? [
               {
-                  title: 'Verify Files',
+                  title: 'File Verification',
                   href: '/files/verify',
                   icon: FileIcon,
               },
@@ -212,7 +212,7 @@ const adminNavItems: NavItem[] = [
                   icon: Users,
               },
               {
-                  title: 'Verifications',
+                  title: 'User Verifications',
                   href: '/admin/verifications',
                   icon: FileIcon,
               },
@@ -264,12 +264,12 @@ const getExperienceProgress = () => {
 <template>
     <div>
         <div class="border-sidebar-border/80 border-b bg-[#4d0a02]">
-            <div class="md:max-w-8xl mx-auto flex h-16 items-center px-4">
+            <div class="md:max-w-8xl mx-auto flex h-14 items-center px-2 sm:h-16 sm:px-4">
                 <!-- Mobile Menu -->
                 <div class="xl:hidden">
                     <Sheet>
                         <SheetTrigger :as-child="true">
-                            <Button variant="ghost" size="icon" class="mr-2 h-9 w-9">
+                            <Button variant="ghost" size="icon" class="mr-1 h-10 w-10 sm:mr-2 sm:h-9 sm:w-9">
                                 <Menu class="pixel-outline-icon h-5 w-5" />
                             </Button>
                         </SheetTrigger>
@@ -534,7 +534,7 @@ const getExperienceProgress = () => {
                     </NavigationMenu>
                 </div>
 
-                <div class="ml-auto flex items-center space-x-2">
+                <div class="ml-auto flex items-center space-x-1 sm:space-x-2">
                     <div class="relative flex items-center space-x-1">
                         <!-- <Button variant="ghost" size="icon" class="group h-9 w-9 cursor-pointer">
                             <Search class="size-5 opacity-80 group-hover:opacity-100" />
@@ -563,7 +563,7 @@ const getExperienceProgress = () => {
 
                     <!-- Level and XP Display -->
                     <div
-                        class="sm:active flex items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20"
+                        class="hidden items-center space-x-3 rounded-lg border border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50 px-3 py-1 dark:border-blue-700 dark:from-blue-900/20 dark:to-purple-900/20 sm:flex"
                     >
                         <!-- Level Badge -->
                         <div class="flex items-center space-x-1">
@@ -586,6 +586,12 @@ const getExperienceProgress = () => {
                             </div>
                         </div>
                     </div>
+                    
+                    <!-- Mobile Level Badge (simplified) -->
+                    <div class="flex items-center rounded-md border border-blue-200 bg-blue-50 px-2 py-1 dark:border-blue-700 dark:bg-blue-900/20 sm:hidden">
+                        <span class="text-xs font-medium text-blue-600 dark:text-blue-400">LVL</span>
+                        <span class="ml-1 text-sm font-bold text-blue-700 dark:text-blue-300">{{ auth.user.level || 1 }}</span>
+                    </div>
 
                     <!-- Notifications Dropdown -->
                     <DropdownMenu>
@@ -593,7 +599,7 @@ const getExperienceProgress = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                class="focus-within:ring-primary relative size-10 rounded-full p-2 focus-within:ring-2"
+                                class="focus-within:ring-primary relative h-11 w-11 rounded-full p-2 focus-within:ring-2 sm:size-10"
                             >
                                 <Bell class="h-5 w-5" />
                                 <span
@@ -664,9 +670,9 @@ const getExperienceProgress = () => {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                class="focus-within:ring-primary relative size-10 w-auto rounded-full p-1 focus-within:ring-2"
+                                class="focus-within:ring-primary relative h-11 w-11 rounded-full p-1 focus-within:ring-2 sm:size-10 sm:w-auto"
                             >
-                                <Avatar class="size-8 overflow-hidden rounded-full">
+                                <Avatar class="size-9 overflow-hidden rounded-full sm:size-8">
                                     <AvatarImage v-if="auth.user.avatar" :src="auth.user.avatar" :alt="auth.user.last_name" />
                                     <AvatarFallback class="rounded-lg bg-neutral-200 font-semibold text-black dark:bg-neutral-700 dark:text-white">
                                         {{ getInitials(auth.user?.first_name + ' ' + auth.user?.last_name) }}
