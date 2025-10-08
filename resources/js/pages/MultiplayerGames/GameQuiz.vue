@@ -639,9 +639,17 @@ const submitAnswer = async (isTimeout = false) => {
                 preserveScroll: true,
                 onSuccess: () => {
                     console.log('Answer submitted successfully, WebSocket will update game state');
-                    // Stop timer warning music when answer is submitted
-                    timerWarningSfx.pause();
-                    timerWarningSfx.currentTime = 0;
+                    // Stop timer warning music when answer is submitted and resume battle music immediately
+                    if (!timerWarningSfx.paused) {
+                        console.log('Answer submitted - stopping timer warning music and resuming battle music immediately');
+                        timerWarningSfx.pause();
+                        timerWarningSfx.currentTime = 0;
+                        timerWarningMusicStarted = false;
+                        // Immediately resume battle music if volume is on
+                        if (soundVolume.value > 0) {
+                            ensureBattleMusicPlaying();
+                        }
+                    }
                     // Don't reset submission state here - let WebSocket handle it
                 },
                 onError: (errors) => {
@@ -723,7 +731,7 @@ const musicStarted = ref(false);
 const audioInit = () => {
     loadSoundSettings(); // Load saved volume settings
     updateAllAudioVolumes(); // Apply volumes to all audio elements
-    timerWarningSfx.loop = true; // Loop timer warning music
+    timerWarningSfx.loop = true; // Keep timer warning music looping (it's a short loop)
     battleMusicSfx.loop = true; // Loop battle music
     
     // Try to start background music immediately if volume > 0
@@ -800,15 +808,18 @@ watch(soundVolume, (newVolume, oldVolume) => {
             battleMusicSfx.pause();
             timerWarningSfx.currentTime = 0;
             timerWarningSfx.play().catch(() => console.log('Timer warning music blocked'));
+            timerWarningMusicStarted = true;
         } else {
-            // Normal state, start battle music
+            // Normal state, start battle music immediately
             timerWarningSfx.pause();
-            setTimeout(() => ensureBattleMusicPlaying(), 100);
+            timerWarningMusicStarted = false;
+            ensureBattleMusicPlaying(); // Immediate, no delay
         }
     } else if (newVolume === 0) {
         // Volume was muted, pause all music
         battleMusicSfx.pause();
         timerWarningSfx.pause();
+        timerWarningMusicStarted = false;
     }
 });
 
@@ -883,6 +894,9 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     }, 3000);
 };
 
+// Track if we've already started timer warning music for current warning state
+let timerWarningMusicStarted = false;
+
 // Helper to manage music toggling between battle and timer warning
 function handleMusicForTimerState(timerValue: number, warningThresholds: { first: number; second: number }) {
     // Only handle music if volume is enabled
@@ -890,16 +904,24 @@ function handleMusicForTimerState(timerValue: number, warningThresholds: { first
     
     if (timerValue <= warningThresholds.first && timerValue > 0) {
         // Timer is in warning state
-        if (timerWarningSfx.paused) {
-            // Switch from battle music to timer warning music
+        if (!timerWarningMusicStarted && timerWarningSfx.paused) {
+            // Switch from battle music to timer warning music (only once per warning state)
+            console.log('Starting timer warning music for warning state');
             battleMusicSfx.pause();
             timerWarningSfx.currentTime = 0;
             timerWarningSfx.play().catch(() => console.log('Timer warning music blocked'));
+            timerWarningMusicStarted = true;
         }
     } else if (timerValue > warningThresholds.first) {
-        // Timer is not in warning state
-        if (battleMusicSfx.paused) {
-            // Switch from timer warning music to battle music
+        // Timer is not in warning state - reset flag and ensure battle music
+        timerWarningMusicStarted = false;
+        if (battleMusicSfx.paused && timerWarningSfx.paused) {
+            // Both musics are paused, start battle music
+            console.log('Timer out of warning state, resuming battle music');
+            startBattleMusic();
+        } else if (!timerWarningSfx.paused) {
+            // Timer warning music is still playing, pause it and start battle music
+            console.log('Timer out of warning state - stopping timer warning music and resuming battle music');
             timerWarningSfx.pause();
             timerWarningSfx.currentTime = 0;
             startBattleMusic();
@@ -912,16 +934,17 @@ function ensureBattleMusicPlaying() {
     // Only play if volume is enabled
     if (soundVolume.value === 0) return;
     
-    // Stop timer warning music if playing
+    // Stop timer warning music if playing and reset flag
     if (!timerWarningSfx.paused) {
+        console.log('Stopping timer warning music, resuming battle music');
         timerWarningSfx.pause();
         timerWarningSfx.currentTime = 0;
     }
+    timerWarningMusicStarted = false;
     
-    // Start battle music if it's not playing and we should be playing it
-    // Remove the status check as it might not be updated yet during turn transitions
+    // Immediately start battle music if it's not playing and we should be playing it
     if (battleMusicSfx.paused && gameState.value?.status !== 'finished') {
-        console.log('Ensuring battle music is playing after state change');
+        console.log('Starting battle music immediately after timer warning stopped');
         startBattleMusic();
     }
 }
@@ -929,6 +952,9 @@ function ensureBattleMusicPlaying() {
 // Timer is now managed by server - these functions handle WebSocket updates
 const startTimerSync = () => {
     stopTimerSync();
+
+    // Reset timer warning music flag for new timer cycle
+    timerWarningMusicStarted = false;
 
     // Start local countdown and sync with server every few seconds
     timerSyncInterval = window.setInterval(() => {
@@ -982,12 +1008,19 @@ const stopTimerSync = () => {
     }
     timerRunning.value = false;
     
-    // Stop timer warning music and resume battle music when timer stops
-    timerWarningSfx.pause();
-    timerWarningSfx.currentTime = 0;
+    // Reset timer warning music flag
+    timerWarningMusicStarted = false;
     
-    // Use the helper function to ensure battle music resumes properly
-    setTimeout(() => ensureBattleMusicPlaying(), 100);
+    // Stop timer warning music and immediately resume battle music when timer stops
+    if (!timerWarningSfx.paused) {
+        timerWarningSfx.pause();
+        timerWarningSfx.currentTime = 0;
+        console.log('Timer stopped - timer warning music paused, resuming battle music immediately');
+        // Immediately resume battle music if volume is on (no delay)
+        if (soundVolume.value > 0) {
+            ensureBattleMusicPlaying();
+        }
+    }
 };
 
 // Mark player as ready (page loaded and ready to play)
@@ -1167,12 +1200,14 @@ const resetForNextQuestion = () => {
     timer.value = 0;
     timerRunning.value = false;
     
-    // Stop timer warning music and resume battle music if volume is on
+    // Stop timer warning music and resume battle music immediately if volume is on
     timerWarningSfx.pause();
     timerWarningSfx.currentTime = 0;
     
-    // Use the helper function to ensure battle music resumes properly
-    setTimeout(() => ensureBattleMusicPlaying(), 100);
+    // Immediately ensure battle music resumes (no delay)
+    if (soundVolume.value > 0) {
+        ensureBattleMusicPlaying();
+    }
 
     console.log('Reset for next question - waiting for timer to start');
 };
