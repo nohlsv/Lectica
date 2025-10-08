@@ -362,74 +362,74 @@ const onCollectionSuccess = (message?: string) => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="dark:bg-[#161615]">
             <!-- Compact Header with Actions -->
-            <div class="bg-lectica flex w-full flex-col px-4 pt-2 pb-2">
-                <div class="flex items-center justify-between gap-2 rounded-xl p-2">
+            <div class="bg-lectica flex w-full flex-col px-2 pt-2 pb-2 sm:px-4">
+                <div class="flex flex-col gap-3 rounded-xl p-2 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
                     <!--File Info-->
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 min-w-0 flex-1">
                         <div
-                            class="flex h-8 w-8 items-center justify-center rounded border-2 border-white bg-gradient-to-br from-blue-500 to-purple-600"
+                            class="flex h-8 w-8 items-center justify-center rounded border-2 border-white bg-gradient-to-br from-blue-500 to-purple-600 sm:h-10 sm:w-10"
                         >
-                            <FileIcon class="h-4 w-4 text-white" />
+                            <FileIcon class="h-4 w-4 text-white sm:h-5 sm:w-5" />
                         </div>
-                        <div>
-                            <h1 class="font-pixel text-sm text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black]">
+                        <div class="min-w-0 flex-1">
+                            <h1 class="font-pixel text-xs text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-sm md:text-base truncate">
                                 {{ file.name }}
                             </h1>
-                            <div class="flex items-center space-x-1 text-xs text-white/80">
+                            <div class="flex items-center space-x-1 text-xs text-white/80 sm:text-sm">
                                 <span>{{
                                     fileInfo.size ? Math.round((Number(fileInfo.size) / 1024 / 1024) * 100) / 100 + ' MB' : 'Unknown size'
                                 }}</span>
-                                <span>•</span>
-                                <span>{{ new Date(file.created_at).toLocaleDateString() }}</span>
+                                <span class="hidden sm:inline">•</span>
+                                <span class="hidden sm:inline">{{ new Date(file.created_at).toLocaleDateString() }}</span>
                             </div>
                         </div>
                     </div>
 
                     <!--Actions-->
-                    <div class="flex items-center space-x-1">
+                    <div class="flex items-center space-x-1 flex-wrap gap-1 sm:flex-nowrap sm:space-x-2">
                         <!-- Download -->
                         <a
                             :href="route('files.download', { file: file.id })"
                             download
-                            class="flex h-7 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-2 transition-all hover:bg-blue-400/30"
+                            class="flex h-10 items-center justify-center rounded border border-blue-400/70 bg-blue-400/20 px-3 transition-all hover:bg-blue-400/30 sm:h-7 sm:px-2"
                             title="Download"
                         >
-                            <DownloadIcon class="mr-1 h-3 w-3 text-blue-300" />
-                            <span class="font-pixel text-blue-300">Download</span>
+                            <DownloadIcon class="h-4 w-4 text-blue-300 sm:h-3 sm:w-3 sm:mr-1" />
+                            <span class="font-pixel text-blue-300 hidden sm:inline text-xs">Download</span>
                         </a>
 
                         <!-- Add to Collection -->
                         <button
                             @click="openCollectionModal"
-                            class="pixel-outline flex h-7 items-center justify-center rounded border border-[#ffd700]/70 bg-[#a85a47]/20 px-2 transition-all hover:bg-[#a85a47]/30"
+                            class="pixel-outline flex h-10 items-center justify-center rounded border border-[#ffd700]/70 bg-[#a85a47]/20 px-3 transition-all hover:bg-[#a85a47]/30 sm:h-7 sm:px-2"
                             title="Add to Collection"
                         >
-                            <PlusIcon class="mr-1 h-3 w-3 text-[#ffd700]" />
-                            <span class="font-pixel text-[#ffd700]">Add to Collection</span>
+                            <PlusIcon class="h-4 w-4 text-[#ffd700] sm:h-3 sm:w-3 sm:mr-1" />
+                            <span class="font-pixel text-[#ffd700] hidden sm:inline text-xs">Add to Collection</span>
                         </button>
 
                         <!-- Star -->
                         <button
                             @click="toggleStar"
-                            class="flex h-7 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-2 transition-all hover:bg-yellow-400/30"
+                            class="flex h-10 items-center justify-center rounded border border-yellow-400/70 bg-yellow-400/20 px-3 transition-all hover:bg-yellow-400/30 sm:h-7 sm:px-2"
                             title="Star File"
                         >
                             <StarIcon
                                 :class="[
-                                    'mr-1 h-3 w-3 transition-colors',
+                                    'h-4 w-4 transition-colors sm:h-3 sm:w-3 sm:mr-1',
                                     file.is_starred ? 'fill-yellow-300 text-yellow-300' : 'text-white/60 hover:text-yellow-300',
                                 ]"
                             />
-                            <span class="font-pixel" :class="file.is_starred ? 'text-yellow-300' : 'text-white/60'">
+                            <span class="font-pixel hidden sm:inline text-xs" :class="file.is_starred ? 'text-yellow-300' : 'text-white/60'">
                                 {{ file.is_starred ? 'Starred' : 'Star' }}
                             </span>
                         </button>
 
                         <!-- Back -->
                         <Link href="/files">
-                            <Button class="font-pixel border border-white bg-red-600 px-2 py-1 text-white transition-all hover:bg-red-900">
-                                <ArrowLeftIcon class="mr-1 h-3 w-3" />
-                                Back
+                            <Button class="font-pixel border border-white bg-red-600 px-3 py-2 text-white transition-all hover:bg-red-900 sm:px-2 sm:py-1">
+                                <ArrowLeftIcon class="h-4 w-4 sm:h-3 sm:w-3 sm:mr-1" />
+                                <span class="hidden sm:inline text-xs">Back</span>
                             </Button>
                         </Link>
                     </div>
@@ -439,9 +439,9 @@ const onCollectionSuccess = (message?: string) => {
             </div>
 
             <!--Main Content - Two Column Layout-->
-            <div class="bg-gradient flex h-full flex-1 flex-col px-4 py-3 lg:px-6">
+            <div class="bg-gradient flex h-full flex-1 flex-col px-2 py-3 sm:px-4 lg:px-6">
                 <!-- File Info and Preview Grid -->
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-[1fr_2fr]">
+                <div class="grid grid-cols-1 gap-2 sm:gap-4 lg:grid-cols-[1fr_2fr]">
                     <!-- Left Column: File Info & Actions -->
                     <div class="space-y-3">
                         <!-- File Details Card -->
@@ -915,6 +915,18 @@ const onCollectionSuccess = (message?: string) => {
                             </h2>
                             <p class="font-pixel text-sm text-white/70">Collections containing this file</p>
                             <div class="mx-auto mt-2 h-1 w-16 rounded-full bg-gradient-to-r from-yellow-500 to-orange-500"></div>
+                            
+                            <!-- Add to Collections Button -->
+                            <div class="mt-4">
+                                <button
+                                    @click="openCollectionModal"
+                                    class="pixel-outline font-pixel inline-flex h-10 items-center justify-center gap-2 rounded border-2 border-[#ffd700]/70 bg-[#a85a47]/20 px-4 py-2 text-sm text-[#ffd700] transition-all hover:bg-[#ffd700]/10 hover:border-[#ffd700] sm:h-8 sm:px-3"
+                                    title="Add this file to a collection"
+                                >
+                                    <PlusIcon class="h-4 w-4 sm:h-3 sm:w-3" />
+                                    Add to Collection
+                                </button>
+                            </div>
                         </div>
 
                         <div v-if="props.collections && props.collections.length > 0" class="space-y-4">

@@ -326,35 +326,35 @@ watch(
 <template>
     <Head title="Take Quiz" />
     <AppLayout>
-        <div class="bg-gradient flex h-full min-h-screen flex-1 flex-col gap-4 px-4 pt-4 pb-0 lg:p-8">
-            <h2 class="pixel-outline welcome-banner animate-soft-bounce mt-3 text-center text-lg font-bold break-words sm:text-xl md:text-2xl">
+        <div class="bg-gradient flex h-full min-h-screen flex-1 flex-col gap-2 px-2 pt-4 pb-0 sm:gap-4 sm:px-4 lg:p-8">
+            <h2 class="pixel-outline welcome-banner animate-soft-bounce mt-3 text-center text-sm font-bold break-words sm:text-lg md:text-xl lg:text-2xl">
                 Practice Quiz: {{ file.name }}
             </h2>
-            <div class="flex justify-between">
-                <div class="flex space-x-2">
+            <div class="flex flex-col gap-2 sm:flex-row sm:justify-between">
+                <div class="flex flex-wrap space-x-1 sm:space-x-2">
                     <Link :href="route('files.quizzes.index', file.id)">
                         <Button
-                            class="pixel-outline border-4 border-red-700 bg-red-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                            class="pixel-outline border-2 border-red-700 bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-[2px_2px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-red-600 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:border-4 sm:px-4 sm:py-2 sm:text-base"
                         >
                             Escape
                         </Button>
                     </Link>
                     <Button
-                        class="pixel-outline border-4 border-yellow-600 bg-yellow-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-yellow-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                        class="pixel-outline border-2 border-yellow-600 bg-yellow-500 px-2 py-1 text-xs font-bold text-white shadow-[2px_2px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-yellow-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:border-4 sm:px-4 sm:py-2 sm:text-base"
                         @click="shuffleQuizzes"
                         v-if="!shuffled && !quizFinished"
                     >
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
-                            width="24"
-                            height="24"
+                            width="16"
+                            height="16"
                             viewBox="0 0 24 24"
                             fill="none"
                             stroke="currentColor"
                             stroke-width="2"
                             stroke-linecap="round"
                             stroke-linejoin="round"
-                            class="mr-2 h-4 w-4"
+                            class="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4"
                         >
                             <path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.7-1.1 2-1.7 3.3-1.7H22"></path>
                             <path d="m18 2 4 4-4 4"></path>
@@ -362,15 +362,15 @@ watch(
                             <path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"></path>
                             <path d="m18 14 4 4-4 4"></path>
                         </svg>
-                        Shuffle
+                        <span class="hidden sm:inline">Shuffle</span>
                     </Button>
                     <Button
-                        class="pixel-outline border-4 border-yellow-600 bg-yellow-500 font-bold text-white shadow-[4px_4px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-yellow-700 hover:shadow-[6px_6px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)]"
+                        class="pixel-outline border-2 border-yellow-600 bg-yellow-500 px-2 py-1 text-xs font-bold text-white shadow-[2px_2px_0px_rgba(0,0,0,0.4)] transition-all duration-150 ease-in-out hover:-translate-y-1 hover:bg-yellow-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.4)] active:translate-y-0 active:shadow-[1px_1px_0px_rgba(0,0,0,0.4)] sm:border-4 sm:px-4 sm:py-2 sm:text-base"
                         @click="resetOrder"
                         v-if="shuffled && !quizFinished"
                     >
-                        <RotateCcw class="mr-2 h-4 w-4" />
-                        Reset Order
+                        <RotateCcw class="h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
+                        <span class="hidden sm:inline">Reset Order</span>
                     </Button>
                 </div>
             </div>
@@ -379,27 +379,37 @@ watch(
                 style="background-image: url('/images/game-background.png')"
             >
                 <!-- Question Box -->
-                <div
-                    class="font-pixel absolute top-10 right-4 left-4 flex w-auto items-center gap-3 border-[6px] border-black bg-gradient px-3 py-3 shadow-[6px_6px_0px_rgba(0,0,0,1),-3px_-3px_0px_rgba(0,0,0,1)] sm:top-10 sm:left-1/6 sm:-translate-x-1/12 sm:gap-6 sm:px-6 sm:py-4 md:left-1/3 md:-translate-x-1/4 2xl:left-1/2 2xl:-translate-x-1/2"
-                    style="image-rendering: pixelated"
-                >
+                <div class="mx-2 mt-4 sm:mx-4 sm:mt-6 md:mx-auto md:mt-8 md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
                     <div
-                        class="text-md font-pixel absolute -top-5 left-0 border-2 border-white bg-black px-3 py-1 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-base"
+                        class="font-pixel relative w-full border-[4px] border-black bg-gradient shadow-[4px_4px_0px_rgba(0,0,0,1),-2px_-2px_0px_rgba(0,0,0,1)] sm:border-[6px] sm:shadow-[6px_6px_0px_rgba(0,0,0,1),-3px_-3px_0px_rgba(0,0,0,1)]"
+                        style="image-rendering: pixelated"
                     >
-                        {{ collegeMascot.mascot }}
-                    </div>
-                    <div class="flex-1 text-center text-sm text-white sm:text-left sm:text-xl md:text-lg lg:text-xl xl:text-xl 2xl:text-2xl">
-                        "{{ currentQuiz?.question }}"
-                    </div>
-                    <div class="flex-shrink-0">
-                        <img
-                            :src="collegeMascot.image"
-                            class="animate-floating w-20 sm:w-28 md:w-32"
-                            style="image-rendering: pixelated"
-                        />
+                        <div
+                            class="font-pixel absolute -top-4 left-0 border-2 border-white bg-black px-2 py-1 text-xs text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:-top-5 sm:px-3 sm:text-sm md:text-base z-10"
+                        >
+                            {{ collegeMascot.mascot }}
+                        </div>
+                        
+                        <!-- Content Layout -->
+                        <div class="flex items-center gap-3 p-3 sm:gap-4 sm:p-4 md:gap-6 md:p-6">
+                            <!-- Question Text -->
+                            <div class="flex-1 min-w-0">
+                                <div class="text-sm text-white leading-relaxed sm:text-base md:text-lg lg:text-xl xl:text-2xl break-words">
+                                    "{{ currentQuiz?.question }}"
+                                </div>
+                            </div>
+                            
+                            <!-- Mascot Image -->
+                            <div class="flex-shrink-0">
+                                <img
+                                    :src="collegeMascot.image"
+                                    class="animate-floating w-12 sm:w-16 md:w-20 lg:w-24 xl:w-28 2xl:w-32"
+                                    style="image-rendering: pixelated"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="bg-container mb-2 flex min-h-[250px] w-full items-center justify-center rounded-xl bg-cover bg-center p-6"></div>
                 <div v-if="quizQuestions.length === 0" class="py-10 text-center">
                     <p class="text-muted-foreground">No quizzes available for this file.</p>
                     <p class="text-muted-foreground mt-2">Create quizzes to start testing your knowledge.</p>
@@ -455,7 +465,7 @@ watch(
                         </CardContent>
                     </Card>
                 </div>
-                <div v-else class="space-y-2">
+                <div v-else class="mx-2 mt-6 space-y-4 sm:mx-4 md:mx-auto md:max-w-4xl lg:max-w-5xl xl:max-w-6xl">
                     <div class="flex items-center justify-between">
                         <div class="text-muted-foreground text-sm">Question {{ currentIndex + 1 }} of {{ quizQuestions.length }}</div>
                         <div class="w-1/2">
