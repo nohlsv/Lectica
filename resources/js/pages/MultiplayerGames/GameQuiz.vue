@@ -828,17 +828,37 @@ const showFeedback = (isCorrect: boolean, damageDealt: number, damageReceived: n
     }
 
     if (props.game.game_mode === 'pvp') {
-        // PVP Mode: Accuracy-focused feedback
-        if (isCorrect) {
-            lastAction.value = {
-                type: 'success',
-                message: `Correct! Your accuracy is improving! 🎯`,
-            };
+        // PVP Mode: Check pvp_mode to determine feedback type
+        const pvpMode = gameState.value.pvp_mode ?? 'accuracy';
+        
+        if (pvpMode === 'accuracy') {
+            // Accuracy-focused feedback
+            if (isCorrect) {
+                lastAction.value = {
+                    type: 'success',
+                    message: `Correct! Your accuracy is improving! 🎯`,
+                };
+            } else {
+                lastAction.value = {
+                    type: 'error',
+                    message: `Wrong answer. Your accuracy dropped slightly. 📉`,
+                };
+            }
         } else {
-            lastAction.value = {
-                type: 'error',
-                message: `Wrong answer. Your accuracy dropped slightly. 📉`,
-            };
+            // HP-focused feedback (same as PVE mode)
+            if (isCorrect) {
+                playDamageSfx();
+                lastAction.value = {
+                    type: 'success',
+                    message: `Correct! You dealt ${damageDealt} damage!`,
+                };
+            } else {
+                playDamageSfx();
+                lastAction.value = {
+                    type: 'error',
+                    message: `Wrong answer. You took ${damageReceived} damage.`,
+                };
+            }
         }
     } else {
         // PVE Mode: Original damage-based feedback
