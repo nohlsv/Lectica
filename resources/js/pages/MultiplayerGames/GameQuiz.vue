@@ -550,6 +550,8 @@ const isMyTurn = computed(() => {
 watch(isMyTurn, (newVal) => {
     if (newVal && gameState.value?.status === 'active') {
         startTimerSync();
+        // Ensure battle music is playing when it becomes my turn
+        setTimeout(() => ensureBattleMusicPlaying(), 200);
     } else {
         stopTimerSync();
     }
@@ -801,7 +803,7 @@ watch(soundVolume, (newVolume, oldVolume) => {
         } else {
             // Normal state, start battle music
             timerWarningSfx.pause();
-            startBattleMusic();
+            setTimeout(() => ensureBattleMusicPlaying(), 100);
         }
     } else if (newVolume === 0) {
         // Volume was muted, pause all music
@@ -885,6 +887,25 @@ function handleMusicForTimerState(timerValue: number, warningThresholds: { first
     }
 }
 
+// Helper to ensure proper music state after timer expires or turns change
+function ensureBattleMusicPlaying() {
+    // Only play if volume is enabled
+    if (soundVolume.value === 0) return;
+    
+    // Stop timer warning music if playing
+    if (!timerWarningSfx.paused) {
+        timerWarningSfx.pause();
+        timerWarningSfx.currentTime = 0;
+    }
+    
+    // Start battle music if it's not playing and we should be playing it
+    // Remove the status check as it might not be updated yet during turn transitions
+    if (battleMusicSfx.paused && gameState.value?.status !== 'finished') {
+        console.log('Ensuring battle music is playing after state change');
+        startBattleMusic();
+    }
+}
+
 // Timer is now managed by server - these functions handle WebSocket updates
 const startTimerSync = () => {
     stopTimerSync();
@@ -945,9 +966,8 @@ const stopTimerSync = () => {
     timerWarningSfx.pause();
     timerWarningSfx.currentTime = 0;
     
-    if (soundVolume.value > 0 && battleMusicSfx.paused && gameState.value.status === 'active') {
-        startBattleMusic();
-    }
+    // Use the helper function to ensure battle music resumes properly
+    setTimeout(() => ensureBattleMusicPlaying(), 100);
 };
 
 // Mark player as ready (page loaded and ready to play)
@@ -1131,9 +1151,8 @@ const resetForNextQuestion = () => {
     timerWarningSfx.pause();
     timerWarningSfx.currentTime = 0;
     
-    if (soundVolume.value > 0 && battleMusicSfx.paused) {
-        startBattleMusic();
-    }
+    // Use the helper function to ensure battle music resumes properly
+    setTimeout(() => ensureBattleMusicPlaying(), 100);
 
     console.log('Reset for next question - waiting for timer to start');
 };
@@ -1659,6 +1678,11 @@ onMounted(() => {
                 } else if (wasMyTurn && isMyTurn.value && !actualTurnChange && !actualQuestionChange) {
                     // Still my turn and same question - don't reset anything
                     console.log('WebSocket update during my turn - no reset needed (Turn ID:', currentTurnId, 'Question ID:', currentQuestionId, ')');
+                }
+
+                // Ensure battle music is playing after any turn changes or state updates
+                if (actualTurnChange || actualQuestionChange) {
+                    setTimeout(() => ensureBattleMusicPlaying(), 300);
                 }
 
                 // If it's still my turn after a timeout (meaning the game didn't progress properly),
