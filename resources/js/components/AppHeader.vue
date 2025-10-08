@@ -168,12 +168,12 @@ const gameNavItems: NavItem[] = [
         icon: ChartArea,
     },
     {
-        title: 'History',
+        title: 'Practice Performance',
         href: '/history',
         icon: FileChartLine,
     },
     {
-        title: 'Quiz Answers',
+        title: 'Quiz Performance',
         href: '/quiz-answers',
         icon: FileChartLine,
     },
