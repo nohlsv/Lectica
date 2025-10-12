@@ -633,20 +633,17 @@ const uploadFiles = async () => {
                 fileForm.post('/files', {
                     onSuccess: (page: any) => {
                         console.log(`Successfully uploaded: ${file.name}`);
-                        console.log('Upload response:', page);
                         
-                        // For multi-file uploads, check if we got file ID in flash data
-                        if (page.props?.flash?.uploaded_file_id) {
-                            lastUploadedFileId = page.props.flash.uploaded_file_id;
-                            console.log('Captured file ID from flash:', lastUploadedFileId);
-                        }
-                        // Handle redirect response for single file uploads
-                        else if (page.url && page.url.includes('/files/')) {
-                            const match = page.url.match(/\/files\/(\d+)/);
-                            if (match) {
-                                lastUploadedFileId = parseInt(match[1]);
-                                console.log('Captured file ID from URL:', lastUploadedFileId);
-                            }
+                        // For single file uploads, fetch the most recent file ID
+                        if (totalFiles === 1 && filesToUpdate.value.size === 0) {
+                            axios.get('/files/recent').then(response => {
+                                if (response.data && response.data.id) {
+                                    lastUploadedFileId = response.data.id;
+                                    console.log('Captured recent file ID:', lastUploadedFileId);
+                                }
+                            }).catch(error => {
+                                console.error('Failed to get recent file ID:', error);
+                            });
                         }
                         
                         successCount++;
@@ -660,7 +657,7 @@ const uploadFiles = async () => {
                         resolve(); // Continue with next file even if this one fails
                     },
                     headers: {
-                        'X-Multi-File-Upload': (totalFiles > 1 || filesToUpdate.value.size > 0) ? 'true' : 'false'
+                        'X-Multi-File-Upload': 'true' // Always use multi-file mode to get file ID in response
                     }
                 });
             });
@@ -672,7 +669,6 @@ const uploadFiles = async () => {
 
     // Show final result
     const totalActions = successCount + updateCount;
-    const hasMultipleActions = totalFiles > 1 || filesToUpdate.value.size > 0;
     
     if (totalActions > 0 && errorCount === 0) {
         let message = '';
@@ -695,13 +691,23 @@ const uploadFiles = async () => {
         filesToUpdate.value.clear(); // Clear the update queue
         fileHashes.value.clear(); // Clear hash tracking
         
-        // Redirect based on number of actions
+        // Redirect based on number of successful actions
         setTimeout(() => {
-            if (!hasMultipleActions && lastUploadedFileId) {
-                // Single file upload: redirect to the file page
+            console.log('Redirect decision:', {
+                totalActions,
+                successCount,
+                updateCount,
+                lastUploadedFileId,
+                condition: totalActions === 1 && successCount === 1 && lastUploadedFileId
+            });
+            
+            if (totalActions === 1 && successCount === 1 && lastUploadedFileId) {
+                // Single successful file upload: redirect to the file page
+                console.log(`Redirecting to single file: /files/${lastUploadedFileId}`);
                 window.location.href = `/files/${lastUploadedFileId}`;
             } else {
-                // Multiple actions: redirect to MyFiles with pending filter and sort by created date
+                // Multiple actions or updates: redirect to MyFiles with pending filter and sort by created date
+                console.log('Redirecting to MyFiles list');
                 window.location.href = '/myfiles?sort=updated_at&direction=desc';
             }
         }, 1500);

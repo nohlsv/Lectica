@@ -1562,4 +1562,21 @@ class FileController extends Controller
             return trim($output_text);
         }
     }
+
+    /**
+     * Get the most recent file uploaded by the current user
+     */
+    public function getRecent(Request $request)
+    {
+        $file = File::where('user_id', auth()->id())
+            ->orderBy('created_at', 'desc')
+            ->select('id', 'name')
+            ->first();
+
+        if (!$file) {
+            return response()->json(['error' => 'No files found'], 404);
+        }
+
+        return response()->json($file);
+    }
 }

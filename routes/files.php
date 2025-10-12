@@ -33,6 +33,7 @@ Route::get('/files/create', [FileController::class, 'create'])->name('files.crea
 Route::post('/files', [FileController::class, 'store'])->name('files.store');
 Route::get('/files/check-duplicate/{hash}', [FileController::class, 'checkDuplicate'])->name('files.check-duplicate');
 Route::post('/files/check-duplicate', [FileController::class, 'checkDuplicateByFile'])->name('files.check-duplicate-file');
+Route::get('/files/recent', [FileController::class, 'getRecent'])->name('files.recent');
 Route::get('/files/{id}', [FileController::class, 'show'])->name('files.show');
 Route::get('/files/{file}/edit', [FileController::class, 'edit'])
     ->name('files.edit')
@@ -91,8 +92,7 @@ Route::post('/files/{file}/generate-flashcards-quizzes', [FileController::class,
 
 Route::get('/history', [PracticeRecordController::class, 'index'])->name('practice-records.index');
 Route::get('/history/{practiceRecord}', [PracticeRecordController::class, 'show'])->name('practice-records.show');
-Route::post('/practice-records', [PracticeRecordController::class, 'store'])->name('practice-records.store');
-
+Route::post('/practice-records', [PracticeRecordController::class, 'store'])->name('practice-records.store'); 
 
 //Route::prefix('files/{file}')->name('files.')->group(function () {
 //    // Flashcards routes
