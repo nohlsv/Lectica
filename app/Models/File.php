@@ -14,7 +14,7 @@ class File extends Model
 {
     /** @use HasFactory<\Database\Factories\FileFactory> */
     use HasFactory;
-    protected $fillable = ['name', 'description', 'path', 'content', 'file_hash', 'user_id', 'verified', 'is_denied', 'denial_reason', 'verified_at', 'denied_at', 'verified_by', 'user_notified_of_denial'];
+    protected $fillable = ['name', 'description', 'path', 'pdf_path', 'gemini_file_uri', 'content', 'file_hash', 'user_id', 'verified', 'is_denied', 'denial_reason', 'verified_at', 'denied_at', 'verified_by', 'user_notified_of_denial'];
 
     /**
      * The accessors to append to the model's array form.

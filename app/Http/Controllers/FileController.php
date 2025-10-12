@@ -16,6 +16,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use PhpOffice\PhpWord\IOFactory as WordIOFactory;
+use PhpOffice\PhpWord\Settings;
 
 class FileController extends Controller
 {
@@ -126,9 +130,15 @@ class FileController extends Controller
         $path = $uploadedFile->store('uploads');
 
         try {
-            $content = $this->extractText($uploadedFile);
+            // Convert document to PDF and get both text content and PDF path
+            $conversionResult = $this->convertToPdfAndExtractText($uploadedFile);
+            $content = $conversionResult['content'];
+            $pdfPath = $conversionResult['pdf_path'];
+            
+            // Upload PDF to Gemini File API and get URI
+            $geminiFileUri = $this->uploadToGeminiFileApi($pdfPath);
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['file' => 'Invalid file type or unable to process the file.']);
+            return redirect()->back()->withErrors(['file' => 'Invalid file type or unable to process the file: ' . $e->getMessage()]);
         }
 
         // Auto-verify files uploaded by faculty or admin
@@ -138,6 +148,8 @@ class FileController extends Controller
             'name' => $fileName,
             'description' => $request->input('description'),
             'path' => $path,
+            'pdf_path' => $pdfPath,
+            'gemini_file_uri' => $geminiFileUri,
             'content' => $content,
             'file_hash' => $fileHash,
             'user_id' => auth()->id(),
@@ -765,11 +777,11 @@ class FileController extends Controller
         }
 
         set_time_limit(0);
-        $content = $file->content;
 
-        if (empty($content)) {
+        // Check if we have a Gemini file URI, otherwise fall back to text content
+        if (empty($file->gemini_file_uri) && empty($file->content)) {
             return response()->json([
-                'error' => 'File content is empty or not available.'
+                'error' => 'File content and Gemini file URI are both empty or not available.'
             ], 400);
         }
 
@@ -798,14 +810,28 @@ class FileController extends Controller
             ],
         ];
 
+        // Prepare the payload - use file URI if available, otherwise fall back to text
+        $parts = [];
+        if (!empty($file->gemini_file_uri)) {
+            $parts[] = [
+                'text' => "Generate {$count} {$type} from the following document:"
+            ];
+            $parts[] = [
+                'file_data' => [
+                    'mime_type' => 'application/pdf',
+                    'file_uri' => $file->gemini_file_uri
+                ]
+            ];
+        } else {
+            $parts[] = [
+                'text' => "Generate {$count} {$type} using the following content:\n\nContent:\n" . $file->content
+            ];
+        }
+
         $payload = [
             'contents' => [
                 [
-                    'parts' => [
-                        [
-                            'text' => "Generate {$type} using the following content:\n\nContent:\n" . $content
-                        ]
-                    ]
+                    'parts' => $parts
                 ]
             ],
             "generationConfig" => $generationConfig,
@@ -881,14 +907,14 @@ class FileController extends Controller
         ]);
     }
 
-    private function generateFlashcardsContent(File $file, int $count)
+    private function generateContentInternal(File $file, int $count, string $type, array $schema)
     {
         try {
             set_time_limit(0);
-            $content = $file->content;
 
-            if (empty($content)) {
-                return ['success' => false, 'error' => 'File content is empty or not available.'];
+            // Check if we have a Gemini file URI, otherwise fall back to text content
+            if (empty($file->gemini_file_uri) && empty($file->content)) {
+                return ['success' => false, 'error' => 'File content and Gemini file URI are both empty or not available.'];
             }
 
             $apiKey = config('services.gemini.api_key');
@@ -899,35 +925,39 @@ class FileController extends Controller
                 "response_schema" => [
                     "type" => "OBJECT",
                     "properties" => [
-                        "flashcards" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "answer" => ["type" => "STRING"]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "answer"],
-                            ],
+                        $type => array_merge($schema, [
                             "minItems" => $count,
                             "maxItems" => $count,
                             "nullable" => false,
-                        ],
+                        ]),
                     ],
                     "nullable" => false,
-                    "required" => ["flashcards"],
+                    "required" => [$type],
                 ],
             ];
+
+            // Prepare the payload - use file URI if available, otherwise fall back to text
+            $parts = [];
+            if (!empty($file->gemini_file_uri)) {
+                $parts[] = [
+                    'text' => "Generate {$count} {$type} from the following document:"
+                ];
+                $parts[] = [
+                    'file_data' => [
+                        'mime_type' => 'application/pdf',
+                        'file_uri' => $file->gemini_file_uri
+                    ]
+                ];
+            } else {
+                $parts[] = [
+                    'text' => "Generate {$count} {$type} using the following content:\n\nContent:\n" . $file->content
+                ];
+            }
 
             $payload = [
                 'contents' => [
                     [
-                        'parts' => [
-                            [
-                                'text' => "Generate flashcards using the following content:\n\nContent:\n" . $content
-                            ]
-                        ]
+                        'parts' => $parts
                     ]
                 ],
                 "generationConfig" => $generationConfig,
@@ -942,17 +972,47 @@ class FileController extends Controller
                 $parsedData = json_decode($text, true);
 
                 if (json_last_error() === JSON_ERROR_NONE) {
-                    $flashcards = $parsedData['flashcards'] ?? [];
+                    $items = $parsedData[$type] ?? [];
 
-                    foreach ($flashcards as $flashcard) {
-                        \App\Models\Flashcard::create([
-                            'question' => $flashcard['question'],
-                            'answer' => $flashcard['answer'],
-                            'file_id' => $file->id,
-                        ]);
+                    foreach ($items as $item) {
+                        if ($type === 'multiple_choice_quizzes') {
+                            // Ensure the answer is included in the options
+                            if (!in_array($item['answer'], $item['options'])) {
+                                $item['options'][] = $item['answer'];
+                            }
+                        }
+
+                        match ($type) {
+                            'flashcards' => \App\Models\Flashcard::create([
+                                'question' => $item['question'],
+                                'answer' => $item['answer'],
+                                'file_id' => $file->id,
+                            ]),
+                            'multiple_choice_quizzes' => \App\Models\Quiz::create([
+                                'question' => $item['question'],
+                                'type' => 'multiple_choice',
+                                'options' => $item['options'],
+                                'answers' => [$item['answer']],
+                                'file_id' => $file->id,
+                            ]),
+                            'enumeration_quizzes' => \App\Models\Quiz::create([
+                                'question' => $item['question'],
+                                'type' => 'enumeration',
+                                'options' => null,
+                                'answers' => $item['answers'],
+                                'file_id' => $file->id,
+                            ]),
+                            'true_false_quizzes' => \App\Models\Quiz::create([
+                                'question' => $item['question'],
+                                'type' => 'true_false',
+                                'options' => null,
+                                'answers' => [$item['answer']],
+                                'file_id' => $file->id,
+                            ]),
+                        };
                     }
 
-                    return ['success' => true, 'message' => count($flashcards) . ' flashcards generated'];
+                    return ['success' => true, 'message' => count($items) . ' ' . str_replace('_', ' ', $type) . ' generated'];
                 } else {
                     return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
                 }
@@ -960,317 +1020,129 @@ class FileController extends Controller
 
             return ['success' => false, 'error' => 'Failed to call Gemini API.'];
         } catch (\Exception $e) {
-            return ['success' => false, 'error' => 'Error generating flashcards: ' . $e->getMessage()];
+            return ['success' => false, 'error' => 'Error generating ' . str_replace('_', ' ', $type) . ': ' . $e->getMessage()];
         }
+    }
+
+    private function generateFlashcardsContent(File $file, int $count)
+    {
+        return $this->generateContentInternal($file, $count, 'flashcards', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "answer" => ["type" => "STRING"]
+                ],
+                "nullable" => false,
+                "required" => ["question", "answer"],
+            ],
+        ]);
     }
 
     private function generateMultipleChoiceContent(File $file, int $count)
     {
-        try {
-            set_time_limit(0);
-            $content = $file->content;
-
-            if (empty($content)) {
-                return ['success' => false, 'error' => 'File content is empty or not available.'];
-            }
-
-            $apiKey = config('services.gemini.api_key');
-            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
-
-            $generationConfig = [
-                "response_mime_type" => "application/json",
-                "response_schema" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "multiple_choice_quizzes" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "options" => [
-                                        "type" => "ARRAY",
-                                        "items" => ["type" => "STRING"],
-                                        "minItems" => 2,
-                                        "maxItems" => 4,
-                                        "nullable" => false,
-                                    ],
-                                    "answer" => ["type" => "STRING"]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "options", "answer"],
-                            ],
-                            "minItems" => $count,
-                            "maxItems" => $count,
-                            "nullable" => false,
-                        ],
+        return $this->generateContentInternal($file, $count, 'multiple_choice_quizzes', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "options" => [
+                        "type" => "ARRAY",
+                        "items" => ["type" => "STRING"],
+                        "minItems" => 2,
+                        "maxItems" => 4,
+                        "nullable" => false,
                     ],
-                    "nullable" => false,
-                    "required" => ["multiple_choice_quizzes"],
+                    "answer" => ["type" => "STRING"]
                 ],
-            ];
-
-            $payload = [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'text' => "Generate multiple choice quizzes using the following content:\n\nContent:\n" . $content
-                            ]
-                        ]
-                    ]
-                ],
-                "generationConfig" => $generationConfig,
-            ];
-
-            $response = Http::timeout(300)->post($url, $payload);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-
-                $parsedData = json_decode($text, true);
-
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $quizzes = $parsedData['multiple_choice_quizzes'] ?? [];
-
-                    foreach ($quizzes as $quiz) {
-                        // Ensure the answer is included in the options
-                        if (!in_array($quiz['answer'], $quiz['options'])) {
-                            $quiz['options'][] = $quiz['answer'];
-                        }
-
-                        \App\Models\Quiz::create([
-                            'question' => $quiz['question'],
-                            'type' => 'multiple_choice',
-                            'options' => $quiz['options'],
-                            'answers' => [$quiz['answer']],
-                            'file_id' => $file->id,
-                        ]);
-                    }
-
-                    return ['success' => true, 'message' => count($quizzes) . ' multiple choice quizzes generated'];
-                } else {
-                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
-                }
-            }
-
-            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => 'Error generating multiple choice quizzes: ' . $e->getMessage()];
-        }
+                "nullable" => false,
+                "required" => ["question", "options", "answer"],
+            ],
+        ]);
     }
 
     private function generateEnumerationContent(File $file, int $count)
     {
-        try {
-            set_time_limit(0);
-            $content = $file->content;
-
-            if (empty($content)) {
-                return ['success' => false, 'error' => 'File content is empty or not available.'];
-            }
-
-            $apiKey = config('services.gemini.api_key');
-            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
-
-            $generationConfig = [
-                "response_mime_type" => "application/json",
-                "response_schema" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "enumeration_quizzes" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "answers" => [
-                                        "type" => "ARRAY",
-                                        "items" => ["type" => "STRING"],
-                                        "minItems" => 1,
-                                        "maxItems" => 10,
-                                        "nullable" => false,
-                                    ]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "answers"],
-                            ],
-                            "minItems" => $count,
-                            "maxItems" => $count,
-                            "nullable" => false,
-                        ],
-                    ],
-                    "nullable" => false,
-                    "required" => ["enumeration_quizzes"],
-                ],
-            ];
-
-            $payload = [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'text' => "Generate enumeration quizzes using the following content:\n\nContent:\n" . $content
-                            ]
-                        ]
+        return $this->generateContentInternal($file, $count, 'enumeration_quizzes', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "answers" => [
+                        "type" => "ARRAY",
+                        "items" => ["type" => "STRING"],
+                        "minItems" => 1,
+                        "maxItems" => 10,
+                        "nullable" => false,
                     ]
                 ],
-                "generationConfig" => $generationConfig,
-            ];
-
-            $response = Http::timeout(300)->post($url, $payload);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-
-                $parsedData = json_decode($text, true);
-
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $quizzes = $parsedData['enumeration_quizzes'] ?? [];
-
-                    foreach ($quizzes as $quiz) {
-                        \App\Models\Quiz::create([
-                            'question' => $quiz['question'],
-                            'type' => 'enumeration',
-                            'options' => null,
-                            'answers' => $quiz['answers'],
-                            'file_id' => $file->id,
-                        ]);
-                    }
-
-                    return ['success' => true, 'message' => count($quizzes) . ' enumeration quizzes generated'];
-                } else {
-                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
-                }
-            }
-
-            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => 'Error generating enumeration quizzes: ' . $e->getMessage()];
-        }
+                "nullable" => false,
+                "required" => ["question", "answers"],
+            ],
+        ]);
     }
 
     private function generateTrueFalseContent(File $file, int $count)
     {
-        try {
-            set_time_limit(0);
-            $content = $file->content;
-
-            if (empty($content)) {
-                return ['success' => false, 'error' => 'File content is empty or not available.'];
-            }
-
-            $apiKey = config('services.gemini.api_key');
-            $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=' . $apiKey;
-
-            $generationConfig = [
-                "response_mime_type" => "application/json",
-                "response_schema" => [
-                    "type" => "OBJECT",
-                    "properties" => [
-                        "true_false_quizzes" => [
-                            "type" => "ARRAY",
-                            "items" => [
-                                "type" => "OBJECT",
-                                "properties" => [
-                                    "question" => ["type" => "STRING"],
-                                    "answer" => ["type" => "STRING"]
-                                ],
-                                "nullable" => false,
-                                "required" => ["question", "answer"],
-                            ],
-                            "minItems" => $count,
-                            "maxItems" => $count,
-                            "nullable" => false,
-                        ],
-                    ],
-                    "nullable" => false,
-                    "required" => ["true_false_quizzes"],
+        return $this->generateContentInternal($file, $count, 'true_false_quizzes', [
+            "type" => "ARRAY",
+            "items" => [
+                "type" => "OBJECT",
+                "properties" => [
+                    "question" => ["type" => "STRING"],
+                    "answer" => ["type" => "STRING"]
                 ],
-            ];
-
-            $payload = [
-                'contents' => [
-                    [
-                        'parts' => [
-                            [
-                                'text' => "Generate true/false quizzes using the following content:\n\nContent:\n" . $content
-                            ]
-                        ]
-                    ]
-                ],
-                "generationConfig" => $generationConfig,
-            ];
-
-            $response = Http::timeout(300)->post($url, $payload);
-
-            if ($response->successful()) {
-                $data = $response->json();
-                $text = $data['candidates'][0]['content']['parts'][0]['text'] ?? '';
-
-                $parsedData = json_decode($text, true);
-
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $quizzes = $parsedData['true_false_quizzes'] ?? [];
-
-                    foreach ($quizzes as $quiz) {
-                        \App\Models\Quiz::create([
-                            'question' => $quiz['question'],
-                            'type' => 'true_false',
-                            'options' => null,
-                            'answers' => [$quiz['answer']],
-                            'file_id' => $file->id,
-                        ]);
-                    }
-
-                    return ['success' => true, 'message' => count($quizzes) . ' true/false quizzes generated'];
-                } else {
-                    return ['success' => false, 'error' => 'Failed to parse JSON from Gemini response.'];
-                }
-            }
-
-            return ['success' => false, 'error' => 'Failed to call Gemini API.'];
-        } catch (\Exception $e) {
-            return ['success' => false, 'error' => 'Error generating true/false quizzes: ' . $e->getMessage()];
-        }
+                "nullable" => false,
+                "required" => ["question", "answer"],
+            ],
+        ]);
     }
 
-    private function extractText($file)
+    private function convertToPdfAndExtractText($file)
     {
         $extension = $file->getClientOriginalExtension();
         $content = '';
+        $pdfPath = null;
 
         switch ($extension) {
             case 'txt':
                 $content = file_get_contents($file->getRealPath());
+                $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
                 break;
 
             case 'pdf':
-                // Use a library like `smalot/pdfparser` for PDF text extraction
+                // Already a PDF, just extract text and store path
                 $parser = new \Smalot\PdfParser\Parser();
                 $pdf = $parser->parseFile($file->getRealPath());
                 $content = $pdf->getText();
+                // Store the PDF directly
+                $pdfPath = 'pdfs/' . uniqid() . '_' . $file->getClientOriginalName();
+                Storage::put($pdfPath, file_get_contents($file->getRealPath()));
                 break;
 
             case 'docx':
                 $content = $this->docx_to_text($file->getRealPath());
+                $pdfPath = $this->convertDocxToPdf($file->getRealPath(), $file->getClientOriginalName());
                 break;
 
             case 'doc':
                 $content = $this->doc_to_text($file->getRealPath());
+                $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
                 break;
 
             case 'xlsx':
                 $content = $this->xlsx_to_text($file->getRealPath());
+                $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
                 break;
 
             case 'pptx':
                 $content = $this->pptx_to_text($file->getRealPath());
+                $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
                 break;
 
-            // Add cases for other file types as needed
             default:
                 throw new \Exception('Unsupported file type');
         }
@@ -1280,34 +1152,191 @@ class FileController extends Controller
             $content = mb_convert_encoding($content, 'UTF-8');
         }
 
-        return $content;
+        return [
+            'content' => $content,
+            'pdf_path' => $pdfPath
+        ];
     }
 
-    protected static function doc_to_text($path_to_file)
+    private function convertTextToPdf($content, $originalName)
+    {
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isPhpEnabled', true);
+
+        $dompdf = new Dompdf($options);
+        
+        $html = '<html><head><meta charset="UTF-8"></head><body>';
+        $html .= '<h1>' . htmlspecialchars(pathinfo($originalName, PATHINFO_FILENAME)) . '</h1>';
+        $html .= '<div style="font-family: Arial, sans-serif; font-size: 12px; line-height: 1.6;">';
+        $html .= nl2br(htmlspecialchars($content));
+        $html .= '</div></body></html>';
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $pdfContent = $dompdf->output();
+        $pdfPath = 'pdfs/' . uniqid() . '_' . pathinfo($originalName, PATHINFO_FILENAME) . '.pdf';
+        
+        Storage::put($pdfPath, $pdfContent);
+        
+        return $pdfPath;
+    }
+
+    private function convertDocxToPdf($docxPath, $originalName)
+    {
+        try {
+            // Load the DOCX file
+            $phpWord = WordIOFactory::load($docxPath);
+            
+            // Convert to HTML first
+            $htmlWriter = WordIOFactory::createWriter($phpWord, 'HTML');
+            $tempHtmlPath = tempnam(sys_get_temp_dir(), 'docx_to_html_');
+            $htmlWriter->save($tempHtmlPath);
+            
+            // Read the HTML content
+            $htmlContent = file_get_contents($tempHtmlPath);
+            
+            // Convert HTML to PDF using DomPDF
+            $options = new Options();
+            $options->set('defaultFont', 'Arial');
+            $options->set('isHtml5ParserEnabled', true);
+            $options->set('isPhpEnabled', true);
+
+            $dompdf = new Dompdf($options);
+            $dompdf->loadHtml($htmlContent);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+
+            $pdfContent = $dompdf->output();
+            $pdfPath = 'pdfs/' . uniqid() . '_' . pathinfo($originalName, PATHINFO_FILENAME) . '.pdf';
+            
+            Storage::put($pdfPath, $pdfContent);
+            
+            // Clean up temp file
+            unlink($tempHtmlPath);
+            
+            return $pdfPath;
+        } catch (\Exception $e) {
+            // Fallback to text extraction and conversion
+            $content = $this->docx_to_text($docxPath);
+            return $this->convertTextToPdf($content, $originalName);
+        }
+    }
+
+    private function uploadToGeminiFileApi($pdfPath)
+    {
+        try {
+            $apiKey = config('services.gemini.api_key');
+            
+            // Get file content and metadata
+            $fileContent = Storage::get($pdfPath);
+            $filename = basename($pdfPath);
+            $mimeType = 'application/pdf';
+            $numBytes = strlen($fileContent);
+            
+            $baseUrl = 'https://generativelanguage.googleapis.com';
+            
+            // Step 1: Initial resumable request to get upload URL
+            $initialResponse = Http::withHeaders([
+                'x-goog-api-key' => $apiKey,
+                'X-Goog-Upload-Protocol' => 'resumable',
+                'X-Goog-Upload-Command' => 'start',
+                'X-Goog-Upload-Header-Content-Length' => $numBytes,
+                'X-Goog-Upload-Header-Content-Type' => $mimeType,
+                'Content-Type' => 'application/json'
+            ])->post($baseUrl . '/upload/v1beta/files', [
+                'file' => [
+                    'display_name' => $filename
+                ]
+            ]);
+
+            if (!$initialResponse->successful()) {
+                logger()->error('Failed to initiate Gemini file upload', [
+                    'response' => $initialResponse->body(),
+                    'status' => $initialResponse->status()
+                ]);
+                return null;
+            }
+
+            // Extract upload URL from response headers
+            $uploadUrl = $initialResponse->header('x-goog-upload-url');
+            if (!$uploadUrl) {
+                logger()->error('No upload URL returned from Gemini API', [
+                    'headers' => $initialResponse->headers()
+                ]);
+                return null;
+            }
+
+            // Step 2: Upload the actual file bytes
+            $uploadResponse = Http::withHeaders([
+                'Content-Length' => $numBytes,
+                'X-Goog-Upload-Offset' => '0',
+                'X-Goog-Upload-Command' => 'upload, finalize'
+            ])->withBody($fileContent, $mimeType)
+            ->post($uploadUrl);
+
+            if ($uploadResponse->successful()) {
+                $data = $uploadResponse->json();
+                $fileUri = $data['file']['uri'] ?? null;
+                
+                if ($fileUri) {
+                    logger()->info('Successfully uploaded file to Gemini API', [
+                        'file_uri' => $fileUri,
+                        'filename' => $filename
+                    ]);
+                    return $fileUri;
+                } else {
+                    logger()->error('No file URI returned from Gemini upload', [
+                        'response' => $uploadResponse->body()
+                    ]);
+                    return null;
+                }
+            } else {
+                logger()->error('Failed to upload file bytes to Gemini API', [
+                    'response' => $uploadResponse->body(),
+                    'status' => $uploadResponse->status()
+                ]);
+                return null;
+            }
+
+        } catch (\Exception $e) {
+            logger()->error('Exception during Gemini file upload', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'pdf_path' => $pdfPath
+            ]);
+            return null;
+        }
+    }
+
+    protected function doc_to_text($path_to_file)
     {
         $fileHandle = fopen($path_to_file, 'r');
         $line = @fread($fileHandle, filesize($path_to_file));
         $lines = explode(chr(0x0D), $line);
-        $response = '       ';
+        $response = '';
         foreach ($lines as $current_line) {
             $pos = strpos($current_line, chr(0x00));
             if (($pos !== FALSE) || (strlen($current_line) == 0)) {
                 continue;
             }
-            $response .= $current_line . '                   ';
+            $response .= $current_line . ' ';
         }
 
         $response = preg_replace('/[^a-zA-Z0-9\s\,\.\-\n\r\t@\/\_\(\)]/', '', $response);
-        return $response;
+        return trim($response);
     }
 
-    protected static function docx_to_text($path_to_file)
+    protected function docx_to_text($path_to_file)
     {
         $response = '';
         $zip = new ZipArchive();
 
         if ($zip->open($path_to_file) !== true) {
-            return false;
+            return '';
         }
 
         // Read the document.xml file content
@@ -1323,52 +1352,46 @@ class FileController extends Controller
         $response = str_replace('</w:r></w:p>', "\r\n", $response);
         $response = strip_tags($response);
 
-        return $response;
+        return trim($response);
     }
 
-    function xlsx_to_text($file)
+    protected function xlsx_to_text($file)
     {
-        $xml_filename = "xl/sharedStrings.xml"; //content file name
+        $xml_filename = "xl/sharedStrings.xml";
         $zip_handle = new ZipArchive;
         $output_text = "";
+        
         if (true === $zip_handle->open($file)) {
             if (($xml_index = $zip_handle->locateName($xml_filename)) !== false) {
-
                 $xml_datas = $zip_handle->getFromIndex($xml_index);
                 $dom = new DOMDocument();
                 $dom->loadXML($xml_datas, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
                 $xml_handle = $dom;
                 $output_text = strip_tags($xml_handle->saveXML());
-            } else {
-                $output_text .= "";
             }
             $zip_handle->close();
-        } else {
-            $output_text .= "";
         }
-        return $output_text;
+        
+        return trim($output_text);
     }
 
-    function pptx_to_text($input_file)
+    protected function pptx_to_text($input_file)
     {
         $zip_handle = new ZipArchive;
         $output_text = "";
+        
         if (true === $zip_handle->open($input_file)) {
-            $slide_number = 1; //loop through slide files
+            $slide_number = 1;
             while (($xml_index = $zip_handle->locateName("ppt/slides/slide" . $slide_number . ".xml")) !== false) {
                 $xml_datas = $zip_handle->getFromIndex($xml_index);
                 $xml_handle = new DOMDocument();
                 $xml_handle->loadXML($xml_datas, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
-                $output_text .= strip_tags($xml_handle->saveXML());
+                $output_text .= strip_tags($xml_handle->saveXML()) . "\n";
                 $slide_number++;
             }
-            if ($slide_number == 1) {
-                $output_text .= "";
-            }
             $zip_handle->close();
-        } else {
-            $output_text .= "";
         }
-        return $output_text;
+        
+        return trim($output_text);
     }
 }
