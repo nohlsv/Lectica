@@ -5,11 +5,11 @@
         <div class="bg-gradient min-h-screen py-12">
             <!-- Custom Header -->
             <div class="bg-container mx-4 mb-6 rounded-lg p-4 shadow-sm">
-                <div class="flex items-center justify-between">
-                    <h2 class="pixel-outline text-xl leading-tight font-semibold text-gray-100">
+                <div class="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                    <h2 class="pixel-outline text-lg sm:text-xl leading-tight font-semibold text-gray-100">
                         {{ gameState.game_mode === 'pvp' ? 'PvP Battle' : `Battle vs ${gameState.monster?.name || 'Monster'}` }}
                     </h2>
-                    <div class="flex items-center space-x-4">
+                    <div class="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4">
                         <div
                             v-if="gameState.game_mode === 'pve' && gameState.monster"
                             class="flex items-center space-x-2 rounded-lg bg-red-100 px-3 py-1 dark:bg-red-900/20"
@@ -24,49 +24,51 @@
                                 {{ gameState.monster.name }}: {{ gameState.monster_hp }}❤️
                             </span>
                         </div>
-                        <div class="flex items-center space-x-2 rounded-md bg-blue-600 px-3 py-1">
-                            <button @click="toggleSound" class="text-white hover:scale-110 transition-transform w-5 flex items-center justify-center">
-                                {{ soundVolume === 0 ? '🔇' : soundVolume < 0.5 ? '🔉' : '🔊' }}
+                        <div class="flex items-center justify-between space-x-2">
+                            <div class="flex items-center space-x-2 rounded-md bg-blue-600 px-3 py-1">
+                                <button @click="toggleSound" class="text-white hover:scale-110 transition-transform w-5 flex items-center justify-center">
+                                    {{ soundVolume === 0 ? '🔇' : soundVolume < 0.5 ? '🔉' : '🔊' }}
+                                </button>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="1"
+                                    step="0.1"
+                                    v-model="soundVolume"
+                                    class="pixel-slider flex-1 h-2 bg-gray-300 rounded-md appearance-none cursor-pointer w-16 sm:w-20"
+                                />
+                                <span class="pixel-outline text-xs text-white min-w-[3ch]">{{ Math.round(soundVolume * 100) }}%</span>
+                            </div>
+                            <button @click="confirmForfeit" class="pixel-outline rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
+                                Forfeit
                             </button>
-                            <input
-                                type="range"
-                                min="0"
-                                max="1"
-                                step="0.1"
-                                v-model="soundVolume"
-                                class="pixel-slider flex-1 h-2 bg-gray-300 rounded-md appearance-none cursor-pointer w-20"
-                            />
-                            <span class="pixel-outline text-xs text-white min-w-[3ch]">{{ Math.round(soundVolume * 100) }}%</span>
                         </div>
-                        <button @click="confirmForfeit" class="pixel-outline rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
-                            Forfeit
-                        </button>
                     </div>
                 </div>
             </div>
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Status Bar -->
-                <div class="mx-4 mb-6 rounded-lg border-2 border-green-500 bg-black/50 p-4 shadow-sm">
-                    <div class="flex items-center justify-between">
+                <div class="mx-4 mb-6 rounded-lg border-2 border-green-500 bg-black/50 p-3 sm:p-4 shadow-sm">
+                    <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
                         <!-- Player 1 -->
-                        <div class="flex items-center space-x-3">
-                            <div class="hidden h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 sm:flex">
-                                <span class="pixel-outline font-bold text-blue-300">
+                        <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto">
+                            <div class="h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 flex">
+                                <span class="pixel-outline text-sm font-bold text-blue-300">
                                     {{ gameState.playerOne.first_name.charAt(0) }}
                                 </span>
                             </div>
-                            <div>
-                                <p class="pixel-outline font-medium text-green-300">
+                            <div class="flex-1 sm:flex-none min-w-0">
+                                <p class="pixel-outline text-sm font-medium text-green-300 truncate">
                                     {{ gameState.playerOne.first_name }} {{ gameState.playerOne.last_name }}
                                 </p>
-                                <div class="flex items-center space-x-2">
+                                <div class="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
                                     <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
                                             <!-- Health Bar -->
                                             <div class="flex items-center space-x-1">
                                                 <span class="pixel-outline text-xs text-red-400">HP:</span>
-                                                <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                                <div class="h-1.5 w-10 sm:h-2 sm:w-16 rounded border border-gray-600 bg-gray-700">
                                                     <div
                                                         :style="{ width: `${Math.max(0, gameState.player_one_hp)}%` }"
                                                         class="h-full rounded transition-all duration-500"
@@ -81,13 +83,13 @@
                                                 </div>
                                                 <span class="pixel-outline text-xs text-white">{{ gameState.player_one_hp }}</span>
                                             </div>
-                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                            <span class="pixel-outline text-purple-500">🔥{{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="pixel-outline text-yellow-500">⭐{{ gameState.player_one_score }}</span>
                                         </template>
                                         <template v-else>
-                                            <span class="pixel-outline text-sm text-blue-500">🎯 {{ gameState.player_one_accuracy || 0 }}%</span>
-                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_one_streak || 0 }}</span>
-                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                            <span class="pixel-outline text-blue-500">🎯{{ gameState.player_one_accuracy || 0 }}%</span>
+                                            <span class="pixel-outline text-purple-500">🔥{{ gameState.player_one_streak || 0 }}</span>
+                                            <span class="pixel-outline text-yellow-500">⭐{{ gameState.player_one_score }}</span>
                                         </template>
                                     </template>
                                     <!-- PVE Mode: Show HP and Score -->
@@ -95,7 +97,7 @@
                                         <!-- Health Bar for PVE -->
                                         <div class="flex items-center space-x-1">
                                             <span class="pixel-outline text-xs text-red-400">HP:</span>
-                                            <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                            <div class="h-1.5 w-10 sm:h-2 sm:w-16 rounded border border-gray-600 bg-gray-700">
                                                 <div
                                                     :style="{ width: `${Math.max(0, gameState.player_one_hp)}%` }"
                                                     class="h-full rounded transition-all duration-500"
@@ -110,38 +112,38 @@
                                             </div>
                                             <span class="pixel-outline text-xs text-white">{{ gameState.player_one_hp }}</span>
                                         </div>
-                                        <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_one_score }}</span>
+                                        <span class="pixel-outline text-yellow-500">⭐{{ gameState.player_one_score }}</span>
                                     </template>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Turn Indicator -->
-                        <div class="text-center">
-                            <div v-if="isMyTurn" class="rounded-full bg-green-900/20 px-4 py-2">
-                                <p class="sm:text-md pixel-outline text-sm font-medium text-green-300">Your Turn!</p>
+                        <div class="text-center order-first sm:order-none">
+                            <div v-if="isMyTurn" class="rounded-full bg-green-900/20 px-3 py-1 sm:px-4 sm:py-2">
+                                <p class="pixel-outline text-xs sm:text-sm font-medium text-green-300">Your Turn!</p>
                             </div>
-                            <div v-else class="rounded-full bg-red-900/20 px-4 py-2">
-                                <p class="sm:text-md pixel-outline text-sm font-medium text-red-500">Opponent's Turn</p>
+                            <div v-else class="rounded-full bg-red-900/20 px-3 py-1 sm:px-4 sm:py-2">
+                                <p class="pixel-outline text-xs sm:text-sm font-medium text-red-500">Opponent's Turn</p>
                             </div>
                         </div>
 
                         <!-- Player 2 -->
-                        <div class="flex items-center space-x-3">
-                            <div>
-                                <p class="pixel-outline text-right font-medium text-green-300">
+                        <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto justify-end">
+                            <div class="flex-1 sm:flex-none min-w-0">
+                                <p class="pixel-outline text-sm font-medium text-green-300 truncate text-right">
                                     {{ gameState.playerTwo.first_name }} {{ gameState.playerTwo.last_name }}
                                 </p>
-                                <div class="flex items-center justify-end space-x-2">
+                                <div class="flex items-center justify-end space-x-1 sm:space-x-2 text-xs sm:text-sm">
                                     <!-- PvP Mode: Show HP or Accuracy based on pvp_mode -->
                                     <template v-if="gameState.game_mode === 'pvp'">
                                         <template v-if="gameState.pvp_mode === 'hp'">
-                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="pixel-outline text-yellow-500">⭐{{ gameState.player_two_score }}</span>
+                                            <span class="pixel-outline text-purple-500">🔥{{ gameState.player_two_streak || 0 }}</span>
                                             <!-- Health Bar -->
                                             <div class="flex items-center space-x-1">
                                                 <span class="pixel-outline text-xs text-white">{{ gameState.player_two_hp }}</span>
-                                                <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                                <div class="h-1.5 w-10 sm:h-2 sm:w-16 rounded border border-gray-600 bg-gray-700">
                                                     <div
                                                         :style="{ width: `${Math.max(0, gameState.player_two_hp)}%` }"
                                                         class="h-full rounded transition-all duration-500"
@@ -158,18 +160,18 @@
                                             </div>
                                         </template>
                                         <template v-else>
-                                            <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
-                                            <span class="pixel-outline text-sm text-purple-500">🔥 {{ gameState.player_two_streak || 0 }}</span>
-                                            <span class="pixel-outline text-sm text-blue-500">🎯 {{ gameState.player_two_accuracy || 0 }}%</span>
+                                            <span class="pixel-outline text-yellow-500">⭐{{ gameState.player_two_score }}</span>
+                                            <span class="pixel-outline text-purple-500">🔥{{ gameState.player_two_streak || 0 }}</span>
+                                            <span class="pixel-outline text-blue-500">🎯{{ gameState.player_two_accuracy || 0 }}%</span>
                                         </template>
                                     </template>
                                     <!-- PVE Mode: Show Score and HP -->
                                     <template v-else>
-                                        <span class="pixel-outline text-sm text-yellow-500">⭐ {{ gameState.player_two_score }}</span>
+                                        <span class="pixel-outline text-yellow-500">⭐{{ gameState.player_two_score }}</span>
                                         <!-- Health Bar for PVE -->
                                         <div class="flex items-center space-x-1">
                                             <span class="pixel-outline text-xs text-white">{{ gameState.player_two_hp }}</span>
-                                            <div class="h-2 w-16 rounded border border-gray-600 bg-gray-700">
+                                            <div class="h-1.5 w-10 sm:h-2 sm:w-16 rounded border border-gray-600 bg-gray-700">
                                                 <div
                                                     :style="{ width: `${Math.max(0, gameState.player_two_hp)}%` }"
                                                     class="h-full rounded transition-all duration-500"
@@ -187,8 +189,8 @@
                                     </template>
                                 </div>
                             </div>
-                            <div class="hidden h-10 w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 sm:flex">
-                                <span class="font-bold text-green-300">
+                            <div class="h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border-2 border-green-500 bg-black/50 flex">
+                                <span class="pixel-outline text-sm font-bold text-green-300">
                                     {{ gameState.playerTwo.first_name.charAt(0) }}
                                 </span>
                             </div>
@@ -410,66 +412,38 @@
         </div>
         
         <!-- Forfeit Confirmation Modal -->
-        <div v-if="showForfeitModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-            <div class="bg-container w-full max-w-md rounded-xl border-2 border-red-500 p-6 shadow-[8px_8px_0px_rgba(0,0,0,0.8)]">
-                <div class="mb-6 text-center">
-                    <div class="pixel-outline mb-4 text-6xl">⚠️</div>
-                    <h2 class="pixel-outline mb-2 text-xl font-bold text-red-400">Forfeit Game?</h2>
-                    <p class="pixel-outline text-sm text-[#FFF8DC]/80">
-                        Are you sure you want to forfeit this game? Your opponent will automatically win and the game will end immediately.
-                    </p>
-                </div>
-                
-                <div class="flex gap-3">
-                    <button
-                        @click="showForfeitModal = false"
-                        class="pixel-outline flex-1 border-2 border-gray-500 bg-gray-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-gray-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        @click="confirmForfeit"
-                        class="pixel-outline flex-1 border-2 border-red-400 bg-red-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
-                    >
-                        Forfeit Game
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Forfeit Confirmation Modal -->
         <div
             v-if="showForfeitModal"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
             @click="showForfeitModal = false"
         >
             <div
-                class="w-full max-w-md rounded-lg border-2 border-red-500 bg-gradient-to-b from-[#2D1B2E] to-[#1A0B1B] p-6 shadow-xl"
+                class="w-full max-w-sm sm:max-w-md rounded-lg border-2 border-red-500 bg-gradient-to-b from-[#2D1B2E] to-[#1A0B1B] p-4 sm:p-6 shadow-xl"
                 @click.stop
             >
                 <div class="mb-4 text-center">
-                    <div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full border-2 border-red-500 bg-red-500/20">
-                        <svg class="h-8 w-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div class="mx-auto mb-3 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full border-2 border-red-500 bg-red-500/20">
+                        <svg class="h-6 w-6 sm:h-8 sm:w-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 18.5c-.77.833.192 2.5 1.732 2.5z"></path>
                         </svg>
                     </div>
-                    <h3 class="pixel-outline mb-4 text-lg font-bold text-red-200">Forfeit Game?</h3>
-                    <p class="pixel-outline text-sm text-gray-300 leading-relaxed">
-                        Are you sure you want to forfeit this multiplayer game?
+                    <h3 class="pixel-outline mb-3 text-base sm:text-lg font-bold text-red-200">Forfeit Game?</h3>
+                    <p class="pixel-outline text-xs sm:text-sm text-gray-300 leading-relaxed">
+                        Are you sure you want to forfeit this game?
                         <br><br>
-                        <span class="text-red-300">⚠️ Your opponent will win by default and you will lose any progress made in this game.</span>
+                        <span class="text-red-300">⚠️ Your opponent will win and you will lose progress.</span>
                     </p>
                 </div>
-                <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <div class="flex flex-col gap-2 sm:gap-3 sm:flex-row">
                     <button
                         @click="showForfeitModal = false"
-                        class="pixel-outline flex-1 border-2 border-gray-400 bg-gray-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-gray-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:flex-none"
+                        class="pixel-outline flex-1 border-2 border-gray-400 bg-gray-600 px-3 py-2 sm:px-4 sm:py-3 text-sm text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-gray-700"
                     >
                         Cancel
                     </button>
                     <button
                         @click="executeForfeit"
-                        class="pixel-outline flex-1 border-2 border-red-400 bg-red-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:flex-none"
+                        class="pixel-outline flex-1 border-2 border-red-400 bg-red-600 px-3 py-2 sm:px-4 sm:py-3 text-sm text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700"
                     >
                         Yes, Forfeit
                     </button>
