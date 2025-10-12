@@ -34,6 +34,7 @@
                         <div v-else class="grid gap-3 sm:gap-6">
                             <div v-for="battle in battles.data" :key="battle.id" class="rounded-lg border-2 border-green-500 bg-black/50 p-3 sm:p-6">
                                 <div class="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+                                    <!-- Main Info Section -->
                                     <div class="flex items-center space-x-2 sm:space-x-4">
                                         <img
                                             v-if="battle.monster?.image_path"
@@ -62,19 +63,18 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="flex flex-col items-end space-y-2 sm:text-right">
-                                        <div class="flex space-x-2 text-xs sm:space-x-4 sm:text-sm">
-                                            <div>
-                                                <span class="pixel-outline text-green-600">❤️ {{ battle.player_hp }}</span>
+                                    
+                                    <!-- Stats Section - All stats on one line for mobile, right-aligned on desktop -->
+                                    <div class="flex flex-col sm:items-end sm:text-right">
+                                        <!-- All stats and button on one row -->
+                                        <div class="flex items-center justify-between space-x-2 sm:justify-end sm:space-x-4">
+                                            <div class="flex items-center space-x-2 sm:space-x-4">
+                                                <span class="pixel-outline text-green-600 text-xs sm:text-sm">❤️ {{ battle.player_hp }}</span>
+                                                <span class="pixel-outline text-red-600 text-xs sm:text-sm">👹 {{ battle.monster_hp }}</span>
+                                                <span class="pixel-outline text-xs text-gray-500">
+                                                    {{ battle.correct_answers }}/{{ battle.total_questions }} correct
+                                                </span>
                                             </div>
-                                            <div>
-                                                <span class="pixel-outline text-red-600">👹 {{ battle.monster_hp }}</span>
-                                            </div>
-                                        </div>
-                                        <div class="pixel-outline text-xs text-gray-500 sm:mt-1">
-                                            {{ battle.correct_answers }}/{{ battle.total_questions }} correct
-                                        </div>
-                                        <div class="mt-1 sm:mt-2">
                                             <Link
                                                 :href="route('battles.show', battle.id)"
                                                 :class="

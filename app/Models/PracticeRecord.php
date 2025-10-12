@@ -18,6 +18,10 @@ class PracticeRecord extends Model
 		'mistakes', // JSON field to store mistakes
 	];
 
+	protected $casts = [
+		'mistakes' => 'json',
+	];
+
 	public function user()
 	{
 		return $this->belongsTo(User::class);

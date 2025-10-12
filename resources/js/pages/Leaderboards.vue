@@ -118,9 +118,9 @@ onMounted(async () => {
     <Head title="Leaderboards" />
     <AppLayout>
         <!-- Header Section inspired by Files -->
-        <div class="bg-lectica flex max-h-[150px] w-full flex-1 flex-col gap-2 px-2 pt-3 pb-0 sm:max-h-[200px] sm:gap-4 sm:px-4 sm:pt-4">
+        <div class="bg-lectica flex max-h-[180px] w-full flex-1 flex-col gap-2 px-2 pt-6 pb-0 sm:max-h-[200px] sm:gap-4 sm:px-4 sm:pt-4">
             <div
-                class="mb-3 flex min-h-[100px] w-full flex-col items-center justify-center gap-3 rounded-xl p-3 text-center sm:mb-6 sm:min-h-[150px] sm:flex-row sm:gap-6 sm:p-6 sm:text-left"
+                class="mb-3 flex min-h-[120px] w-full flex-col items-center justify-center gap-3 rounded-xl p-3 text-center sm:mb-6 sm:min-h-[150px] sm:flex-row sm:gap-6 sm:p-6 sm:text-left"
             >
                 <!-- Icon -->
                 <div class="relative flex flex-col items-center gap-2">

@@ -273,7 +273,8 @@ function finishQuiz() {
                 return {
                     question: quiz.question,
                     your_answer: userAnswer,
-                    correct_answer: quiz.answers[0],
+                    correct_answer: quiz.type === 'enumeration' ? quiz.answers : quiz.answers[0],
+                    type: quiz.type,
                 };
             }
             return null;
@@ -550,7 +551,6 @@ watch(
                                         <div class="absolute -mt-5 h-2 w-10 rounded-sm bg-yellow-400 shadow-[inset_0_-1px_2px_rgba(0,0,0,0.5)]"></div>
                                         <Input
                                             v-model="userAnswers[currentIndex][index]"
-                                            :placeholder="`Coin Slot ${index + 1}`"
                                             :disabled="showFeedback"
                                             class="placeholder-opacity-60 pixel-outline flex-1 border-none bg-transparent text-center placeholder-yellow-400 outline-none focus:animate-bounce"
                                         />
