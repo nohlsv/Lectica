@@ -21,7 +21,7 @@ const currentUser = computed(() => (page.props as any).auth.user);
 const isAdmin = computed(() => currentUser.value?.user_role === 'admin');
 const isFileOwnedByAdmin = computed(() => props.file.user?.user_role === 'admin');
 const isCurrentUserOwner = computed(() => props.file.user?.id === currentUser.value?.id);
-const shouldShowArchive = computed(() => !isFileOwnedByAdmin.value && !isCurrentUserOwner.value);
+const shouldShowArchive = computed(() =>  !isFileOwnedByAdmin.value && isCurrentUserOwner.value && !isAdmin.value;);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
