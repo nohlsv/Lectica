@@ -48,11 +48,29 @@ const showCreateNew = ref(false);
 const newCollectionName = ref('');
 const isCreating = ref(false);
 
+// Duplicate file detection
+const duplicateFiles = ref<Map<string, DuplicateFileInfo>>(new Map());
+const filesToUpdate = ref<Map<string, DuplicateFileInfo>>(new Map());
+const checkingDuplicates = ref(false);
+const fileHashes = ref<Map<string, string>>(new Map()); // Track hashes of selected files
+
 interface Collection {
     id: number;
     name: string;
     file_count: number;
     is_public: boolean;
+}
+
+interface DuplicateFileInfo {
+    existingFile: {
+        id: number;
+        name: string;
+        description: string;
+        tags: any[];
+        url: string;
+    };
+    fileName: string;
+    fileIndex: number;
 }
 
 // Handle multiple file upload
@@ -65,17 +83,93 @@ const handleFileUpload = (event: Event) => {
 };
 
 // Add files to the selection
-const addFiles = (files: File[]) => {
-    // Filter out files that are already selected
-    const newFiles = files.filter(file => 
+const addFiles = async (files: File[]) => {
+    // First filter: Remove files that are already selected by name and size
+    let newFiles = files.filter(file => 
         !selectedFiles.value.some(existingFile => 
             existingFile.name === file.name && existingFile.size === file.size
         )
     );
     
-    selectedFiles.value.push(...newFiles);
+    if (newFiles.length === 0) return;
+    
+    // Second filter: Remove files that have the same hash as existing files
+    const filteredFiles = [];
+    const skippedFiles = [];
+    
+    for (const file of newFiles) {
+        // Calculate hash for the new file
+        const hashResult = await calculateFileHash(file);
+        let fileHash = hashResult.hash;
+        
+        // If client-side hashing failed, create a fallback identifier
+        if (!fileHash) {
+            try {
+                const buffer = await file.arrayBuffer();
+                const uint8Array = new Uint8Array(buffer);
+                // Create a more robust fallback hash
+                const sampleBytes = Math.min(1024, uint8Array.length);
+                let hashSum = file.size;
+                for (let i = 0; i < sampleBytes; i += Math.max(1, Math.floor(sampleBytes / 32))) {
+                    hashSum = (hashSum * 31 + uint8Array[i]) >>> 0;
+                }
+                fileHash = `fallback_${hashSum}_${file.size}`;
+            } catch (error) {
+                fileHash = `basic_${file.name}_${file.size}_${file.lastModified}`;
+            }
+        }
+        
+        // Get all existing hashes to check against
+        const existingHashes = Array.from(fileHashes.value.values());
+        let isDuplicateOfExisting = false;
+        
+        // Check against already selected files by hash
+        if (existingHashes.includes(fileHash)) {
+            isDuplicateOfExisting = true;
+        }
+        
+        // Check against files in duplicate queue by name
+        if (duplicateFiles.value.has(file.name)) {
+            isDuplicateOfExisting = true;
+        }
+        
+        // Check against files in update queue by name
+        if (filesToUpdate.value.has(file.name)) {
+            isDuplicateOfExisting = true;
+        }
+        
+        // Also check if any files in the update queue have the same hash
+        for (const [updateFileName, updateInfo] of filesToUpdate.value.entries()) {
+            // Try to get the hash we might have stored for this file
+            const updateFileHash = fileHashes.value.get(updateFileName);
+            if (updateFileHash && updateFileHash === fileHash) {
+                isDuplicateOfExisting = true;
+                break;
+            }
+        }
+        
+        if (isDuplicateOfExisting) {
+            skippedFiles.push(file.name);
+        } else {
+            filteredFiles.push(file);
+            // Store the hash for this file
+            fileHashes.value.set(file.name, fileHash);
+        }
+    }
+    
+    // Show notification for skipped files
+    if (skippedFiles.length > 0) {
+        toast.info(`Skipped ${skippedFiles.length} file(s) that are already being handled: ${skippedFiles.join(', ')}`);
+    }
+    
+    if (filteredFiles.length === 0) return;
+    
+    // Check for duplicates against database
+    await checkForDuplicates(filteredFiles);
+    
+    selectedFiles.value.push(...filteredFiles);
     // Initialize names for new files
-    newFiles.forEach(file => {
+    filteredFiles.forEach(file => {
         fileNames.value.push(file.name.replace(/\.[^/.]+$/, ''));
     });
     form.files = [...selectedFiles.value];
@@ -83,9 +177,26 @@ const addFiles = (files: File[]) => {
 
 // Remove a file from selection
 const removeFile = (index: number) => {
+    const removedFile = selectedFiles.value[index];
+    
     selectedFiles.value.splice(index, 1);
     fileNames.value.splice(index, 1);
     form.files = [...selectedFiles.value];
+    
+    // Remove from duplicates if it exists
+    if (removedFile) {
+        duplicateFiles.value.delete(removedFile.name);
+        filesToUpdate.value.delete(removedFile.name);
+        // Clean up hash tracking
+        fileHashes.value.delete(removedFile.name);
+    }
+    
+    // Update file indices in remaining duplicates to account for the removed file
+    for (const [fileName, duplicate] of duplicateFiles.value.entries()) {
+        if (duplicate.fileIndex > index) {
+            duplicate.fileIndex = duplicate.fileIndex - 1;
+        }
+    }
 };
 
 // Update file name
@@ -224,12 +335,206 @@ const formatFileSize = (bytes: number): string => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
 
+// Calculate SHA256 hash of a file using Web Crypto API
 
+
+// Calculate file hash client-side with fallback to backend
+const calculateFileHash = async (file: File): Promise<{ hash: string; method: 'client' | 'backend' }> => {
+    // Try Web Crypto API first (works on localhost and HTTPS)
+    try {
+        if (window.crypto && window.crypto.subtle) {
+            const buffer = await file.arrayBuffer();
+            const hashBuffer = await window.crypto.subtle.digest('SHA-256', buffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const hash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return { hash, method: 'client' };
+        }
+    } catch (error) {
+        console.warn('Web Crypto API failed, will use backend fallback:', error);
+    }
+    
+    // Fallback to backend calculation
+    return { hash: '', method: 'backend' };
+};
+
+// Check for duplicate files
+const checkForDuplicates = async (files: File[]) => {
+    checkingDuplicates.value = true;
+    
+    // Only remove duplicates for files being checked (not all duplicates)
+    files.forEach(file => {
+        duplicateFiles.value.delete(file.name);
+    });
+    
+    try {
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            
+            // Try client-side hash calculation first
+            const hashResult = await calculateFileHash(file);
+            
+            let response;
+            
+            if (hashResult.method === 'client' && hashResult.hash) {
+                // Use client-side hash for duplicate check
+                response = await axios.get(`/files/check-duplicate/${hashResult.hash}`);
+            } else {
+                // Fallback to backend hash calculation
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('name', file.name);
+                
+                response = await axios.post('/files/check-duplicate', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    }
+                });
+            }
+            
+            if (response.data.exists) {
+                duplicateFiles.value.set(file.name, {
+                    existingFile: response.data.file,
+                    fileName: file.name,
+                    fileIndex: selectedFiles.value.length + i
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error checking for duplicates:', error);
+    } finally {
+        checkingDuplicates.value = false;
+    }
+};
+
+// Handle duplicate file action (mark for update or skip)
+const handleDuplicateFile = (fileName: string, action: 'update' | 'skip') => {
+    const duplicate = duplicateFiles.value.get(fileName);
+    if (!duplicate) return;
+    
+    if (action === 'update') {
+        // Mark file for update during upload process
+        filesToUpdate.value.set(fileName, duplicate);
+        toast.info(`${duplicate.existingFile.name} will be updated during upload.`);
+        // Keep the hash in tracking when moving to update queue
+        // (hash will remain in fileHashes map to prevent re-adding same file)
+    } else {
+        // Skip action - just show confirmation
+        toast.info(`Skipped duplicate file: ${fileName}`);
+        // For skip action, we'll remove the hash when the file is removed
+    }
+    
+    // Remove from duplicates list
+    duplicateFiles.value.delete(fileName);
+    
+    // Remove file from selected files for both update and skip actions
+    const fileIndex = selectedFiles.value.findIndex(f => f.name === fileName);
+    console.log(`Handling duplicate file: ${fileName}, action: ${action}, fileIndex: ${fileIndex}, selectedFiles before:`, selectedFiles.value.map(f => f.name));
+    
+    if (fileIndex !== -1) {
+        // For update action, don't remove hash (keep it to prevent re-adding)
+        // For skip action, removeFile will clean up the hash
+        if (action === 'update') {
+            const removedFile = selectedFiles.value[fileIndex];
+            selectedFiles.value.splice(fileIndex, 1);
+            fileNames.value.splice(fileIndex, 1);
+            form.files = [...selectedFiles.value];
+            
+            console.log(`Removed file for update: ${fileName}, selectedFiles after:`, selectedFiles.value.map(f => f.name));
+            
+            // Update file indices in remaining duplicates
+            for (const [fileName, duplicate] of duplicateFiles.value.entries()) {
+                if (duplicate.fileIndex > fileIndex) {
+                    duplicate.fileIndex = duplicate.fileIndex - 1;
+                }
+            }
+            // Note: We intentionally keep the hash in fileHashes for update files
+        } else {
+            // For skip, use the normal removeFile which cleans up everything
+            removeFile(fileIndex);
+            console.log(`Removed file for skip: ${fileName}, selectedFiles after:`, selectedFiles.value.map(f => f.name));
+        }
+    } else {
+        console.error(`Could not find file ${fileName} in selectedFiles for ${action}. Available files:`, selectedFiles.value.map(f => f.name));
+    }
+};
+
+// Handle all duplicate files at once
+const handleAllDuplicates = (action: 'update' | 'skip') => {
+    const duplicateNames = Array.from(duplicateFiles.value.keys());
+    
+    if (action === 'update') {
+        // Mark all duplicates for update during upload process
+        duplicateNames.forEach(fileName => {
+            const duplicate = duplicateFiles.value.get(fileName);
+            if (duplicate) {
+                filesToUpdate.value.set(fileName, duplicate);
+            }
+        });
+        
+        toast.info(`${duplicateNames.length} existing files will be updated during upload.`);
+    } else {
+        toast.info(`Skipping ${duplicateNames.length} duplicate files.`);
+    }
+    
+    // Remove all processed duplicates from duplicates list
+    duplicateNames.forEach(fileName => {
+        duplicateFiles.value.delete(fileName);
+    });
+    
+    // Remove all duplicate files from selection
+    duplicateNames.forEach(fileName => {
+        const fileIndex = selectedFiles.value.findIndex(f => f.name === fileName);
+        if (fileIndex !== -1) {
+            if (action === 'update') {
+                // For update action, remove from selection but keep hash tracking
+                const removedFile = selectedFiles.value[fileIndex];
+                selectedFiles.value.splice(fileIndex, 1);
+                fileNames.value.splice(fileIndex, 1);
+                form.files = [...selectedFiles.value];
+                
+                // Update file indices in remaining duplicates
+                for (const [remainingFileName, duplicate] of duplicateFiles.value.entries()) {
+                    if (duplicate.fileIndex > fileIndex) {
+                        duplicate.fileIndex = duplicate.fileIndex - 1;
+                    }
+                }
+                // Keep the hash in fileHashes to prevent re-adding same file
+            } else {
+                // For skip action, remove everything including hash
+                removeFile(fileIndex);
+            }
+        }
+    });
+};
+
+
+
+// Get dynamic upload button text based on actions to be performed
+const getUploadButtonText = () => {
+    const uploadCount = selectedFiles.value.length;
+    const updateCount = filesToUpdate.value.size;
+    
+    if (uploadCount > 0 && updateCount > 0) {
+        return `Upload ${uploadCount} & Update ${updateCount}`;
+    } else if (uploadCount > 0) {
+        return uploadCount === 1 ? 'Upload File' : `Upload ${uploadCount} Files`;
+    } else if (updateCount > 0) {
+        return updateCount === 1 ? 'Update File' : `Update ${updateCount} Files`;
+    }
+    
+    return 'Upload Files';
+};
 
 // Form submission for multiple files
 const submit = () => {
-    if (!form.files || form.files.length === 0) {
-        toast.error('Please select at least one file to upload.');
+    if ((!form.files || form.files.length === 0) && filesToUpdate.value.size === 0) {
+        toast.error('Please select at least one file to upload or have files marked for update.');
+        return;
+    }
+
+    // Check if there are unhandled duplicates
+    if (duplicateFiles.value.size > 0) {
+        toast.error('Please handle all duplicate files before uploading. Use "Update" or "Skip" for each duplicate.');
         return;
     }
 
@@ -242,10 +547,63 @@ const uploadFiles = async () => {
     const totalFiles = form.files.length;
     let successCount = 0;
     let errorCount = 0;
+    let updateCount = 0;
     let lastUploadedFileId: number | null = null;
 
+    console.log('Starting upload process with:', {
+        filesToUpdate: Array.from(filesToUpdate.value.keys()),
+        selectedFiles: selectedFiles.value.map(f => f.name),
+        formFiles: form.files.map(f => f.name)
+    });
+
+    // First, handle any files marked for update
+    if (filesToUpdate.value.size > 0) {
+        console.log('Processing files for update:', Array.from(filesToUpdate.value.keys()));
+        for (const [fileName, duplicate] of filesToUpdate.value.entries()) {
+            try {
+                // Extract tag names from tag objects
+                const tagNames = form.tags.map((tag: any) => {
+                    if (typeof tag === 'string') {
+                        return tag;
+                    }
+                    if (tag && typeof tag === 'object' && tag.name) {
+                        return tag.name;
+                    }
+                    return String(tag);
+                });
+
+                console.log(`Updating file ${fileName} with data:`, {
+                    description: form.description,
+                    tags: tagNames,
+                    collections: selectedCollections.value,
+                });
+
+                await axios.put(`/files/${duplicate.existingFile.id}`, {
+                    description: form.description,
+                    tags: tagNames,
+                    collections: selectedCollections.value,
+                });
+                updateCount++;
+                console.log(`Successfully updated existing file: ${fileName}`);
+            } catch (error) {
+                console.error(`Failed to update ${fileName}:`, error);
+                errorCount++;
+            }
+        }
+    }
+
+    // Then upload new files
+    console.log('Processing files for upload:', form.files.map(f => f.name));
     for (let i = 0; i < form.files.length; i++) {
         const file = form.files[i];
+        
+        // Skip files that are in the update queue
+        if (filesToUpdate.value.has(file.name)) {
+            console.warn(`Skipping upload for ${file.name} as it's in the update queue`);
+            continue;
+        }
+        
+        console.log(`Starting upload for file: ${file.name}`);
         
         // Create individual form for each file
         const fileForm = useForm({
@@ -286,7 +644,7 @@ const uploadFiles = async () => {
                         resolve(); // Continue with next file even if this one fails
                     },
                     headers: {
-                        'X-Multi-File-Upload': totalFiles > 1 ? 'true' : 'false'
+                        'X-Multi-File-Upload': (totalFiles > 1 || filesToUpdate.value.size > 0) ? 'true' : 'false'
                     }
                 });
             });
@@ -296,8 +654,20 @@ const uploadFiles = async () => {
     }
 
     // Show final result
-    if (successCount === totalFiles) {
-        toast.success(`All ${totalFiles} files uploaded successfully!`);
+    const totalActions = successCount + updateCount;
+    const hasMultipleActions = totalFiles > 1 || filesToUpdate.value.size > 0;
+    
+    if (totalActions > 0 && errorCount === 0) {
+        let message = '';
+        if (successCount > 0 && updateCount > 0) {
+            message = `Successfully uploaded ${successCount} new files and updated ${updateCount} existing files!`;
+        } else if (successCount > 0) {
+            message = `All ${successCount} files uploaded successfully!`;
+        } else if (updateCount > 0) {
+            message = `All ${updateCount} existing files updated successfully!`;
+        }
+        toast.success(message);
+        
         // Reset form
         selectedFiles.value = [];
         fileNames.value = [];
@@ -305,25 +675,27 @@ const uploadFiles = async () => {
         form.description = '';
         form.tags = [];
         selectedCollections.value = [];
+        filesToUpdate.value.clear(); // Clear the update queue
+        fileHashes.value.clear(); // Clear hash tracking
         
-        // Redirect based on number of files uploaded
+        // Redirect based on number of actions
         setTimeout(() => {
-            if (totalFiles === 1 && lastUploadedFileId) {
-                // Single file: redirect to the file page
+            if (!hasMultipleActions && lastUploadedFileId) {
+                // Single file upload: redirect to the file page
                 window.location.href = `/files/${lastUploadedFileId}`;
             } else {
-                // Multiple files: redirect to MyFiles with pending filter and sort by created date
-                window.location.href = '/myfiles?sort=created_at&direction=desc';
+                // Multiple actions: redirect to MyFiles with pending filter and sort by created date
+                window.location.href = '/myfiles?sort=updated_at&direction=desc';
             }
         }, 1500);
-    } else if (successCount > 0) {
-        toast.success(`${successCount} files uploaded successfully, ${errorCount} failed.`);
+    } else if (totalActions > 0) {
+        toast.success(`Completed ${totalActions} actions, ${errorCount} failed.`);
         // Always redirect to MyFiles with pending filter for partial success
         setTimeout(() => {
             window.location.href = '/myfiles?pending=true&sort=created_at&direction=desc';
         }, 2000);
     } else {
-        toast.error('All file uploads failed. Please try again.');
+        toast.error('All actions failed. Please try again.');
     }
 };
 </script>
@@ -417,6 +789,135 @@ const uploadFiles = async () => {
                             </div>
                         </div>
 
+                        <!-- Duplicate Files Warning -->
+                        <div v-if="duplicateFiles.size > 0" class="space-y-2">
+                            <div class="bg-orange-500/20 border border-orange-400/50 rounded-md p-3">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-sm font-medium text-orange-300">⚠️ Duplicate Files Detected ({{ duplicateFiles.size }})</h4>
+                                    <div v-if="duplicateFiles.size > 1" class="flex gap-2">
+                                        <button
+                                            type="button"
+                                            @click="handleAllDuplicates('update')"
+                                            class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded text-xs hover:bg-blue-500/30 transition-colors"
+                                        >
+                                            Update All
+                                        </button>
+                                        <button
+                                            type="button"
+                                            @click="handleAllDuplicates('skip')"
+                                            class="bg-red-500/20 text-red-300 px-3 py-1 rounded text-xs hover:bg-red-500/30 transition-colors"
+                                        >
+                                            Skip All
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Info tip -->
+                                <div class="bg-blue-500/20 border border-blue-400/30 rounded p-2 mb-3">
+                                    <p class="text-xs text-blue-200">
+                                        💡 <strong>Update</strong> will merge your current description, tags, and selected collections with the existing files (no duplicates added).
+                                    </p>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div 
+                                        v-for="[fileName, duplicate] in duplicateFiles" 
+                                        :key="fileName"
+                                        class="bg-black/30 border border-orange-400/30 rounded p-2"
+                                    >
+                                        <div class="flex items-start justify-between mb-2">
+                                            <div class="flex-1">
+                                                <p class="text-xs text-orange-200 font-medium">{{ fileName }}</p>
+                                                <p class="text-xs text-orange-300/80">
+                                                    Already exists as: 
+                                                    <Link 
+                                                        :href="duplicate.existingFile.url" 
+                                                        class="text-blue-400 hover:text-blue-300 underline"
+                                                        target="_blank"
+                                                    >
+                                                        {{ duplicate.existingFile.name }}
+                                                    </Link>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="flex gap-2 text-xs">
+                                            <button
+                                                type="button"
+                                                @click="handleDuplicateFile(fileName, 'update')"
+                                                class="bg-blue-500/20 text-blue-300 px-2 py-1 rounded hover:bg-blue-500/30 transition-colors"
+                                            >
+                                                Update Existing
+                                            </button>
+                                            <button
+                                                type="button"
+                                                @click="handleDuplicateFile(fileName, 'skip')"
+                                                class="bg-red-500/20 text-red-300 px-2 py-1 rounded hover:bg-red-500/30 transition-colors"
+                                            >
+                                                Skip This File
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Files Marked for Update -->
+                        <div v-if="filesToUpdate.size > 0" class="space-y-2">
+                            <div class="bg-green-500/20 border border-green-400/50 rounded-md p-3">
+                                <div class="flex items-center justify-between mb-3">
+                                    <h4 class="text-sm font-medium text-green-300">
+                                        📄 Files to Update During Upload ({{ filesToUpdate.size }})
+                                    </h4>
+                                </div>
+                                
+                                <div class="bg-green-500/20 border border-green-400/30 rounded p-2 mb-3">
+                                    <p class="text-xs text-green-200">
+                                        ✅ These existing files will be updated with your current description, tags, and collections when you upload.
+                                    </p>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div 
+                                        v-for="[fileName, duplicate] in filesToUpdate" 
+                                        :key="fileName"
+                                        class="bg-black/30 border border-green-400/30 rounded p-2"
+                                    >
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <p class="text-xs text-green-200 font-medium">{{ fileName }}</p>
+                                                <p class="text-xs text-green-300/80">
+                                                    Will update: 
+                                                    <Link 
+                                                        :href="duplicate.existingFile.url" 
+                                                        class="text-blue-400 hover:text-blue-300 underline"
+                                                        target="_blank"
+                                                    >
+                                                        {{ duplicate.existingFile.name }}
+                                                    </Link>
+                                                </p>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                @click="() => { filesToUpdate.delete(fileName); fileHashes.delete(fileName); }"
+                                                class="text-red-400 hover:text-red-300 p-1 rounded-full hover:bg-red-400/20"
+                                                title="Remove from update queue"
+                                            >
+                                                <XIcon class="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Checking Duplicates Loading -->
+                        <div v-if="checkingDuplicates" class="bg-blue-500/20 border border-blue-400/50 rounded-md p-3">
+                            <div class="flex items-center gap-2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent"></div>
+                                <span class="text-sm text-blue-300">Checking for duplicate files...</span>
+                            </div>
+                        </div>
+
                         <div v-if="form.errors.files" class="mt-1 text-xs text-red-500">
                             {{ form.errors.files }}
                         </div>
@@ -489,10 +990,14 @@ const uploadFiles = async () => {
                         <button
                             type="submit"
                             class="border-border pixel-outline inline-flex items-center justify-center gap-1.5 rounded-md border-2 bg-[#3aa035] px-4 py-2 text-sm font-medium hover:bg-[#3aa035]/90 disabled:cursor-not-allowed disabled:opacity-50"
-                            :disabled="form.processing || selectedFiles.length === 0"
+                            :disabled="form.processing || (selectedFiles.length === 0 && filesToUpdate.size === 0) || duplicateFiles.size > 0"
                         >
                             <UploadIcon v-if="!form.processing" class="pixel-outline-icon h-4 w-4" />
-                            {{ form.processing ? 'Uploading...' : selectedFiles.length === 1 ? 'Upload File' : `Upload ${selectedFiles.length} Files` }}
+                            {{ 
+                                form.processing ? 'Uploading...' : 
+                                duplicateFiles.size > 0 ? 'Handle Duplicates First' :
+                                getUploadButtonText()
+                            }}
                         </button>
                     </div>
                 </form>

@@ -354,40 +354,129 @@ class FileController extends Controller
 
     public function update(Request $request, File $file)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:1000',
-            'tags' => 'nullable|array',
-            'tags.*.id' => 'nullable|exists:tags,id',
-            'tags.*.name' => 'nullable|string|max:50',
+        // Log the incoming request for debugging
+        \Log::info('File update request', [
+            'file_id' => $file->id,
+            'request_data' => $request->all()
         ]);
 
-        // Authorization is handled by middleware
-        // $this->authorize('update', $file);
+        try {
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:255', // Make name optional since it's not being sent
+                'description' => 'nullable|string|max:1000',
+                'tags' => 'nullable|array',
+                'collections' => 'nullable|array',
+                'collections.*' => 'integer|exists:collections,id',
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Validation failed for file update', [
+                'errors' => $e->errors(),
+                'request_data' => $request->all()
+            ]);
+            throw $e;
+        }
 
-        $file->update([
-            'name' => $validated['name'],
-            'description' => $validated['description'],
-        ]);
+        // Authorization check - ensure user owns the file or is admin
+        if ($file->user_id !== auth()->id() && !auth()->user()->isAdmin()) {
+            abort(403, 'Unauthorized to update this file');
+        }
+
+        // Only update fields that are provided
+        $updateData = [];
+        if (isset($validated['name'])) {
+            $updateData['name'] = $validated['name'];
+        }
+        if (isset($validated['description'])) {
+            $updateData['description'] = $validated['description'];
+        }
+        
+        if (!empty($updateData)) {
+            $file->update($updateData);
+        }
 
         // Handle tags
         if ($request->has('tags')) {
             $tagIds = [];
+            $tags = $request->input('tags', []);
 
-            // Process existing tags
-            foreach ($request->input('tags') as $tag) {
-                if (isset($tag['id'])) {
-                    $tagIds[] = $tag['id'];
-                } else if (isset($tag['name']) && !empty($tag['name'])) {
-                    // Create new tag if it doesn't exist
-                    $newTag = \App\Models\Tag::firstOrCreate(['name' => $tag['name']]);
-                    $tagIds[] = $newTag->id;
+            \Log::info('Processing tags for file update', [
+                'file_id' => $file->id,
+                'tags_raw' => $tags
+            ]);
+
+            if (is_array($tags)) {
+                foreach ($tags as $tag) {
+                    if (is_string($tag)) {
+                        // Handle simple string format (tag name)
+                        if (!empty($tag)) {
+                            $newTag = \App\Models\Tag::firstOrCreate(['name' => $tag]);
+                            $tagIds[] = $newTag->id;
+                        }
+                    } elseif (is_array($tag)) {
+                        // Handle object format with id/name properties
+                        if (isset($tag['id']) && is_numeric($tag['id'])) {
+                            $tagIds[] = (int)$tag['id'];
+                        } elseif (isset($tag['name']) && !empty($tag['name'])) {
+                            $newTag = \App\Models\Tag::firstOrCreate(['name' => $tag['name']]);
+                            $tagIds[] = $newTag->id;
+                        }
+                    }
                 }
             }
+
+            \Log::info('Final tag IDs for sync', [
+                'file_id' => $file->id,
+                'tag_ids' => $tagIds
+            ]);
 
             $file->tags()->sync($tagIds);
         } else {
             $file->tags()->detach();
+        }
+
+        // Handle collections if provided
+        if ($request->has('collections')) {
+            $collectionIds = $request->input('collections', []);
+            
+            if (is_array($collectionIds) && !empty($collectionIds)) {
+                // Verify that the user has access to these collections (owns them or they are public)
+                $validCollections = Collection::whereIn('id', $collectionIds)
+                    ->where(function ($query) {
+                        $query->where('user_id', auth()->id())
+                              ->orWhere('is_public', true);
+                    })
+                    ->pluck('id')
+                    ->toArray();
+                
+                // Sync collections (this will replace existing ones)
+                $file->collections()->sync($validCollections);
+                
+                // Update collection counts for new collections
+                if (!empty($validCollections)) {
+                    try {
+                        Collection::whereIn('id', $validCollections)->each(function ($collection) {
+                            $collection->updateCounts();
+                        });
+                    } catch (\Exception $e) {
+                        \Log::error('Failed to update collection counts', [
+                            'error' => $e->getMessage(),
+                            'collections' => $validCollections
+                        ]);
+                    }
+                }
+            } else {
+                // If collections is empty array, remove all collections
+                $file->collections()->sync([]);
+            }
+        }
+
+        // Return JSON response for AJAX requests, redirect for regular requests
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'File updated successfully',
+                'file' => $file->fresh(['tags', 'collections'])
+            ]);
         }
 
         return redirect()->route('files.show', $file->id)
@@ -469,6 +558,64 @@ class FileController extends Controller
             'Access-Control-Allow-Origin' => '*',
             'Access-Control-Allow-Methods' => 'GET',
         ]);
+    }
+
+    public function checkDuplicate($hash)
+    {
+        $existingFile = File::where('file_hash', $hash)
+            ->where('user_id', auth()->id())
+            ->with(['tags'])
+            ->first();
+
+        if ($existingFile) {
+            return response()->json([
+                'exists' => true,
+                'file' => [
+                    'id' => $existingFile->id,
+                    'name' => $existingFile->name,
+                    'description' => $existingFile->description,
+                    'tags' => $existingFile->tags,
+                    'url' => route('files.show', $existingFile->id)
+                ]
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
+    }
+
+    public function checkDuplicateByFile(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file',
+            'name' => 'required|string'
+        ]);
+
+        $uploadedFile = $request->file('file');
+        $fileName = $request->input('name');
+        
+        // Calculate the same hash the backend would calculate
+        $fileHash = $this->calculateFileHash($uploadedFile);
+        
+        // Check for exact hash match (same file content)
+        $existingFile = File::where('file_hash', $fileHash)
+            ->where('user_id', auth()->id())
+            ->with(['tags'])
+            ->first();
+
+        if ($existingFile) {
+            return response()->json([
+                'exists' => true,
+                'file' => [
+                    'id' => $existingFile->id,
+                    'name' => $existingFile->name,
+                    'description' => $existingFile->description,
+                    'tags' => $existingFile->tags,
+                    'url' => route('files.show', $existingFile->id)
+                ]
+            ]);
+        }
+
+        return response()->json(['exists' => false]);
     }
 
     public function generateFlashcards(Request $request, File $file)

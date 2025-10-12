@@ -31,6 +31,8 @@ Route::get('/myfiles', [FileController::class, 'indexPersonal'])->name('myfiles'
 Route::get('/files', [FileController::class, 'index'])->name('files.index');
 Route::get('/files/create', [FileController::class, 'create'])->name('files.create');
 Route::post('/files', [FileController::class, 'store'])->name('files.store');
+Route::get('/files/check-duplicate/{hash}', [FileController::class, 'checkDuplicate'])->name('files.check-duplicate');
+Route::post('/files/check-duplicate', [FileController::class, 'checkDuplicateByFile'])->name('files.check-duplicate-file');
 Route::get('/files/{id}', [FileController::class, 'show'])->name('files.show');
 Route::get('/files/{file}/edit', [FileController::class, 'edit'])
     ->name('files.edit')
