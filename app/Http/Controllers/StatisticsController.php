@@ -184,7 +184,7 @@ class StatisticsController extends Controller
 			// Add access logs
 			'access_logs' => AccessLog::with('user')
 				->orderBy('accessed_at', 'desc')
-				->take(10)
+				->take(15)
 				->get()
 				->map(function ($log) {
 					return [

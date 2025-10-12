@@ -308,6 +308,7 @@ import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 
 const props = defineProps({
     user: Object,
@@ -331,19 +332,41 @@ const verificationForm = useForm({
 });
 
 const updateUserDetails = () => {
-    userForm.patch(route('admin.verifications.update-details', props.user.id));
+    userForm.patch(route('admin.verifications.update-details', props.user.id), {
+        onSuccess: () => {
+            toast.success('User details updated successfully!');
+        },
+        onError: () => {
+            toast.error('Failed to update user details. Please check the form for errors.');
+        }
+    });
 };
 
 const submitDecision = () => {
     if (decision.value === 'approve') {
-        verificationForm.patch(route('admin.verifications.approve', props.user.id));
+        verificationForm.patch(route('admin.verifications.approve', props.user.id), {
+            onSuccess: () => {
+                toast.success(`✅ ${props.user.first_name} ${props.user.last_name}'s verification has been approved!`);
+            },
+            onError: () => {
+                toast.error('Failed to approve verification. Please try again.');
+            }
+        });
     } else if (decision.value === 'reject') {
         // Notes are required for rejection, validate first
         if (!verificationForm.notes.trim()) {
             verificationForm.setError('notes', 'Notes are required when rejecting verification.');
+            toast.error('Please provide notes explaining the rejection reason.');
             return;
         }
-        verificationForm.patch(route('admin.verifications.reject', props.user.id));
+        verificationForm.patch(route('admin.verifications.reject', props.user.id), {
+            onSuccess: () => {
+                toast.success(`❌ ${props.user.first_name} ${props.user.last_name}'s verification has been rejected.`);
+            },
+            onError: () => {
+                toast.error('Failed to reject verification. Please try again.');
+            }
+        });
     }
 };
 
