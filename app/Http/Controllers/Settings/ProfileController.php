@@ -60,6 +60,24 @@ class ProfileController extends Controller
 
         $user = $request->user();
 
+        // Archive all files owned by the user using the same method as FileController
+        $adminUser = \App\Models\User::where('user_role', 'admin')->first();
+        
+        if ($adminUser) {
+            $originalOwner = $user->first_name . " " . $user->last_name;
+            $archiveDate = now()->format('Y-m-d H:i:s');
+            
+            \App\Models\File::where('user_id', $user->id)->get()->each(function ($file) use ($adminUser, $originalOwner, $archiveDate) {
+                $archiveInfo = "\n\n[Originally owned by: " . $originalOwner . " - Archived on " . $archiveDate . "]";
+                
+                $file->update([
+                    'user_id' => $adminUser->id,
+                    'name' => '[ARCHIVED] ' . $file->name,
+                    'description' => ($file->description ?? '') . $archiveInfo
+                ]);
+            });
+        }
+
         Auth::logout();
 
         $user->delete();

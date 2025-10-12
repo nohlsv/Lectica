@@ -4,9 +4,9 @@ import Button from '@/components/ui/button/Button.vue';
 import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type Tag } from '@/types';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { ArrowLeftIcon } from 'lucide-vue-next';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 interface Props {
     file: File;
@@ -14,6 +14,14 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Get current user to check if admin
+const page = usePage();
+const currentUser = computed(() => (page.props as any).auth.user);
+const isAdmin = computed(() => currentUser.value?.user_role === 'admin');
+const isFileOwnedByAdmin = computed(() => props.file.user?.user_role === 'admin');
+const isCurrentUserOwner = computed(() => props.file.user?.id === currentUser.value?.id);
+const shouldShowArchive = computed(() => !isFileOwnedByAdmin.value && !isCurrentUserOwner.value);
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -53,8 +61,16 @@ interface Collection {
     is_public: boolean;
 }
 
-const deleteFile = () => {
+const archiveFile = () => {
     form.delete(`/files/${props.file.id}`, {
+        onSuccess: () => {
+            router.visit('/files');
+        },
+    });
+};
+
+const deleteFile = () => {
+    form.delete(`/files/${props.file.id}?force_delete=true`, {
         onSuccess: () => {
             router.visit('/files');
         },
@@ -169,37 +185,98 @@ const addToCollection = async () => {
                         </p>
                     </div>
 
-                    <div class="flex w-full items-center justify-between px-4 sm:w-auto">
-                        <!-- Right-aligned Buttons -->
-                        <div class="ml-auto flex items-center gap-2">
-                            <!-- Delete Button with Dialog -->
-                            <Dialog>
+                    <div class="flex w-full items-center justify-center px-4 sm:w-auto">
+                        <!-- Buttons -->
+                        <div class="flex items-center gap-2">
+                                                        <!-- Archive Button (for non-admin users) -->
+                            <Dialog v-if="!isAdmin && shouldShowArchive">
                                 <DialogTrigger as-child>
                                     <button
                                         type="button"
-                                        class="text-foreground pixel-outline inline-flex items-center justify-center rounded-md border-2 border-[#0c0a03] bg-red-500 px-4 py-2 text-sm font-medium duration-300 hover:bg-red-600"
+                                        class="text-foreground pixel-outline inline-flex items-center justify-center rounded-md border-2 border-[#0c0a03] bg-orange-500 px-4 py-2 text-sm font-medium duration-300 hover:bg-orange-600"
                                         :disabled="form.processing"
                                     >
-                                        Delete File
+                                        Archive File
                                     </button>
                                 </DialogTrigger>
                                 <DialogContent class="rounded-lg border-4 border-[#feaf00] bg-[#912414]">
                                     <DialogHeader>
-                                        <DialogTitle class="pixel-outline tracking-wide">Confirm Deletion</DialogTitle>
+                                        <DialogTitle class="pixel-outline tracking-wide">Confirm Archive</DialogTitle>
                                     </DialogHeader>
                                     <p class="pixel-outline tracking-wide">
-                                        Are you sure you want to delete this file? This action cannot be undone.
+                                        Are you sure you want to archive this file? The file will be transferred to admin ownership for backup purposes, but you will lose access to it.
                                     </p>
                                     <DialogFooter>
-                                        <DialogClose as-child @click="showDeleteModal = false">
+                                        <DialogClose as-child>
                                             <Button variant="black">Cancel</Button>
                                         </DialogClose>
-                                        <Button Button variant="delete" @click="deleteFile" :disabled="form.processing">
-                                            {{ form.processing ? 'Deleting...' : 'Delete' }}
+                                        <Button variant="delete" @click="archiveFile" :disabled="form.processing">
+                                            {{ form.processing ? 'Archiving...' : 'Archive' }}
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
                             </Dialog>
+
+                            <!-- Admin Buttons -->
+                            <template v-if="isAdmin">
+                                <!-- Archive Button for Admin (only if not already admin-owned) -->
+                                <Dialog v-if="shouldShowArchive">
+                                    <DialogTrigger as-child>
+                                        <button
+                                            type="button"
+                                            class="text-foreground pixel-outline inline-flex items-center justify-center rounded-md border-2 border-[#0c0a03] bg-orange-500 px-4 py-2 text-sm font-medium duration-300 hover:bg-orange-600"
+                                            :disabled="form.processing"
+                                        >
+                                            Archive File
+                                        </button>
+                                    </DialogTrigger>
+                                    <DialogContent class="rounded-lg border-4 border-[#feaf00] bg-[#912414]">
+                                        <DialogHeader>
+                                            <DialogTitle class="pixel-outline tracking-wide">Confirm Archive</DialogTitle>
+                                        </DialogHeader>
+                                        <p class="pixel-outline tracking-wide">
+                                            Archive this file to admin ownership for backup purposes? This preserves the file while transferring ownership.
+                                        </p>
+                                        <DialogFooter>
+                                            <DialogClose as-child>
+                                                <Button variant="black">Cancel</Button>
+                                            </DialogClose>
+                                            <Button variant="delete" @click="archiveFile" :disabled="form.processing">
+                                                {{ form.processing ? 'Archiving...' : 'Archive' }}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+
+                                <!-- Delete Button for Admin (always available) -->
+                                <Dialog>
+                                    <DialogTrigger as-child>
+                                        <button
+                                            type="button"
+                                            class="text-foreground pixel-outline inline-flex items-center justify-center rounded-md border-2 border-[#0c0a03] bg-red-600 px-4 py-2 text-sm font-medium duration-300 hover:bg-red-700"
+                                            :disabled="form.processing"
+                                        >
+                                            🗑️ Delete Permanently
+                                        </button>
+                                    </DialogTrigger>
+                                    <DialogContent class="rounded-lg border-4 border-red-500 bg-red-900">
+                                        <DialogHeader>
+                                            <DialogTitle class="pixel-outline tracking-wide text-red-100">⚠️ Permanent Deletion</DialogTitle>
+                                        </DialogHeader>
+                                        <p class="pixel-outline tracking-wide text-red-200">
+                                            <strong>WARNING:</strong> This will permanently delete the file from storage. This action cannot be undone and the file will be completely lost forever.
+                                        </p>
+                                        <DialogFooter>
+                                            <DialogClose as-child>
+                                                <Button variant="black">Cancel</Button>
+                                            </DialogClose>
+                                            <Button variant="delete" @click="deleteFile" :disabled="form.processing">
+                                                {{ form.processing ? 'Deleting...' : '🗑️ Delete Forever' }}
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            </template>
 
                             <!-- Save Button -->
                             <button

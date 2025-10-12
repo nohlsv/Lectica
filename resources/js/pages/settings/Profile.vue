@@ -95,7 +95,7 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.email" />
                     </div>
 
-                    <div class="grid gap-2">
+                    <div v-if="user.user_role === 'user' || user.user_role === 'faculty'" class="grid gap-2">
                         <Label for="program">Program</Label>
                         <select
                             id="program"
@@ -111,7 +111,7 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.program_id" />
                     </div>
 
-                    <div class="grid gap-2">
+                    <div v-if="user.user_role === 'user'" class="grid gap-2">
                         <Label for="year_of_study">Year Level</Label>
                         <select
                             id="year_of_study"

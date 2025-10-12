@@ -52,6 +52,9 @@ Route::middleware('auth')->group(function () {
 
     Route::post('confirm-password', [ConfirmablePasswordController::class, 'store']);
 
+    Route::delete('profile', [App\Http\Controllers\Settings\ProfileController::class, 'destroy'])
+        ->name('profile.destroy');
+
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });

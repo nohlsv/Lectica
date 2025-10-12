@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\File;
 use App\Models\Tag;
 use App\Models\Collection;
+use App\Models\User;
 use App\Services\FileRecommendationService;
 use App\Services\QuestService;
 use Inertia\Inertia;
@@ -13,6 +14,7 @@ use DOMDocument;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class FileController extends Controller
@@ -300,7 +302,7 @@ class FileController extends Controller
         // Authorization is handled by middleware
         // $this->authorize('update', $file);
 
-        $file->load('tags');
+        $file->load(['tags', 'user']);
         $allTags = \App\Models\Tag::orderBy('name')->get();
 
         return Inertia::render('Files/Edit', [
@@ -351,20 +353,41 @@ class FileController extends Controller
             ->with('success', 'File updated successfully');
     }
 
-    public function destroy(File $file)
+    public function destroy(Request $request, File $file)
     {
         // Check if the user is authorized to delete the file
         $this->authorize('delete', $file);
 
-        // Delete the file from storage
-        if (Storage::exists($file->path)) {
-            Storage::delete($file->path);
+        $forceDelete = $request->query('force_delete') === 'true';
+
+        // Check if current user is admin and wants to force delete
+        if (Auth::user()->user_role === 'admin' && $forceDelete) {
+            // Admin permanent deletion
+            if (Storage::exists($file->path)) {
+                Storage::delete($file->path);
+            }
+            $file->delete();
+            return redirect()->route('files.index')->with('success', 'File permanently deleted from storage.');
+        } else {
+            // Archive mode: Transfer ownership to admin instead of deleting
+            $adminUser = User::where('user_role', 'admin')->first();
+            
+            if (!$adminUser) {
+                return back()->withErrors(['error' => 'Cannot archive file: No admin user found.']);
+            }
+
+            // Transfer ownership to admin
+            $originalOwner = Auth::user()->first_name . " " . Auth::user()->last_name;
+            $archiveInfo = "\n\n[Originally owned by: " . $originalOwner . " - Archived on " . now()->format('Y-m-d H:i:s') . "]";
+            
+            $file->update([
+                'user_id' => $adminUser->id,
+                'name' => '[ARCHIVED] ' . $file->name,
+                'description' => ($file->description ?? '') . $archiveInfo
+            ]);
+
+            return redirect()->route('files.index')->with('success', 'File archived and transferred to admin for backup.');
         }
-
-        // Delete the file record from the database
-        $file->delete();
-
-        return redirect()->route('files.index')->with('success', 'File deleted successfully.');
     }
 
     public function download(File $file)
