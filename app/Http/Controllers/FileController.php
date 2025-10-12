@@ -20,6 +20,8 @@ use Dompdf\Dompdf;
 use Dompdf\Options;
 use PhpOffice\PhpWord\IOFactory as WordIOFactory;
 use PhpOffice\PhpWord\Settings;
+use PhpOffice\PhpSpreadsheet\IOFactory as SpreadsheetIOFactory;
+use PhpOffice\PhpPresentation\IOFactory as PresentationIOFactory;
 
 class FileController extends Controller
 {
@@ -1124,23 +1126,27 @@ class FileController extends Controller
                 break;
 
             case 'docx':
-                $content = $this->docx_to_text($file->getRealPath());
-                $pdfPath = $this->convertDocxToPdf($file->getRealPath(), $file->getClientOriginalName());
+                $result = $this->convertDocxToPdfDirect($file->getRealPath(), $file->getClientOriginalName());
+                $content = $result['content'];
+                $pdfPath = $result['pdf_path'];
                 break;
 
             case 'doc':
+                // For older DOC files, fallback to text extraction
                 $content = $this->doc_to_text($file->getRealPath());
                 $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
                 break;
 
             case 'xlsx':
-                $content = $this->xlsx_to_text($file->getRealPath());
-                $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
+                $result = $this->convertXlsxToPdfDirect($file->getRealPath(), $file->getClientOriginalName());
+                $content = $result['content'];
+                $pdfPath = $result['pdf_path'];
                 break;
 
             case 'pptx':
-                $content = $this->pptx_to_text($file->getRealPath());
-                $pdfPath = $this->convertTextToPdf($content, $file->getClientOriginalName());
+                $result = $this->convertPptxToPdfDirect($file->getRealPath(), $file->getClientOriginalName());
+                $content = $result['content'];
+                $pdfPath = $result['pdf_path'];
                 break;
 
             default:
@@ -1185,44 +1191,147 @@ class FileController extends Controller
         return $pdfPath;
     }
 
-    private function convertDocxToPdf($docxPath, $originalName)
+    private function convertDocxToPdfDirect($docxPath, $originalName)
     {
         try {
+            // Configure TCPDF for PhpWord
+            Settings::setPdfRendererName(Settings::PDF_RENDERER_TCPDF);
+            Settings::setPdfRendererPath(base_path('vendor/tecnickcom/tcpdf'));
+
             // Load the DOCX file
             $phpWord = WordIOFactory::load($docxPath);
             
-            // Convert to HTML first
-            $htmlWriter = WordIOFactory::createWriter($phpWord, 'HTML');
-            $tempHtmlPath = tempnam(sys_get_temp_dir(), 'docx_to_html_');
-            $htmlWriter->save($tempHtmlPath);
+            // Create PDF writer
+            $pdfWriter = WordIOFactory::createWriter($phpWord, 'PDF');
             
-            // Read the HTML content
-            $htmlContent = file_get_contents($tempHtmlPath);
-            
-            // Convert HTML to PDF using DomPDF
-            $options = new Options();
-            $options->set('defaultFont', 'Arial');
-            $options->set('isHtml5ParserEnabled', true);
-            $options->set('isPhpEnabled', true);
-
-            $dompdf = new Dompdf($options);
-            $dompdf->loadHtml($htmlContent);
-            $dompdf->setPaper('A4', 'portrait');
-            $dompdf->render();
-
-            $pdfContent = $dompdf->output();
+            // Generate PDF path
             $pdfPath = 'pdfs/' . uniqid() . '_' . pathinfo($originalName, PATHINFO_FILENAME) . '.pdf';
+            $fullPdfPath = storage_path('app/' . $pdfPath);
             
-            Storage::put($pdfPath, $pdfContent);
+            // Ensure directory exists
+            $directory = dirname($fullPdfPath);
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
             
-            // Clean up temp file
-            unlink($tempHtmlPath);
+            // Save PDF
+            $pdfWriter->save($fullPdfPath);
             
-            return $pdfPath;
+            // Extract text content for database storage
+            $content = $this->docx_to_text($docxPath);
+            
+            return [
+                'content' => $content,
+                'pdf_path' => $pdfPath
+            ];
         } catch (\Exception $e) {
+            logger()->warning('Failed to convert DOCX to PDF directly, falling back to text conversion', [
+                'error' => $e->getMessage(),
+                'file' => $originalName
+            ]);
+            
             // Fallback to text extraction and conversion
             $content = $this->docx_to_text($docxPath);
-            return $this->convertTextToPdf($content, $originalName);
+            $pdfPath = $this->convertTextToPdf($content, $originalName);
+            
+            return [
+                'content' => $content,
+                'pdf_path' => $pdfPath
+            ];
+        }
+    }
+
+    private function convertXlsxToPdfDirect($xlsxPath, $originalName)
+    {
+        try {
+            // Load the Excel file
+            $spreadsheet = SpreadsheetIOFactory::load($xlsxPath);
+            
+            // Generate PDF path
+            $pdfPath = 'pdfs/' . uniqid() . '_' . pathinfo($originalName, PATHINFO_FILENAME) . '.pdf';
+            $fullPdfPath = storage_path('app/' . $pdfPath);
+            
+            // Ensure directory exists
+            $directory = dirname($fullPdfPath);
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+            
+            // Configure PDF writer
+            $writer = SpreadsheetIOFactory::createWriter($spreadsheet, 'Tcpdf');
+            $writer->setOrientation(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::ORIENTATION_PORTRAIT);
+            $writer->setPaperSize(\PhpOffice\PhpSpreadsheet\Worksheet\PageSetup::PAPERSIZE_A4);
+            
+            // Save PDF
+            $writer->save($fullPdfPath);
+            
+            // Extract text content for database storage
+            $content = $this->xlsx_to_text($xlsxPath);
+            
+            return [
+                'content' => $content,
+                'pdf_path' => $pdfPath
+            ];
+        } catch (\Exception $e) {
+            logger()->warning('Failed to convert XLSX to PDF directly, falling back to text conversion', [
+                'error' => $e->getMessage(),
+                'file' => $originalName
+            ]);
+            
+            // Fallback to text extraction and conversion
+            $content = $this->xlsx_to_text($xlsxPath);
+            $pdfPath = $this->convertTextToPdf($content, $originalName);
+            
+            return [
+                'content' => $content,
+                'pdf_path' => $pdfPath
+            ];
+        }
+    }
+
+    private function convertPptxToPdfDirect($pptxPath, $originalName)
+    {
+        try {
+            // Load the PowerPoint file
+            $presentation = PresentationIOFactory::load($pptxPath);
+            
+            // Generate PDF path
+            $pdfPath = 'pdfs/' . uniqid() . '_' . pathinfo($originalName, PATHINFO_FILENAME) . '.pdf';
+            $fullPdfPath = storage_path('app/' . $pdfPath);
+            
+            // Ensure directory exists
+            $directory = dirname($fullPdfPath);
+            if (!is_dir($directory)) {
+                mkdir($directory, 0755, true);
+            }
+            
+            // Create PDF writer
+            $writer = PresentationIOFactory::createWriter($presentation, 'PDF');
+            
+            // Save PDF
+            $writer->save($fullPdfPath);
+            
+            // Extract text content for database storage
+            $content = $this->pptx_to_text($pptxPath);
+            
+            return [
+                'content' => $content,
+                'pdf_path' => $pdfPath
+            ];
+        } catch (\Exception $e) {
+            logger()->warning('Failed to convert PPTX to PDF directly, falling back to text conversion', [
+                'error' => $e->getMessage(),
+                'file' => $originalName
+            ]);
+            
+            // Fallback to text extraction and conversion
+            $content = $this->pptx_to_text($pptxPath);
+            $pdfPath = $this->convertTextToPdf($content, $originalName);
+            
+            return [
+                'content' => $content,
+                'pdf_path' => $pdfPath
+            ];
         }
     }
 
@@ -1357,41 +1466,100 @@ class FileController extends Controller
 
     protected function xlsx_to_text($file)
     {
-        $xml_filename = "xl/sharedStrings.xml";
-        $zip_handle = new ZipArchive;
-        $output_text = "";
-        
-        if (true === $zip_handle->open($file)) {
-            if (($xml_index = $zip_handle->locateName($xml_filename)) !== false) {
-                $xml_datas = $zip_handle->getFromIndex($xml_index);
-                $dom = new DOMDocument();
-                $dom->loadXML($xml_datas, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
-                $xml_handle = $dom;
-                $output_text = strip_tags($xml_handle->saveXML());
+        try {
+            // Try using PhpSpreadsheet for better text extraction
+            $spreadsheet = SpreadsheetIOFactory::load($file);
+            $output_text = "";
+            
+            foreach ($spreadsheet->getWorksheetIterator() as $worksheet) {
+                $output_text .= "Sheet: " . $worksheet->getTitle() . "\n";
+                
+                foreach ($worksheet->getRowIterator() as $row) {
+                    $cellIterator = $row->getCellIterator();
+                    $cellIterator->setIterateOnlyExistingCells(false);
+                    
+                    $rowText = "";
+                    foreach ($cellIterator as $cell) {
+                        $value = $cell->getFormattedValue();
+                        if (!empty(trim($value))) {
+                            $rowText .= $value . " | ";
+                        }
+                    }
+                    
+                    if (!empty(trim($rowText))) {
+                        $output_text .= rtrim($rowText, " | ") . "\n";
+                    }
+                }
+                $output_text .= "\n";
             }
-            $zip_handle->close();
+            
+            return trim($output_text);
+        } catch (\Exception $e) {
+            // Fallback to original method
+            $xml_filename = "xl/sharedStrings.xml";
+            $zip_handle = new ZipArchive;
+            $output_text = "";
+            
+            if (true === $zip_handle->open($file)) {
+                if (($xml_index = $zip_handle->locateName($xml_filename)) !== false) {
+                    $xml_datas = $zip_handle->getFromIndex($xml_index);
+                    $dom = new DOMDocument();
+                    $dom->loadXML($xml_datas, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
+                    $xml_handle = $dom;
+                    $output_text = strip_tags($xml_handle->saveXML());
+                }
+                $zip_handle->close();
+            }
+            
+            return trim($output_text);
         }
-        
-        return trim($output_text);
     }
 
     protected function pptx_to_text($input_file)
     {
-        $zip_handle = new ZipArchive;
-        $output_text = "";
-        
-        if (true === $zip_handle->open($input_file)) {
-            $slide_number = 1;
-            while (($xml_index = $zip_handle->locateName("ppt/slides/slide" . $slide_number . ".xml")) !== false) {
-                $xml_datas = $zip_handle->getFromIndex($xml_index);
-                $xml_handle = new DOMDocument();
-                $xml_handle->loadXML($xml_datas, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
-                $output_text .= strip_tags($xml_handle->saveXML()) . "\n";
-                $slide_number++;
+        try {
+            // Try using PhpPresentation for better text extraction
+            $presentation = PresentationIOFactory::load($input_file);
+            $output_text = "";
+            
+            foreach ($presentation->getAllSlides() as $slideIndex => $slide) {
+                $output_text .= "Slide " . ($slideIndex + 1) . ":\n";
+                
+                foreach ($slide->getShapeCollection() as $shape) {
+                    if ($shape instanceof \PhpOffice\PhpPresentation\Shape\RichText) {
+                        foreach ($shape->getParagraphs() as $paragraph) {
+                            foreach ($paragraph->getRichTextElements() as $element) {
+                                if ($element instanceof \PhpOffice\PhpPresentation\Shape\RichText\TextElement) {
+                                    $output_text .= $element->getText() . " ";
+                                }
+                            }
+                            $output_text .= "\n";
+                        }
+                    }
+                }
+                $output_text .= "\n";
             }
-            $zip_handle->close();
+            
+            return trim($output_text);
+        } catch (\Exception $e) {
+            // Fallback to original method
+            $zip_handle = new ZipArchive;
+            $output_text = "";
+            
+            if (true === $zip_handle->open($input_file)) {
+                $slide_number = 1;
+                while (($xml_index = $zip_handle->locateName("ppt/slides/slide" . $slide_number . ".xml")) !== false) {
+                    $xml_datas = $zip_handle->getFromIndex($xml_index);
+                    $xml_handle = new DOMDocument();
+                    $xml_handle->loadXML($xml_datas, LIBXML_NOENT | LIBXML_XINCLUDE | LIBXML_NOERROR | LIBXML_NOWARNING);
+                    $output_text .= "Slide " . $slide_number . ":\n";
+                    $output_text .= strip_tags($xml_handle->saveXML()) . "\n\n";
+                    $slide_number++;
+                }
+                $zip_handle->close();
+            }
+            
+            return trim($output_text);
         }
-        
-        return trim($output_text);
     }
 }
