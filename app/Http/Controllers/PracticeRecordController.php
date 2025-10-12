@@ -84,7 +84,7 @@ class PracticeRecordController extends Controller
 		$user = auth()->user();
 		
 		if ($validated['type'] === 'quiz') {
-			$this->questService->updateQuestProgress($user, 'practice_quiz');
+			$this->questService->updateQuestProgress($user, 'practice_quiz', $validated['correct_answers']);
 			
 			// Award XP for quiz completion
 			$xpEarned = $validated['correct_answers'] * 10; // 10 XP per correct answer

@@ -137,33 +137,14 @@ const initializeGlobalMusic = () => {
         globalMusicAudio.value.volume = globalMusicVolume.value;
         globalMusicAudio.value.preload = 'auto';
         
-        // Try to enable autoplay (some browsers support this)
-        globalMusicAudio.value.autoplay = true;
-        
-        // Set additional attributes that might help with autoplay
-        try {
-            globalMusicAudio.value.setAttribute('autoplay', '');
-            globalMusicAudio.value.setAttribute('preload', 'auto');
-        } catch (attrError) {
-            console.log('Global Music: Could not set autoplay attributes:', attrError);
-        }
+        // Don't use autoplay attribute - we control playback manually
+        globalMusicAudio.value.autoplay = false;
         
         // Add error handling
         globalMusicAudio.value.addEventListener('error', (e: Event) => {
             console.error('Global Music: Failed to load audio file:', e);
         });
         
-        globalMusicAudio.value.addEventListener('canplaythrough', () => {
-            console.log('Global Music: Audio file loaded successfully');
-            // Only try to start if explicitly enabled (don't auto-start on audio load)
-            console.log('Global Music: Enabled state during canplaythrough:', isGlobalMusicEnabled.value);
-        });
-        
-        globalMusicAudio.value.addEventListener('loadeddata', () => {
-            console.log('Global Music: Audio data loaded');
-            // Only try to start if explicitly enabled (don't auto-start on audio load)
-            console.log('Global Music: Enabled state during loadeddata:', isGlobalMusicEnabled.value);
-        });
         
         console.log('Global Music: Audio element created successfully');
     } catch (error) {

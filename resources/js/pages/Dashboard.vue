@@ -431,7 +431,7 @@ const getColorClasses = (color: string) => {
                             Welcome to Lectica,
                         </h1>
                         <!--Name-->
-                        <div class="flex items-start justify-start gap-1 sm:gap-2 flex-wrap">
+                        <div class="flex items-start justify-center sm:justify-start gap-1 sm:gap-2 flex-wrap">
                             <p
                                 class="font-pixel animate-soft-bounce inline-block border-2 border-white bg-black px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold text-yellow-300 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] break-words leading-tight"
                             >
