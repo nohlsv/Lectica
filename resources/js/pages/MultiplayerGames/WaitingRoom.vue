@@ -2,12 +2,6 @@
     <Head title="Waiting for Player" />
 
     <AppLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Waiting for Player to Join</h2>
-            </div>
-        </template>
-
         <div class="bg-gradient min-h-screen py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Game Info Card -->

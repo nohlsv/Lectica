@@ -1,11 +1,5 @@
 <template>
     <AppLayout title="Quiz Performance">
-        <template #header>
-            <h2 class="font-semibold text-lg text-white leading-tight sm:text-xl">
-                Quiz Performance
-            </h2>
-        </template>
-
         <div class="bg-gradient min-h-screen py-6 sm:py-12">
             <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
                 <!-- Statistics Cards -->

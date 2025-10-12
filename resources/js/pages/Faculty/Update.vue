@@ -2,10 +2,6 @@
     <Head title="Faculty Updates" />
 
     <AppLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Faculty Updates</h2>
-        </template>
-
         <div class="bg-gradient min-h-screen py-6 sm:py-12">
             <!-- Hero Section -->
             <div class="mx-auto mb-6 max-w-7xl px-3 sm:mb-8 sm:px-4 sm:px-6 lg:px-8">

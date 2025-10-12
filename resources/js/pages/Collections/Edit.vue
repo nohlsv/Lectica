@@ -2,10 +2,6 @@
     <Head :title="`Edit ${collection.name}`" />
 
     <AppLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Edit Collection: {{ collection.name }}</h2>
-        </template>
-
         <div class="bg-gradient min-h-screen py-12">
             <!-- Hero Section -->
             <div class="mx-auto mb-8 max-w-7xl px-4 sm:px-6 lg:px-8">

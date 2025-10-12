@@ -2,10 +2,6 @@
     <Head title="Monster Arena Challenge Results" />
 
     <AppLayout>
-        <template #header>
-            <h2 class="text-xl leading-tight font-semibold text-gray-800 dark:text-gray-200">Battle Results</h2>
-        </template>
-
         <div class="bg-gradient min-h-screen py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <!-- Battle Summary Card -->
