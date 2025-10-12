@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { CheckIcon, SwordIcon, XIcon } from 'lucide-vue-next';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
@@ -21,6 +21,10 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Get current user
+const page = usePage();
+const currentUser = computed(() => (page.props.auth as any)?.user);
 
 const currentIndex = ref(0);
 const userAnswers = ref<Record<number, any>>({});
@@ -334,15 +338,15 @@ const currentQuestion = computed(() => {
 });
 
 // Format user answer for API submission
-const formatUserAnswer = (answer: any): string => {
+const formatUserAnswer = (answer: any): any => {
     if (answer === null || answer === undefined) {
         return '';
     }
     
     if (Array.isArray(answer)) {
-        // For enumeration answers, join with commas
+        // For enumeration answers, return as array (will be JSON encoded)
         const filtered = answer.filter(a => a !== null && a !== undefined && String(a).trim() !== '');
-        return filtered.join(', ');
+        return filtered.length > 0 ? filtered : [];
     }
     
     return String(answer).trim();
@@ -363,7 +367,7 @@ const checkAnswer = async () => {
         
         const payload = {
             quiz_id: currentQuiz.value.id,
-            answer: formattedAnswer || 'No answer provided', // Ensure we always send a string
+            answer: formattedAnswer !== undefined && formattedAnswer !== null ? formattedAnswer : 'No answer provided',
             is_correct: Boolean(isCurrentAnswerCorrect.value) // Ensure boolean type
         };
         
@@ -627,7 +631,7 @@ onUnmounted(() => {
                 <!-- Player Area -->
                 <div class="mb-4 flex items-center justify-center">
                     <div class="mb-2 flex w-full max-w-md items-center rounded-lg border-2 border-green-500 bg-black/50 p-2">
-                        <div class="pixel-outline mr-2 font-bold text-white">You</div>
+                        <div class="pixel-outline mr-2 font-bold text-white">{{ currentUser?.first_name || 'You' }}</div>
                         <div class="flex flex-1 items-center justify-center space-x-1">
                             <span v-for="n in 3" :key="n" class="text-2xl">
                                 {{ n <= playerHp ? '❤️' : '🖤' }}

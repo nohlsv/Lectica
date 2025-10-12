@@ -672,13 +672,13 @@ const submitAnswer = async (isTimeout = false) => {
     submitting.value = true;
     answerSubmitted.value = true;
 
-    // Prepare answer for submission: always a string
-    let answerToSubmit: string;
+    // Prepare answer for submission
+    let answerToSubmit: any;
     if (currentQuiz.value?.type === 'enumeration') {
-        // Always treat as string[]
-        answerToSubmit = (selectedAnswer.value as string[]).join(', ');
+        // Send as array for enumeration questions
+        answerToSubmit = selectedAnswer.value as string[];
     } else {
-        // Always treat as string
+        // Send as string for other question types
         answerToSubmit = selectedAnswer.value as string;
     }
 

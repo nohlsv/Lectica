@@ -117,7 +117,7 @@
                                         <!-- Correct Answer (if wrong) -->
                                         <div v-if="!answer.is_correct" class="mb-2">
                                             <div class="text-sm text-gray-300">Correct Answer:</div>
-                                            <div class="font-medium text-green-400">{{ getCorrectAnswer(answer.quiz) }}</div>
+                                            <div class="font-medium text-green-400">{{ formatAnswer(answer.correct_answer) }}</div>
                                         </div>
 
                                         <!-- Options for Multiple Choice -->
@@ -134,6 +134,8 @@
                                                 </div>
                                             </div>
                                         </div>
+
+
 
                                         <!-- Explanation if available -->
                                         <div v-if="answer.quiz.explanation" class="mb-2">
@@ -187,9 +189,16 @@ export default {
     methods: {
         formatAnswer(answer) {
             if (typeof answer === 'object') {
-                return Array.isArray(answer) ? answer.join(', ') : JSON.stringify(answer)
+                if (Array.isArray(answer)) {
+                    // For enumeration answers, format nicely
+                    const validAnswers = answer.filter(a => a && a.toString().trim());
+                    if (validAnswers.length === 0) return 'No answer provided';
+                    if (validAnswers.length === 1) return validAnswers[0];
+                    return validAnswers.map((a, index) => `${index + 1}. ${a}`).join(' | ');
+                }
+                return JSON.stringify(answer);
             }
-            return answer
+            return answer?.toString() || 'No answer provided';
         },
         formatDate(date) {
             return new Date(date).toLocaleDateString('en-US', {
@@ -232,12 +241,6 @@ export default {
                 'abandoned': 'bg-gray-100 text-gray-800'
             }
             return classes[status] || 'bg-gray-100 text-gray-800'
-        },
-        getCorrectAnswer(quiz) {
-            if (quiz.answers && Array.isArray(quiz.answers)) {
-                return quiz.answers[0]; // Return first correct answer
-            }
-            return quiz.answers || 'No correct answer';
         },
         isCorrectOption(option, quiz) {
             if (quiz.answers && Array.isArray(quiz.answers)) {

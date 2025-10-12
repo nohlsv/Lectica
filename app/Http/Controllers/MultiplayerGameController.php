@@ -429,7 +429,7 @@ class MultiplayerGameController extends Controller
     {
         $request->validate([
             'quiz_id' => 'required|exists:quizzes,id',
-            'answer' => 'required|string',
+            'answer' => 'required', // Allow both string and array
             'is_correct' => 'required|boolean',
         ]);
 
@@ -480,11 +480,16 @@ class MultiplayerGameController extends Controller
             // Stop the current timer since player answered
             $this->timerService->stopTimer($multiplayerGame->id);
 
+            // Get the quiz to extract correct answer
+            $quiz = Quiz::findOrFail($request->quiz_id);
+            $correctAnswer = $quiz->answers;
+
             // Record the answer
             \App\Models\QuizAnswer::create([
                 'user_id' => Auth::id(),
                 'quiz_id' => $request->quiz_id,
                 'user_answer' => $request->answer,
+                'correct_answer' => $correctAnswer,
                 'is_correct' => $request->is_correct,
                 'context_type' => 'multiplayer',
                 'context_id' => $multiplayerGame->id,

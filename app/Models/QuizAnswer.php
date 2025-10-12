@@ -12,6 +12,7 @@ class QuizAnswer extends Model
         'user_id',
         'quiz_id',
         'user_answer',
+        'correct_answer',
         'is_correct',
         'context_type',
         'context_id',
@@ -20,6 +21,7 @@ class QuizAnswer extends Model
 
     protected $casts = [
         'user_answer' => 'json',
+        'correct_answer' => 'json',
         'is_correct' => 'boolean',
         'answered_at' => 'datetime',
     ];

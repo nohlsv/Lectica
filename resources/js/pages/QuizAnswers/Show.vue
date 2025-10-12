@@ -143,6 +143,27 @@
                             </div>
                         </div>
 
+                        <!-- Answer Summary -->
+                        <div class="mb-6 p-4 bg-gray-800/50 rounded-lg border border-gray-600">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Your Answer -->
+                                <div>
+                                    <h5 class="font-medium text-white mb-2">Your Answer:</h5>
+                                    <div class="font-medium" :class="answer.is_correct ? 'text-green-400' : 'text-red-400'">
+                                        {{ formatAnswer(answer.user_answer) }}
+                                    </div>
+                                </div>
+                                
+                                <!-- Correct Answer -->
+                                <div v-if="!answer.is_correct">
+                                    <h5 class="font-medium text-white mb-2">Correct Answer:</h5>
+                                    <div class="font-medium text-green-400">
+                                        {{ formatAnswer(answer.correct_answer) }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Multiple Choice Options -->
                         <div v-if="answer.quiz.type === 'multiple_choice' && answer.quiz.options" class="mb-6">
                             <h5 class="font-medium text-white mb-3">Options:</h5>
@@ -151,10 +172,10 @@
                                     v-for="(option, index) in answer.quiz.options" 
                                     :key="index"
                                     class="flex items-center p-3 rounded-lg border-2"
-                                    :class="getOptionClass(option, getCorrectAnswer(answer.quiz), answer.user_answer)"
+                                    :class="getOptionClass(option, answer.correct_answer, answer.user_answer)"
                                 >
                                     <div class="flex items-center justify-center w-6 h-6 rounded-full border-2 mr-3"
-                                         :class="getOptionIconClass(option, getCorrectAnswer(answer.quiz), answer.user_answer)"
+                                         :class="getOptionIconClass(option, answer.correct_answer, answer.user_answer)"
                                     >
                                         <span class="text-xs font-bold">{{ String.fromCharCode(65 + index) }}</span>
                                     </div>
@@ -196,28 +217,12 @@
                                     </div>
                                 </div>
                                 <div class="text-sm text-gray-300">
-                                    Correct answer: <span class="font-medium text-green-400">{{ getCorrectAnswer(answer.quiz) }}</span>
+                                    Correct answer: <span class="font-medium text-green-400">{{ formatAnswer(answer.correct_answer) }}</span>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Enumeration -->
-                        <div v-else-if="answer.quiz.type === 'enumeration'" class="mb-6">
-                            <h5 class="font-medium text-white mb-3">Your Answer:</h5>
-                            <div class="p-3 bg-gray-800/50 rounded-lg border border-gray-600">
-                                <div class="font-medium" :class="answer.is_correct ? 'text-green-400' : 'text-red-400'">
-                                    {{ formatAnswer(answer.user_answer) }}
-                                </div>
-                            </div>
-                            <div v-if="!answer.is_correct" class="mt-3">
-                                <h5 class="font-medium text-white mb-2">Correct Answer:</h5>
-                                <div class="p-3 bg-green-900/30 rounded-lg border border-green-400">
-                                    <div class="font-medium text-green-400">
-                                        {{ getCorrectAnswer(answer.quiz) }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
 
                         <!-- Explanation -->
                         <div v-if="answer.quiz.explanation" class="mb-6">
@@ -297,9 +302,16 @@ export default {
     methods: {
         formatAnswer(answer) {
             if (typeof answer === 'object') {
-                return Array.isArray(answer) ? answer.join(', ') : JSON.stringify(answer)
+                if (Array.isArray(answer)) {
+                    // For enumeration answers, format nicely
+                    const validAnswers = answer.filter(a => a && a.toString().trim());
+                    if (validAnswers.length === 0) return 'No answer provided';
+                    if (validAnswers.length === 1) return validAnswers[0];
+                    return validAnswers.map((a, index) => `${index + 1}. ${a}`).join(' | ');
+                }
+                return JSON.stringify(answer);
             }
-            return answer
+            return answer?.toString() || 'No answer provided';
         },
         formatDate(date) {
             return new Date(date).toLocaleDateString('en-US', {
@@ -370,9 +382,10 @@ export default {
             return classes[status] || 'bg-gray-100 text-gray-800'
         },
         getOptionClass(option, correctAnswer, userAnswer) {
-            if (option === correctAnswer && option === userAnswer) {
+            const isCorrect = this.isCorrectAnswer(option, correctAnswer);
+            if (isCorrect && option === userAnswer) {
                 return 'border-green-400 bg-green-900/50 text-white ring-2 ring-green-400/50' // Correct answer that user selected - highlighted
-            } else if (option === correctAnswer) {
+            } else if (isCorrect) {
                 return 'border-green-400 bg-green-900/30 text-white' // Correct answer (not selected by user)
             } else if (option === userAnswer) {
                 return 'border-red-400 bg-red-900/30 text-white' // Wrong answer that user selected
@@ -380,20 +393,21 @@ export default {
             return 'border-gray-600 bg-gray-800/50 text-white' // Other options
         },
         getOptionIconClass(option, correctAnswer, userAnswer) {
-            if (option === correctAnswer && option === userAnswer) {
+            const isCorrect = this.isCorrectAnswer(option, correctAnswer);
+            if (isCorrect && option === userAnswer) {
                 return 'border-green-400 text-green-400 bg-green-900/50' // Correct answer that user selected - highlighted
-            } else if (option === correctAnswer) {
+            } else if (isCorrect) {
                 return 'border-green-400 text-green-400' // Correct answer (not selected by user)
             } else if (option === userAnswer) {
                 return 'border-red-400 text-red-400' // Wrong answer that user selected
             }
             return 'border-gray-400 text-gray-400' // Other options
         },
-        getCorrectAnswer(quiz) {
-            if (quiz.answers && Array.isArray(quiz.answers)) {
-                return quiz.answers[0]; // Return first correct answer
+        isCorrectAnswer(option, correctAnswer) {
+            if (Array.isArray(correctAnswer)) {
+                return correctAnswer.includes(option);
             }
-            return quiz.answers || 'No correct answer';
+            return correctAnswer === option;
         },
         isCorrectOption(option, quiz) {
             if (quiz.answers && Array.isArray(quiz.answers)) {

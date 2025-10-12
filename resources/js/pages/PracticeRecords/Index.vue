@@ -63,7 +63,9 @@
                                         <h4 class="text-xs font-medium text-white/80 sm:text-sm">Performance Trend</h4>
                                         <span class="text-xs text-gray-400">{{ group.attempts.length }} attempts</span>
                                     </div>
-                                    <canvas :ref="setChartRef(group.file.id)" class="h-8 w-full sm:h-10"></canvas>
+                                    <div class="h-40 w-full sm:h-80 overflow-hidden">
+                                        <canvas :ref="setChartRef(group.file.id)" class="w-full h-full"></canvas>
+                                    </div>
                                 </div>
                                 
                                 <!-- Collapsible Practice Details -->
@@ -259,6 +261,11 @@ function renderChart(fileId: number) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
+            resizeDelay: 0,
+            animation: {
+                duration: 0
+            },
             plugins: {
                 legend: {
                     display: false,

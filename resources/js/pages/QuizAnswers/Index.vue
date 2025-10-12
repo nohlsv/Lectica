@@ -196,7 +196,7 @@
                                                                 <div v-if="!answer.is_correct" class="mb-2">
                                                                     <span class="text-xs text-gray-300 sm:text-sm">Correct Answer:</span>
                                                                     <div class="mt-1">
-                                                                        <span class="font-medium text-green-400 text-sm sm:text-base break-words">{{ getCorrectAnswer(answer.quiz) }}</span>
+                                                                        <span class="font-medium text-green-400 text-sm sm:text-base break-words">{{ formatAnswer(answer.correct_answer) }}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>
@@ -397,9 +397,16 @@ export default {
         },
         formatAnswer(answer) {
             if (typeof answer === 'object') {
-                return Array.isArray(answer) ? answer.join(', ') : JSON.stringify(answer)
+                if (Array.isArray(answer)) {
+                    // For enumeration answers, format nicely
+                    const validAnswers = answer.filter(a => a && a.toString().trim());
+                    if (validAnswers.length === 0) return 'No answer provided';
+                    if (validAnswers.length === 1) return validAnswers[0];
+                    return validAnswers.map((a, index) => `${index + 1}. ${a}`).join(' | ');
+                }
+                return JSON.stringify(answer);
             }
-            return answer
+            return answer?.toString() || 'No answer provided';
         },
         formatDate(date) {
             return new Date(date).toLocaleDateString('en-US', {
@@ -421,12 +428,7 @@ export default {
             }
             return classes[status] || 'bg-gray-700 text-gray-300 border border-gray-500'
         },
-        getCorrectAnswer(quiz) {
-            if (quiz.answers && Array.isArray(quiz.answers)) {
-                return quiz.answers[0]; // Return first correct answer
-            }
-            return quiz.answers || 'No correct answer';
-        },
+
         toggleQuizGroup(groupKey) {
             console.log(`Click registered for group ${groupKey}`); // Debug log
             console.log('Current showQuizDetails:', this.showQuizDetails); // Debug log

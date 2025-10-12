@@ -16,6 +16,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BattleController extends Controller
 {
@@ -206,7 +207,7 @@ class BattleController extends Controller
     {
         $request->validate([
             'quiz_id' => 'required|exists:quizzes,id',
-            'answer' => 'required|string',
+            'answer' => 'required', // Allow both string and array
             'is_correct' => 'required|boolean',
         ]);
 
@@ -219,11 +220,15 @@ class BattleController extends Controller
         $quiz = Quiz::find($request->quiz_id);
         $isCorrect = $request->is_correct;
 
+        // Get the correct answer based on quiz type
+        $correctAnswer = $quiz->answers;
+
         // Record the answer
         \App\Models\QuizAnswer::create([
             'user_id' => Auth::id(),
             'quiz_id' => $request->quiz_id,
             'user_answer' => $request->answer,
+            'correct_answer' => $quiz->answers,
             'is_correct' => $isCorrect,
             'context_type' => 'battle',
             'context_id' => $battle->id,
