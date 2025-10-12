@@ -510,6 +510,10 @@ class FileController extends Controller
             if (Storage::exists($file->path)) {
                 Storage::delete($file->path);
             }
+            // Also delete the generated PDF
+            if ($file->pdf_path && Storage::exists($file->pdf_path)) {
+                Storage::delete($file->pdf_path);
+            }
             $file->delete();
             return redirect()->route('files.index')->with('success', 'File permanently deleted from storage.');
         } else {
