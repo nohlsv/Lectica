@@ -92,6 +92,8 @@ class FileController extends Controller
             'tags' => 'nullable|array',
             'tags.*.id' => 'integer|exists:tags,id',
             'tags.*.name' => 'string|max:50',
+            'collections' => 'nullable|array',
+            'collections.*' => 'integer|exists:collections,id',
         ]);
 
         $uploadedFile = $request->file('file');
@@ -129,6 +131,9 @@ class FileController extends Controller
             return redirect()->back()->withErrors(['file' => 'Invalid file type or unable to process the file.']);
         }
 
+        // Auto-verify files uploaded by faculty or admin
+        $isAutoVerified = in_array($user->user_role, ['faculty', 'admin']);
+        
         $file = File::create([
             'name' => $fileName,
             'description' => $request->input('description'),
@@ -136,6 +141,9 @@ class FileController extends Controller
             'content' => $content,
             'file_hash' => $fileHash,
             'user_id' => auth()->id(),
+            'verified' => $isAutoVerified,
+            'verified_at' => $isAutoVerified ? now() : null,
+            'verified_by' => $isAutoVerified ? auth()->id() : null,
         ]);
 
             // Handle tags
@@ -150,6 +158,29 @@ class FileController extends Controller
                     }
                 }
                 $file->tags()->sync($tagIds);
+            }
+
+            // Handle collections
+            if ($request->has('collections') && is_array($request->input('collections'))) {
+                $collectionIds = $request->input('collections');
+                
+                // Verify that the user has access to these collections (owns them or they are public)
+                $validCollections = Collection::whereIn('id', $collectionIds)
+                    ->where(function ($query) {
+                        $query->where('user_id', auth()->id())
+                              ->orWhere('is_public', true);
+                    })
+                    ->pluck('id')
+                    ->toArray();
+                
+                if (!empty($validCollections)) {
+                    $file->collections()->attach($validCollections);
+                    
+                    // Update collection counts
+                    Collection::whereIn('id', $validCollections)->each(function ($collection) {
+                        $collection->updateCounts();
+                    });
+                }
             }
 
             // Award XP for file upload (20 base XP)
@@ -170,11 +201,21 @@ class FileController extends Controller
                 ));
             }
 
+            // For multi-file uploads, return to create page with success data instead of redirecting
+            if ($request->header('X-Inertia') && $request->header('X-Multi-File-Upload')) {
+                return back()->with([
+                    'file_upload_success' => true,
+                    'uploaded_file_id' => $file->id,
+                    'message' => 'File uploaded successfully! You gained 20 XP!'
+                ]);
+            }
+
             return redirect()->route('files.show', $file)
                 ->with([
                     'success' => 'File uploaded successfully! You gained 20 XP!',
                     'content' => $content,
                     'file_id' => $file->id,
+                    'uploaded_file_id' => $file->id,
                 ]);
     }
 

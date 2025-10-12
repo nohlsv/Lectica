@@ -33,25 +33,9 @@ interface PageProps {
 
 const props = defineProps<PageProps>();
 
-// Computed property to group files by first letter
-const groupedFiles = computed(() => {
-    const grouped: Record<string, ExtendedFile[]> = {};
-
-    props.files.data.forEach((file) => {
-        const firstLetter = file.name.charAt(0).toUpperCase();
-        if (!grouped[firstLetter]) {
-            grouped[firstLetter] = [];
-        }
-        grouped[firstLetter].push(file as ExtendedFile);
-    });
-
-    // Sort groups alphabetically
-    return Object.keys(grouped)
-        .sort()
-        .reduce<Record<string, ExtendedFile[]>>((result, key) => {
-            result[key] = grouped[key];
-            return result;
-        }, {});
+// Files are already sorted from the backend, just use them directly
+const sortedFiles = computed(() => {
+    return props.files.data as ExtendedFile[];
 });
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -497,19 +481,10 @@ onMounted(() => {
                 </div>
 
                 <div v-else class="space-y-8">
-                    <div v-for="(files, letter) in groupedFiles" :key="letter" class="space-y-4">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="font-pixel rounded-lg bg-gradient-to-r from-yellow-400 to-orange-500 px-4 py-2 text-xl font-bold text-black shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
-                            >
-                                {{ letter }}
-                            </div>
-                            <hr class="h-1 flex-1 rounded bg-gradient-to-r from-yellow-400 to-transparent" />
-                        </div>
-                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                            <div
-                                v-for="file in files"
-                                :key="file.id"
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div
+                            v-for="file in sortedFiles"
+                            :key="file.id"
                                 class="group relative overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:shadow-lg"
                             >
                                 <!-- File Card Content -->
@@ -627,7 +602,6 @@ onMounted(() => {
                                     </div>
                                 </div>
                             </div>
-                        </div>
                     </div>
 
                     <!-- Pagination -->
