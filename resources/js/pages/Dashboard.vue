@@ -3,7 +3,8 @@ import FileCard from '@/components/FileCard.vue';
 import StudyStreakHeatmap from '@/components/StudyStreakHeatmap.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type File, type SharedData, type User } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { useDateFormat } from '@vueuse/core';
 import axios from 'axios';
 import { Bell, GraduationCapIcon, TagsIcon, TrendingUpIcon, UsersIcon } from 'lucide-vue-next';
 import { computed, onMounted, reactive, ref } from 'vue';
@@ -140,6 +141,26 @@ const isFacultyOrAdmin = computed(() => ['faculty', 'admin'].includes(user.user_
 const isStudent = computed(() => user.user_role === 'student');
 const isFaculty = computed(() => user.user_role === 'faculty');
 const isAdmin = computed(() => user.user_role === 'admin');
+
+// File interaction functions
+const toggleStar = async (file: File) => {
+    try {
+        await router.post(
+            route('files.star', { file: file.id }),
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    file.is_starred = !file.is_starred;
+                    file.star_count = file.is_starred ? (file.star_count || 0) + 1 : (file.star_count || 0) - 1;
+                },
+            }
+        );
+    } catch (error) {
+        console.error('Error toggling star:', error);
+    }
+};
 
 // Get college mascot info
 const getCollegeMascot = (college: string | undefined) => {
@@ -384,7 +405,7 @@ const getColorClasses = (color: string) => {
     <div class="dark:bg-[#161615]">
         <Head title="Home" />
         <AppLayout :breadcrumbs="breadcrumbs">
-            <div class="bg-lectica flex max-h-[300px] w-full flex-1 flex-col gap-4 px-4 pt-4 pb-0">
+            <div class="bg-lectica flex max-h-[300px] w-full flex-1 flex-col gap-4 px-2 sm:px-4 pt-4 pb-0">
                 <!--Welcome Section-->
                 <div
                     class="mb-10 flex min-h-[215px] w-full flex-col items-center justify-center gap-6 rounded-xl p-6 text-center sm:flex-row sm:text-left"
@@ -394,12 +415,12 @@ const getColorClasses = (color: string) => {
                         <img
                             :src="collegeMascot.image"
                             :alt="`${collegeMascot.mascot} mascot`"
-                            class="animate-floating w-20 sm:w-28 md:w-32"
+                            class="animate-floating w-20 sm:w-24 md:w-28 lg:w-32"
                             style="image-rendering: pixelated"
                             @error="($event.target as HTMLImageElement).src = 'https://cdn130.picsart.com/248878984010212.png'"
                         />
                         <div
-                            class="font-pixel border-2 border-white bg-black px-3 py-1 text-sm text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-base"
+                            class="font-pixel border-2 border-white bg-black px-2 sm:px-3 py-1 text-xs sm:text-sm text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)]"
                         >
                             {{ collegeAbbreviation }}
                         </div>
@@ -410,14 +431,14 @@ const getColorClasses = (color: string) => {
                             Welcome to Lectica,
                         </h1>
                         <!--Name-->
-                        <div class="flex items-center justify-center gap-2 sm:justify-start">
+                        <div class="flex items-start justify-start gap-1 sm:gap-2 flex-wrap">
                             <p
-                                class="font-pixel animate-soft-bounce inline-block border-2 border-white bg-black px-4 py-2 text-2xl font-extrabold text-yellow-300 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:text-3xl md:text-4xl"
+                                class="font-pixel animate-soft-bounce inline-block border-2 border-white bg-black px-2 sm:px-4 py-1 sm:py-2 text-sm sm:text-2xl lg:text-3xl xl:text-4xl font-extrabold text-yellow-300 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] break-words leading-tight"
                             >
                                 {{ user.first_name }} {{ user.last_name }}
                             </p>
                             <p
-                                class="text-4xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-5xl md:text-6xl"
+                                class="text-lg sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] leading-none"
                             >
                                 !
                             </p>
@@ -604,14 +625,107 @@ const getColorClasses = (color: string) => {
                                 <!-- Scroll container -->
                                 <div
                                     :ref="(el) => (scrollContainers[category.key] = el as HTMLElement | null)"
-                                    class="scrollbar-hide flex gap-6 overflow-x-auto scroll-smooth px-10"
+                                    class="scrollbar-hide flex gap-4 overflow-x-auto scroll-smooth px-10 sm:gap-6"
                                 >
-                                    <FileCard
+                                    <div
                                         v-for="file in recommendations[category.key]"
                                         :key="file.id"
-                                        :file="file"
-                                        class="w-auto max-w-xs flex-shrink-0"
-                                    />
+                                        class="group relative w-72 flex-shrink-0 overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:shadow-lg sm:w-80"
+                                    >
+                                        <!-- File Card Content -->
+                                        <Link :href="`/files/${file.id}`" class="block p-4">
+                                            <!-- Header with file icon and verification status -->
+                                            <div class="mb-3 flex items-start justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <div class="flex h-8 w-8 items-center justify-center rounded bg-blue-500/20">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                                        </svg>
+                                                    </div>
+                                                    <div v-if="file.verified" class="rounded-full bg-green-500/20 p-1">
+                                                        <svg class="h-3 w-3 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- File title -->
+                                            <h3 class="mb-2 line-clamp-2 text-sm font-semibold text-white group-hover:text-yellow-400 sm:text-base">
+                                                {{ file.name }}
+                                            </h3>
+
+                                            <!-- Description -->
+                                            <p class="mb-3 line-clamp-2 text-xs text-white/70 sm:text-sm">
+                                                {{ file.description || 'No description provided' }}
+                                            </p>
+
+                                            <!-- File metadata -->
+                                            <div class="mb-3 space-y-1 text-xs text-white/60">
+                                                <div class="flex items-center justify-between">
+                                                    <span>By {{ file.user.first_name }} {{ file.user.last_name }}</span>
+                                                    <span>{{ useDateFormat(file.created_at, 'MMM D, YYYY').value }}</span>
+                                                </div>
+                                                <div class="flex items-center justify-between">
+                                                    <span>⭐ {{ file.star_count || 0 }} stars</span>
+                                                    <span v-if="file.verified" class="text-green-400">✓ Verified</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Tags (if any) -->
+                                            <div v-if="file.tags && file.tags.length > 0" class="mb-3 flex flex-wrap gap-1">
+                                                <span
+                                                    v-for="tag in file.tags.slice(0, 3)"
+                                                    :key="tag.id"
+                                                    class="rounded bg-purple-500/20 px-2 py-0.5 text-xs text-purple-300"
+                                                >
+                                                    {{ tag.name }}
+                                                </span>
+                                                <span v-if="file.tags.length > 3" class="text-xs text-white/50">
+                                                    +{{ file.tags.length - 3 }} more
+                                                </span>
+                                            </div>
+                                        </Link>
+
+                                        <!-- Action buttons -->
+                                        <div class="border-t border-white/10 p-3">
+                                            <div class="flex items-center justify-between gap-2">
+                                                <div class="flex gap-1 sm:gap-2">
+                                                    <Link
+                                                        :href="`/files/${file.id}`"
+                                                        class="rounded bg-blue-500/20 px-3 py-2 text-xs text-blue-400 transition-colors hover:bg-blue-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                        title="View file"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="inline h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                        </svg>
+                                                    </Link>
+                                                </div>
+
+                                                <div class="flex gap-1 sm:gap-2">
+                                                    <button
+                                                        @click.prevent="toggleStar(file)"
+                                                        class="rounded bg-yellow-500/20 px-3 py-2 text-xs text-yellow-400 transition-colors hover:bg-yellow-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                        title="Star file"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="inline h-3 w-3 sm:h-4 sm:w-4" :class="file.is_starred ? 'fill-current' : ''" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                                        </svg>
+                                                    </button>
+                                                    <Link
+                                                        :href="route('collections.index')"
+                                                        class="rounded bg-purple-500/20 px-3 py-2 text-xs text-purple-400 transition-colors hover:bg-purple-500/30 sm:px-4 sm:py-2 sm:text-sm"
+                                                        title="View collections"
+                                                    >
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="inline h-3 w-3 sm:h-4 sm:w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                                        </svg>
+                                                    </Link>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>

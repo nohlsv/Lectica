@@ -156,7 +156,6 @@ class FileRecommendationService
                             ->from('file_stars')
                             ->where('user_id', $user->id);
                     })
-                    ->whereNotIn('files.id', $user->starredFiles()->pluck('files.id'))
                     ->groupBy('files.id')
                     ->orderByRaw('COUNT(*) DESC') // More matching tags = higher ranking
                     ->with(['tags', 'user'])
@@ -184,7 +183,8 @@ class FileRecommendationService
                     ->orderByRaw('COUNT(*) DESC')
                     ->with(['tags', 'user'])
                     ->limit($limit)
-                    ->get();
+                    ->get()
+                    ->unique('id'); // Ensure no duplicates within this category
             }
         );
     }

@@ -1,9 +1,5 @@
 <template>
     <AppLayout>
-        <template #header>
-            <h2 class="pixel-font text-xl leading-tight font-semibold text-gray-200">All Verifications</h2>
-        </template>
-
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
                 <div class="pixel-outline overflow-hidden border border-yellow-400/50 bg-black/70 shadow-xl backdrop-blur-sm sm:rounded-lg">

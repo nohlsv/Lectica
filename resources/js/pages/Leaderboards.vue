@@ -118,44 +118,44 @@ onMounted(async () => {
     <Head title="Leaderboards" />
     <AppLayout>
         <!-- Header Section inspired by Files -->
-        <div class="bg-lectica flex max-h-[200px] w-full flex-1 flex-col gap-4 px-4 pt-4 pb-0">
+        <div class="bg-lectica flex max-h-[150px] w-full flex-1 flex-col gap-2 px-2 pt-3 pb-0 sm:max-h-[200px] sm:gap-4 sm:px-4 sm:pt-4">
             <div
-                class="mb-6 flex min-h-[150px] w-full flex-col items-center justify-center gap-6 rounded-xl p-6 text-center sm:flex-row sm:text-left"
+                class="mb-3 flex min-h-[100px] w-full flex-col items-center justify-center gap-3 rounded-xl p-3 text-center sm:mb-6 sm:min-h-[150px] sm:flex-row sm:gap-6 sm:p-6 sm:text-left"
             >
                 <!-- Icon -->
                 <div class="relative flex flex-col items-center gap-2">
                     <div
-                        class="animate-floating flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-yellow-500 to-red-600 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:h-28 sm:w-28 md:h-32 md:w-32"
+                        class="animate-floating flex h-16 w-16 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-yellow-500 to-red-600 shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:h-20 sm:w-20 md:h-28 md:w-28 lg:h-32 lg:w-32"
                     >
-                        <Crown class="h-10 w-10 text-white sm:h-14 sm:w-14 md:h-16 md:w-16" />
+                        <Crown class="h-8 w-8 text-white sm:h-10 sm:w-10 md:h-14 md:w-14 lg:h-16 lg:w-16" />
                     </div>
                 </div>
                 <!-- Title -->
                 <div>
-                    <h1 class="text-2xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-3xl">
+                    <h1 class="text-xl font-bold text-white [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-2xl lg:text-3xl">
                         🏆 Hall of Champions
                     </h1>
-                    <p class="text-lg text-white/90 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-xl">
+                    <p class="text-sm text-white/90 [text-shadow:2px_0_black,-2px_0_black,0_2px_black,0_-2px_black] sm:text-lg lg:text-xl">
                         Compete with the best scholars across all colleges
                     </p>
                 </div>
             </div>
             <!-- Divider -->
-            <hr class="-mx-4 h-2 border-2 border-black bg-yellow-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)]" />
+            <hr class="-mx-2 h-2 border-2 border-black bg-yellow-500 shadow-[2px_2px_0px_rgba(0,0,0,0.8)] sm:-mx-4" />
         </div>
 
         <!-- Main Content -->
-        <div class="bg-gradient flex h-full flex-1 flex-col gap-6 px-4 pt-6 pb-0 lg:p-8">
+        <div class="bg-gradient flex h-full flex-1 flex-col gap-3 px-2 pt-3 pb-0 sm:gap-6 sm:px-4 sm:pt-6 lg:p-8">
             <!-- Controls Section -->
-            <div class="mb-6 flex flex-col items-center justify-between gap-4 lg:flex-row">
+            <div class="mb-3 flex flex-col items-center justify-between gap-3 sm:mb-6 sm:gap-4 lg:flex-row">
                 <!-- College Filter -->
-                <div class="flex flex-col items-center gap-4 sm:flex-row">
+                <div class="flex w-full flex-col items-center gap-2 sm:w-auto sm:flex-row sm:gap-4">
                     <div class="flex items-center gap-2">
-                        <Filter class="text-gold h-4 w-4" />
-                        <span class="pixel-outline text-sm font-bold text-white">Filter by College:</span>
+                        <Filter class="text-gold h-3 w-3 sm:h-4 sm:w-4" />
+                        <span class="pixel-outline text-xs font-bold text-white sm:text-sm">Filter by College:</span>
                     </div>
                     <Select v-model="selectedCollege" @update:modelValue="onCollegeChange">
-                        <SelectTrigger class="bg-container border-gold/30 pixel-outline w-64 text-white">
+                        <SelectTrigger class="bg-container border-gold/30 pixel-outline w-full text-white sm:w-64">
                             <SelectValue placeholder="Select College" />
                         </SelectTrigger>
                         <SelectContent class="bg-container border-gold/30">
@@ -173,44 +173,44 @@ onMounted(async () => {
                 </div>
 
                 <!-- Show All Toggle -->
-                <div class="flex items-center gap-4">
-                    <div v-if="loading" class="pixel-outline text-sm text-white/70">Loading...</div>
+                <div class="flex w-full items-center justify-center gap-3 sm:w-auto sm:gap-4">
+                    <div v-if="loading" class="pixel-outline text-xs text-white/70 sm:text-sm">Loading...</div>
                     <Button
                         @click="showAll = !showAll"
                         variant="outline"
-                        class="bg-container border-gold/30 hover:bg-gold/20 pixel-outline text-white"
+                        class="bg-container border-gold/30 hover:bg-gold/20 pixel-outline text-xs text-white sm:text-sm"
                     >
-                        <component :is="showAll ? EyeOff : Eye" class="mr-2 h-4 w-4" />
+                        <component :is="showAll ? EyeOff : Eye" class="mr-1 h-3 w-3 sm:mr-2 sm:h-4 sm:w-4" />
                         {{ showAll ? 'Show Top Only' : 'Show All Rankings' }}
                     </Button>
                 </div>
             </div>
             <!-- Side-by-Side Leaderboards Grid -->
-            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            <div class="grid grid-cols-1 gap-3 sm:gap-6 lg:grid-cols-3">
                 <!-- General Ranking -->
                 <div class="border-gold/30 overflow-hidden rounded-lg border bg-black/50">
-                    <div class="from-gold/20 to-gold/10 border-gold/30 border-b bg-gradient-to-r p-4">
-                        <h3 class="pixel-outline text-lg font-bold text-white">🎓 Academic Excellence</h3>
-                        <p class="pixel-outline text-sm text-white/70">Ranked by Level & Experience</p>
+                    <div class="from-gold/20 to-gold/10 border-gold/30 border-b bg-gradient-to-r p-2 sm:p-4">
+                        <h3 class="pixel-outline text-base font-bold text-white sm:text-lg">🎓 Academic Excellence</h3>
+                        <p class="pixel-outline text-xs text-white/70 sm:text-sm">Ranked by Level & Experience</p>
                     </div>
-                    <div class="max-h-96 space-y-2 overflow-y-auto p-4">
+                    <div class="max-h-80 space-y-1 overflow-y-auto p-2 sm:max-h-96 sm:space-y-2 sm:p-4">
                         <div
                             v-for="(user, index) in showAll ? generalLeaderboard : getTopTen(generalLeaderboard)"
                             :key="user.id"
                             :class="[
-                                'rounded-lg border p-3 transition-all duration-200 hover:scale-[1.02]',
+                                'rounded-lg border p-2 transition-all duration-200 hover:scale-[1.02] sm:p-3',
                                 user.id === currentUser?.id
                                     ? 'bg-gold/20 border-gold animate-pulse shadow-lg'
                                     : 'bg-container hover:border-gold/50 border-white/20',
-                                index < 3 ? 'ring-gold/30 ring-2' : '',
+                                index < 3 ? 'ring-gold/30 ring-1 sm:ring-2' : '',
                             ]"
                         >
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
+                                <div class="flex items-center gap-2 sm:gap-3">
                                     <div class="flex items-center gap-1">
                                         <span
                                             :class="[
-                                                'text-sm font-bold',
+                                                'text-xs font-bold sm:text-sm',
                                                 index === 0
                                                     ? 'text-yellow-400'
                                                     : index === 1
@@ -222,20 +222,20 @@ onMounted(async () => {
                                         >
                                             #{{ index + 1 }}
                                         </span>
-                                        <Trophy v-if="index === 0" class="h-4 w-4 text-yellow-400" />
-                                        <Medal v-else-if="index === 1" class="h-4 w-4 text-gray-300" />
-                                        <Award v-else-if="index === 2" class="h-4 w-4 text-yellow-600" />
+                                        <Trophy v-if="index === 0" class="h-3 w-3 text-yellow-400 sm:h-4 sm:w-4" />
+                                        <Medal v-else-if="index === 1" class="h-3 w-3 text-gray-300 sm:h-4 sm:w-4" />
+                                        <Award v-else-if="index === 2" class="h-3 w-3 text-yellow-600 sm:h-4 sm:w-4" />
                                     </div>
-                                    <div>
-                                        <p class="text-sm font-semibold text-white">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-xs font-semibold text-white sm:text-sm">
                                             {{ user.first_name }} {{ user.last_name }}
                                             <span v-if="user.id === currentUser?.id" class="text-gold ml-1 text-xs">(You)</span>
                                         </p>
-                                        <p class="text-xs text-white/60">{{ user.college }}</p>
+                                        <p class="truncate text-xs text-white/60">{{ user.college }}</p>
                                     </div>
                                 </div>
                                 <div class="text-right">
-                                    <p class="text-sm font-bold text-white">Lv.{{ user.level }}</p>
+                                    <p class="text-xs font-bold text-white sm:text-sm">Lv.{{ user.level }}</p>
                                     <p class="text-xs text-white/70">{{ user.experience }} XP</p>
                                 </div>
                             </div>
@@ -281,11 +281,11 @@ onMounted(async () => {
 
                 <!-- Multiplayer Ranking -->
                 <div class="border-gold/30 overflow-hidden rounded-lg border bg-black/50">
-                    <div class="from-gold/20 to-gold/10 border-gold/30 border-b bg-gradient-to-r p-4">
-                        <h3 class="pixel-outline text-lg font-bold text-white">⚔️ Battle Champions</h3>
-                        <p class="pixel-outline text-sm text-white/70">Ranked by Multiplayer Wins</p>
+                    <div class="from-gold/20 to-gold/10 border-gold/30 border-b bg-gradient-to-r p-2 sm:p-4">
+                        <h3 class="pixel-outline text-base font-bold text-white sm:text-lg">⚔️ Battle Champions</h3>
+                        <p class="pixel-outline text-xs text-white/70 sm:text-sm">Ranked by Multiplayer Wins</p>
                     </div>
-                    <div class="max-h-96 space-y-2 overflow-y-auto p-4">
+                    <div class="max-h-80 space-y-1 overflow-y-auto p-2 sm:max-h-96 sm:space-y-2 sm:p-4">
                         <div
                             v-for="(user, index) in showAll ? multiplayerLeaderboard : getTopTen(multiplayerLeaderboard)"
                             :key="user.id"
@@ -373,11 +373,11 @@ onMounted(async () => {
 
                 <!-- Study Streaks Ranking -->
                 <div class="border-gold/30 overflow-hidden rounded-lg border bg-black/50">
-                    <div class="from-gold/20 to-gold/10 border-gold/30 border-b bg-gradient-to-r p-4">
-                        <h3 class="pixel-outline text-lg font-bold text-white">🔥 Study Streaks</h3>
-                        <p class="pixel-outline text-sm text-white/70">Ranked by Longest Streak</p>
+                    <div class="from-gold/20 to-gold/10 border-gold/30 border-b bg-gradient-to-r p-2 sm:p-4">
+                        <h3 class="pixel-outline text-base font-bold text-white sm:text-lg">🔥 Study Streaks</h3>
+                        <p class="pixel-outline text-xs text-white/70 sm:text-sm">Ranked by Longest Streak</p>
                     </div>
-                    <div class="max-h-96 space-y-2 overflow-y-auto p-4">
+                    <div class="max-h-80 space-y-1 overflow-y-auto p-2 sm:max-h-96 sm:space-y-2 sm:p-4">
                         <div
                             v-for="(user, index) in showAll ? streakLeaderboard : getTopTen(streakLeaderboard)"
                             :key="user.id"

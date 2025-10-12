@@ -38,7 +38,7 @@
                             />
                             <span class="pixel-outline text-xs text-white min-w-[3ch]">{{ Math.round(soundVolume * 100) }}%</span>
                         </div>
-                        <button @click="forfeitGame" class="pixel-outline rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
+                        <button @click="confirmForfeit" class="pixel-outline rounded-md bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700">
                             Forfeit
                         </button>
                     </div>
@@ -199,11 +199,8 @@
                 <!-- Quiz Question -->
                 <div
                     v-if="currentQuiz && isMyTurn"
-                    class="mx-4 mb-6 rounded-lg border-2 border-blue-500 p-6 shadow-sm"
+                    class="mx-4 mb-6 rounded-lg border-2 border-blue-500 p-6 shadow-sm bg-container"
                     style="
-                        background-image:
-                            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-                            url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
                         background-size: cover;
                         background-position: center;
                     "
@@ -326,14 +323,7 @@
                 <!-- Waiting for Opponent -->
                 <div
                     v-else-if="!isMyTurn"
-                    class="mx-4 rounded-lg border-2 border-red-500 p-8 text-center"
-                    style="
-                        background-image:
-                            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-                            url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
-                        background-size: cover;
-                        background-position: center;
-                    "
+                    class="mx-4 rounded-lg border-2 border-red-500 p-8 text-center bg-container"
                 >
                     <div class="pixel-outline-icon mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-red-200 border-t-red-600"></div>
                     <div class="-mx-8.5 mb-2 items-center border-2 border-red-500 bg-black/50 p-4">
@@ -415,6 +405,74 @@
 
                 <div v-if="gameEndAnimation" class="mt-4 text-center">
                     <p class="text-lg font-semibold text-red-600">The game has ended! ⏹️</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Forfeit Confirmation Modal -->
+        <div v-if="showForfeitModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+            <div class="bg-container w-full max-w-md rounded-xl border-2 border-red-500 p-6 shadow-[8px_8px_0px_rgba(0,0,0,0.8)]">
+                <div class="mb-6 text-center">
+                    <div class="pixel-outline mb-4 text-6xl">⚠️</div>
+                    <h2 class="pixel-outline mb-2 text-xl font-bold text-red-400">Forfeit Game?</h2>
+                    <p class="pixel-outline text-sm text-[#FFF8DC]/80">
+                        Are you sure you want to forfeit this game? Your opponent will automatically win and the game will end immediately.
+                    </p>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button
+                        @click="showForfeitModal = false"
+                        class="pixel-outline flex-1 border-2 border-gray-500 bg-gray-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-gray-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        @click="confirmForfeit"
+                        class="pixel-outline flex-1 border-2 border-red-400 bg-red-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)]"
+                    >
+                        Forfeit Game
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forfeit Confirmation Modal -->
+        <div
+            v-if="showForfeitModal"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+            @click="showForfeitModal = false"
+        >
+            <div
+                class="w-full max-w-md rounded-lg border-2 border-red-500 bg-gradient-to-b from-[#2D1B2E] to-[#1A0B1B] p-6 shadow-xl"
+                @click.stop
+            >
+                <div class="mb-4 text-center">
+                    <div class="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full border-2 border-red-500 bg-red-500/20">
+                        <svg class="h-8 w-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.314 18.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="pixel-outline mb-4 text-lg font-bold text-red-200">Forfeit Game?</h3>
+                    <p class="pixel-outline text-sm text-gray-300 leading-relaxed">
+                        Are you sure you want to forfeit this multiplayer game?
+                        <br><br>
+                        <span class="text-red-300">⚠️ Your opponent will win by default and you will lose any progress made in this game.</span>
+                    </p>
+                </div>
+                <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                    <button
+                        @click="showForfeitModal = false"
+                        class="pixel-outline flex-1 border-2 border-gray-400 bg-gray-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-gray-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:flex-none"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        @click="executeForfeit"
+                        class="pixel-outline flex-1 border-2 border-red-400 bg-red-600 px-4 py-3 text-white shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:bg-red-700 hover:shadow-[4px_4px_0px_rgba(0,0,0,0.8)] sm:flex-none"
+                    >
+                        Yes, Forfeit
+                    </button>
                 </div>
             </div>
         </div>
@@ -1297,10 +1355,15 @@ const getGameResult = (): string => {
     }
 };
 
-const forfeitGame = () => {
-    if (confirm('Are you sure you want to forfeit this game? Your opponent will win.')) {
-        router.post(route('multiplayer-games.forfeit', props.game.id));
-    }
+const showForfeitModal = ref(false);
+
+const confirmForfeit = () => {
+    showForfeitModal.value = true;
+};
+
+const executeForfeit = () => {
+    router.post(route('multiplayer-games.forfeit', props.game.id));
+    showForfeitModal.value = false;
 };
 
 // Toggle between 0 and previously saved volume (or 0.5 if first time)

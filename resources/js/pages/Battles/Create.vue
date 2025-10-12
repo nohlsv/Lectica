@@ -329,12 +329,14 @@
                             </div>
 
                             <!-- Submit Button -->
-                            <div class="flex items-center justify-between">
-                                <Link :href="route('battles.index')" class="pixel-outline text-red-500 hover:text-red-700"> ← Back to Battles </Link>
+                            <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <Link :href="route('battles.index')" class="pixel-outline flex h-12 items-center justify-center rounded-md border-2 border-red-500 bg-red-500/10 px-4 py-2 text-red-500 transition-all hover:bg-red-500/20 hover:text-red-600 sm:h-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:hover:bg-transparent"> 
+                                    ← Back to Battles 
+                                </Link>
 
-                                <div class="flex flex-col items-end">
+                                <div class="flex flex-col items-center sm:items-end">
                                     <!-- Validation error messages -->
-                                    <div v-if="!canSubmit" class="mb-2 text-right">
+                                    <div v-if="!canSubmit" class="mb-2 text-center sm:text-right">
                                         <p v-if="questionValidation && !questionValidation.has_questions" class="pixel-outline text-sm text-red-400">
                                             No questions available
                                         </p>
@@ -365,7 +367,7 @@
                                         type="submit"
                                         :disabled="form.processing || !canSubmit"
                                         :class="[
-                                            'pixel-outline inline-flex items-center rounded-md border border-transparent px-4 py-2 text-xs font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800',
+                                            'pixel-outline inline-flex h-12 w-full items-center justify-center rounded-md border border-transparent px-6 py-3 text-sm font-semibold tracking-widest text-white uppercase transition duration-150 ease-in-out focus:ring-2 focus:ring-offset-2 focus:outline-none dark:focus:ring-offset-gray-800 sm:h-auto sm:w-auto sm:px-4 sm:py-2 sm:text-xs',
                                             canSubmit && !form.processing
                                                 ? 'bg-indigo-600 hover:bg-indigo-700 focus:bg-indigo-700 focus:ring-indigo-500 active:bg-indigo-900'
                                                 : 'cursor-not-allowed bg-gray-500 opacity-50',

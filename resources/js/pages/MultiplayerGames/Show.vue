@@ -70,14 +70,7 @@
 
                 <!-- Game Info -->
                 <div
-                    class="mx-4 mb-6 grid grid-cols-1 gap-6 rounded-lg border-2 border-indigo-500 p-6"
-                    style="
-                        background-image:
-                            linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-                            url('https://copilot.microsoft.com/th/id/BCO.ae604036-caed-42e3-b47b-176397eb9693.png');
-                        background-size: cover;
-                        background-position: center;
-                    "
+                    class="mx-4 mb-6 grid grid-cols-1 gap-6 rounded-lg border-2 border-indigo-500 p-6 bg-container"
                 >
                     <!-- Game Details -->
                     <div class="rounded-lg border-2 border-indigo-500 bg-black/50 p-6 shadow-sm">

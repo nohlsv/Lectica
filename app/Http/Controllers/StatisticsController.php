@@ -133,9 +133,9 @@ class StatisticsController extends Controller
 			'total_storage_used_mb' => round(File::sum('size') / 1024 / 1024, 2),
 			'average_file_size_kb' => round(File::avg('size') / 1024, 2),
             // Fix for SQLite: extract file extensions in PHP
-            'files_by_type' => collect(File::all('name'))
+            'files_by_type' => collect(File::all('path'))
                 ->map(function ($file) {
-                    $ext = strtolower(pathinfo($file->name, PATHINFO_EXTENSION));
+                    $ext = strtolower(pathinfo($file->path, PATHINFO_EXTENSION));
                     return $ext ?: 'none';
                 })
                 ->countBy()
