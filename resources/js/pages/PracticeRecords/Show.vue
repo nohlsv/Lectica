@@ -204,7 +204,7 @@
                             </div>
 
                             <!-- Empty State for no mistakes -->
-                            <div v-if="decodedMistakes.length === 0" class="text-center py-8">
+                            <div v-if="decodedMistakes.length === 0 && numericScorePercentage === 100" class="text-center py-8">
                                 <div class="text-gray-400">
                                     <svg class="mx-auto h-12 w-12 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -218,7 +218,7 @@
                 </div>
 
                 <!-- Perfect Score State -->
-                <div v-else class="bg-container overflow-hidden shadow-sm sm:rounded-lg">
+                <div v-else-if="numericScorePercentage === 100" class="bg-container overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6">
                         <div class="text-center py-8">
                             <div class="text-gray-400">
@@ -227,6 +227,20 @@
                                 </svg>
                                 <h3 class="mt-2 text-sm font-medium text-white">Perfect Score!</h3>
                                 <p class="mt-1 text-sm text-gray-400">You answered all questions correctly in this {{ record.type === 'flashcard' ? 'flashcard session' : 'quiz' }}.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- No mistakes data available but not perfect score -->
+                <div v-else class="bg-container overflow-hidden shadow-sm sm:rounded-lg">
+                    <div class="p-6">
+                        <div class="text-center py-8">
+                            <div class="text-gray-400">
+                                <svg class="mx-auto h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.5.5L17 10l4-4M14 7h2a2 2 0 012 2v1M14 7V5a2 2 0 00-2-2H8a2 2 0 00-2 2v2" />
+                                </svg>
+                                <h3 class="mt-2 text-sm font-medium text-white">No Mistake Details Available</h3>
                             </div>
                         </div>
                     </div>

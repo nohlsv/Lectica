@@ -192,23 +192,8 @@
                         </div>
 
                         <!-- Pagination -->
-                        <div v-if="waitingGames.links && waitingGames.links.length > 3" class="mt-6 flex justify-center">
-                            <div class="flex space-x-2">
-                                <Link
-                                    v-for="link in waitingGames.links"
-                                    :key="link.label"
-                                    :href="link.url"
-                                    v-html="link.label"
-                                    :class="[
-                                        'rounded px-3 py-2',
-                                        link.active
-                                            ? 'bg-blue-500 text-white'
-                                            : link.url
-                                              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                                              : 'cursor-not-allowed bg-gray-100 text-gray-400 dark:bg-gray-800 dark:text-gray-500',
-                                    ]"
-                                />
-                            </div>
+                        <div v-if="waitingGames.links && waitingGames.data.length > 0" class="mt-4 sm:mt-6">
+                            <Pagination :links="waitingGames as any" />
                         </div>
                     </div>
                 </div>
@@ -558,6 +543,11 @@
                                 </button>
                             </div>
                         </div>
+
+                        <!-- Pagination -->
+                        <div v-if="myGames.links && myGames.data.length > 0" class="mt-4 sm:mt-6">
+                            <Pagination :links="myGames as any" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -568,6 +558,7 @@
 <script setup lang="ts">
 import { getInitials } from '@/composables/useInitials';
 import AppLayout from '@/layouts/AppLayout.vue';
+import Pagination from '@/components/Pagination.vue';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 
