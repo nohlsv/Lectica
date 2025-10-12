@@ -282,9 +282,25 @@ const progressChart = ref<HTMLCanvasElement | null>(null);
 
 const decodedMistakes = computed(() => {
     try {
-        return JSON.parse(props.record.mistakes || '[]');
+        // If mistakes is already an object/array (due to JSON cast), return it directly
+        if (typeof props.record.mistakes === 'object' && props.record.mistakes !== null) {
+            return Array.isArray(props.record.mistakes) ? props.record.mistakes : [];
+        }
+        
+        // If it's a string, try to parse it as JSON
+        if (typeof props.record.mistakes === 'string') {
+            if (props.record.mistakes.trim() === '') {
+                return [];
+            }
+            return JSON.parse(props.record.mistakes);
+        }
+        
+        // Fallback for any other type
+        return [];
     } catch (error) {
         console.error('Failed to parse mistakes JSON:', error);
+        console.error('Raw mistakes data:', props.record.mistakes);
+        console.error('Mistakes data type:', typeof props.record.mistakes);
         return [];
     }
 });

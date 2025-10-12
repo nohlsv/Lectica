@@ -73,10 +73,7 @@ class PracticeRecordController extends Controller
 
 		$validated['user_id'] = auth()->id();
 
-		// Encode mistakes as JSON
-		if (isset($validated['mistakes'])) {
-			$validated['mistakes'] = json_encode($validated['mistakes']);
-		}
+		// No need to manually encode mistakes - the model cast handles it automatically
 
 		$record = PracticeRecord::create($validated);
 
