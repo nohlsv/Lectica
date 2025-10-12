@@ -4,7 +4,7 @@ import TagInput from '@/components/TagInput.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem, type Tag } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/vue3';
-import { FileIcon, UploadIcon, XIcon, FolderIcon } from 'lucide-vue-next';
+import { FileIcon, UploadIcon, XIcon, FolderIcon, Loader2Icon } from 'lucide-vue-next';
 import { ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 import axios from 'axios';
@@ -53,6 +53,8 @@ const duplicateFiles = ref<Map<string, DuplicateFileInfo>>(new Map());
 const filesToUpdate = ref<Map<string, DuplicateFileInfo>>(new Map());
 const checkingDuplicates = ref(false);
 const fileHashes = ref<Map<string, string>>(new Map()); // Track hashes of selected files
+const isUploading = ref(false); // Track upload process state
+const uploadProgress = ref({ current: 0, total: 0 }); // Track upload progress
 
 interface Collection {
     id: number;
@@ -527,6 +529,11 @@ const getUploadButtonText = () => {
 
 // Form submission for multiple files
 const submit = () => {
+    // Prevent multiple submissions
+    if (isUploading.value) {
+        return;
+    }
+
     if ((!form.files || form.files.length === 0) && filesToUpdate.value.size === 0) {
         toast.error('Please select at least one file to upload or have files marked for update.');
         return;
@@ -538,7 +545,8 @@ const submit = () => {
         return;
     }
 
-    // Upload files sequentially
+    // Set uploading state and upload files sequentially
+    isUploading.value = true;
     uploadFiles();
 };
 
@@ -549,6 +557,10 @@ const uploadFiles = async () => {
     let errorCount = 0;
     let updateCount = 0;
     let lastUploadedFileId: number | null = null;
+
+    // Initialize progress tracking
+    const totalOperations = totalFiles + filesToUpdate.value.size;
+    uploadProgress.value = { current: 0, total: totalOperations };
 
     console.log('Starting upload process with:', {
         filesToUpdate: Array.from(filesToUpdate.value.keys()),
@@ -584,10 +596,12 @@ const uploadFiles = async () => {
                     collections: selectedCollections.value,
                 });
                 updateCount++;
+                uploadProgress.value.current++;
                 console.log(`Successfully updated existing file: ${fileName}`);
             } catch (error) {
                 console.error(`Failed to update ${fileName}:`, error);
                 errorCount++;
+                uploadProgress.value.current++;
             }
         }
     }
@@ -636,11 +650,13 @@ const uploadFiles = async () => {
                         }
                         
                         successCount++;
+                        uploadProgress.value.current++;
                         resolve();
                     },
                     onError: (errors) => {
                         console.error('Upload failed for', file.name, ':', errors);
                         errorCount++;
+                        uploadProgress.value.current++;
                         resolve(); // Continue with next file even if this one fails
                     },
                     headers: {
@@ -650,6 +666,7 @@ const uploadFiles = async () => {
             });
         } catch (error) {
             errorCount++;
+            uploadProgress.value.current++;
         }
     }
 
@@ -697,6 +714,10 @@ const uploadFiles = async () => {
     } else {
         toast.error('All actions failed. Please try again.');
     }
+    
+    // Reset uploading state and progress
+    isUploading.value = false;
+    uploadProgress.value = { current: 0, total: 0 };
 };
 </script>
 
@@ -990,11 +1011,12 @@ const uploadFiles = async () => {
                         <button
                             type="submit"
                             class="border-border pixel-outline inline-flex items-center justify-center gap-1.5 rounded-md border-2 bg-[#3aa035] px-4 py-2 text-sm font-medium hover:bg-[#3aa035]/90 disabled:cursor-not-allowed disabled:opacity-50"
-                            :disabled="form.processing || (selectedFiles.length === 0 && filesToUpdate.size === 0) || duplicateFiles.size > 0"
+                            :disabled="isUploading || (selectedFiles.length === 0 && filesToUpdate.size === 0) || duplicateFiles.size > 0"
                         >
-                            <UploadIcon v-if="!form.processing" class="pixel-outline-icon h-4 w-4" />
+                            <Loader2Icon v-if="isUploading" class="pixel-outline-icon h-4 w-4 animate-spin" />
+                            <UploadIcon v-else class="pixel-outline-icon h-4 w-4" />
                             {{ 
-                                form.processing ? 'Uploading...' : 
+                                isUploading ? `Uploading... (${uploadProgress.current}/${uploadProgress.total})` : 
                                 duplicateFiles.size > 0 ? 'Handle Duplicates First' :
                                 getUploadButtonText()
                             }}
