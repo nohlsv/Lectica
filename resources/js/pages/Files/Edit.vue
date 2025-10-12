@@ -21,7 +21,12 @@ const currentUser = computed(() => (page.props as any).auth.user);
 const isAdmin = computed(() => currentUser.value?.user_role === 'admin');
 const isFileOwnedByAdmin = computed(() => props.file.user?.user_role === 'admin');
 const isCurrentUserOwner = computed(() => props.file.user?.id === currentUser.value?.id);
-const shouldShowArchive = computed(() =>  !isFileOwnedByAdmin.value && isCurrentUserOwner.value && !isAdmin.value;);
+const shouldShowArchive = computed(() => {
+    // Show archive if file is not already owned by admin AND either:
+    // 1. Current user is admin (admins can archive any file), OR
+    // 2. Current user owns the file and is not admin (regular users can archive their own files)
+    return !isFileOwnedByAdmin.value && (isAdmin.value || (isCurrentUserOwner.value && !isAdmin.value));
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
