@@ -207,7 +207,7 @@ function finishPractice() {
                                 :class="{ 'rotate-y-180': showAnswer }"
                             >
                                 <!--Front (Question)-->
-                                <div class="absolute inset-0 flex items-center justify-center p-4 backface-hidden sm:p-6">
+                                <div class="backface-hidden absolute inset-0 flex items-center justify-center p-4 sm:p-6">
                                     <p
                                         class="font-pixel text-center text-sm leading-relaxed break-words text-white sm:text-base md:text-lg lg:text-2xl"
                                     >
@@ -215,7 +215,7 @@ function finishPractice() {
                                     </p>
                                 </div>
                                 <!--Back (Answer)-->
-                                <div class="absolute inset-0 flex rotate-y-180 items-center justify-center p-4 backface-hidden sm:p-6">
+                                <div class="backface-hidden rotate-y-180 absolute inset-0 flex items-center justify-center p-4 sm:p-6">
                                     <p
                                         class="font-pixel animate-soft-bounce px-2 text-center text-sm text-yellow-300 sm:px-4 sm:text-base md:text-lg lg:text-xl"
                                     >
