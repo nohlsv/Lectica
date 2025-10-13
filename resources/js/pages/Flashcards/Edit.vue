@@ -50,7 +50,7 @@ function submit() {
                     <form @submit.prevent="submit" class="space-y-4">
                         <div>
                             <Label class="pixel-outline mb-2 block" for="question">Question</Label>
-                            <Input class="border-yellow-300 bg-transparent" id="question" v-model="form.question" type="text" required />
+                            <Input class="pixel-outline border-yellow-300 bg-transparent" id="question" v-model="form.question" type="text" required />
                             <InputError :message="form.errors.question" />
                         </div>
 
