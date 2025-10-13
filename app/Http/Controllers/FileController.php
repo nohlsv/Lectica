@@ -35,10 +35,12 @@ class FileController extends Controller
     {
         $query = File::verified()->with(['user', 'tags'])
             ->when($request->filled('search'), function ($query) use ($request) {
-                $search = $request->search;
-                return $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%")
-                    ->orWhere('content', 'like', "%{$search}%");
+                $search = strtolower($request->search);
+                return $query->where(function ($q) use ($search) {
+                    $q->whereRaw('LOWER(name) LIKE ?', ['%' . $search . '%'])
+                      ->orWhereRaw('LOWER(description) LIKE ?', ['%' . $search . '%'])
+                      ->orWhereRaw('LOWER(content) LIKE ?', ['%' . $search . '%']);
+                });
             })
             ->when($request->filled('tags') && is_array($request->tags), function ($query) use ($request) {
                 return $query->whereHas('tags', function ($q) use ($request) {
@@ -484,15 +486,7 @@ class FileController extends Controller
             }
         }
 
-        // Return JSON response for AJAX requests, redirect for regular requests
-        if ($request->expectsJson() || $request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'message' => 'File updated successfully',
-                'file' => $file->fresh(['tags', 'collections'])
-            ]);
-        }
-
+        // Always return an Inertia response
         return redirect()->route('files.show', $file->id)
             ->with('success', 'File updated successfully');
     }

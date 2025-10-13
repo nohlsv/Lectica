@@ -50,7 +50,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.put(`/files/${props.file.id}`);
+    form.put(route('files.update', props.file.id));
 };
 
 const isGenerating = ref(false);
