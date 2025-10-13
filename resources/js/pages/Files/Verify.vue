@@ -21,6 +21,7 @@ interface Props {
     };
     user_college?: string;
     available_colleges?: string[];
+    is_admin?: boolean;
 }
 
 const props = defineProps<Props>();
@@ -30,7 +31,7 @@ const selectedFileId = ref<number | null>(null);
 const denialReason = ref('');
 const verifyingFiles = ref<Set<number>>(new Set());
 
-// Filter state
+// Filter state (only for admin users)
 const currentCollegeFilter = ref(props.filters?.college || 'my_college');
 const showAllColleges = ref(props.filters?.show_all_colleges || false);
 
@@ -133,8 +134,8 @@ const getFilterDisplayText = () => {
                 <h1 class="welcome-banner animate-soft-bounce pixel-outline w-fit px-6 py-2 text-center text-lg font-bold sm:px-10 sm:text-xl lg:text-2xl">Verify Files</h1>
             </div>
 
-            <!-- College Filter -->
-            <div v-if="props.user_college || (props.available_colleges && props.available_colleges.length > 0)" class="bg-container p-3 sm:p-4">
+            <!-- College Filter (Admin Only) -->
+            <div v-if="props.is_admin && (props.user_college || (props.available_colleges && props.available_colleges.length > 0))" class="bg-container p-3 sm:p-4">
                 <div class="flex flex-col gap-3 sm:gap-4">
                     <label class="pixel-outline text-sm font-medium text-gray-200 sm:text-base">Filter by College:</label>
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:flex lg:flex-wrap">
@@ -185,6 +186,14 @@ const getFilterDisplayText = () => {
                 <!-- Current filter indicator -->
                 <div class="pixel-outline mt-3 text-sm text-gray-400 sm:text-xs">
                     Currently showing: <span class="font-medium text-gray-200">{{ getFilterDisplayText() }}</span>
+                    <span v-if="props.files.data.length > 0" class="ml-2">({{ props.files.data.length }} files)</span>
+                </div>
+            </div>
+
+            <!-- Faculty College Info (Non-Admin) -->
+            <div v-else-if="!props.is_admin && props.user_college" class="bg-container p-3 sm:p-4">
+                <div class="pixel-outline text-sm text-gray-400 sm:text-base">
+                    Showing files from: <span class="font-medium text-gray-200">{{ props.user_college }}</span>
                     <span v-if="props.files.data.length > 0" class="ml-2">({{ props.files.data.length }} files)</span>
                 </div>
             </div>
