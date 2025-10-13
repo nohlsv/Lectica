@@ -235,6 +235,7 @@
                     :href="route('logout')"
                     method="post"
                     as="button"
+                    @click="handleLogout"
                     class="pixel-outline flex-1 rounded bg-gray-700 px-4 py-3 font-bold text-white transition-colors hover:bg-gray-600"
                 >
                     Logout
@@ -245,7 +246,7 @@
 </template>
 
 <script setup>
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 import { onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 
@@ -300,6 +301,10 @@ const refreshStatus = () => {
 
     // Hard reload the entire page
     window.location.reload();
+};
+
+const handleLogout = () => {
+    router.flushAll();
 };
 </script>
 

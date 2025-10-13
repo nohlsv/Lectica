@@ -4,7 +4,6 @@ import { ref, watch } from 'vue';
 const createGlobalState = () => {
     // Check if we already have global state in window object
     if (typeof window !== 'undefined' && (window as any).__lectiaGlobalMusic) {
-        console.log('Global Music: Using existing global state');
         return (window as any).__lectiaGlobalMusic;
     }
     
@@ -19,7 +18,6 @@ const createGlobalState = () => {
     
     if (typeof window !== 'undefined') {
         (window as any).__lectiaGlobalMusic = state;
-        console.log('Global Music: Created new global state');
     }
     
     return state;
@@ -41,21 +39,17 @@ const MUSIC_DISABLED_PAGES = [
 
 // Set up watchers only once
 if (typeof window !== 'undefined' && !(window as any).__lectiaWatchersSetup) {
-    console.log('Global Music: Setting up watchers for the first time');
     
     // Watch for volume changes
     watch(globalMusicVolume, (newVolume, oldVolume) => {
-        console.log('Global Music: Volume changed from', oldVolume, 'to', newVolume);
         if (globalMusicAudio.value) {
             globalMusicAudio.value.volume = newVolume;
-            console.log('Global Music: Audio volume set to', globalMusicAudio.value.volume);
         }
         saveGlobalMusicSettings();
     });
 
     // Watch for enabled/disabled changes
     watch(isGlobalMusicEnabled, (enabled) => {
-        console.log('Global Music: Enabled state changed to', enabled);
         if (enabled && !shouldDisableMusic()) {
             startGlobalMusic();
         } else {
@@ -69,13 +63,11 @@ if (typeof window !== 'undefined' && !(window as any).__lectiaWatchersSetup) {
         const handleVisibilityChange = () => {
             if (document.hidden) {
                 // Page is hidden (user switched tabs or minimized browser)
-                console.log('Global Music: Page hidden, pausing music');
                 if (globalMusicAudio.value && !globalMusicAudio.value.paused) {
                     globalMusicAudio.value.pause();
                 }
             } else {
                 // Page is visible again
-                console.log('Global Music: Page visible, resuming music if enabled');
                 if (isGlobalMusicEnabled.value && !shouldDisableMusic()) {
                     setTimeout(() => {
                         startGlobalMusic();
@@ -85,7 +77,6 @@ if (typeof window !== 'undefined' && !(window as any).__lectiaWatchersSetup) {
         };
 
         document.addEventListener('visibilitychange', handleVisibilityChange);
-        console.log('Global Music: Page visibility change listener added');
     }
     
     (window as any).__lectiaWatchersSetup = true;
@@ -97,17 +88,13 @@ const loadGlobalMusicSettings = () => {
     if (savedVolume !== null) {
         const volume = parseFloat(savedVolume);
         globalMusicVolume.value = isNaN(volume) ? 0.3 : Math.max(0, Math.min(1, volume));
-        console.log('Global Music: Loaded volume from localStorage:', globalMusicVolume.value);
     } else {
-        console.log('Global Music: No saved volume found, using default:', globalMusicVolume.value);
     }
 
     const savedEnabled = localStorage.getItem('lectica-global-music-enabled');
     if (savedEnabled !== null) {
         isGlobalMusicEnabled.value = savedEnabled === 'true';
-        console.log('Global Music: Loaded enabled state from localStorage:', isGlobalMusicEnabled.value);
     } else {
-        console.log('Global Music: No saved enabled state found, using default:', isGlobalMusicEnabled.value);
     }
 };
 
@@ -123,12 +110,9 @@ const initializeGlobalMusic = () => {
     loadGlobalMusicSettings();
     
     if (isMusicInitialized.value) {
-        console.log('Global Music: Already initialized, but settings reloaded');
         return;
     }
 
-    console.log('Global Music: Initializing for the first time...');
-    console.log('Global Music: Settings loaded - enabled:', isGlobalMusicEnabled.value, 'volume:', globalMusicVolume.value);
     
     // Create the audio element
     try {
@@ -146,7 +130,6 @@ const initializeGlobalMusic = () => {
         });
         
         
-        console.log('Global Music: Audio element created successfully');
     } catch (error) {
         console.error('Global Music: Failed to create audio element:', error);
         return;
@@ -156,7 +139,6 @@ const initializeGlobalMusic = () => {
     
     // Start music if enabled and not on a disabled page
     if (isGlobalMusicEnabled.value && !shouldDisableMusic()) {
-        console.log('Global Music: Music is enabled, attempting to start...');
         // Try to start immediately
         startGlobalMusic();
         
@@ -174,31 +156,26 @@ const initializeGlobalMusic = () => {
             }
         }, 1500);
     } else {
-        console.log('Global Music: Music is disabled or on disabled page, not starting');
     }
 };
 
 // Start global music with multiple attempt strategies
 const startGlobalMusic = () => {
     if (!globalMusicAudio.value || !isGlobalMusicEnabled.value) {
-        console.log('Global Music: Cannot start - audio not initialized or music disabled');
         return;
     }
     
     // Check if current page should have music disabled
     if (shouldDisableMusic()) {
-        console.log('Global Music: Not starting on disabled page');
         stopGlobalMusic();
         return;
     }
 
     // Don't restart if already playing
     if (!globalMusicAudio.value.paused) {
-        console.log('Global Music: Already playing');
         return;
     }
 
-    console.log('Global Music: Attempting to start...');
     
     // Resume from saved position for smooth transitions
     if (savedMusicPosition.value > 0) {
@@ -209,7 +186,6 @@ const startGlobalMusic = () => {
     const attemptPlay = () => {
         return globalMusicAudio.value!.play()
             .then(() => {
-                console.log('Global Music: Started successfully');
                 return true;
             })
             .catch((error) => {
@@ -226,12 +202,10 @@ const startGlobalMusic = () => {
                 attemptPlay().then((secondSuccess) => {
                     if (!secondSuccess) {
                         // Third attempt - set up user interaction listeners as fallback
-                        console.log('Global Music: Setting up user interaction fallback');
                         const startOnInteraction = () => {
                             if (globalMusicAudio.value && isGlobalMusicEnabled.value && !shouldDisableMusic()) {
                                 globalMusicAudio.value.play()
                                     .then(() => {
-                                        console.log('Global Music: Started after user interaction');
                                     })
                                     .catch((err) => console.log('Global Music: Failed to start after user interaction:', err));
                             }
@@ -251,7 +225,6 @@ const startGlobalMusic = () => {
 // Stop global music
 const stopGlobalMusic = () => {
     if (globalMusicAudio.value && !globalMusicAudio.value.paused) {
-        console.log('Global Music: Stopping...');
         // Save current position for smooth resumption
         savedMusicPosition.value = globalMusicAudio.value.currentTime;
         globalMusicAudio.value.pause();
@@ -270,26 +243,19 @@ const updateCurrentPage = (pageName: string) => {
     const previousPage = currentPage.value;
     currentPage.value = pageName;
     
-    console.log('Global Music: Page changed from', previousPage, 'to', pageName);
-    console.log('Global Music: Current enabled state during page change:', isGlobalMusicEnabled.value);
-    console.log('Global Music: Is music initialized:', isMusicInitialized.value);
     
     if (shouldDisableMusic()) {
-        console.log('Global Music: Stopping for game page:', pageName);
         stopGlobalMusic();
     } else if (isGlobalMusicEnabled.value && isMusicInitialized.value) {
-        console.log('Global Music: Starting for page (music enabled and initialized):', pageName);
         // Small delay to ensure smooth transition
         setTimeout(() => {
             // Double-check the state before starting
             if (isGlobalMusicEnabled.value && !shouldDisableMusic()) {
                 startGlobalMusic();
             } else {
-                console.log('Global Music: Music disabled during delayed start, skipping');
             }
         }, 500);
     } else {
-        console.log('Global Music: Not starting music - enabled:', isGlobalMusicEnabled.value, 'initialized:', isMusicInitialized.value);
     }
 };
 
@@ -301,13 +267,11 @@ const toggleGlobalMusic = () => {
 // Set global music volume (0 to 1)
 const setGlobalMusicVolume = (volume: number) => {
     const newVolume = Math.max(0, Math.min(1, volume));
-    console.log('Global Music: Setting volume to', newVolume);
     globalMusicVolume.value = newVolume;
 };
 
 // Auto-initialize when composable is first loaded (only once)
 if (typeof window !== 'undefined' && !(window as any).__lectiaGlobalMusicAutoInit) {
-    console.log('Global Music: Setting up auto-initialization');
     (window as any).__lectiaGlobalMusicAutoInit = true;
     
     // Try to initialize immediately
