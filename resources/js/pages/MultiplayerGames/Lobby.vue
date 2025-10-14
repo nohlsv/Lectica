@@ -16,7 +16,7 @@
                                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                             ]"
                         >
-                            Join Games ({{ waitingGames.data.length }})
+                            Join Games ({{ waitingGames.total || 0 }})
                         </button>
                         <button
                             @click="activeTab = 'create'"
@@ -38,7 +38,7 @@
                                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700',
                             ]"
                         >
-                            My Games ({{ myGames.data.length }})
+                            My Games ({{ myGames.total || 0 }})
                         </button>
                     </nav>
                 </div>
@@ -48,7 +48,7 @@
                     <div class="p-3 sm:p-6">
                         <div class="mb-4 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-center sm:justify-between">
                             <h3 class="pixel-outline text-lg font-medium text-gray-100 sm:text-xl md:text-2xl">
-                                Available Games ({{ waitingGames.data.length }} waiting)
+                                Available Games ({{ waitingGames.total || 0 }} waiting)
                             </h3>
 
                             <!-- Join by Code Button -->
@@ -193,7 +193,7 @@
 
                         <!-- Pagination -->
                         <div v-if="waitingGames.links && waitingGames.data.length > 0" class="mt-4 sm:mt-6">
-                            <Pagination :links="waitingGames as any" />
+                            <Pagination :links="addTabToLinks(waitingGames, 'lobby')" />
                         </div>
                     </div>
                 </div>
@@ -546,7 +546,9 @@
 
                         <!-- Pagination -->
                         <div v-if="myGames.links && myGames.data.length > 0" class="mt-4 sm:mt-6">
-                            <Pagination :links="myGames as any" />
+                            <Pagination 
+                                :links="addTabToLinks(myGames, 'mygames')" 
+                            />
                         </div>
                     </div>
                 </div>
@@ -599,9 +601,20 @@ interface Game {
     pvp_mode?: string;
 }
 
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface PaginatedGames {
     data: Game[];
-    links?: any[];
+    links: PaginationLink[];
+    total: number;
+    current_page: number;
+    last_page: number;
+    from: number;
+    to: number;
 }
 
 const props = defineProps<{
@@ -619,7 +632,16 @@ const page = usePage();
 const currentUser = computed(() => page.props.auth.user);
 
 // Tab state
-const activeTab = ref<'lobby' | 'create' | 'mygames'>('lobby');
+const activeTab = ref<'lobby' | 'create' | 'mygames'>((route().params.tab as any) || 'lobby');
+
+// Watch for tab changes and update URL
+watch(activeTab, (newTab) => {
+    router.get(
+        route(route().current() || ''),
+        { ...route().params, tab: newTab },
+        { preserveState: true, preserveScroll: true, replace: true }
+    );
+});
 
 // Game creation form
 const form = useForm({
@@ -644,6 +666,26 @@ if (props.file_id) {
     form.source_type = 'collection';
     form.collection_id = props.collection_id;
 }
+
+// Helper function to add tab parameter to pagination links
+const addTabToLinks = (paginationData: any, tab: string) => {
+    if (!paginationData) return paginationData;
+    
+    const processUrl = (url: string | null) => {
+        if (!url) return url;
+        const urlObj = new URL(url);
+        urlObj.searchParams.set('tab', tab);
+        return urlObj.toString();
+    };
+
+    return {
+        ...paginationData,
+        links: paginationData.links?.map((link: any) => ({
+            ...link,
+            url: link.url ? processUrl(link.url) : null,
+        }))
+    };
+};
 
 // Form validation
 const canSubmit = computed(() => {

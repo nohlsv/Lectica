@@ -389,6 +389,15 @@ class MultiplayerGameController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
+        // Log pagination data for debugging
+        \Log::info('Pagination Data', [
+            'waiting_games' => $waitingGames->toArray(),
+            'my_games' => $myGames->toArray(),
+            'my_games_total' => $myGames->total(),
+            'my_games_per_page' => $myGames->perPage(),
+            'my_games_current_page' => $myGames->currentPage()
+        ]);
+
         $data = [
             'files' => $files,
             'collections' => $collections,
