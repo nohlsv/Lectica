@@ -35,6 +35,51 @@ interface Props {
 
 defineProps<Props>();
 
+// Pagination helper functions
+const shouldShowPageNumber = (
+    page: number,
+    currentPage: number,
+    lastPage: number
+) => {
+    // Always show first and last pages
+    if (page === 1 || page === lastPage) return true;
+    
+    // Show pages around current page
+    if (Math.abs(page - currentPage) <= 2) return true;
+    
+    return false;
+};
+
+const shouldShowEllipsis = (
+    page: number,
+    currentPage: number,
+    lastPage: number
+) => {
+    // Show ellipsis between first page and current page area
+    if (page === 2 && currentPage - 3 > 1) return true;
+    
+    // Show ellipsis between current page area and last page
+    if (page === lastPage - 1 && currentPage + 3 < lastPage) return true;
+    
+    return false;
+};
+
+// Pagination URL helper functions
+const getPrevPageUrl = (files: PaginatedData<File>) => {
+    const prevLink = files.links.find(link => link.label === '&laquo; Previous');
+    return prevLink?.url || '';
+};
+
+const getNextPageUrl = (files: PaginatedData<File>) => {
+    const nextLink = files.links.find(link => link.label === 'Next &raquo;');
+    return nextLink?.url || '';
+};
+
+const getPageUrl = (files: PaginatedData<File>, page: number) => {
+    const pageLink = files.links.find(link => link.label === String(page));
+    return pageLink?.url || '';
+};
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Files',
@@ -308,10 +353,11 @@ const onCollectionSuccess = (message?: string) => {
                     </div>
 
                     <!-- Files Grid -->
-                    <div v-else class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                        <div
-                            v-for="file in files.data"
-                            :key="file.id"
+                    <div v-else class="space-y-4">
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            <div
+                                v-for="file in files.data"
+                                :key="file.id"
                             class="group relative overflow-hidden rounded-lg border border-white/20 bg-white/5 backdrop-blur-sm transition-all duration-200 hover:border-white/40 hover:bg-white/10 hover:shadow-lg"
                         >
                             <!-- File Card Content -->
@@ -411,6 +457,87 @@ const onCollectionSuccess = (message?: string) => {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Pagination -->
+                    <div v-if="files.total > 0" class="mt-6 flex items-center justify-between border-t border-white/10 px-4 py-3 sm:px-6">
+                        <div class="flex flex-1 justify-between sm:hidden">
+                            <Link
+                                v-if="files.current_page > 1"
+                                :href="getPrevPageUrl(files)"
+                                preserve-scroll
+                                class="relative inline-flex items-center rounded-md border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                            >
+                                Previous
+                            </Link>
+                            <Link
+                                v-if="files.current_page < files.last_page"
+                                :href="getNextPageUrl(files)"
+                                preserve-scroll
+                                class="relative ml-3 inline-flex items-center rounded-md border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
+                            >
+                                Next
+                            </Link>
+                        </div>
+                        <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-sm text-white">
+                                    Showing
+                                    <span class="font-medium">{{ files.from }}</span>
+                                    to
+                                    <span class="font-medium">{{ files.to }}</span>
+                                    of
+                                    <span class="font-medium">{{ files.total }}</span>
+                                    results
+                                </p>
+                            </div>
+                            <div>
+                                <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                                    <Link
+                                        v-if="files.current_page > 1"
+                                        :href="getPrevPageUrl(files)"
+                                        preserve-scroll
+                                        class="relative inline-flex items-center rounded-l-md border border-white/20 bg-white/5 px-2 py-2 text-sm font-medium text-white hover:bg-white/10"
+                                    >
+                                        <span class="sr-only">Previous</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd" />
+                                        </svg>
+                                    </Link>
+                                    <template v-for="i in files.last_page" :key="i">
+                                        <Link
+                                            v-if="shouldShowPageNumber(i, files.current_page, files.last_page)"
+                                            :href="getPageUrl(files, i)"
+                                            preserve-scroll
+                                            :class="[
+                                                i === files.current_page ? 'z-10 bg-yellow-500/20 text-yellow-400' : 'text-white hover:bg-white/10',
+                                                'relative inline-flex items-center border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium'
+                                            ]"
+                                        >
+                                            {{ i }}
+                                        </Link>
+                                        <span
+                                            v-else-if="shouldShowEllipsis(i, files.current_page, files.last_page)"
+                                            class="relative inline-flex items-center border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-white"
+                                        >
+                                            ...
+                                        </span>
+                                    </template>
+                                    <Link
+                                        v-if="files.current_page < files.last_page"
+                                        :href="getNextPageUrl(files)"
+                                        preserve-scroll
+                                        class="relative inline-flex items-center rounded-r-md border border-white/20 bg-white/5 px-2 py-2 text-sm font-medium text-white hover:bg-white/10"
+                                    >
+                                        <span class="sr-only">Next</span>
+                                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd" />
+                                        </svg>
+                                    </Link>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 </div>
             </div>
 
