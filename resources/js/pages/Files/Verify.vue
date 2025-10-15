@@ -206,7 +206,12 @@ const getFilterDisplayText = () => {
                         :key="file.id"
                         class="bg-container flex h-full flex-col rounded-lg border-2 border-[#0c0a03] p-3 sm:p-4"
                     >
-                        <h2 class="pixel-outline text-lg font-semibold text-[#fdf6ee] sm:text-xl md:text-2xl">{{ file.name }}</h2>
+                        <h2 
+                            class="pixel-outline text-lg font-semibold text-[#fdf6ee] sm:text-xl md:text-2xl truncate" 
+                            :title="file.name"
+                        >
+                            {{ file.name }}
+                        </h2>
                         <p class="text-sm text-[#fdf6ee]/50 sm:text-base lg:text-base">
                             Uploaded by: <span class="ml-1">{{ file.user.first_name }} {{ file.user.last_name }}</span>
                         </p>

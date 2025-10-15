@@ -499,9 +499,13 @@ class FileController extends Controller
 
         $forceDelete = $request->query('force_delete') === 'true';
 
-        // Check if current user is admin and wants to force delete
-        if (Auth::user()->user_role === 'admin' && $forceDelete) {
-            // Admin permanent deletion
+        $isAdmin = Auth::user()->user_role === 'admin';
+
+        // Allow permanent deletion if:
+        // 1. User is admin and force_delete is true, OR
+        // 2. File is not verified and belongs to current user
+        if (($isAdmin && $forceDelete) || (!$file->verified && $file->user_id === Auth::id())) {
+            // Permanent deletion
             if (Storage::exists($file->path)) {
                 Storage::delete($file->path);
             }
