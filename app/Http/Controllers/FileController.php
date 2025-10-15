@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\GenerateFileContent;
 use App\Models\File;
 use App\Models\Tag;
 use App\Models\Collection;
@@ -724,50 +725,38 @@ class FileController extends Controller
             'true_false_count' => 'nullable|integer|min:1|max:15',
         ]);
 
-        try {
-            $results = [];
+        $types = [];
+        $counts = [];
 
-            if ($request->boolean('generate_flashcards')) {
-                $flashcardResult = $this->generateFlashcardsContent($file, $request->input('flashcards_count', 5));
-                if (!$flashcardResult['success']) {
-                    return back()->withErrors(['error' => $flashcardResult['error']]);
-                }
-                $results[] = $flashcardResult['message'];
-            }
-
-            if ($request->boolean('generate_multiple_choice_quizzes')) {
-                $quizResult = $this->generateMultipleChoiceContent($file, $request->input('multiple_choice_count', 5));
-                if (!$quizResult['success']) {
-                    return back()->withErrors(['error' => $quizResult['error']]);
-                }
-                $results[] = $quizResult['message'];
-            }
-
-            if ($request->boolean('generate_enumeration_quizzes')) {
-                $enumResult = $this->generateEnumerationContent($file, $request->input('enumeration_count', 3));
-                if (!$enumResult['success']) {
-                    return back()->withErrors(['error' => $enumResult['error']]);
-                }
-                $results[] = $enumResult['message'];
-            }
-
-            if ($request->boolean('generate_true_false_quizzes')) {
-                $tfResult = $this->generateTrueFalseContent($file, $request->input('true_false_count', 3));
-                if (!$tfResult['success']) {
-                    return back()->withErrors(['error' => $tfResult['error']]);
-                }
-                $results[] = $tfResult['message'];
-            }
-
-            if (empty($results)) {
-                return back()->withErrors(['error' => 'No content types selected for generation.']);
-            }
-
-            return back()->with('success', 'Content generated successfully: ' . implode(', ', $results));
-
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'An error occurred during generation: ' . $e->getMessage()]);
+        if ($request->boolean('generate_flashcards')) {
+            $types[] = 'flashcards';
+            $counts['flashcards'] = $request->input('flashcards_count', 5);
         }
+
+        if ($request->boolean('generate_multiple_choice_quizzes')) {
+            $types[] = 'multiple_choice';
+            $counts['multiple_choice'] = $request->input('multiple_choice_count', 5);
+        }
+
+        if ($request->boolean('generate_enumeration_quizzes')) {
+            $types[] = 'enumeration';
+            $counts['enumeration'] = $request->input('enumeration_count', 5);
+        }
+
+        if ($request->boolean('generate_true_false_quizzes')) {
+            $types[] = 'true_false';
+            $counts['true_false'] = $request->input('true_false_count', 5);
+        }
+
+        if (empty($types)) {
+            return back()->withErrors(['error' => 'Please select at least one type of content to generate.']);
+        }
+
+        // Update status to pending and dispatch job
+        $file->update(['generation_status' => 'pending']);
+        GenerateFileContent::dispatch($file, $types, $counts);
+
+        return back()->with('success', 'Content generation started. You will be notified when it\'s complete.');
     }
 
     private function generateContent(Request $request, File $file, string $type, array $schema)
@@ -907,7 +896,7 @@ class FileController extends Controller
         ]);
     }
 
-    private function generateContentInternal(File $file, int $count, string $type, array $schema)
+    public function generateContentInternal(File $file, int $count, string $type, array $schema)
     {
         try {
             set_time_limit(0);
@@ -938,7 +927,42 @@ class FileController extends Controller
 
             // Prepare the payload - use file URI if available, otherwise fall back to text
             $parts = [];
+            // Attempt to verify file URI if it exists
+            $shouldUseFileUri = false;
             if (!empty($file->gemini_file_uri)) {
+                try {
+                    // Attempt to verify the file URI still exists/is accessible
+                    $verifyUrl = str_replace('/generateContent', '/files/' . basename($file->gemini_file_uri), $url);
+                    $verifyResponse = Http::timeout(10)->get($verifyUrl);
+                    $shouldUseFileUri = $verifyResponse->successful();
+                } catch (\Exception $e) {
+                    logger()->warning('Failed to verify Gemini file URI', [
+                        'file_id' => $file->id,
+                        'uri' => $file->gemini_file_uri,
+                        'error' => $e->getMessage()
+                    ]);
+                    $shouldUseFileUri = false;
+                }
+
+                if (!$shouldUseFileUri && $file->pdf_path && Storage::exists($file->pdf_path)) {
+                    // Re-upload the PDF if URI is invalid
+                    try {
+                        logger()->info('Re-uploading PDF to Gemini', ['file_id' => $file->id]);
+                        $newUri = $this->uploadToGeminiFileApi($file->pdf_path);
+                        $file->update(['gemini_file_uri' => $newUri]);
+                        $shouldUseFileUri = true;
+                        $file->gemini_file_uri = $newUri;
+                    } catch (\Exception $e) {
+                        logger()->error('Failed to re-upload PDF to Gemini', [
+                            'file_id' => $file->id,
+                            'error' => $e->getMessage()
+                        ]);
+                        $shouldUseFileUri = false;
+                    }
+                }
+            }
+
+            if ($shouldUseFileUri) {
                 $parts[] = [
                     'text' => "Generate {$count} {$type} from the following document:"
                 ];
@@ -949,6 +973,8 @@ class FileController extends Controller
                     ]
                 ];
             } else {
+                // Fall back to using text content if we can't use the file URI
+                logger()->info('Falling back to text content for generation', ['file_id' => $file->id]);
                 $parts[] = [
                     'text' => "Generate {$count} {$type} using the following content:\n\nContent:\n" . $file->content
                 ];
@@ -1018,13 +1044,27 @@ class FileController extends Controller
                 }
             }
 
+            logger()->error('Gemini API call failed', [
+                'file_id' => $file->id,
+                'type' => $type,
+                'status_code' => $response->status(),
+                'response_body' => $response->body(),
+                'request_url' => $url,
+                'request_payload' => $payload
+            ]);
             return ['success' => false, 'error' => 'Failed to call Gemini API.'];
         } catch (\Exception $e) {
+            logger()->error('Error generating content', [
+                'file_id' => $file->id,
+                'type' => $type,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return ['success' => false, 'error' => 'Error generating ' . str_replace('_', ' ', $type) . ': ' . $e->getMessage()];
         }
     }
 
-    private function generateFlashcardsContent(File $file, int $count)
+    public function generateFlashcardsContent(File $file, int $count)
     {
         return $this->generateContentInternal($file, $count, 'flashcards', [
             "type" => "ARRAY",
@@ -1040,7 +1080,7 @@ class FileController extends Controller
         ]);
     }
 
-    private function generateMultipleChoiceContent(File $file, int $count)
+    public function generateMultipleChoiceContent(File $file, int $count)
     {
         return $this->generateContentInternal($file, $count, 'multiple_choice_quizzes', [
             "type" => "ARRAY",
@@ -1063,7 +1103,7 @@ class FileController extends Controller
         ]);
     }
 
-    private function generateEnumerationContent(File $file, int $count)
+    public function generateEnumerationContent(File $file, int $count)
     {
         return $this->generateContentInternal($file, $count, 'enumeration_quizzes', [
             "type" => "ARRAY",
@@ -1085,7 +1125,7 @@ class FileController extends Controller
         ]);
     }
 
-    private function generateTrueFalseContent(File $file, int $count)
+    public function generateTrueFalseContent(File $file, int $count)
     {
         return $this->generateContentInternal($file, $count, 'true_false_quizzes', [
             "type" => "ARRAY",

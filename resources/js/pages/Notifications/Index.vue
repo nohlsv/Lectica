@@ -130,7 +130,11 @@ const unreadCount = computed(() => {
                                 <div v-if="!notification.read_at" class="mt-1 h-3 w-3 rounded-full bg-blue-600 sm:mt-2"></div>
                                 <div class="min-w-0 flex-1">
                                     <h3 class="text-base font-semibold text-gray-900 dark:text-white sm:text-lg">
-                                        {{ notification.type === 'App\\Notifications\\FileDeniedNotification' ? 'File Denied' : 'Notification' }}
+                                        {{ 
+                                            notification.type === 'App\\Notifications\\FileDeniedNotification' ? 'File Denied' :
+                                            notification.type === 'App\\Notifications\\ContentGenerationComplete' ? 'Content Generation Complete' :
+                                            'Notification'
+                                        }}
                                     </h3>
                                     <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 sm:text-sm">
                                         {{ formatDate(notification.created_at) }}

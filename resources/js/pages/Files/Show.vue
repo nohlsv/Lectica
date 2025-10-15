@@ -18,11 +18,34 @@ import {
     StarIcon,
     XCircleIcon,
 } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { toast } from 'vue-sonner';
 
+interface LocalFile {
+    id: number;
+    name: string;
+    can_edit: boolean;
+    is_starred: boolean;
+    verified: boolean;
+    is_denied: boolean;
+    denial_reason: string | null;
+    created_at: string;
+    updated_at: string;
+    content: string | null;
+    generation_status: 'pending' | 'processing' | 'completed' | 'completed_with_errors' | 'failed' | null;
+    user: {
+        id: number;
+        first_name: string;
+        last_name: string;
+    };
+    tags: {
+        id: number;
+        name: string;
+    }[];
+}
+
 interface Props {
-    file: File;
+    file: LocalFile;
     fileInfo: {
         extension: string;
         exists: boolean;
@@ -56,13 +79,44 @@ interface UserCollection {
     contains_file: boolean;
 }
 
+interface Auth {
+    user: User;
+}
+
 const props = defineProps<Props>();
+const page = usePage();
+const auth = computed<Auth>(() => page.props.auth as Auth);
+
+// Set up Echo listener for content generation completion
+onMounted(() => {
+    if (window.Echo) {
+        const channel = window.Echo.private(`App.Models.User.${auth.value.user.id}`);
+        channel.notification((notification: any) => {
+            if (notification.type === 'App\\Notifications\\ContentGenerationComplete' && 
+                notification.file_id === props.file.id) {
+                // The file data will be updated automatically since we're reloading the page
+                if (notification.errors && Object.keys(notification.errors).length > 0) {
+                    toast.error('Some content failed to generate. Check notifications for details.');
+                } else {
+                    toast.success('Study materials generated successfully!');
+                }
+                // Refresh the page to show new content and updated status
+                router.get(route('files.show', props.file.id), {}, {
+                    preserveScroll: true,
+                    preserveState: true
+                });
+            }
+        });
+    }
+});
 
 const isStarred = ref(props.file.is_starred || false);
 const isStarring = ref(false);
 const isVerifying = ref(false);
 const showCollectionModal = ref(false);
 const showDenyModal = ref(false);
+
+// Note: Echo listener is set up in onMounted
 const denialReason = ref('');
 const isDenying = ref(false);
 const userCollections = ref<UserCollection[]>([]);
@@ -208,7 +262,7 @@ const isOwner = computed(() => {
     return props.file.can_edit === true;
 });
 
-const isGenerating = ref(false);
+const isGenerating = computed(() => props.file.generation_status === 'pending' || props.file.generation_status === 'processing');
 const isDialogOpen = ref(false);
 
 const generateOptions = ref({
@@ -222,30 +276,27 @@ const generateOptions = ref({
     true_false_count: 3,
 });
 
-interface Auth {
-    user: User;
-}
-const page = usePage();
-const auth = computed<Auth>(() => page.props.auth as Auth);
 const canVerify = computed(() => ['faculty', 'admin'].includes(auth.value.user.user_role));
 
-const submitGenerateRequest = async () => {
-    if (isGenerating.value) return;
+const noGenerationOptionsSelected = computed(() => {
+    return !generateOptions.value.generate_flashcards &&
+        !generateOptions.value.generate_multiple_choice_quizzes &&
+        !generateOptions.value.generate_enumeration_quizzes &&
+        !generateOptions.value.generate_true_false_quizzes;
+});
 
-    isGenerating.value = true;
+const submitGenerateRequest = async () => {
+    if (props.file.generation_status === 'pending' || props.file.generation_status === 'processing') return;
 
     router.post(route('files.generate-flashcards-quizzes', { file: props.file.id }), generateOptions.value, {
         preserveScroll: true,
         onSuccess: () => {
             isDialogOpen.value = false; // Close the dialog
-            toast.success('Flashcards and quizzes generated successfully!');
+            toast.success('Flashcards and quizzes generation started!');
         },
         onError: () => {
             toast.error('Failed to generate flashcards and quizzes.');
-        },
-        onFinish: () => {
-            isGenerating.value = false;
-        },
+        }
     });
 };
 
@@ -621,10 +672,15 @@ const onCollectionSuccess = (message?: string) => {
                                     >
                                         🎲 Generate Content
                                     </h5>
-                                    <Dialog v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
+                                    <div v-if="isGenerating" class="text-center py-4">
+                                        <span class="font-pixel text-yellow-300 animate-pulse">Generating study materials...</span>
+                                        <p class="mt-2 text-xs text-yellow-300/70">You will be notified when generation is complete.</p>
+                                    </div>
+                                    <Dialog v-if="!isGenerating" v-model:open="isDialogOpen" onOpenChange="isDialogOpen = $event">
                                         <DialogTrigger asChild>
                                             <button
-                                                class="font-pixel w-full border-2 border-yellow-400 bg-yellow-600 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-yellow-500"
+                                                class="font-pixel w-full border-2 border-yellow-400 bg-yellow-600 px-4 py-2 text-black shadow-[2px_2px_0px_rgba(0,0,0,0.8)] transition-all hover:scale-[1.02] hover:bg-yellow-500 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                                                :disabled="isGenerating"
                                             >
                                                 <PencilIcon class="mr-1 inline h-3 w-3" />
                                                 Generate Flashcards & Quizzes
@@ -727,7 +783,7 @@ const onCollectionSuccess = (message?: string) => {
                                                 </div>
                                             </div>
                                             <DialogFooter>
-                                                <Button :disabled="isGenerating" @click="submitGenerateRequest">
+                                                <Button :disabled="isGenerating || noGenerationOptionsSelected" @click="submitGenerateRequest">
                                                     {{ isGenerating ? 'Generating...' : 'Generate' }}
                                                 </Button>
                                             </DialogFooter>
