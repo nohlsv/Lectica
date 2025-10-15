@@ -8,7 +8,7 @@ import AuthBase from '@/layouts/AuthLayout.vue';
 import type { Program } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Eye, EyeOff, LoaderCircle } from 'lucide-vue-next';
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 
 interface Props {
     programs: Program[];
@@ -36,6 +36,16 @@ const filteredPrograms = computed(() => {
     return selectedCollege.value ? props.programs.filter((program) => program.college === selectedCollege.value) : props.programs;
 });
 
+// Watch for changes in user_role and college to set default program for faculty
+watch([() => form.user_role, selectedCollege], ([newRole, newCollege]: [string, string]) => {
+    if (newRole === 'faculty' && newCollege) {
+        const availablePrograms = props.programs.filter(program => program.college === newCollege);
+        if (availablePrograms.length > 0) {
+            form.program_id = String(availablePrograms[0].id);
+        }
+    }
+});
+
 const showPassword = ref(false);
 const showPasswordConfirmation = ref(false);
 
@@ -48,13 +58,32 @@ const togglePasswordConfirmationVisibility = () => {
 };
 
 const submit = () => {
-    // Set default values for faculty
-    if (form.user_role === 'faculty') {
-        form.year_of_study = 'Graduate';
+    // Set default values for faculty and student roles
+    if (form.user_role === 'faculty' || form.user_role === 'student') {
+        if (form.user_role === 'faculty') {
+            form.year_of_study = 'Graduate';
+            // Ensure program_id is set for faculty
+            if (!form.program_id && selectedCollege.value) {
+                const availablePrograms = props.programs.filter(program => program.college === selectedCollege.value);
+                if (availablePrograms.length > 0) {
+                    form.program_id = String(availablePrograms[0].id);
+                }
+            }
+        }
     }
+    
+    console.log('Submitting form with data:', {
+        user_role: form.user_role,
+        program_id: form.program_id,
+        college: selectedCollege.value,
+        availablePrograms: filteredPrograms.value
+    });
     
     form.post(route('register'), {
         onFinish: () => form.reset('password', 'password_confirmation'),
+        onError: (errors) => {
+            console.error('Registration errors:', errors);
+        },
     });
 };
 </script>
@@ -129,23 +158,25 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <!-- Student-specific fields -->
-                        <div v-if="form.user_role === 'student'" class="space-y-4">
+                        <!-- Educational fields (for both students and faculty) -->
+                        <div v-if="form.user_role === 'student' || form.user_role === 'faculty'" class="space-y-4">
                             <div class="space-y-2">
                                 <Label class="text-sm font-medium text-white sm:text-base" for="college">College</Label>
                                 <select
                                     id="college"
                                     v-model="selectedCollege"
                                     class="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-gray-900 focus:border-red-800 focus:outline-none focus:ring-2 focus:ring-red-700 sm:py-4 sm:text-base"
+                                    required
                                 >
-                                    <option value="">All Colleges</option>
+                                    <option value="" disabled>Select your college</option>
                                     <option v-for="college in colleges" :key="college" :value="college">
                                         {{ college }}
                                     </option>
                                 </select>
                             </div>
 
-                            <div class="space-y-2">
+                            <!-- Program selection (visible only for students) -->
+                            <div v-if="form.user_role === 'student'" class="space-y-2">
                                 <Label class="text-sm font-medium text-white sm:text-base" for="program">Program</Label>
                                 <select
                                     id="program"
@@ -162,7 +193,8 @@ const submit = () => {
                                 <InputError :message="form.errors.program_id" />
                             </div>
 
-                            <div class="space-y-2">
+                            <!-- Student-specific fields -->
+                            <div v-if="form.user_role === 'student'" class="space-y-2">
                                 <Label class="text-sm font-medium text-white sm:text-base" for="year_of_study">Year Level</Label>
                                 <select
                                     id="year_of_study"

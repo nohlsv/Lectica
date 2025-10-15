@@ -83,8 +83,23 @@
                                             </div>
                                         </div>
 
-                                        <div v-if="user.user_role === 'student'" class="grid grid-cols-2 gap-4">
+                                        <div v-if="user.user_role === 'student' || user.user_role === 'faculty'" class="space-y-4">
+                                            <!-- College Selection -->
                                             <div>
+                                                <label class="mb-1 block text-sm font-medium text-gray-100">College</label>
+                                                <select
+                                                    v-model="selectedCollege"
+                                                    class="pixel-outline w-full rounded border border-red-400/50 bg-black/60 px-3 py-2 text-white"
+                                                    required
+                                                >
+                                                    <option v-for="college in colleges" :key="college" :value="college">
+                                                        {{ college }}
+                                                    </option>
+                                                </select>
+                                            </div>
+
+                                            <!-- Program Selection (visible only for students) -->
+                                            <div v-if="user.user_role === 'student'">
                                                 <label class="mb-1 block text-sm font-medium text-gray-100">Program</label>
                                                 <select
                                                     v-model="userForm.program_id"
@@ -92,13 +107,13 @@
                                                     required
                                                 >
                                                     <option value="">Select Program</option>
-                                                    <option v-for="program in programs" :key="program.id" :value="program.id">
-                                                        {{ program.name }}
+                                                    <option v-for="program in filteredPrograms" :key="program.id" :value="program.id">
+                                                        {{ program.name }} ({{ program.code }})
                                                     </option>
                                                 </select>
                                                 <InputError :message="userForm.errors.program_id" />
                                             </div>
-                                            <div>
+                                            <div v-if="user.user_role === 'student'">
                                                 <label class="mb-1 block text-sm font-medium text-gray-100">Year of Study</label>
                                                 <select
                                                     v-model="userForm.year_of_study"
@@ -111,7 +126,6 @@
                                                     <option value="3rd Year">3rd Year</option>
                                                     <option value="4th Year">4th Year</option>
                                                     <option value="5th Year">5th Year</option>
-                                                    <option value="Graduate">Graduate</option>
                                                 </select>
                                                 <InputError :message="userForm.errors.year_of_study" />
                                             </div>
@@ -299,7 +313,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
     </AppLayout>
 </template>
 
@@ -307,7 +321,7 @@
 import InputError from '@/components/InputError.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Link, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 
 const props = defineProps({
@@ -323,8 +337,86 @@ const userForm = useForm({
     first_name: props.user.first_name,
     last_name: props.user.last_name,
     email: props.user.email,
-    program_id: props.user.program_id,
-    year_of_study: props.user.year_of_study,
+    program_id: props.user.program_id ? Number(props.user.program_id) : '',  // Convert to number if exists
+    year_of_study: props.user.user_role === 'faculty' ? 'Graduate' : (props.user.year_of_study || ''),
+});
+
+// Get unique colleges from programs
+const colleges = computed(() => {
+    return [...new Set(props.programs.map(program => program.college))].sort();
+});
+
+const selectedCollege = ref('');
+
+// Initialize college from program on page load
+watch(() => props.user.program_id, (newProgramId) => {
+    if (newProgramId) {
+        const program = props.programs.find(p => p.id === newProgramId);
+        if (program) {
+            console.log('Setting initial college from program:', {
+                program_id: newProgramId,
+                college: program.college,
+                program_name: program.name
+            });
+            selectedCollege.value = program.college;
+        }
+    }
+}, { immediate: true });
+
+const filteredPrograms = computed(() => {
+    return selectedCollege.value ? props.programs.filter(program => program.college === selectedCollege.value) : props.programs;
+});
+
+// Watch for changes in college to set program_id
+watch(selectedCollege, (newCollege) => {
+    console.log('College changed:', {
+        newCollege,
+        role: props.user.user_role,
+        currentProgramId: userForm.program_id
+    });
+
+    if (!newCollege) {
+        console.log('No college selected, clearing program_id');
+        userForm.program_id = '';
+        return;
+    }
+
+    const availablePrograms = props.programs.filter(program => program.college === newCollege);
+    console.log('Available programs for college:', availablePrograms);
+
+    if (availablePrograms.length > 0) {
+        if (props.user.user_role === 'faculty') {
+            // For faculty, always select the first program and ensure Graduate status
+            userForm.program_id = Number(availablePrograms[0].id);
+            userForm.year_of_study = 'Graduate';
+            console.log('Faculty: Auto-selected program and set year:', {
+                college: newCollege,
+                program_id: userForm.program_id,
+                programName: availablePrograms[0].name,
+                year_of_study: userForm.year_of_study
+            });
+        } else if (props.user.user_role === 'student') {
+            // For students, check if their current program is in the new college
+            const currentProgram = availablePrograms.find(p => p.id === Number(userForm.program_id));
+            if (!currentProgram) {
+                // If current program isn't in the new college, clear it
+                userForm.program_id = '';
+                console.log('Student: Cleared program_id as it\'s not in the new college');
+            }
+        }
+    } else {
+        userForm.program_id = '';
+        console.log('No programs available for selected college');
+    }
+}, { immediate: true });
+
+
+// Log initial form state
+console.log('Initial form state:', {
+    role: props.user.user_role,
+    program_id: userForm.program_id,
+    user_program: props.user.program,
+    selectedCollege: selectedCollege.value
 });
 
 const verificationForm = useForm({
@@ -332,11 +424,46 @@ const verificationForm = useForm({
 });
 
 const updateUserDetails = () => {
+    // For faculty users
+    if (props.user.user_role === 'faculty') {
+        // Always ensure year_of_study is 'Graduate' for faculty
+        userForm.year_of_study = 'Graduate';
+        
+        // Set program_id for faculty if college is selected
+        if (selectedCollege.value) {
+            const availablePrograms = props.programs.filter(program => program.college === selectedCollege.value);
+            if (availablePrograms.length > 0) {
+                userForm.program_id = Number(availablePrograms[0].id); // Ensure it's a number
+            }
+        }
+    }
+
+    // Validation before submit
+    if ((props.user.user_role === 'faculty' || props.user.user_role === 'student') && !userForm.program_id) {
+        toast.error('Please select a program before updating.');
+        return;
+    }
+
+    // Ensure program_id is a number before submission
+    if (userForm.program_id) {
+        userForm.program_id = Number(userForm.program_id);
+    }
+
+    console.log('Updating user details:', {
+        formData: userForm,
+        selectedCollege: selectedCollege.value,
+        filteredPrograms: filteredPrograms.value,
+        role: props.user.user_role,
+        program_id: userForm.program_id
+    });
+
     userForm.patch(route('admin.verifications.update-details', props.user.id), {
         onSuccess: () => {
+            console.log('User details updated successfully:', userForm);
             toast.success('User details updated successfully!');
         },
-        onError: () => {
+        onError: (errors) => {
+            console.error('Update failed:', errors);
             toast.error('Failed to update user details. Please check the form for errors.');
         }
     });

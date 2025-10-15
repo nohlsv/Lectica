@@ -48,8 +48,8 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ];
 
-        // Add conditional validation rules for students
-        if ($request->user_role === 'student') {
+        // Add validation rules for both students and faculty
+        if ($request->user_role === 'student' || $request->user_role === 'faculty') {
             $rules['program_id'] = [
                 'required',
                 'integer',
@@ -60,6 +60,11 @@ class RegisteredUserController extends Controller
                 'string',
                 'in:1st Year,2nd Year,3rd Year,4th Year,5th Year,Graduate',
             ];
+
+            // Set year_of_study to Graduate for faculty
+            if ($request->user_role === 'faculty') {
+                $request->merge(['year_of_study' => 'Graduate']);
+            }
         }
 
         $request->validate($rules, [
@@ -80,9 +85,9 @@ class RegisteredUserController extends Controller
             'user_role' => $request->user_role,
         ];
 
-        if ($request->user_role === 'student') {
+        if ($request->user_role === 'student' || $request->user_role === 'faculty') {
             $userData['program_id'] = $request->program_id;
-            $userData['year_of_study'] = $request->year_of_study;
+            $userData['year_of_study'] = $request->user_role === 'faculty' ? 'Graduate' : $request->year_of_study;
         }
 
         $user = User::create($userData);

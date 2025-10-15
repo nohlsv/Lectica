@@ -114,9 +114,16 @@ class AdminVerificationController extends Controller
             ],
         ];
 
-        if ($user->user_role === 'student') {
+        if ($user->user_role === 'student' || $user->user_role === 'faculty') {
             $rules['program_id'] = 'required|integer|exists:programs,id';
             $rules['year_of_study'] = 'required|string|in:1st Year,2nd Year,3rd Year,4th Year,5th Year,Graduate';
+            
+            // Add program_id and year_of_study to validated data for faculty
+            if ($user->user_role === 'faculty') {
+                $request->merge([
+                    'year_of_study' => 'Graduate'
+                ]);
+            }
         }
 
         $validated = $request->validate($rules);
