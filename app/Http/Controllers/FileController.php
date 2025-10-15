@@ -67,7 +67,7 @@ class FileController extends Controller
             $query->orderBy($request->input('sort'), $direction);
         }
 
-        $files = $query->paginate(10)->withQueryString();
+        $files = $query->paginate(12)->withQueryString();
 
         return Inertia::render('Files/Index', [
             'files' => $files,
